@@ -249,13 +249,13 @@ export const ja = {
   appTabBar: '縦棒',
   // AI settings
   appAiSettings: 'AI 設定',
-  appGensparkAccount: 'Genspark アカウント',
+  appGensparkAccount: 'Redrob アカウント',
   appChecking: '確認中…',
   appLoggedIn: 'サインイン済み',
   appLoggedInEmail: 'サインイン済み:{email}',
-  appNotLoggedIn: '未サインイン(AI 機能には Genspark アカウントが必要です)',
+  appNotLoggedIn: '未サインイン(AI 機能には Redrob アカウントが必要です)',
   appWaitingBrowserLogin: 'ブラウザーでのサインインを待っています…',
-  appLoginGenspark: 'Genspark にサインイン',
+  appLoginGenspark: 'Redrob にサインイン',
   appModel: 'モデル',
   // Context menu
   appCut: '切り取り',

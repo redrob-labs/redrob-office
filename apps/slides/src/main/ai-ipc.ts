@@ -117,7 +117,7 @@ export function registerAiIpc(): void {
     return settings
   })
 
-  // Genspark account (gsk login state): the auth source for AI features; when logged out the frontend uses this to guide login
+  // Redrob account (gsk login state): the auth source for AI features; when logged out the frontend uses this to guide login
   ipcMain.handle(
     'ai:gsk-status',
     async (_event, withEmail?: boolean): Promise<GenSparkAccountStatus> => {
@@ -254,7 +254,7 @@ export function registerAiIpc(): void {
 // never called; docs does not have these channels, so putting them in the wrong place raises
 // "No handler registered".
 export function registerSlidesOnlyAiIpc(): void {
-  // gsk (Genspark CLI) capabilities: AI image generation / media analysis. Returns an error prompt when not logged in.
+  // gsk (Redrob CLI) capabilities: AI image generation / media analysis. Returns an error prompt when not logged in.
   ipcMain.handle(
     'ai:generate-image',
     async (
@@ -271,7 +271,7 @@ export function registerSlidesOnlyAiIpc(): void {
       if (!gskCloudToolsOn())
         return {
           error:
-            'Genspark cloud tools are turned off in Settings (AI Model); enable them to use this tool',
+            'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool',
         }
       try {
         const r = await gskGenerateImage({
@@ -297,7 +297,7 @@ export function registerSlidesOnlyAiIpc(): void {
       if (!gskCloudToolsOn())
         return {
           error:
-            'Genspark cloud tools are turned off in Settings (AI Model); enable them to use this tool',
+            'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool',
         }
       try {
         const text = await gskAnalyzeMedia({

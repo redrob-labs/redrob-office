@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import appIcon from './assets/app-icon.png'
+import brandMark from './assets/redrob-mark.svg'
+import brandMarkOnDark from './assets/redrob-mark-on-dark.svg'
 import { useI18n } from './locale'
 import type { StringKey } from './locale'
 import './onboarding.css'
@@ -51,7 +52,14 @@ function renderEmphasis(text: string) {
  * 60px canvas, 4px strokes — same visual mass as the 60px app icon */
 function SlideArt({ kind }: { kind: Slide['art'] }) {
   if (kind === 'logo') {
-    return <img className="onb-art onb-art-logo" src={appIcon} alt="" />
+    // Official Redrob mark; the light tile suits the white card, the dark tile
+    // the dark card. CSS shows one per theme (see onboarding.css).
+    return (
+      <>
+        <img className="onb-art onb-art-logo onb-art-logo-light" src={brandMark} alt="" />
+        <img className="onb-art onb-art-logo onb-art-logo-dark" src={brandMarkOnDark} alt="" />
+      </>
+    )
   }
   if (kind === 'gift') {
     // hand-drawn gift kept over the spec vector deliberately; 48 canvas at

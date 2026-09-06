@@ -174,7 +174,7 @@ export const pt = {
   ribbonFlipH: 'Inverter horizontalmente',
   ribbonFlipV: 'Inverter verticalmente',
   ribbonDistributeHint: '{title} (selecione 3 ou mais elementos)',
-  ribbonAiAssistant: 'Genspark',
+  ribbonAiAssistant: 'Redrob',
   ribbonAiAssistantTip: 'Mostrar ou ocultar o painel do Assistente de IA',
   ribbonGroupTable: 'Tabela',
   ribbonInsertTableTip: 'Inserir uma tabela (estilo padrão; escolha linhas e colunas)',

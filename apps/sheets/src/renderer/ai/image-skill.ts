@@ -3,7 +3,7 @@ import { t } from '../i18n/locale'
 
 /**
  * Image acquisition AgentSkill: image_search (shared main-process channel, same
- * source as docs/slides) and generate_image (sheets-owned Genspark channel).
+ * source as docs/slides) and generate_image (sheets-owned Redrob channel).
  * Both return a URL; placement happens through the normal propose_operations
  * add_image path, which downloads the URL in the main process on apply.
  */
@@ -20,7 +20,7 @@ const IMAGES_SYSTEM_PROMPT_NO_GEN = `## Images
 ${PLACEMENT_PROMPT}`
 
 /**
- * `gskTools` is a live predicate (login state && the Genspark-cloud-tools
+ * `gskTools` is a live predicate (login state && the Redrob-cloud-tools
  * toggle); the loop re-reads tools and systemPrompt before every request,
  * so generate_image appears and disappears without rebuilding the loop.
  */
@@ -43,7 +43,7 @@ export function createImageSkill(gskTools: () => boolean = () => true): AgentSki
     {
       name: 'generate_image',
       description:
-        'Generate an image with AI from a text prompt (Genspark account required). Returns a URL to insert ' +
+        'Generate an image with AI from a text prompt (Redrob account required). Returns a URL to insert ' +
         'with propose_operations add_image. Use for illustrations/decorative art; prefer image_search for real-world subjects.',
       inputSchema: {
         type: 'object',

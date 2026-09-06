@@ -143,7 +143,7 @@ export const ja = {
   ribbonMoreStyles: 'その他のスタイル',
   ribbonGroupStyles: 'スタイル',
   // Home · AI
-  ribbonAiAssistant: 'Genspark',
+  ribbonAiAssistant: 'Redrob',
   ribbonAiAssistantTip: 'AI アシスタントを開く',
   // Table Design
   ribbonRemoveTableStyleTip: '表のスタイルを削除',

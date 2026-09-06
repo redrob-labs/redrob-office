@@ -15,8 +15,6 @@
   /* lift for the active segment in gray-track tab pills */
   --shadow-pill: 0 1px 2px rgb(0 0 0 / 8%);
 
-  /* genoffice-logo.svg is pure black-and-white; dark themes flip it to 1 */
-  --logo-invert: 0;
 }
 
 /* ── Dark mode overrides ─────────────────────────────────── */
@@ -32,7 +30,6 @@
   --timeline-user-bg: #2a2a3a;
   --timeline-user-text: #b0b0c0;
   --shadow-pill: 0 1px 2px rgb(0 0 0 / 40%);
-  --logo-invert: 1;
 }
 
 /* System dark: no data-theme or data-theme="system" — follow OS preference */
@@ -47,7 +44,6 @@
     --timeline-user-bg: #2a2a3a;
     --timeline-user-text: #b0b0c0;
     --shadow-pill: 0 1px 2px rgb(0 0 0 / 40%);
-    --logo-invert: 1;
   }
 }
 
@@ -120,7 +116,31 @@ body.vib .home {
   display: block;
   height: 28px;
   width: auto;
-  filter: invert(var(--logo-invert));
+}
+
+/* Show the light wordmark (dark text) by default; swap to the dark wordmark
+   (light text) under either explicit dark theme or system dark. The gradient
+   mark is identical in both, so we never invert a colored asset. */
+.logo-lockup-dark {
+  display: none;
+}
+
+[data-theme='dark'] .logo-lockup-light {
+  display: none;
+}
+
+[data-theme='dark'] .logo-lockup-dark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) .logo-lockup-light {
+    display: none;
+  }
+
+  :root:not([data-theme='light']):not([data-theme='dark']) .logo-lockup-dark {
+    display: block;
+  }
 }
 
 .sidebar-nav {

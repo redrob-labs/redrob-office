@@ -82,6 +82,7 @@ pnpm download:models -- --role text
 
 - [docs/setup-policy.md](./docs/setup-policy.md): 첫 실행, 로컬 모델 팩, 추론 라우팅 정책
 - [docs/console-api.md](./docs/console-api.md): Redrob Console 추론 API 계약
+- [docs/branding-cleanup.md](./docs/branding-cleanup.md): Redrob 브랜딩 규칙과 내부 예외(폰트·패키지·직렬화 키 등) 목록
 - [AGENTS.md](./AGENTS.md): 개발·검증 환경과 동작 노트
 
 ## 라이선스

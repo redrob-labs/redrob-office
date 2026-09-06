@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
-import logoLockup from './assets/genoffice-logo.svg'
+import logoLockup from './assets/redrob-logo.svg'
+import logoLockupOnDark from './assets/redrob-logo-on-dark.svg'
 import iconDocx from './assets/file-docx.svg'
 import iconXlsx from './assets/file-xlsx.svg'
 import iconPptx from './assets/file-pptx.svg'
@@ -2113,7 +2114,11 @@ export function Home() {
     <div className="home">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img className="logo-lockup" src={logoLockup} alt="Redrob" />
+          {/* Two theme variants of the Redrob wordmark: the light one has dark
+              text, the dark one has light text (the gradient mark is identical).
+              CSS shows one per theme so the colored gradient is never inverted. */}
+          <img className="logo-lockup logo-lockup-light" src={logoLockup} alt="Redrob" />
+          <img className="logo-lockup logo-lockup-dark" src={logoLockupOnDark} alt="Redrob" />
         </div>
 
         <nav className="sidebar-nav">

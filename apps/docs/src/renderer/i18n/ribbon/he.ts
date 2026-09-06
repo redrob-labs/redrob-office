@@ -133,7 +133,7 @@ export const he = {
   ribbonStylePaneTip: 'חלונית סגנונות: עיין בכל הסגנונות, צור או עדכן סגנונות מהקטע הנבחר',
   ribbonMoreStyles: 'סגנונות נוספים',
   ribbonGroupStyles: 'סגנונות',
-  ribbonAiAssistant: 'Genspark',
+  ribbonAiAssistant: 'Redrob',
   ribbonAiAssistantTip: 'פתח את עוזר ה-AI',
   ribbonRemoveTableStyleTip: 'הסר סגנון טבלה',
   ribbonNoStyle: 'ללא סגנון',

@@ -104,6 +104,29 @@
   border-radius: 13.5px;
 }
 
+/* Redrob mark: light tile on the white card, dark tile on the dark card. */
+.onb-art-logo-dark {
+  display: none;
+}
+
+[data-theme='dark'] .onb-art-logo-light {
+  display: none;
+}
+
+[data-theme='dark'] .onb-art-logo-dark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) .onb-art-logo-light {
+    display: none;
+  }
+
+  :root:not([data-theme='light']):not([data-theme='dark']) .onb-art-logo-dark {
+    display: block;
+  }
+}
+
 /* decorative glyphs: exact design-spec vectors — 60px box, 4px strokes, bare
  * black line art matching the app icon's visual mass */
 .onb-art-badge {
