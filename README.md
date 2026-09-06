@@ -35,11 +35,20 @@ Node 22, pnpm 9.15.0, Electron. pnpm + Turborepo 모노레포입니다.
 
 ```bash
 pnpm install
-pnpm dev              # Electron 앱 (표시 장치 필요)
-pnpm dev:web          # 렌더러만 브라우저에서 (모의 IPC, GPU 불필요)
+pnpm dev              # Redrob Office 오피스 스위트 (@genoffice/shell). 표시 장치 필요
+pnpm dev:office       # 레거시 채용 앱 (@redrob/office). 표시 장치 필요
+pnpm dev:web          # @redrob/office 렌더러만 브라우저에서 (모의 IPC, GPU 불필요)
 pnpm typecheck
 pnpm test
-pnpm dist             # Windows 패키징
+pnpm dist             # 오피스 스위트 패키징 (dist:office 는 채용 앱)
+```
+
+`pnpm dev` 는 셸 앱(`@genoffice/shell`)을 띄웁니다. 하나의 창이 Docs·Sheets·Slides·PDF·Markdown·Hangul 편집기를 `WebContentsView` 자식으로 호스팅하는, 사용자가 보는 기본 화면입니다. `@redrob/office`(채용 앱 + Redrob 엔진)는 함께 유지되며 `pnpm dev:office` 로 따로 실행합니다.
+
+헤드리스(표시 장치 없음) 환경에서 실제 셸을 띄우려면 가상 디스플레이를 씁니다.
+
+```bash
+DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=1 pnpm dev   # @genoffice/shell
 ```
 
 로컬 모델 가중치는 별도로 내려받습니다.
@@ -53,7 +62,9 @@ pnpm download:models -- --role text
 
 | 위치 | 역할 |
 | --- | --- |
-| `office/` | Electron 앱(메인·프리로드·렌더러). 도구, 정책, 에이전트 연결 |
+| `apps/shell` | 오피스 스위트 셸(`@genoffice/shell`). `pnpm dev` 의 기본 화면. 편집기들을 `WebContentsView` 로 호스팅 |
+| `apps/{docs,sheets,slides,pdf,markdown,hangul}` | 편집기 앱(각각 자체 Electron 워크스페이스) |
+| `office/` | 레거시 채용 앱(`@redrob/office`) + Redrob 엔진. 도구, 정책, 에이전트 연결. `pnpm dev:office` |
 | `packages/kernel` | 추론 경로와 모델 런타임 |
 | `packages/extract` | 조회 엔진 |
 | `packages/compare` | 처리 엔진(기준 파일, 산출 템플릿) |

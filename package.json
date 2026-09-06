@@ -6,6 +6,8 @@
   "description": "On-device office suite: lookup, process, and review without leaving this PC",
   "packageManager": "pnpm@9.15.0",
   "scripts": {
+    "postinstall": "node ./scripts/ensure-electron.mjs",
+    "ensure:electron": "node ./scripts/ensure-electron.mjs",
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@genoffice/shell",
     "dev:office": "turbo run dev --filter=@redrob/office",

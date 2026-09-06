@@ -41,6 +41,8 @@
   "globalPassThroughEnv": [
     "REDROB_CODE_BIN",
     "REDROB_CODE_BUN",
-    "REDROB_CODE_DEV_ROOT"
+    "REDROB_CODE_DEV_ROOT",
+    "RUSTUP_HOME",
+    "CARGO_HOME"
   ]
 }

@@ -11,11 +11,17 @@ subsystems of the Electron app. Node `>=22`, pnpm `9.15.0`. Standard scripts liv
 
 ### Running in the cloud VM (no GPU, headless)
 
-- The cloud VM has **no GPU and no display**. The full Electron app (`pnpm dev`) needs a display,
-  and its local AI inference (`llama-server`) is **GPU-only** — so real chat/extract/scoring/ASR
-  and `pnpm download:models` (multi-GB weights) **cannot run here**. Do not treat this as a bug.
-- Use the headless dev flow instead: **`pnpm dev:web`** serves the React renderer at
-  http://localhost:5173 (strict port). It runs the UI with no Electron and no GPU.
+- `pnpm dev` launches the **Redrob Office suite shell** (`@genoffice/shell`): one BrowserWindow
+  hosting Docs/Sheets/Slides/PDF/Markdown/Hangul as `WebContentsView` children. This is the
+  primary product surface. The legacy recruiting app (`@redrob/office`) coexists and is launched
+  separately with **`pnpm dev:office`** (`turbo run dev --filter=@redrob/office`).
+- The cloud VM has **no GPU and no display**. The full Electron apps (`pnpm dev` /
+  `pnpm dev:office`) need a display, and local AI inference (`llama-server`) is **GPU-only** so
+  real chat/extract/scoring/ASR and `pnpm download:models` (multi-GB weights) **cannot run here**.
+  Do not treat this as a bug.
+- Use the headless dev flow instead: **`pnpm dev:web`** serves the **`@redrob/office`** React
+  renderer at http://localhost:5173 (strict port). It runs that recruiting-app UI with no Electron
+  and no GPU. Note `dev:web` covers `@redrob/office` only, not the suite shell.
 - In web mode the Electron preload IPC is absent, so `ensureOfficeBridge()` installs a **browser
   mock** (`office/src/renderer/src/desk-bridge.ts` → `createMockOfficeApi`). Template-based flows
   work end-to-end against the mock (e.g. drafting a job posting / JD, chat sessions, memories,
@@ -33,13 +39,17 @@ subsystems of the Electron app. Node `>=22`, pnpm `9.15.0`. Standard scripts liv
 
 ### Running the FULL Electron app headless (real chat / tools, no GPU)
 
-`dev:web` uses a mock bridge, so it cannot exercise real chat/agent tools. To run the real
-main-process agent without a GPU, route inference to a cloud provider and launch Electron on the
-VM's virtual display:
+`dev:web` uses a mock bridge, so it cannot exercise real chat/agent tools. To run a real
+main-process Electron app without a GPU, launch it on the VM's virtual display:
 
 - Display: `:1` (Xvfb is already running — it's the same display the computer-use tooling drives).
-- Launch: `DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=1 pnpm --filter @redrob/office dev`. The `bus.cc`
-  / `viz_main_impl` / `login1` errors in the log are benign in this headless container.
+- **Office suite (the primary surface):** `DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=1 pnpm dev`
+  (`@genoffice/shell`). This is what to launch to inspect Home / Docs / Sheets / Slides / PDF /
+  Markdown / Hangul.
+- **Legacy recruiting app + Redrob engine:** to exercise the real chat/agent tools, route
+  inference to a cloud provider and launch `DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=1 pnpm dev:office`
+  (equivalently `pnpm --filter @redrob/office dev`). The `bus.cc` / `viz_main_impl` / `login1`
+  errors in the log are benign in this headless container.
 - The renderer dev-server port auto-bumps to `5174` if `dev:web` already holds `5173`.
 - Skip the model-download wizard by pre-seeding `setup.json` in the app's userData dir
   (`~/.config/@redrob/office/setup.json`) with `completedAt` set and a Redrob Console key:
