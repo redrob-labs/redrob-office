@@ -445,17 +445,28 @@ body.vib .home {
   max-width: 100%;
   min-width: 0;
   display: flex;
-  align-items: center;
+  /* align the AI chip to the first line's cap height so a two-line title stays
+     tidy (the chip does not center against a taller wrapped block) */
+  align-items: flex-start;
   gap: 6px;
 }
 
 .quick-title {
   min-width: 0;
-  overflow: hidden;
   font-size: 14px;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  /* Product names like "Redrob Slides" are too wide for a narrow card on one
+     line. Wrap to two lines and show the full name rather than ellipsizing to
+     "Redrob …". Cards are align-items:stretch, so a two-line card keeps the row
+     aligned. A third line (should copy ever grow) still clamps with an ellipsis
+     as a safety net; title/aria-label carry the full text regardless. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .quick-sub {
@@ -480,6 +491,8 @@ body.vib .home {
 }
 
 .ai-chip {
+  flex-shrink: 0;
+  align-self: flex-start;
   padding: 1px 6px;
   border-radius: 4px;
   background: var(--badge-bg);
@@ -487,6 +500,15 @@ body.vib .home {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
+}
+
+/* The AI chip sits in the card's top-right corner (aligned with the file
+   badge), so the title below can use the card's full content width and show
+   the whole product name on two lines instead of losing room to the chip. */
+.ai-chip-corner {
+  position: absolute;
+  top: 18px;
+  right: 16px;
 }
 
 @media (max-width: 1100px) {

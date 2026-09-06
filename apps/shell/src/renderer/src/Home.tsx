@@ -1608,14 +1608,22 @@ export function Home() {
     return (
       <div className="quick-cards">
         {NEW_ITEMS.map((item) => (
-          <button key={item.ext} className="quick-card" onClick={() => void item.action()}>
+          <button
+            key={item.ext}
+            className="quick-card"
+            onClick={() => void item.action()}
+            title={item.title}
+            aria-label={item.title}
+          >
             <FileBadge ext={item.ext} size={30} />
+            {(item as { ai?: boolean }).ai === false ? null : (
+              <span className="ai-chip ai-chip-corner" aria-hidden="true">
+                AI
+              </span>
+            )}
             <span className="quick-text">
               <span className="quick-title-row">
                 <span className="quick-title">{item.title}</span>
-                {(item as { ai?: boolean }).ai === false ? null : (
-                  <span className="ai-chip">AI</span>
-                )}
               </span>
               <span className="quick-sub">{item.sub}</span>
             </span>
@@ -1624,6 +1632,8 @@ export function Home() {
         <button
           className="quick-card"
           onClick={() => void window.aiOffice.browse()}
+          title={t('openLocal')}
+          aria-label={t('openLocal')}
           data-tip={OPEN_LOCAL_EXTENSIONS}
         >
           <span className="quick-folder">
