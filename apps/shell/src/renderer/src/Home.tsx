@@ -19,6 +19,7 @@ import type {
 import { useDismissablePopover } from '@genoffice/ui'
 import { fileCountKey, visiblePageCount } from './counts'
 import { displayParentDir } from './recent-location'
+import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import { useI18n } from './locale'
 import type { I18n, StringKey } from './locale'
 import { SettingsModal } from './SettingsModal'
@@ -477,8 +478,10 @@ function AccountEntry({
   // report logged-in) is discarded instead of resurrecting the UI
   const statusSeq = useRef(0)
 
-  // query login state once on mount
+  // query login state once on mount — skipped when cloud-account is disabled so
+  // the app never contacts the genspark.ai account endpoint under a Redrob label
   useEffect(() => {
+    if (!CLOUD_ACCOUNT_ENABLED) return
     let alive = true
     void window.aiOffice.accountStatus?.().then((s) => {
       if (alive) setStatus(s)
@@ -488,8 +491,10 @@ function AccountEntry({
     }
   }, [])
 
-  // login progress pushed from main (gsk login CLI output)
+  // login progress pushed from main (gsk login CLI output); inert when the
+  // cloud-account (genspark) sign-in surface is disabled
   useEffect(() => {
+    if (!CLOUD_ACCOUNT_ENABLED) return
     const off = window.aiOffice.onAccountLogin?.((ev) => {
       if (ev.phase === 'url') {
         if (ev.url) setAuthUrl(ev.url)
@@ -582,11 +587,15 @@ function AccountEntry({
 
   const handleClick = () => {
     // refresh the login state / credit balance; drop the response
-    // when a logout happened while it was in flight
-    const seq = statusSeq.current
-    void window.aiOffice.accountStatus?.().then((s) => {
-      if (seq === statusSeq.current) setStatus(s)
-    })
+    // when a logout happened while it was in flight. Skipped when the
+    // cloud-account surface is disabled (no genspark.ai contact); the button
+    // is then just a Settings opener.
+    if (CLOUD_ACCOUNT_ENABLED) {
+      const seq = statusSeq.current
+      void window.aiOffice.accountStatus?.().then((s) => {
+        if (seq === statusSeq.current) setStatus(s)
+      })
+    }
     setSettingsOpen(true)
   }
 
@@ -609,7 +618,7 @@ function AccountEntry({
           onLogout={doLogout}
         />
       )}
-      {!settingsOpen && waiting && authUrl && (
+      {CLOUD_ACCOUNT_ENABLED && !settingsOpen && waiting && authUrl && (
         <div className="login-hint" role="status">
           <button className="login-hint-open" onClick={openLoginUrl}>
             {t('loginOpenShort')}
@@ -661,18 +670,30 @@ function AccountEntry({
         aria-haspopup="dialog"
         aria-expanded={settingsOpen}
         data-tip={
-          loggedIn
-            ? email || t('loggedInGenspark')
-            : waiting
-              ? t('waitingLogin')
-              : (errorText ?? t('loginGenspark'))
+          !CLOUD_ACCOUNT_ENABLED
+            ? t('settings')
+            : loggedIn
+              ? email || t('loggedInGenspark')
+              : waiting
+                ? t('waitingLogin')
+                : (errorText ?? t('loginGenspark'))
         }
         aria-label={t('settings')}
       >
         <span
           className={`account-avatar${loggedIn ? ' logged-in' : ''}${waiting ? ' waiting' : ''}`}
         >
-          {waiting ? (
+          {!CLOUD_ACCOUNT_ENABLED ? (
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="2.2" stroke="currentColor" strokeWidth="1.3" />
+              <path
+                d="M8 1.6v1.8M8 12.6v1.8M14.4 8h-1.8M3.4 8H1.6M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3M12.5 12.5l-1.3-1.3M4.8 4.8 3.5 3.5"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+              />
+            </svg>
+          ) : waiting ? (
             <svg
               className="account-spinner"
               width="14"
@@ -698,15 +719,17 @@ function AccountEntry({
         </span>
         <span className="account-text">
           <span className="account-name">
-            {loggedIn
-              ? email
-                ? email.split('@')[0]
-                : t('loggedIn')
-              : waiting
-                ? t('waitingShort')
-                : t('login')}
+            {!CLOUD_ACCOUNT_ENABLED
+              ? t('settings')
+              : loggedIn
+                ? email
+                  ? email.split('@')[0]
+                  : t('loggedIn')
+                : waiting
+                  ? t('waitingShort')
+                  : t('login')}
           </span>
-          {!loggedIn && !waiting && errorText && (
+          {CLOUD_ACCOUNT_ENABLED && !loggedIn && !waiting && errorText && (
             <span className="account-sub error">{errorText}</span>
           )}
         </span>
@@ -2159,7 +2182,7 @@ export function Home() {
             <span className="nav-label">{t('navStarred')}</span>
             <span className="nav-count">{navCounts.starred}</span>
           </button>
-          {loggedIn && (
+          {CLOUD_ACCOUNT_ENABLED && loggedIn && (
             <button
               className={`nav-item${cloudMode && !selectedProjectId ? ' active' : ''}`}
               onClick={() => {
@@ -2217,12 +2240,16 @@ export function Home() {
           </>
         )}
 
+        {/* AccountEntry is the entry point to Settings. When cloud-account is
+            disabled it shows only a neutral Settings control (no sign-in identity
+            and no genspark.ai login flow); the account/credits section is also
+            dropped from the settings modal. */}
         <AccountEntry onStatusChange={handleAccountStatus} />
       </aside>
 
       {selectedProjectId ? (
         renderProjectContent()
-      ) : cloudMode ? (
+      ) : CLOUD_ACCOUNT_ENABLED && cloudMode ? (
         <CloudProjectsView />
       ) : (
         renderGlobalContent()

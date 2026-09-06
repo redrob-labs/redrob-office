@@ -12,6 +12,7 @@ import { useI18n } from './locale'
 import type { StringKey, TFunc } from './locale'
 import type { AccountStatus, UiTheme } from '../../shared/home-api'
 import { ProviderLogo } from './provider-logos'
+import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import './settings.css'
 
 // ── Settings modal (opened from the account menu) ─────────
@@ -73,12 +74,19 @@ function formatStars(n: number): string {
 
 type SectionId = 'account' | 'aiModel' | 'general' | 'about'
 
-const SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = [
+// The "account" section hosts the ported Genspark sign-in / credits, which
+// authenticate against genspark.ai. It is only listed when the cloud-account
+// surface is enabled; otherwise Settings opens on the AI Model (Redrob Console)
+// pane and the account/credits pane is unreachable.
+const ALL_SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = [
   { id: 'account', labelKey: 'setSecAccount' },
   { id: 'aiModel', labelKey: 'setSecAiModel' },
   { id: 'general', labelKey: 'setSecGeneral' },
   { id: 'about', labelKey: 'setSecAbout' },
 ]
+const SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = CLOUD_ACCOUNT_ENABLED
+  ? ALL_SECTIONS
+  : ALL_SECTIONS.filter((s) => s.id !== 'account')
 
 function SectionIcon({ id }: { id: SectionId }) {
   if (id === 'aiModel') {
@@ -405,7 +413,7 @@ export function SettingsModal({
   onLogout,
 }: SettingsModalProps) {
   const { lang, setLang, t } = useI18n()
-  const [section, setSection] = useState<SectionId>('account')
+  const [section, setSection] = useState<SectionId>(SECTIONS[0].id)
   const [theme, setTheme] = useState<UiTheme>('system')
   const [saveDir, setSaveDir] = useState('')
   const [analyticsOn, setAnalyticsOn] = useState(true)
@@ -499,7 +507,7 @@ export function SettingsModal({
             ))}
           </nav>
           <div className="set-pane">
-            {section === 'account' && (
+            {CLOUD_ACCOUNT_ENABLED && section === 'account' && (
               <>
                 <h3 className="set-pane-title">{t('setSecAccount')}</h3>
                 <Field label={t('setEmail')} value={loggedIn ? email : t('setNotLoggedIn')} />

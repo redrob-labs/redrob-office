@@ -155,7 +155,7 @@ beforeEach(() => {
 describe('initial state', () => {
   it('starts with only the non-closable, active Home tab', () => {
     expect(manager.list()).toEqual([
-      { id: 'home', kind: 'home', title: 'Redrob', closable: false, active: true },
+      { id: 'home', kind: 'home', title: 'Redrob Office', closable: false, active: true },
     ])
   })
 })
@@ -184,7 +184,7 @@ describe('opening tabs', () => {
     manager.openSlidesTab('/tmp/deck.pptx')
     manager.openPdfTab('/tmp/scan.pdf')
     expect(manager.list().map((t) => t.title)).toEqual([
-      'Redrob',
+      'Redrob Office',
       'report.docx',
       'budget.xlsx',
       'deck.pptx',
@@ -195,7 +195,11 @@ describe('opening tabs', () => {
   it('uses module default titles for pathless tabs', () => {
     manager.openSheetsTab()
     manager.openSlidesTab()
-    expect(manager.list().map((t) => t.title)).toEqual(['Redrob', 'AI Sheets', 'AI Slides'])
+    expect(manager.list().map((t) => t.title)).toEqual([
+      'Redrob Office',
+      'Redrob Sheets',
+      'Redrob Slides',
+    ])
   })
 
   it('assigns unique, monotonic tab ids', () => {

@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Naming and cloud-account honesty
+
+- The suite product name is **Redrob Office** (not bare "Redrob"): window title,
+  Home tab, shell title, and the onboarding welcome, across all locales.
+- One set of editor names everywhere: **Redrob Docs / Sheets / Slides / PDF /
+  Markdown / Hangul** — Home quick-create cards, the native File > New menu, and
+  untitled-tab fallbacks. The inconsistent `AI Docs` / `AI Sheets` labels are
+  removed.
+- Onboarding slide 2 is honest: it no longer says "join the group chat on
+  Redrob" while opening GitHub. Copy now reads as open-source / GitHub feedback
+  and the button is **Open GitHub**.
+- **Cloud-account surfaces hidden (credential-destination honesty).** The ported
+  Genspark sign-in, cloud-projects, and credits features authenticate against /
+  link to genspark.ai. They are hidden behind `CLOUD_ACCOUNT_ENABLED` (default
+  off) so no Redrob-labeled control signs a user into a third party. The
+  bottom-left entry is now a neutral Settings control; the cloud-projects nav and
+  the Settings Account/credits section are not rendered; Settings opens on the AI
+  Model (Redrob Console) pane. Endpoint code is kept but unreachable. Local-first
+  features (recents, local projects, open-local, editors, settings, Console key)
+  are unaffected. Guarded by `apps/shell/tests/cloud-account-hidden.test.ts`.
+
 ### Branding: Redrob Office
 
 The ported office suite now presents as Redrob Office on every user-visible

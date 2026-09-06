@@ -11,11 +11,51 @@ static audit test (`apps/shell/tests/branding-audit.test.ts`) enforces it.
 
 ## Product names
 
-- Suite: **Redrob Office**. Window title: `Redrob`.
-- Editors: **Redrob Docs / Sheets / Slides / PDF / Markdown / Hangul**.
+- Suite: **Redrob Office**. Window title, Home tab, shell `<title>`, and the
+  onboarding welcome all say `Redrob Office` (not bare `Redrob`).
+- Editors: **Redrob Docs / Sheets / Slides / PDF / Markdown / Hangul**. This is
+  the one set of editor names, used by the Home quick-create cards, the native
+  File > New menu, and the untitled-tab fallbacks. The old `AI Docs` / `AI
+  Sheets` / … labels are gone.
 - AI: **Redrob AI** (the single Redrob engine / Redrob Console). There is no
   provider picker and no BYOK vendor choice.
 - No em dash (`—`) in user-facing copy.
+
+## Cloud-account surfaces are hidden (credential-destination honesty)
+
+The suite was ported from GenOffice, whose account features authenticate against
+and link to **genspark.ai**: the sign-in flow (device-code login), the "cloud
+projects" list, and the credit balance are all Genspark's. Redrob Office has no
+Redrob-branded auth/cloud backend wired yet, so showing those under a "Redrob"
+label would misrepresent where a user's credentials go.
+
+Rule: **no control labeled Redrob may sign the user into, or send data to,
+genspark.ai.** Until a real Redrob auth/cloud backend exists, these surfaces are
+hidden behind the build-time flag `CLOUD_ACCOUNT_ENABLED` (default `false`) in
+`apps/shell/src/renderer/src/cloud-account-flag.ts`:
+
+- The bottom-left entry stays as a neutral **Settings** control (gear icon,
+  "Settings" label) and no longer shows sign-in / account identity. It does not
+  query the genspark.ai account endpoint on mount.
+- The sidebar "cloud projects" nav item and the cloud-projects view are not
+  rendered.
+- The Settings **Account** section (sign-in / logout / credits / "view usage")
+  is dropped from the section list and never rendered; Settings opens on the
+  **AI Model** pane. Theme, language, save location, update channel, and the
+  Redrob Console key remain reachable.
+- Onboarding slide 2 no longer promises a "group chat on Redrob"; it is honest
+  open-source / GitHub feedback copy with an **Open GitHub** button.
+
+The endpoint code is intentionally **kept** in the tree (it is load-bearing and
+still unit tested: `apps/shell/tests/cloud-projects.test.ts`,
+`packages/ai-search`), just made unreachable from any Redrob-labeled control.
+Flip the flag to `true` only once a Redrob-branded backend replaces the
+genspark.ai endpoints. Enforced by `apps/shell/tests/cloud-account-hidden.test.ts`.
+
+The genuinely Redrob-honest account/credential surface that stays is the **AI
+Model** settings pane: a single Redrob **Console** key (issued at
+`console.redrob.ai`). The **local** ProjectStore projects sidebar is unrelated
+to the genspark cloud projects and stays.
 
 ## Logo assets
 

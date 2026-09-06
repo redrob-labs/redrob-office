@@ -18,7 +18,7 @@ interface Slide {
   bodyKey?: StringKey
   /** render the body in the dimmer footnote gray (slide 3's credits disclaimer) */
   bodyDim?: boolean
-  /** community slide shows the credits offer panel with the "Join GenTeam" call-to-action */
+  /** community slide shows the feedback panel with the "Open GitHub" call-to-action */
   showOffer?: boolean
   /** closing slide shows the "star us on GitHub" hint */
   showStar?: boolean
@@ -128,7 +128,7 @@ export function Onboarding({ onDone }: OnboardingProps) {
   }, [])
 
   // slide changes can strip focus from the active control (leaving slide 2
-  // makes its GenTeam button inert, which blurs it) — pull focus back onto the
+  // makes its GitHub button inert, which blurs it) — pull focus back onto the
   // card so it never drops to body
   useEffect(() => {
     const card = cardRef.current
