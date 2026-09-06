@@ -69,7 +69,7 @@ export const ja = {
   appValueAxis: '数値軸',
   appCategoryAxis: '項目軸',
   appAuto: '自動',
-  appFormatHeader: '書式設定 — {target}',
+  appFormatHeader: '書式設定 - {target}',
   appClose: '閉じる',
   appSeries: '系列',
   appDataPoint: 'データ要素',
@@ -131,7 +131,7 @@ export const ja = {
   appTruncationNote: '先頭 {shown}/{total} 項目',
   // ExcelShell (name box / ribbon)
   appGoToButtonTitle: 'ジャンプ（Go To、⌘G）',
-  appNameBoxTitle: '名前ボックス — アドレスまたは名前を入力して Enter で移動',
+  appNameBoxTitle: '名前ボックス - アドレスまたは名前を入力して Enter で移動',
   appPivotChartHintIn: '現在のピボットテーブルからピボットグラフを作成',
   appPivotChartHintOut:
     '先にピボットテーブルの出力範囲内のセルを選択してから、グラフの種類を選択してください',
@@ -151,7 +151,7 @@ export const ja = {
   appAttachmentReadFailed: '{name}: 読み取りに失敗しました',
   appTooManyImages: '1 つのメッセージで送信できる画像は最大 {max} 枚です。超過分は無視されました',
   appAppliedRevision:
-    '適用しました（リビジョン {revision}）— ⌘Z で元に戻せます。⌘S でファイルに保存します。',
+    '適用しました（リビジョン {revision}）- ⌘Z で元に戻せます。⌘S でファイルに保存します。',
   appCannotReadImage: '画像ファイルを読み取れません。',
   appTableNotDeletable:
     'テーブル "{name}" は存在しないか、このセッションで作成されたものではありません。ファイルに元からあるテーブルは今のところ削除できません。',
@@ -216,7 +216,7 @@ export const ja = {
   appNoActiveSheet: 'アクティブなシートがありません。',
   appCurrentSheetNoPivot: '現在のシートにはピボットテーブルがありません。',
   appPivotsRefreshed:
-    '{count} 個のピボットテーブルを更新しました — 保存（⌘S）でファイルに書き込みます。',
+    '{count} 個のピボットテーブルを更新しました - 保存（⌘S）でファイルに書き込みます。',
   appRefreshFailed: '更新に失敗しました。',
   appSlicerNeedsFile:
     '先に XLSX ファイルを開いてください。スライサーはファイル内のピボットテーブルに基づきます。',
@@ -263,12 +263,12 @@ export const ja = {
   appSymbolInsertFailed: '記号を挿入できません。',
   appSymbolInserted: '{char} を {cell} に挿入しました。',
   appAdvFilterNeedsFilter:
-    'フィルターの詳細設定にはオートフィルター範囲が必要です — 先にデータを選択してフィルターをオンにしてください。',
+    'フィルターの詳細設定にはオートフィルター範囲が必要です - 先にデータを選択してフィルターをオンにしてください。',
   appAdvFilterGone:
-    '現在のシートにオートフィルターがありません — もう一度オンにしてからお試しください。',
+    '現在のシートにオートフィルターがありません - もう一度オンにしてからお試しください。',
   appAdvFilterFailed: 'フィルターの詳細設定を適用できませんでした。',
   appAdvFilterApplied:
-    '詳細フィルター条件を適用しました — ⌘S で保存するとファイルに書き込まれます。',
+    '詳細フィルター条件を適用しました - ⌘S で保存するとファイルに書き込まれます。',
   appFlashFillNeedsLeft: 'フラッシュフィルには対象列の左側にデータ列が必要です。',
   appFlashFillNeedsRows: 'フラッシュフィルには少なくとも 2 行のデータが必要です。',
   appFlashFillNeedsExamples:
@@ -291,7 +291,7 @@ export const ja = {
   appSaveSecondFailed:
     '構造は保存されましたが、2 段階目（ピボットテーブル/テーブル/名前付き範囲）に失敗しました：{reason}',
   // AI session / status bar
-  appReadyInitial: '準備完了 — ローカルの決定論的 AI コマンドを使用できます。',
+  appReadyInitial: '準備完了 - ローカルの決定論的 AI コマンドを使用できます。',
   appAiThinking: 'AI が考えています…',
   appAiDone: 'AI が完了しました',
   appAiTurnLimit:
@@ -301,51 +301,51 @@ export const ja = {
   appAiNoAction: 'AI は操作も返信も行いませんでした。もう一度試すか、言い換えてください。',
   appNewConversation: '新しい会話を開始しました。',
   // Streaming load / edit gating
-  appPivotCellNoEdit: 'このセルはピボットテーブルの一部です — 編集には未対応です。',
-  appAreaStreaming: 'この範囲はまだストリーミング読み込み中です — しばらくしてからお試しください。',
+  appPivotCellNoEdit: 'このセルはピボットテーブルの一部です - 編集には未対応です。',
+  appAreaStreaming: 'この範囲はまだストリーミング読み込み中です - しばらくしてからお試しください。',
   appFormulaRecordedPartial:
-    '数式を記録しました — ファイルには保存されますが、この大きなブックは部分的なストリーミング読み込みのため、画面上の結果は不完全な場合があります。',
+    '数式を記録しました - ファイルには保存されますが、この大きなブックは部分的なストリーミング読み込みのため、画面上の結果は不完全な場合があります。',
   appFormulaTooExpensive:
-    'この数式は大きな範囲を要素ごとに評価するため、計算でアプリがフリーズします — キャンセルしました。参照範囲を狭めて再試行してください。',
+    'この数式は大きな範囲を要素ごとに評価するため、計算でアプリがフリーズします - キャンセルしました。参照範囲を狭めて再試行してください。',
   appPivotSheetNoStructural:
-    'このシートにはピボットテーブルが含まれています — 構造の変更には未対応です。',
+    'このシートにはピボットテーブルが含まれています - 構造の変更には未対応です。',
   appDeleteSpanFormulas:
-    '削除対象の行/列のみを参照する数式があります — 先にその数式を更新または削除してください。',
+    '削除対象の行/列のみを参照する数式があります - 先にその数式を更新または削除してください。',
   appIconSetUnsupported:
     'このアイコンの組み合わせは xlsx に保存できません。別のアイコンセットを選択してください。',
   appNeedFullLoadSort:
     '並べ替え、フィルター、範囲の移動、区切り位置には完全読み込みモードが必要です。このブックは大きすぎるため、ストリーミング読み込みのみ行われました。',
   appPivotSheetNoMove:
-    'このシートにはピボットテーブルが含まれています — 範囲の移動には未対応です。',
+    'このシートにはピボットテーブルが含まれています - 範囲の移動には未対応です。',
   appTableFilterNoEdit:
-    'このシートのフィルターは Excel テーブルに属しています — 編集内容は現時点では保存できません。',
+    'このシートのフィルターは Excel テーブルに属しています - 編集内容は現時点では保存できません。',
   appAutofillStreaming: 'ストリーミング読み込み中の範囲へのオートフィルはまだ許可されていません。',
   appDvNeedsIndexed:
-    'データの入力規則を編集するには、このシートのインデックス作成が完了している必要があります — しばらくしてからお試しください。',
+    'データの入力規則を編集するには、このシートのインデックス作成が完了している必要があります - しばらくしてからお試しください。',
   appDuplicateNeedsFullLoad:
     'シートのコピーには完全読み込みモードが必要です。このブックは大きすぎるため、ストリーミング読み込みのみ行われました。',
   appPivotSheetNoDuplicate:
-    'このシートにはピボットテーブルが含まれています — このシートのコピーには未対応です。',
+    'このシートにはピボットテーブルが含まれています - このシートのコピーには未対応です。',
   appDuplicateScopedNames:
     'このシートにはシート スコープの定義済み名前があるため、複製はまだサポートされていません。',
   appMoveRowsColsUnsaved:
-    '列全体の移動は、インポートしたブックには現時点では保存できません——行全体の移動には対応しています。',
+    '列全体の移動は、インポートしたブックには現時点では保存できません--行全体の移動には対応しています。',
   // Preview / apply / undo
   appNoWorkbookOpen: '開いているブックがありません。',
   appDvListOptions: 'リスト：{items}',
   appDvListFromRange: 'リスト（範囲 {range} から）',
   appRuleBrokenRef: '参照が無効です（#REF!）。このルールは適用されません',
-  appCellStreaming: 'このセルはまだストリーミング読み込み中です — しばらくしてからお試しください。',
-  appPreviewCreated: 'プレビューを作成しました — 適用するまで何も変更されません。',
+  appCellStreaming: 'このセルはまだストリーミング読み込み中です - しばらくしてからお試しください。',
+  appPreviewCreated: 'プレビューを作成しました - 適用するまで何も変更されません。',
   appPreviewCreatedDemo: 'プレビューを作成しました。ブックの状態は変更されていません。',
   appPreviewFailed: 'プレビューを作成できません。',
   appApplyTxFailed: 'このトランザクションを適用できません。',
   appTxCommitted: 'トランザクションをコミットしました（リビジョン {revision}）。',
-  appPreviewOtherWorkbook: 'このプレビューは別のブックのものです — 作成し直してください。',
-  appPreviewSheetGone: 'プレビューしたシートが存在しません — プレビューを作成し直してください。',
+  appPreviewOtherWorkbook: 'このプレビューは別のブックのものです - 作成し直してください。',
+  appPreviewSheetGone: 'プレビューしたシートが存在しません - プレビューを作成し直してください。',
   appWorkbookChangedSincePreview:
-    'プレビュー後にブックが変更されました — プレビューを作成し直してください。',
-  appAppliedJournaled: '適用しました — 変更は記録済みです。⌘S でファイルに保存します。',
+    'プレビュー後にブックが変更されました - プレビューを作成し直してください。',
+  appAppliedJournaled: '適用しました - 変更は記録済みです。⌘S でファイルに保存します。',
   appUndoCommitted: '元に戻す操作をコミットしました（リビジョン {revision}）。',
   appUndoFailed: '元に戻せません。',
   appAutoFilterCreateFailed: 'オートフィルターを作成できません。',
@@ -354,21 +354,21 @@ export const ja = {
   appSelectDataRangeFirst: '先にデータ範囲を選択してください。',
   appUnsupportedChartType: 'サポートされていないグラフの種類：{kind}。',
   appChartInsertedDemo:
-    'グラフを挿入しました — デモモードの編集はメモリ内にのみ保存されます。ディスクに保存するには XLSX ファイルを開いてください。',
+    'グラフを挿入しました - デモモードの編集はメモリ内にのみ保存されます。ディスクに保存するには XLSX ファイルを開いてください。',
   appChartInsertFailed: 'グラフを挿入できません。',
   appChartNeedsNumericColumn:
     '数値の列を少なくとも 1 つ含む範囲を選択してください（ヘッダーは省略可）。',
-  appChartInserted: 'グラフを挿入しました — 選択すると編集できます。⌘S でファイルに書き込みます。',
+  appChartInserted: 'グラフを挿入しました - 選択すると編集できます。⌘S でファイルに書き込みます。',
   // Insert shape / image
   appShapeNeedsFile: '先に XLSX ファイルを開いてください。挿入した図形はファイルに書き込まれます。',
   appSelectCellFirst: '先にセルを選択してください。',
-  appTextBoxInserted: 'テキストボックスを挿入しました — 保存時にファイルへ書き込まれます（⌘S）。',
-  appShapeInserted: '図形を挿入しました — 保存時にファイルへ書き込まれます（⌘S）。',
+  appTextBoxInserted: 'テキストボックスを挿入しました - 保存時にファイルへ書き込まれます（⌘S）。',
+  appShapeInserted: '図形を挿入しました - 保存時にファイルへ書き込まれます（⌘S）。',
   appPictureNeedsFile:
     '先に XLSX ファイルを開いてください。挿入した画像はファイルに書き込まれます。',
   appPictureTooLarge: '20MB を超える画像はサポートされていません。',
   appPictureBadType: 'PNG、JPEG、GIF の画像のみサポートされています。',
-  appPictureInserted: '画像を挿入しました — 保存時にファイルへ書き込まれます（⌘S）。',
+  appPictureInserted: '画像を挿入しました - 保存時にファイルへ書き込まれます（⌘S）。',
   // Tables
   appTableNeedsRows: 'テーブルにはヘッダー行と少なくとも 1 行のデータが必要です。',
   appTableTooWide: 'テーブルは最大 1,000 列までです。',
@@ -377,11 +377,11 @@ export const ja = {
     'この範囲は、このセッションで作成したテーブル "{name}" と重なっています。',
   appTablesNeedFile: '先に XLSX ファイルを開いてください。テーブルはファイルに書き込まれます。',
   appTableSelectRange: '先にデータ範囲を選択してください。先頭行がヘッダーになります。',
-  appTableCreated: 'テーブルを作成しました — ⌘S で保存します。',
+  appTableCreated: 'テーブルを作成しました - ⌘S で保存します。',
   appTableCreateFailed: 'テーブルを作成できません。',
   // Pivot-creation validation
   appPivotOnAddedSheet:
-    'このセッションで新規作成したシートへのピボットテーブル作成には未対応です — 先に保存してください。',
+    'このセッションで新規作成したシートへのピボットテーブル作成には未対応です - 先に保存してください。',
   appPivotSourceNeedsRows: 'ピボットテーブルのソースデータにはヘッダー行とデータ行が必要です。',
   appPivotSourceRowLimit: 'ピボットテーブルのソースデータは最大 10,000 行です。',
   appPivotSourceColLimit: 'ピボットテーブルのソースデータは最大 200 列です。',
@@ -394,7 +394,7 @@ export const ja = {
   appPivotNeedsValues: 'ピボットテーブルには値フィールドが 1 つ必要です。',
   appPivotTooManyRowLines: 'ピボットテーブルの行レイアウト線が 20,000 本を超えています。',
   appPivotOverlapSource:
-    'ピボットテーブルの出力範囲がソースデータ範囲と重なります — 別の対象セルを選んでください。',
+    'ピボットテーブルの出力範囲がソースデータ範囲と重なります - 別の対象セルを選んでください。',
   appPivotOverlapExisting:
     'ピボットテーブルの出力範囲が、対象シート上の既存のピボットテーブルと重なります。',
   appPivotOverlapSession:
@@ -403,7 +403,7 @@ export const ja = {
   // Formulas / subtotal / consolidate
   appActiveCellFallback: 'アクティブセル',
   appFormulaStartsEquals: '数式は "=" で始める必要があります。',
-  appUnbalancedParens: 'かっこが対応していません — 引数を完成させてください。',
+  appUnbalancedParens: 'かっこが対応していません - 引数を完成させてください。',
   appSetFormulaFailed: '数式を設定できません。',
   appFormulaSet: '数式を {cell} に入力しました。',
   appSelectSourceRangeFirst: '先にソースデータ範囲を選択してください。',
@@ -411,19 +411,19 @@ export const ja = {
   appSubtotalSameColumns: 'グループ化する列と集計する列には別の列を選んでください。',
   appRangeNoDataRows: '選択した範囲にデータ行がありません。',
   appSubtotalTooManyGroups:
-    'グループが多すぎます（上限 200）— 先にグループ化する列で並べ替えてください。',
+    'グループが多すぎます（上限 200）- 先にグループ化する列で並べ替えてください。',
   appSubtotalInsertFailed: '小計行を挿入できません。',
   appSubtotalsInserted: '小計を挿入しました：{count} グループと総計 1 行。',
   appSelectTargetCellFirst: '先に対象セルを選択してください。',
   appConsolidateBadRef: '参照が無効です：{ref}。',
   appNoSheetNamed: '"{name}" という名前のシートはありません。',
   appConsolidateEmptySources: 'ソース範囲がすべて空です。',
-  appConsolidateOverlap: '出力範囲がソース範囲と重なります — 別の対象セルを選んでください。',
+  appConsolidateOverlap: '出力範囲がソース範囲と重なります - 別の対象セルを選んでください。',
   appConsolidateWriteFailed: '統合の結果を書き込めません。',
   appConsolidateDone:
     '{count} 個の範囲を統合しました。結果は {cell} にあります（{rows}×{columns} のライブ数式）。',
   appConsolidateMaxMinLabels:
-    '最大値/最小値は左端列ラベルモードに対応していません — 位置による統合を使用してください。',
+    '最大値/最小値は左端列ラベルモードに対応していません - 位置による統合を使用してください。',
   appConsolidateLabelNeedsCols:
     'ラベルモードでは各範囲に少なくとも 2 列（ラベル列と数値列）が必要です。',
   appConsolidateNoLabels: 'ソース範囲の左端列にラベルが見つかりません。',
@@ -431,38 +431,38 @@ export const ja = {
   appOutlineNeedsFile:
     '先に XLSX ファイルを開いてください。アウトラインはファイルに書き込まれます。',
   appOutlineSelectFirst: '先にグループ化する行または列を選択してください。',
-  appDetailHidden: '詳細を非表示にしました — ⌘S で保存します。',
-  appDetailShown: '詳細を表示しました — ⌘S で保存します。',
+  appDetailHidden: '詳細を非表示にしました - ⌘S で保存します。',
+  appDetailShown: '詳細を表示しました - ⌘S で保存します。',
   appOutlineMaxLevel: '既に最も深いアウトラインレベル（7）です。',
   appNothingToUngroup: '選択範囲にグループ解除できるものがありません。',
-  appRowsGrouped: '行をグループ化しました — ⌘S で保存します。「詳細の非表示」で折りたためます。',
-  appColsGrouped: '列をグループ化しました — ⌘S で保存します。「詳細の非表示」で折りたためます。',
-  appRowsUngrouped: '行のグループを解除しました — ⌘S で保存します。',
-  appColsUngrouped: '列のグループを解除しました — ⌘S で保存します。',
+  appRowsGrouped: '行をグループ化しました - ⌘S で保存します。「詳細の非表示」で折りたためます。',
+  appColsGrouped: '列をグループ化しました - ⌘S で保存します。「詳細の非表示」で折りたためます。',
+  appRowsUngrouped: '行のグループを解除しました - ⌘S で保存します。',
+  appColsUngrouped: '列のグループを解除しました - ⌘S で保存します。',
   // Ribbon commands
-  appSheetAdded: 'シートを追加しました — タブをダブルクリックすると名前を変更できます。',
+  appSheetAdded: 'シートを追加しました - タブをダブルクリックすると名前を変更できます。',
   appSheetAddFailed: 'シートを追加できません。',
-  appFormatCopied: '書式をコピーしました — 対象セルを選択すると適用されます。',
+  appFormatCopied: '書式をコピーしました - 対象セルを選択すると適用されます。',
   appProtectionNeedsFile:
     '先に XLSX ファイルを開いてください。保護の設定はファイルに保存されます。',
   appProtectionNeedsIndexed:
-    '保護の設定には、このシートのインデックス作成の完了が必要です — しばらくしてからお試しください。',
+    '保護の設定には、このシートのインデックス作成の完了が必要です - しばらくしてからお試しください。',
   appProtectedWithPassword:
-    'このシートはパスワードで保護されています — その保護の解除には対応していません。',
+    'このシートはパスワードで保護されています - その保護の解除には対応していません。',
   appProtectionWillWrite:
     '保存時にシートの保護（パスワードなし）が書き込まれます。エディター自体は保護を強制しません。',
   appProtectionWillRemove: '保存時にシートの保護が解除されます。',
   appZoom: 'ズーム {percent}%。',
-  appTopRowFrozen: '先頭行を固定しました — ⌘S で保存します。',
-  appFirstColFrozen: '先頭列を固定しました — ⌘S で保存します。',
+  appTopRowFrozen: '先頭行を固定しました - ⌘S で保存します。',
+  appFirstColFrozen: '先頭列を固定しました - ⌘S で保存します。',
   appFindScanTruncated:
     '大きなシート: {cells} セルで検索を中断しました。結果が不完全な場合があります。',
-  appReplaceNeedsFullLoad: '置換には完全読み込みモードが必要です — 検索をご利用ください。',
-  appGridlinesHiddenSave: '目盛線を非表示にしました — ⌘S で保存します。',
-  appGridlinesShownSave: '目盛線を表示しました — ⌘S で保存します。',
+  appReplaceNeedsFullLoad: '置換には完全読み込みモードが必要です - 検索をご利用ください。',
+  appGridlinesHiddenSave: '目盛線を非表示にしました - ⌘S で保存します。',
+  appGridlinesShownSave: '目盛線を表示しました - ⌘S で保存します。',
   appGridlinesHidden: '目盛線を非表示にしました。',
   appGridlinesShown: '目盛線を表示しました。',
-  appShowingFormulas: '数式を表示しています — もう一度切り替えると値を表示します。',
+  appShowingFormulas: '数式を表示しています - もう一度切り替えると値を表示します。',
   appShowingValues: '計算結果を表示しています。',
   appTraceNoFormula: '参照元のトレース：アクティブセルに数式がありません。',
   appTraceNoRefs: '参照元のトレース：この数式にはセル参照がありません。',
@@ -476,20 +476,20 @@ export const ja = {
   appNoTraceArrows: '削除できるトレース矢印がありません。',
   appWorkbookStats:
     'ブックの統計情報：シート {sheets} 個 · データのあるセル {cells} 個 · 数式 {formulas} 個{note}。',
-  appFrozenAtSelection: '選択位置でウィンドウ枠を固定しました — ⌘S で保存します。',
+  appFrozenAtSelection: '選択位置でウィンドウ枠を固定しました - ⌘S で保存します。',
   appSelectCellsFirst: '先にセルを選択してください。',
-  appCellStyleApplied: 'セルのスタイルを適用しました — 書式編集と同様に記録されます（⌘S で保存）。',
+  appCellStyleApplied: 'セルのスタイルを適用しました - 書式編集と同様に記録されます（⌘S で保存）。',
   appSelectRangeFirst: '先にセル範囲を選択してください。',
   appSettingNeedsFile: '先に XLSX ファイルを開いてください。この設定はファイルにのみ保存されます。',
   appTooManyCellsForSetting: 'この設定では 10,000 個未満のセルを選択してください。',
   appProtectionFlagsRecorded:
-    '保護フラグを記録しました — シートが保護されているときに有効になります。',
-  appSortSelectRows: '先に並べ替える行を選択してください — 関連する列をすべて含めてください。',
+    '保護フラグを記録しました - シートが保護されているときに有効になります。',
+  appSortSelectRows: '先に並べ替える行を選択してください - 関連する列をすべて含めてください。',
   appSortedAsc: '選択範囲の先頭列で昇順（A → Z）に並べ替えました。',
   appSortedDesc: '選択範囲の先頭列で降順（Z → A）に並べ替えました。',
-  appAutofnSelectCells: '先に集計するセルを選択してください — {fn} は下の行に入力されます。',
+  appAutofnSelectCells: '先に集計するセルを選択してください - {fn} は下の行に入力されます。',
   appRowBelowStreaming:
-    '下の行はまだストリーミング読み込み中です — しばらくしてからお試しください。',
+    '下の行はまだストリーミング読み込み中です - しばらくしてからお試しください。',
   appAutofnInserted: '選択範囲の下に {fn} を挿入しました。',
   appSortedCustom: 'ユーザー設定のレベルで並べ替えました。',
   appDedupeNeedsFullLoad:
@@ -500,7 +500,7 @@ export const ja = {
   appLinksNeedFile: 'リンクを編集するには XLSX ファイルを開いてください。',
   appLinkRemoved: 'リンクを削除しました。',
   appLinkInvalid: 'URL（https://…）またはシート参照（例: Sheet1!A1）を入力してください。',
-  appLinkSaved: 'リンクを保存しました — セルをクリックすると開きます。',
+  appLinkSaved: 'リンクを保存しました - セルをクリックすると開きます。',
   appTextToColsSelectOne: '区切り位置には 1 列のテキストを選択してください。',
   appSplitIntoColumns: '列に分割しました。',
   appAppliedToSelection: '現在の選択範囲に適用しました。',
@@ -510,10 +510,10 @@ export const ja = {
   appBridgeUnavailable:
     'デスクトップファイルブリッジが利用できません。Electron アプリを再起動してください。',
   appOpenCanceled: 'ブックの選択をキャンセルしました。',
-  appOpened: '{name} を開きました — セルの編集は ⌘S でファイルに保存されます。',
+  appOpened: '{name} を開きました - セルの編集は ⌘S でファイルに保存されます。',
   appOpenFailed: 'ブックを開けません。',
   appPageSetupNeedsFile: '先に XLSX ファイルを開いてください。ページ設定はファイルに保存されます。',
-  appPageSetupRecorded: '{note} — ⌘S で保存します。',
+  appPageSetupRecorded: '{note} - ⌘S で保存します。',
   appOrientationPortrait: '印刷の向き：縦',
   appOrientationLandscape: '印刷の向き：横',
   appMarginsNormal: '余白：標準',
@@ -539,62 +539,62 @@ export const ja = {
   appHfNeedsFile:
     '先に XLSX ファイルを開いてください。ヘッダーとフッターはファイルに保存されます。',
   appActiveSheetUnavailable: 'アクティブなシートが利用できません。',
-  appHfUpdated: 'ヘッダーとフッターを更新しました — ⌘S で保存します。',
+  appHfUpdated: 'ヘッダーとフッターを更新しました - ⌘S で保存します。',
   appPdfNeedsFullLoad:
-    'PDF エクスポートにはブックの完全読み込みが必要です — 読み込みの完了をお待ちください。',
+    'PDF エクスポートにはブックの完全読み込みが必要です - 読み込みの完了をお待ちください。',
   appPdfRendering: 'PDF をレンダリング中…',
   appPdfCanceled: 'PDF エクスポートをキャンセルしました。',
   appPdfExported: '{path} をエクスポートしました。',
   appPdfExportFailed: 'PDF をエクスポートできません。',
   appCsvExportNeedsFullLoad:
-    'CSV エクスポートにはブックの完全読み込みが必要です — 読み込みの完了をお待ちください。',
+    'CSV エクスポートにはブックの完全読み込みが必要です - 読み込みの完了をお待ちください。',
   appCsvExportTooLarge: 'シートが大きすぎるため、CSV をエクスポートできません。',
   appCsvExportCanceled: 'CSV エクスポートをキャンセルしました。',
   appCsvExported: '{path} をエクスポートしました。',
   appCsvExportedActiveOnly:
-    'CSV ファイルには 1 枚のシートしか含められません — アクティブなシート「{name}」を {path} にエクスポートしました。',
+    'CSV ファイルには 1 枚のシートしか含められません - アクティブなシート「{name}」を {path} にエクスポートしました。',
   appCsvExportFailed: 'CSV をエクスポートできません。',
   appDemoNoSave:
-    'デモモードの編集はメモリ内にのみ保存されます — ディスクに保存するには XLSX ファイルを開いてください。',
+    'デモモードの編集はメモリ内にのみ保存されます - ディスクに保存するには XLSX ファイルを開いてください。',
   appFilterSnapshotFailed: 'フィルターの状態をスナップショットできません。',
   appColorFiltersUnsaveable:
-    '色フィルターは現時点では XLSX として保存できません — 先に解除してから保存してください。',
+    '色フィルターは現時点では XLSX として保存できません - 先に解除してから保存してください。',
   appNoEditsToSave: '保存できる編集はまだありません。',
-  appSheetOrderReadFailed: 'シートの順序を読み取れません — もう一度お試しください。',
+  appSheetOrderReadFailed: 'シートの順序を読み取れません - もう一度お試しください。',
   appSavingEdits: '{count} 件の編集を保存中…',
   appSaveCanceled: '保存をキャンセルしました。',
   appSaved: '保存しました。',
   appSaveFailed: 'ブックを保存できません。',
   appCfRuleUnsaveable:
-    'この条件付き書式ルールは xlsx に保存できません — 別のルールの種類をお使いください。',
+    'この条件付き書式ルールは xlsx に保存できません - 別のルールの種類をお使いください。',
   appSaveErrX14Dv:
     'このシートには拡張(x14)のデータの入力規則があり、その入力規則の編集はまだサポートされていません。',
   appSaveErrMultiSelectList:
-    '複数選択リストの入力規則は xlsx に保存できません — 保存する前にそのルールを削除してください。',
+    '複数選択リストの入力規則は xlsx に保存できません - 保存する前にそのルールを削除してください。',
   appSaveErrX14Cf: 'この範囲には拡張(x14)の条件付き書式があり、今のところ変更できません。',
   appSaveErrPivotWithSheetOps:
-    '新規作成したピボットテーブルはシート管理の変更と一緒に保存できません — 先にピボットテーブルを保存してください。',
+    '新規作成したピボットテーブルはシート管理の変更と一緒に保存できません - 先にピボットテーブルを保存してください。',
   appSaveErrPivotWithRowCol:
-    '新規作成したピボットテーブルは同じシートの行/列の変更と一緒に保存できません — 先にピボットテーブルを保存してください。',
+    '新規作成したピボットテーブルは同じシートの行/列の変更と一緒に保存できません - 先にピボットテーブルを保存してください。',
   appSaveErrTableWithRowCol:
-    '新規作成したテーブルは同じシートの行/列の変更と一緒に保存できません — 先にテーブルを保存してください。',
+    '新規作成したテーブルは同じシートの行/列の変更と一緒に保存できません - 先にテーブルを保存してください。',
   appSaveErrNamesWithStructural:
-    '定義された名前の変更は行/列やシート構造の変更と一緒に保存できません — 2 回に分けて保存してください。',
+    '定義された名前の変更は行/列やシート構造の変更と一緒に保存できません - 2 回に分けて保存してください。',
   appSaveErrChangedOnDisk:
-    'ファイルがディスク上で別のプログラムに変更されました — 保存を中止しました。開き直してからやり直してください。',
+    'ファイルがディスク上で別のプログラムに変更されました - 保存を中止しました。開き直してからやり直してください。',
   appSaveErrStylesheetLimited:
     'このブックのスタイルシートには基本構造が欠けているため、スタイルの変更を保存できません。',
   appSaveErrPackageGuard:
-    '保存するとブックのパッケージ構造が変わってしまいます — ファイル保護のため中止しました。',
+    '保存するとブックのパッケージ構造が変わってしまいます - ファイル保護のため中止しました。',
   appSaveErrChartUnsupported:
-    'このグラフの種類はこの編集をサポートしていないため保存を中止しました — グラフの変更を元に戻してください。',
+    'このグラフの種類はこの編集をサポートしていないため保存を中止しました - グラフの変更を元に戻してください。',
   appSaveErrMoveOverlap:
-    '数式、書式設定された範囲、図形、またはテーブルが移動対象の行にまたがっているため保存を中止しました — 移動を元に戻してください。',
+    '数式、書式設定された範囲、図形、またはテーブルが移動対象の行にまたがっているため保存を中止しました - 移動を元に戻してください。',
   appFromTextCsvTitle: 'CSV/テキストファイルを現在の選択範囲にインポート',
   appCsvImported: 'ファイルから {rows} 行 × {columns} 列を {cell} にインポートしました。',
   appCsvEmpty: 'CSV ファイルにデータがありません。',
   appCsvTooLarge:
-    'CSV が大きすぎます——5 万セルを超える場合は「開く」で新しいブックとして開いてください。',
+    'CSV が大きすぎます--5 万セルを超える場合は「開く」で新しいブックとして開いてください。',
   appCsvImportFailed: 'CSV のインポートに失敗しました。',
   appNoNotesOnSheet: '現在のシートにコメントはありません。',
   appNotePrevTitle: '前のコメントへ移動',
@@ -607,23 +607,23 @@ export const ja = {
   // Floating objects / chart editing
   appChartUpdated: 'グラフを更新しました。',
   appChartNotEditable: 'このグラフは編集できません。',
-  appChartEditRecorded: 'グラフの編集を記録しました — ⌘S で保存します。',
+  appChartEditRecorded: 'グラフの編集を記録しました - ⌘S で保存します。',
   appChartDeleted: 'グラフを削除しました。',
   appChartMoved: 'グラフを移動しました。',
   appVisualNotEditable: 'このオブジェクトは編集できません。',
-  appVisualNoDelete: 'このオブジェクトは削除できません — その描画図形は編集できません。',
+  appVisualNoDelete: 'このオブジェクトは削除できません - その描画図形は編集できません。',
   appFileVisualMoveDeleteOnly:
     'ファイルに元からあるオブジェクトは移動と削除のみサポートされています。',
-  appVisualNoMove: 'このオブジェクトは移動できません — その描画図形は編集できません。',
-  appVisualDeleted: 'オブジェクトを削除しました — ⌘S で保存します。',
-  appShapeTextUpdated: '図形のテキストを更新しました — ⌘S で保存します。',
-  appShapeMoved: '図形を移動しました — ⌘S で保存します。',
+  appVisualNoMove: 'このオブジェクトは移動できません - その描画図形は編集できません。',
+  appVisualDeleted: 'オブジェクトを削除しました - ⌘S で保存します。',
+  appShapeTextUpdated: '図形のテキストを更新しました - ⌘S で保存します。',
+  appShapeMoved: '図形を移動しました - ⌘S で保存します。',
   // Names / internal links
   appScopeWorkbook: 'ブック',
   appNamesNeedFile: '先に XLSX ファイルを開いてください。定義した名前はファイルに保存されます。',
   appNameGone: 'その名前は既に存在しません。',
   appNameApplyFailed: 'この名前を適用できません。',
-  appNamesUpdated: '名前を更新しました — ⌘S で保存します。',
+  appNamesUpdated: '名前を更新しました - ⌘S で保存します。',
   appLinkInternal: 'リンクはブック内を指しています：{location}',
   appLinkSheetNotFound: 'シート "{name}" が見つかりません。',
   appLinkJumpFailed: '{location} に移動できません。',
@@ -631,19 +631,19 @@ export const ja = {
   appClosureActive:
     '{count} 個の数式をライブ再計算しています（クロージャモード）。残りの部分は必要に応じてストリーミング読み込みされます。',
   appRecalcPartial:
-    '編集に合わせて数式を再計算しました — {count} 個はキャッシュ値を保持しています（フォールバックエンジン未対応の関数）。',
+    '編集に合わせて数式を再計算しました - {count} 個はキャッシュ値を保持しています（フォールバックエンジン未対応の関数）。',
   appRecalcDone: '編集に合わせて数式を再計算しました（{count} 個のセル、エンジンフォールバック）。',
   appIndexing: '{name} のインデックスを作成中：{rows} 行が準備できました。',
   appStreamingRows: '{name} をストリーミング読み込み中：{rows} 行が利用可能です。',
   appLoadRangeFailed: '表示範囲を読み込めません。',
-  appFullyLoaded: 'ブックを完全に読み込みました — 数式はライブで再計算され、行列を編集できます。',
+  appFullyLoaded: 'ブックを完全に読み込みました - 数式はライブで再計算され、行列を編集できます。',
   appRangeMustBeVector: '{range} は 1 行または 1 列のセルである必要があります。',
   appRangeTooManyCells: '{range} が {max} 個のセルを超えています。',
-  appSheetStillIndexing: 'シートのインデックスを作成中です — しばらくしてからお試しください。',
+  appSheetStillIndexing: 'シートのインデックスを作成中です - しばらくしてからお試しください。',
   // Print (export PDF)
   appPrintNothing: 'このシートには印刷できる内容がありません。',
   appPrintTooLarge:
-    '印刷範囲が大きすぎます — 「ページレイアウト」タブでより小さい印刷範囲を設定してください。',
+    '印刷範囲が大きすぎます - 「ページレイアウト」タブでより小さい印刷範囲を設定してください。',
   appPrintBadArea: '印刷範囲 "{area}" が無効です。',
   appPrintBadTitles: '印刷タイトル "{titles}" が無効です。',
   appPrintTitlesLimit: '印刷タイトルで繰り返せるのは最大 21 行です。',
@@ -663,8 +663,8 @@ export const ja = {
   appSeriesData: '{name} のデータ',
   appValuesPlaceholder: '数値範囲（例: B2:B13）',
   appLabelsPlaceholder: 'ラベル範囲（例: A2:A13）',
-  appValuesRangeTitle: '{name} の数値範囲 — 1 行または 1 列（例: B2:B13）',
-  appCategoriesRangeTitle: '{name} の分類ラベル範囲 — 1 行または 1 列（例: A2:A13）',
+  appValuesRangeTitle: '{name} の数値範囲 - 1 行または 1 列（例: B2:B13）',
+  appCategoriesRangeTitle: '{name} の分類ラベル範囲 - 1 行または 1 列（例: A2:A13）',
   appTypeLabel: '種類',
   appApply: '適用',
   // Ribbon tabs
@@ -715,7 +715,7 @@ export const ja = {
   // Link dialog
   appEditLinkTitle: 'リンクの編集',
   appInsertLinkTitle: 'リンクの挿入',
-  appLinkAddressLabel: 'アドレス — Web ページ（https://…）またはシート参照（Sheet1!A1）',
+  appLinkAddressLabel: 'アドレス - Web ページ（https://…）またはシート参照（Sheet1!A1）',
   appLinkPlaceholder: '例: https://example.com または Sheet1!A1',
   appRemoveLink: 'リンクの削除',
   // Ribbon common
@@ -745,10 +745,10 @@ export const ja = {
   appChartElLegendNone: '凡例：なし',
   appLayoutLabelsNamePct: '名前 + % ラベル',
   appLayoutLabelsValue: '値ラベル',
-  appLayout1: 'レイアウト 1 — 凡例は右、{labels}',
-  appLayout2: 'レイアウト 2 — 凡例は上、{labels}',
-  appLayout3: 'レイアウト 3 — 凡例は下、ラベルなし',
-  appLayout4: 'レイアウト 4 — 凡例なし、{labels}',
+  appLayout1: 'レイアウト 1 - 凡例は右、{labels}',
+  appLayout2: 'レイアウト 2 - 凡例は上、{labels}',
+  appLayout3: 'レイアウト 3 - 凡例は下、ラベルなし',
+  appLayout4: 'レイアウト 4 - 凡例なし、{labels}',
   appColorsOffice: 'Office',
   appColorsBlue: 'モノクロ（青）',
   appColorsGreen: 'モノクロ（緑）',
@@ -1018,7 +1018,7 @@ export const ja = {
   appGroupCheckbox: 'チェックボックス',
   appGroupCharts: 'グラフ',
   appRecommendedCharts: 'おすすめグラフ',
-  appChartGridTitle: '{type} — 現在の選択範囲から',
+  appChartGridTitle: '{type} - 現在の選択範囲から',
   appChartScatter: '散布図',
   appPivotChart: 'ピボットグラフ',
   appGroupSparklines: 'スパークライン',
@@ -1047,25 +1047,25 @@ export const ja = {
   appFonts: 'フォント',
   appGroupPageSetup: 'ページ設定',
   appMargins: '余白',
-  appMarginsTitle: '余白 — {value}',
+  appMarginsTitle: '余白 - {value}',
   appAsSavedInFile: 'ファイルの設定どおり',
   appMarginNormal: '標準',
   appMarginWide: '広い',
   appMarginNarrow: '狭い',
   appOrientationLabel: '印刷の向き',
-  appOrientationTitle: '印刷の向き — {value}',
+  appOrientationTitle: '印刷の向き - {value}',
   appPortrait: '縦',
   appLandscape: '横',
   appSizeLabel: 'サイズ',
   appPaperSizeTitle: '用紙サイズ',
   appPrintArea: '印刷範囲',
-  appPrintAreaTitle: '印刷範囲 — {area}',
-  appPrintAreaFromSelection: '印刷範囲 — 現在の選択範囲から',
+  appPrintAreaTitle: '印刷範囲 - {area}',
+  appPrintAreaFromSelection: '印刷範囲 - 現在の選択範囲から',
   appSetPrintArea: '印刷範囲の設定',
   appClearPrintArea: '印刷範囲のクリア',
   appBreaks: '改ページ',
   appPrintTitlesLabel: '印刷タイトル',
-  appPrintTitlesTitle: '印刷タイトル — {rows} 行目が各ページで繰り返されます',
+  appPrintTitlesTitle: '印刷タイトル - {rows} 行目が各ページで繰り返されます',
   appPrintTitlesHint: '各印刷ページの上部で繰り返す行',
   appRepeatRow1: '1 行目を繰り返す',
   appRepeatSelectedRows: '選択した行を繰り返す',
@@ -1090,7 +1090,7 @@ export const ja = {
   appBrowseCatalog: '関数カタログを参照',
   appBrowseCatalogFiltered: 'このカテゴリを参照',
   appAutoSum: 'オート SUM',
-  appAutoSumTitle: 'オート SUM — 選択範囲の下に挿入',
+  appAutoSumTitle: 'オート SUM - 選択範囲の下に挿入',
   appFnSum: '合計',
   appFnAverage: '平均',
   appFnCountNumbers: '数値の個数',
@@ -1111,7 +1111,7 @@ export const ja = {
   appUseInFormula: '数式で使用',
   appUseInFormulaTitle: '定義された名前を数式に挿入',
   appUseInFormulaNeedsEmptyCell:
-    '空白のセルを選択してください——名前を挿入すると現在のセルの内容が置き換えられます',
+    '空白のセルを選択してください--名前を挿入すると現在のセルの内容が置き換えられます',
   appCreateFromSelection: '選択範囲から作成',
   appCreateFromSelectionTitle: '選択範囲のラベルから名前を作成',
   appNoNamesYet: '定義された名前はまだありません',
@@ -1158,7 +1158,7 @@ export const ja = {
   appWorkbookNoPivot: 'ブックにピボットテーブルがありません。',
   appRefreshAllTitle: 'すべてのピボットテーブルを更新',
   appErrorCheckingDetail: 'シート内のエラー値をスキャン',
-  appErrorsFound: '{count} 件のエラー — {cell}:{value}',
+  appErrorsFound: '{count} 件のエラー - {cell}:{value}',
   appCheckingErrors: 'シート全体のエラーをスキャンしています…',
   appNoErrorsFound: 'エラー値は見つかりませんでした。',
   appGroupSortFilter: '並べ替えとフィルター',

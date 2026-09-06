@@ -49,6 +49,25 @@ describe('packaged product identity', () => {
     expect(c.productName).toBe('Redrob Office')
   })
 
+  it('electron-builder config loads under the REAL pnpm layout (no repo-root node_modules/electron)', () => {
+    // The preflight resolves electron / @embedpdf/pdfium via module resolution,
+    // so it must not throw under pnpm's isolated store (where there is no
+    // hoisted ../../node_modules/electron). Load WITHOUT the fs stub.
+    delete require.cache[require.resolve(resolve(SHELL_ROOT, 'electron-builder.cjs'))]
+    const c = require(resolve(SHELL_ROOT, 'electron-builder.cjs')) as {
+      extraResources: Array<{ from: string; to: string }>
+    }
+    const chromium = c.extraResources.find((r) => r.to === 'LICENSES.chromium.html')
+    const pdfium = c.extraResources.find((r) => r.to === 'wasm/pdfium.wasm')
+    // resolved to absolute paths that actually exist (not the old
+    // ../../node_modules/... that pnpm never creates)
+    expect(chromium?.from).toMatch(/^\//)
+    expect(chromium?.from).not.toContain('../../node_modules/electron')
+    expect(pdfium?.from).toMatch(/^\//)
+    expect(readFileSync(chromium!.from).length).toBeGreaterThan(0)
+    expect(readFileSync(pdfium!.from).length).toBeGreaterThan(0)
+  })
+
   it('preserves the stable appId and executable name for upgrades', () => {
     const c = loadBuilderConfig()
     // appId is the Windows AUMID / macOS CFBundleIdentifier — changing it breaks

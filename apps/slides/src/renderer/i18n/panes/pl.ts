@@ -55,7 +55,7 @@ export const pl = {
   paneCommentsCollapse: 'Zwiń okienko komentarzy',
   paneCommentsEmpty: 'Brak komentarzy na tym slajdzie',
   paneCommentsEmptySub:
-    'Wpisz poniżej — komentarze są zapisywane w pliku pptx i widoczne również w programie PowerPoint.',
+    'Wpisz poniżej - komentarze są zapisywane w pliku pptx i widoczne również w programie PowerPoint.',
   paneCommentsDelete: 'Usuń komentarz',
   paneCommentsPlaceholder: 'Nowy komentarz… (⌘/Ctrl+Enter, aby opublikować)',
   paneCommentsPost: 'Opublikuj',

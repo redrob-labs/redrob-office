@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const en = {
   aiComposerPlaceholderBuild: 'Describe the table, data, or chart to create…',
   aiEmptyBuildTitle: 'Let AI build this workbook for you',
-  aiEmptyBuildBody: 'Describe the table, data, or chart you need — AI creates it in place.',
+  aiEmptyBuildBody: 'Describe the table, data, or chart you need - AI creates it in place.',
   aiGskLoginBtn: 'Sign in to Redrob',
   aiUndelivered: 'Not sent',
   aiRetry: 'Retry',
@@ -19,7 +19,7 @@ export const en = {
   aiSetUp: 'Set up AI',
   aiNewChat: 'New conversation',
   aiCollapsePanel: 'Collapse AI panel',
-  aiHistorySep: '—— Earlier conversation ——',
+  aiHistorySep: '-- Earlier conversation --',
   aiEmptyTitle: 'Ask AI about this workbook',
   aiEmptyBodyLine1: 'Describe a change or ask about the data.',
   aiThinkingAria: 'Thinking',
@@ -62,7 +62,7 @@ export const en = {
   aiUnknownError: 'Unknown error',
   aiTimeoutError:
     'AI request timed out: no response from the network, so the run was stopped. Check your connection and try again',
-  aiOverloadedError: 'The AI service is busy right now — please try again in a moment',
+  aiOverloadedError: 'The AI service is busy right now - please try again in a moment',
   aiNetworkError:
     'Network problem: could not reach the AI service. Check your connection and try again',
   aiCreditsExhausted:
@@ -103,7 +103,7 @@ export const en = {
   aiToolTraceDependentsOf: 'Traced dependents of {address} ({count})',
   aiScopeRange: 'Selected {range}',
   aiScopeColumn: 'Selected the "{name}" column',
-  aiScopeColumns: 'Selected {names} — {count} columns',
+  aiScopeColumns: 'Selected {names} - {count} columns',
   aiScopeRangeTip:
     'AI reads "this column / these rows / the selected part" as this range, and it stays fixed for the run once you send',
   aiScopeClearTitle: 'Drop the range scope and target the whole sheet',

@@ -522,11 +522,11 @@ export const strings = {
     aiStopped: 'Stopped',
     aiNoReply: '(no reply)',
     aiTruncatedNote: '(The reply was cut off by the length limit and may be incomplete.)',
-    aiTurnLimit: 'Reached the step limit for this task — say "continue" to keep going.',
+    aiTurnLimit: 'Reached the step limit for this task - say "continue" to keep going.',
     aiUnknownError: 'Unknown error',
     aiTimeoutError:
       'AI request timed out: no response from the network, so the run was stopped. Check your connection and try again',
-    aiOverloadedError: 'The AI service is busy right now — please try again in a moment',
+    aiOverloadedError: 'The AI service is busy right now - please try again in a moment',
     aiNetworkError:
       'Network problem: could not reach the AI service. Check your connection and try again',
     aiCreditsExhausted:
@@ -1361,11 +1361,11 @@ export const strings = {
     aiNoReply: '(pas de réponse)',
     aiTruncatedNote:
       '(La réponse a été tronquée par la limite de longueur et peut être incomplète.)',
-    aiTurnLimit: 'Limite d’étapes atteinte — dites « continue » pour poursuivre.',
+    aiTurnLimit: 'Limite d’étapes atteinte - dites « continue » pour poursuivre.',
     aiUnknownError: 'Erreur inconnue',
     aiTimeoutError:
       "Délai de la requête IA dépassé : aucune réponse du réseau, l'exécution a été interrompue. Vérifiez votre connexion et réessayez",
-    aiOverloadedError: "Le service d'IA est actuellement surchargé — réessayez dans un instant",
+    aiOverloadedError: "Le service d'IA est actuellement surchargé - réessayez dans un instant",
     aiNetworkError:
       'Problème réseau : impossible de joindre le service IA. Vérifiez votre connexion et réessayez',
     aiCreditsExhausted:
@@ -1645,11 +1645,11 @@ export const strings = {
     aiNoReply: '(keine Antwort)',
     aiTruncatedNote:
       '(Die Antwort wurde durch das Längenlimit abgeschnitten und ist möglicherweise unvollständig.)',
-    aiTurnLimit: 'Schrittlimit erreicht — sagen Sie „weiter", um fortzufahren.',
+    aiTurnLimit: 'Schrittlimit erreicht - sagen Sie „weiter", um fortzufahren.',
     aiUnknownError: 'Unbekannter Fehler',
     aiTimeoutError:
       'Zeitüberschreitung der KI-Anfrage: keine Antwort vom Netzwerk, der Vorgang wurde abgebrochen. Prüfe deine Verbindung und versuche es erneut',
-    aiOverloadedError: 'Der KI-Dienst ist derzeit überlastet — bitte gleich erneut versuchen',
+    aiOverloadedError: 'Der KI-Dienst ist derzeit überlastet - bitte gleich erneut versuchen',
     aiNetworkError:
       'Netzwerkproblem: Der KI-Dienst ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut',
     aiCreditsExhausted:
@@ -2488,11 +2488,11 @@ export const strings = {
     aiStopped: 'Dihentikan',
     aiNoReply: '(tidak ada balasan)',
     aiTruncatedNote: '(Balasan terpotong karena batas panjang dan mungkin tidak lengkap.)',
-    aiTurnLimit: 'Batas langkah tercapai — ketik "lanjutkan" untuk meneruskan.',
+    aiTurnLimit: 'Batas langkah tercapai - ketik "lanjutkan" untuk meneruskan.',
     aiUnknownError: 'Kesalahan tidak dikenal',
     aiTimeoutError:
       'Permintaan AI habis waktu: jaringan tidak merespons sehingga proses dihentikan. Periksa koneksi Anda lalu coba lagi',
-    aiOverloadedError: 'Layanan AI sedang sibuk — silakan coba lagi sebentar lagi',
+    aiOverloadedError: 'Layanan AI sedang sibuk - silakan coba lagi sebentar lagi',
     aiNetworkError:
       'Masalah jaringan: tidak dapat terhubung ke layanan AI. Periksa koneksi Anda lalu coba lagi',
     aiCreditsExhausted:
@@ -2716,7 +2716,7 @@ export const strings = {
     aiToolReplyNote: 'Ответ на заметку на стр. {page}',
     aiReviewSummaryBtn: 'ИИ-сводка замечаний',
     aiReviewSummaryPrompt:
-      'Прочитайте все заметки и выделения в документе и суммируйте замечания постранично: кто что поднял, что решено, а что открыто; в конце — краткий список вопросов, требующих моего решения. Документ не изменяйте.',
+      'Прочитайте все заметки и выделения в документе и суммируйте замечания постранично: кто что поднял, что решено, а что открыто; в конце - краткий список вопросов, требующих моего решения. Документ не изменяйте.',
     aiProcessNotesBtn: 'ИИ: обработать заметки',
     aiProcessNotesPrompt:
       'Обработайте заметки в документе по одной: найдите фрагмент, внесите запрошенное изменение и ответьте на каждую заметку, что сделано; если заметка неясна, ответьте вопросом, а не догадкой. В конце подведите итог.',
@@ -2724,7 +2724,7 @@ export const strings = {
     aiFillFormPrompt:
       'Определите поля формы и пропуски в этом документе и перечислите, что нужно заполнить; заполните тем, что я предоставил, недостающее спросите один раз и никогда не выдумывайте значения.',
     aiComposerPlaceholder: 'Спросите об этом PDF…',
-    aiHintIdle: 'Enter — отправить, Shift+Enter — новая строка',
+    aiHintIdle: 'Enter - отправить, Shift+Enter - новая строка',
     aiHintBusy: 'Отвечает…',
     aiSend: 'Отправить',
     aiStop: 'Стоп',
@@ -2769,11 +2769,11 @@ export const strings = {
     aiStopped: 'Остановлено',
     aiNoReply: '(нет ответа)',
     aiTruncatedNote: '(Ответ был обрезан из-за ограничения длины и может быть неполным.)',
-    aiTurnLimit: 'Достигнут лимит шагов — напишите «продолжай», чтобы продолжить.',
+    aiTurnLimit: 'Достигнут лимит шагов - напишите «продолжай», чтобы продолжить.',
     aiUnknownError: 'Неизвестная ошибка',
     aiTimeoutError:
       'Тайм-аут запроса ИИ: сеть не отвечает, выполнение остановлено. Проверьте подключение и повторите попытку',
-    aiOverloadedError: 'Сервис ИИ сейчас перегружен — повторите попытку чуть позже',
+    aiOverloadedError: 'Сервис ИИ сейчас перегружен - повторите попытку чуть позже',
     aiNetworkError:
       'Проблема с сетью: не удалось подключиться к сервису ИИ. Проверьте подключение и повторите попытку',
     aiCreditsExhausted:
@@ -2814,7 +2814,7 @@ export const strings = {
     insertImageHint: 'Выберите изображение и щёлкните по странице, чтобы разместить',
     editImage: 'Изменить изображения',
     editImageHint:
-      'Щёлкните изображение на странице: перетащите для перемещения, углы — для масштаба',
+      'Щёлкните изображение на странице: перетащите для перемещения, углы - для масштаба',
     imagePlaceHint: 'Щёлкните по странице, чтобы разместить изображение',
     imageLayerAbove: 'Поверх текста',
     imageLayerBelow: 'Под текст',
@@ -2831,7 +2831,7 @@ export const strings = {
     imageCutoutHint:
       'Цвет фона автоматически определяется по краям изображения; чем больше допуск, тем больше похожих цветов удаляется. В этом предварительном просмотре удалено около {pct}% пикселей.',
     imageCropHint:
-      'Перетащите маркеры или переместите рамку, чтобы выбрать сохраняемую область; Enter — применить, Esc — отмена',
+      'Перетащите маркеры или переместите рамку, чтобы выбрать сохраняемую область; Enter - применить, Esc - отмена',
     imageApply: 'Применить',
     imageProcessing: 'Обработка…',
     imageLoading: 'Загрузка…',
@@ -2865,7 +2865,7 @@ export const strings = {
     signTypePlaceholder: 'Введите имя',
     signClear: 'Очистить',
     signPlace: 'Разместить',
-    signHint: 'Затем щёлкните по странице для размещения (Esc — отмена)',
+    signHint: 'Затем щёлкните по странице для размещения (Esc - отмена)',
     signSaved: 'Мои подписи',
     signSave: 'Сохранить подпись для повторного использования',
     signSavedDelete: 'Удалить подпись',
@@ -3049,11 +3049,11 @@ export const strings = {
     aiStopped: 'تم الإيقاف',
     aiNoReply: '(لا رد)',
     aiTruncatedNote: '(تم اقتطاع الرد بسبب حد الطول وقد يكون غير مكتمل.)',
-    aiTurnLimit: 'تم بلوغ حد الخطوات — اكتب «تابع» للمواصلة.',
+    aiTurnLimit: 'تم بلوغ حد الخطوات - اكتب «تابع» للمواصلة.',
     aiUnknownError: 'خطأ غير معروف',
     aiTimeoutError:
       'انتهت مهلة طلب الذكاء الاصطناعي: لا توجد استجابة من الشبكة وتم الإيقاف. تحقق من الاتصال وحاول مجددًا',
-    aiOverloadedError: 'خدمة الذكاء الاصطناعي مشغولة حاليًا — يرجى المحاولة مرة أخرى بعد قليل',
+    aiOverloadedError: 'خدمة الذكاء الاصطناعي مشغولة حاليًا - يرجى المحاولة مرة أخرى بعد قليل',
     aiNetworkError:
       'مشكلة في الشبكة: تعذّر الوصول إلى خدمة الذكاء الاصطناعي. تحقق من الاتصال وحاول مجددًا',
     aiCreditsExhausted:
@@ -3328,12 +3328,12 @@ export const strings = {
     aiStopped: 'Parado',
     aiNoReply: '(sem resposta)',
     aiTruncatedNote: '(A resposta foi cortada pelo limite de comprimento e pode estar incompleta.)',
-    aiTurnLimit: 'Limite de etapas atingido — diga "continuar" para prosseguir.',
+    aiTurnLimit: 'Limite de etapas atingido - diga "continuar" para prosseguir.',
     aiUnknownError: 'Erro desconhecido',
     aiTimeoutError:
       'A solicitação de IA expirou: sem resposta da rede, a execução foi interrompida. Verifique sua conexão e tente novamente',
     aiOverloadedError:
-      'O serviço de IA está sobrecarregado no momento — tente novamente em instantes',
+      'O serviço de IA está sobrecarregado no momento - tente novamente em instantes',
     aiNetworkError:
       'Problema de rede: não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente',
     aiCreditsExhausted:
@@ -3612,11 +3612,11 @@ export const strings = {
     aiNoReply: '(nessuna risposta)',
     aiTruncatedNote:
       '(La risposta è stata troncata dal limite di lunghezza e potrebbe essere incompleta.)',
-    aiTurnLimit: 'Limite di passaggi raggiunto — scrivi "continua" per proseguire.',
+    aiTurnLimit: 'Limite di passaggi raggiunto - scrivi "continua" per proseguire.',
     aiUnknownError: 'Errore sconosciuto',
     aiTimeoutError:
       'Richiesta IA scaduta: nessuna risposta dalla rete, esecuzione interrotta. Controlla la connessione e riprova',
-    aiOverloadedError: 'Il servizio IA è momentaneamente sovraccarico — riprova tra poco',
+    aiOverloadedError: 'Il servizio IA è momentaneamente sovraccarico - riprova tra poco',
     aiNetworkError:
       'Problema di rete: impossibile raggiungere il servizio IA. Controlla la connessione e riprova',
     aiCreditsExhausted:
@@ -3850,7 +3850,7 @@ export const strings = {
     aiFillFormPrompt:
       'Zidentyfikuj pola formularza i puste miejsca w tym dokumencie i wypisz, co trzeba wypełnić; wypełnij na podstawie podanych przeze mnie informacji, o brakujące zapytaj mnie raz i nigdy nie wymyślaj wartości.',
     aiComposerPlaceholder: 'Zadaj pytanie o ten PDF…',
-    aiHintIdle: 'Enter — wyślij, Shift+Enter — nowa linia',
+    aiHintIdle: 'Enter - wyślij, Shift+Enter - nowa linia',
     aiHintBusy: 'Odpowiadanie…',
     aiSend: 'Wyślij',
     aiStop: 'Zatrzymaj',
@@ -3895,11 +3895,11 @@ export const strings = {
     aiStopped: 'Zatrzymano',
     aiNoReply: '(brak odpowiedzi)',
     aiTruncatedNote: '(Odpowiedź została ucięta przez limit długości i może być niepełna.)',
-    aiTurnLimit: 'Osiągnięto limit kroków — napisz „kontynuuj", aby dokończyć.',
+    aiTurnLimit: 'Osiągnięto limit kroków - napisz „kontynuuj", aby dokończyć.',
     aiUnknownError: 'Nieznany błąd',
     aiTimeoutError:
       'Przekroczono limit czasu żądania AI: brak odpowiedzi sieci, przerwano. Sprawdź połączenie i spróbuj ponownie',
-    aiOverloadedError: 'Usługa AI jest obecnie przeciążona — spróbuj ponownie za chwilę',
+    aiOverloadedError: 'Usługa AI jest obecnie przeciążona - spróbuj ponownie za chwilę',
     aiNetworkError:
       'Problem z siecią: nie można połączyć się z usługą AI. Sprawdź połączenie i spróbuj ponownie',
     aiCreditsExhausted:
@@ -3964,7 +3964,7 @@ export const strings = {
     imageLoadFail: 'Nie udało się załadować obrazu',
     imageProcessFail: 'Przetwarzanie obrazu nie powiodło się',
     imageEditSkipped:
-      'Niektórych zmian obrazów na stronie {pages} nie udało się zastosować — pominięto je',
+      'Niektórych zmian obrazów na stronie {pages} nie udało się zastosować - pominięto je',
     drawRect: 'Prostokąt',
     drawEllipse: 'Elipsa',
     drawArrow: 'Strzałka',
@@ -3991,7 +3991,7 @@ export const strings = {
     signTypePlaceholder: 'Wpisz swoje imię i nazwisko',
     signClear: 'Wyczyść',
     signPlace: 'Umieść',
-    signHint: 'Następnie kliknij dowolne miejsce na stronie, aby go umieścić (Esc — anuluj)',
+    signHint: 'Następnie kliknij dowolne miejsce na stronie, aby go umieścić (Esc - anuluj)',
     signSaved: 'Moje podpisy',
     signSave: 'Zapisz podpis do ponownego użycia',
     signSavedDelete: 'Usuń podpis',
@@ -4178,11 +4178,11 @@ export const strings = {
     aiStopped: 'Gestopt',
     aiNoReply: '(geen antwoord)',
     aiTruncatedNote: '(Het antwoord is afgekapt door de lengtelimiet en is mogelijk onvolledig.)',
-    aiTurnLimit: 'Stappenlimiet bereikt — zeg "ga door" om verder te gaan.',
+    aiTurnLimit: 'Stappenlimiet bereikt - zeg "ga door" om verder te gaan.',
     aiUnknownError: 'Onbekende fout',
     aiTimeoutError:
       'AI-verzoek verlopen: geen reactie van het netwerk, uitvoering gestopt. Controleer je verbinding en probeer het opnieuw',
-    aiOverloadedError: 'De AI-service is momenteel overbelast — probeer het zo opnieuw',
+    aiOverloadedError: 'De AI-service is momenteel overbelast - probeer het zo opnieuw',
     aiNetworkError:
       'Netwerkprobleem: kan de AI-service niet bereiken. Controleer je verbinding en probeer het opnieuw',
     aiCreditsExhausted:
@@ -4459,11 +4459,11 @@ export const strings = {
     aiStopped: 'Dihentikan',
     aiNoReply: '(tiada balasan)',
     aiTruncatedNote: '(Balasan terpotong kerana had panjang dan mungkin tidak lengkap.)',
-    aiTurnLimit: 'Had langkah dicapai — taip "teruskan" untuk menyambung.',
+    aiTurnLimit: 'Had langkah dicapai - taip "teruskan" untuk menyambung.',
     aiUnknownError: 'Ralat tidak diketahui',
     aiTimeoutError:
       'Permintaan AI tamat masa: rangkaian tidak memberi respons, proses dihentikan. Semak sambungan anda dan cuba lagi',
-    aiOverloadedError: 'Perkhidmatan AI sedang sibuk — sila cuba lagi sebentar lagi',
+    aiOverloadedError: 'Perkhidmatan AI sedang sibuk - sila cuba lagi sebentar lagi',
     aiNetworkError:
       'Masalah rangkaian: tidak dapat menghubungi perkhidmatan AI. Semak sambungan anda dan cuba lagi',
     aiCreditsExhausted:
@@ -4738,10 +4738,10 @@ export const strings = {
     aiStopped: 'הופסק',
     aiNoReply: '(אין תשובה)',
     aiTruncatedNote: '(התשובה נחתכה בגלל מגבלת האורך וייתכן שאינה שלמה.)',
-    aiTurnLimit: 'הגעת למגבלת הצעדים של המשימה — כתבו "המשך" כדי שאמשיך.',
+    aiTurnLimit: 'הגעת למגבלת הצעדים של המשימה - כתבו "המשך" כדי שאמשיך.',
     aiUnknownError: 'שגיאה לא ידועה',
     aiTimeoutError: 'תם הזמן לבקשת ה-AI: אין תגובה מהרשת וההרצה הופסקה. בדוק את החיבור ונסה שוב',
-    aiOverloadedError: 'שירות ה-AI עמוס כרגע — נסו שוב בעוד רגע',
+    aiOverloadedError: 'שירות ה-AI עמוס כרגע - נסו שוב בעוד רגע',
     aiNetworkError: 'בעיית רשת: לא ניתן להתחבר לשירות ה-AI. בדוק את החיבור ונסה שוב',
     aiCreditsExhausted: 'קרדיטי Redrob שלך אזלו. טען מחדש ב-console.redrob.ai ונסה שוב',
     aiToolReadPages: 'קריאת עמודים {start}-{end}',
@@ -5013,11 +5013,11 @@ export const strings = {
     aiStopped: 'रोका गया',
     aiNoReply: '(कोई उत्तर नहीं)',
     aiTruncatedNote: '(उत्तर लंबाई सीमा के कारण कट गया और अधूरा हो सकता है।)',
-    aiTurnLimit: 'इस कार्य की चरण सीमा पूरी हो गई — जारी रखने के लिए "जारी रखें" लिखें।',
+    aiTurnLimit: 'इस कार्य की चरण सीमा पूरी हो गई - जारी रखने के लिए "जारी रखें" लिखें।',
     aiUnknownError: 'अज्ञात त्रुटि',
     aiTimeoutError:
       'AI अनुरोध का समय समाप्त: नेटवर्क से कोई प्रतिक्रिया नहीं मिली, इसलिए रोक दिया गया। कनेक्शन जांचें और फिर से प्रयास करें',
-    aiOverloadedError: 'AI सेवा अभी व्यस्त है — कृपया थोड़ी देर बाद फिर से प्रयास करें',
+    aiOverloadedError: 'AI सेवा अभी व्यस्त है - कृपया थोड़ी देर बाद फिर से प्रयास करें',
     aiNetworkError:
       'नेटवर्क समस्या: AI सेवा से कनेक्ट नहीं हो सका। कनेक्शन जांचें और फिर से प्रयास करें',
     aiCreditsExhausted:

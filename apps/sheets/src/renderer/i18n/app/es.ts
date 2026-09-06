@@ -72,7 +72,7 @@ export const es = {
   appValueAxis: 'Eje de valores',
   appCategoryAxis: 'Eje de categorías',
   appAuto: 'Automático',
-  appFormatHeader: 'Formato — {target}',
+  appFormatHeader: 'Formato - {target}',
   appClose: 'Cerrar',
   appSeries: 'Serie',
   appDataPoint: 'Punto de datos',
@@ -132,7 +132,7 @@ export const es = {
   appMoreItems: '+{count} más…',
   appTruncationNote: 'Primeros {shown} de {total}',
   appGoToButtonTitle: 'Ir a (⌘G)',
-  appNameBoxTitle: 'Cuadro de nombres — escriba una dirección o un nombre y presione Entrar',
+  appNameBoxTitle: 'Cuadro de nombres - escriba una dirección o un nombre y presione Entrar',
   appPivotChartHintIn: 'Crear un gráfico dinámico a partir de la tabla dinámica actual',
   appPivotChartHintOut:
     'Seleccione primero una celda dentro de la salida de la tabla dinámica y luego elija un tipo de gráfico',
@@ -151,33 +151,33 @@ export const es = {
   appAttachmentReadFailed: '{name}: error de lectura',
   appTooManyImages: 'Como máximo {max} imágenes por mensaje; las sobrantes se ignoraron',
   appAppliedRevision:
-    'Aplicado (revisión {revision}) — deshaga con ⌘Z, guarde en el archivo con ⌘S.',
+    'Aplicado (revisión {revision}) - deshaga con ⌘Z, guarde en el archivo con ⌘S.',
   appCannotReadImage: 'No se puede leer el archivo de imagen.',
   appTableNotDeletable:
-    'La tabla "{name}" no existe o no se creó en esta sesión — las tablas ya presentes en el archivo aún no se pueden eliminar.',
+    'La tabla "{name}" no existe o no se creó en esta sesión - las tablas ya presentes en el archivo aún no se pueden eliminar.',
   appImageNotLoaded: 'La imagen no se pudo cargar: {path}',
   appApplyFailed: '⚠️ Error al aplicar: {reason}',
   appPivotChartNeedsFile:
-    'Abra primero un archivo XLSX — el gráfico dinámico se escribe en el archivo.',
+    'Abra primero un archivo XLSX - el gráfico dinámico se escribe en el archivo.',
   appCursorNotInPivot:
-    'El cursor no está dentro de una tabla dinámica — seleccione primero una celda en la salida de la tabla dinámica.',
+    'El cursor no está dentro de una tabla dinámica - seleccione primero una celda en la salida de la tabla dinámica.',
   appPivotDefNotLoaded:
-    'La definición de la tabla dinámica aún no terminó de cargarse (o no se pudo analizar) — inténtelo de nuevo en un momento.',
+    'La definición de la tabla dinámica aún no terminó de cargarse (o no se pudo analizar) - inténtelo de nuevo en un momento.',
   appPivotNoChartData: 'Esta tabla dinámica no tiene filas/columnas de datos para graficar.',
   appPivotChartInsertedTruncated:
-    'Gráfico dinámico insertado (demasiados puntos de datos, truncado) — guarde (⌘S) para escribirlo en el archivo.',
+    'Gráfico dinámico insertado (demasiados puntos de datos, truncado) - guarde (⌘S) para escribirlo en el archivo.',
   appPivotChartInserted:
-    'Gráfico dinámico insertado — sigue las actualizaciones de la tabla dinámica; guarde (⌘S) para escribirlo en el archivo.',
+    'Gráfico dinámico insertado - sigue las actualizaciones de la tabla dinámica; guarde (⌘S) para escribirlo en el archivo.',
   appSheetNoPivot: 'Esta hoja no tiene tablas dinámicas.',
   appPivotNeedsFullLoad:
-    'Actualizar tablas dinámicas requiere el modo de carga completa — este libro es demasiado grande y se cargó por streaming.',
+    'Actualizar tablas dinámicas requiere el modo de carga completa - este libro es demasiado grande y se cargó por streaming.',
   appPivotSourceSheetMissing: 'La hoja de origen "{name}" de la tabla dinámica no existe.',
   appPivotLayoutMismatch:
-    'El diseño de la tabla dinámica no coincide con su rango de salida — actualícela en Excel antes de recalcular.',
+    'El diseño de la tabla dinámica no coincide con su rango de salida - actualícela en Excel antes de recalcular.',
   appPivotGrowUnsupported:
-    'Este diseño de tabla dinámica (compacto/encabezados de varias filas) aún no admite el crecimiento automático — actualícela en Excel.',
+    'Este diseño de tabla dinámica (compacto/encabezados de varias filas) aún no admite el crecimiento automático - actualícela en Excel.',
   appPivotGrowConflict:
-    'El área ampliada de la tabla dinámica entra en conflicto con contenido existente — borre primero el área de destino y luego actualice.',
+    'El área ampliada de la tabla dinámica entra en conflicto con contenido existente - borre primero el área de destino y luego actualice.',
   appShapeNotEditable:
     'No hay ninguna forma editable "{id}" (solo se pueden editar las formas agregadas en esta sesión).',
   appCalcFieldNameClash:
@@ -186,7 +186,7 @@ export const es = {
   appValueFilterFieldMissing:
     'El filtro de valores hace referencia al campo de valores {index}, que no existe.',
   appPivotRelayoutOverlap:
-    'El nuevo diseño de la tabla dinámica sobrescribiría contenido existente — borre primero el área de destino.',
+    'El nuevo diseño de la tabla dinámica sobrescribiría contenido existente - borre primero el área de destino.',
   appInvalidRowField: 'Campo de fila no válido.',
   appNeedRowField: 'Seleccione al menos un campo de fila.',
   appInvalidColumnField: 'Campo de columna no válido.',
@@ -198,31 +198,31 @@ export const es = {
   appOpenWorkbookFirst: 'Abra primero un libro.',
   appOpenXlsxFirst: 'Abra primero un archivo XLSX.',
   appPivotCreated:
-    'Tabla dinámica creada en {cell} — se escribe en el archivo al guardar. Tras guardar, podrá usar segmentaciones de datos, escalas de tiempo y actualización.',
+    'Tabla dinámica creada en {cell} - se escribe en el archivo al guardar. Tras guardar, podrá usar segmentaciones de datos, escalas de tiempo y actualización.',
   appPivotCreateFailed: 'No se pudo crear la tabla dinámica.',
   appPutCursorInPivot:
     'Coloque el cursor dentro de la salida de la tabla dinámica que desea editar.',
   appPivotNoCacheDef: 'Esta tabla dinámica no tiene definición de caché y no se puede editar.',
   appPivotDefNotLoadedSave:
-    'La definición de la tabla dinámica aún no está cargada — si la editó en esta sesión, guarde primero (⌘S).',
+    'La definición de la tabla dinámica aún no está cargada - si la editó en esta sesión, guarde primero (⌘S).',
   appPivotEditUnsupported: 'Esta tabla dinámica aún no se puede editar: {reasons}',
   appPivotEditHasFeatures:
-    'Las tablas dinámicas con agrupaciones, filtros, filtros de informe o campos calculados aún no admiten la edición de diseño — ajústelas en Excel.',
+    'Las tablas dinámicas con agrupaciones, filtros, filtros de informe o campos calculados aún no admiten la edición de diseño - ajústelas en Excel.',
   appPivotEditValuesOnRows:
     'Las tablas dinámicas con campos de valores en el eje de filas aún no admiten la edición de diseño.',
   appPivotEditAggUnsupported:
     'La agregación de esta tabla dinámica (p. ej. producto o contar números) aún no admite la edición de diseño.',
   appPivotSourceSheetNotFound: 'No se encuentra la hoja de origen "{name}" de la tabla dinámica.',
   appPivotLayoutUpdated:
-    'Diseño de la tabla dinámica actualizado — guarde (⌘S) para escribirlo en el archivo; Excel reconstruye la caché al abrir.',
+    'Diseño de la tabla dinámica actualizado - guarde (⌘S) para escribirlo en el archivo; Excel reconstruye la caché al abrir.',
   appPivotEditFailed: 'No se pudo editar la tabla dinámica.',
   appNoActiveSheet: 'No hay ninguna hoja activa.',
   appCurrentSheetNoPivot: 'La hoja actual no tiene tablas dinámicas.',
   appPivotsRefreshed:
-    'Se actualizaron {count} tabla(s) dinámica(s) — guarde para escribir en el archivo (⌘S).',
+    'Se actualizaron {count} tabla(s) dinámica(s) - guarde para escribir en el archivo (⌘S).',
   appRefreshFailed: 'Error al actualizar.',
   appSlicerNeedsFile:
-    'Abra primero un archivo XLSX — las segmentaciones de datos funcionan con las tablas dinámicas del archivo.',
+    'Abra primero un archivo XLSX - las segmentaciones de datos funcionan con las tablas dinámicas del archivo.',
   appFieldN: 'Campo {n}',
   appPivotNoSlicerFields:
     'Esta tabla dinámica no tiene campos de dimensión para una segmentación de datos.',
@@ -230,15 +230,15 @@ export const es = {
   appBlank: '(en blanco)',
   appFieldNoMembers: 'Este campo no tiene miembros que filtrar.',
   appSlicerCreated:
-    'Segmentación de datos "{name}" creada — haga clic en los miembros para filtrar la tabla dinámica.',
+    'Segmentación de datos "{name}" creada - haga clic en los miembros para filtrar la tabla dinámica.',
   appSlicerNeedsFullLoad:
-    'Filtrar con segmentaciones requiere el modo de carga completa — este libro es demasiado grande y se cargó por streaming.',
+    'Filtrar con segmentaciones requiere el modo de carga completa - este libro es demasiado grande y se cargó por streaming.',
   appSlicerPivotMissing: 'La tabla dinámica vinculada a esta segmentación ya no existe.',
   appSlicerSheetMissing: 'La hoja vinculada a esta segmentación ya no existe.',
   appSlicerFilterFailed: 'Error al filtrar con la segmentación.',
   appSlicerKeepOne: 'Mantenga al menos un miembro seleccionado en la segmentación.',
   appSlicerApplied:
-    'Segmentación de datos "{name}" aplicada — guarde (⌘S) para escribir la tabla dinámica filtrada.',
+    'Segmentación de datos "{name}" aplicada - guarde (⌘S) para escribir la tabla dinámica filtrada.',
   appSlicerCleared: 'Filtro de la segmentación "{name}" borrado.',
   appSlicerRemoved: 'Segmentación de datos "{name}" eliminada; se restauraron todos los miembros.',
   appTimelineHintIn:
@@ -246,17 +246,17 @@ export const es = {
   appTimelineHintOut:
     'Seleccione primero una celda dentro de la salida de la tabla dinámica y luego inserte una escala de tiempo',
   appTimelineNoDateFields:
-    'Esta tabla dinámica no tiene campos de fecha utilizables — una escala de tiempo necesita un campo sin agrupar cuyos valores sean todos fechas.',
+    'Esta tabla dinámica no tiene campos de fecha utilizables - una escala de tiempo necesita un campo sin agrupar cuyos valores sean todos fechas.',
   appTimelineCreated:
-    'Escala de tiempo "{name}" creada — haga clic en los meses para filtrar la tabla dinámica.',
+    'Escala de tiempo "{name}" creada - haga clic en los meses para filtrar la tabla dinámica.',
   appTimelineApplied:
-    'Escala de tiempo "{name}" aplicada — guarde (⌘S) para escribir la tabla dinámica filtrada.',
+    'Escala de tiempo "{name}" aplicada - guarde (⌘S) para escribir la tabla dinámica filtrada.',
   appTimelineCleared: 'Filtro de la escala de tiempo "{name}" borrado.',
   appTimelineRemoved: 'Escala de tiempo "{name}" eliminada; se restauraron todos los miembros.',
   appTimelineEmptyRange: 'No hay miembros en el intervalo de meses seleccionado.',
   appFieldFilterTaken:
-    'Todos los campos aptos ya tienen una segmentación de datos o una escala de tiempo — elimine primero la existente.',
-  appGoToNotReady: 'El libro aún no está listo — no se puede ir a una referencia.',
+    'Todos los campos aptos ya tienen una segmentación de datos o una escala de tiempo - elimine primero la existente.',
+  appGoToNotReady: 'El libro aún no está listo - no se puede ir a una referencia.',
   appGoToEmpty: 'Escriba una dirección de celda o un nombre definido.',
   appGoToUnresolved:
     'No se puede ir a "{ref}": no es una dirección válida ni un nombre definido navegable.',
@@ -268,29 +268,29 @@ export const es = {
   appSymbolInsertFailed: 'No se puede insertar el símbolo.',
   appSymbolInserted: 'Se insertó {char} en {cell}.',
   appAdvFilterNeedsFilter:
-    'El filtro avanzado necesita un rango de autofiltro — seleccione primero los datos y haga clic en Filtro.',
-  appAdvFilterGone: 'La hoja actual no tiene autofiltro — actívelo de nuevo y reintente.',
+    'El filtro avanzado necesita un rango de autofiltro - seleccione primero los datos y haga clic en Filtro.',
+  appAdvFilterGone: 'La hoja actual no tiene autofiltro - actívelo de nuevo y reintente.',
   appAdvFilterFailed: 'No se pudo aplicar el filtro avanzado.',
-  appAdvFilterApplied: 'Criterios de filtro avanzado aplicados — ⌘S guarda en el archivo.',
+  appAdvFilterApplied: 'Criterios de filtro avanzado aplicados - ⌘S guarda en el archivo.',
   appFlashFillNeedsLeft:
     'El relleno rápido necesita columnas de datos a la izquierda de la columna de destino.',
   appFlashFillNeedsRows: 'El relleno rápido necesita al menos dos filas de datos.',
   appFlashFillNeedsExamples:
     'Escriba primero 1 o 2 ejemplos en la columna de destino y luego haga clic en Relleno rápido.',
   appFlashFillNoPattern:
-    'No se reconoció ningún patrón en los ejemplos — los valores de destino deben poder derivarse de las columnas de la izquierda; pruebe a agregar otro ejemplo.',
+    'No se reconoció ningún patrón en los ejemplos - los valores de destino deben poder derivarse de las columnas de la izquierda; pruebe a agregar otro ejemplo.',
   appFlashFillNothingToFill: 'No hay filas vacías que rellenar.',
   appFlashFillDone: '⚡ El relleno rápido rellenó {count} fila(s) a partir de sus ejemplos.',
   appSparklineNeedsFile: 'Los minigráficos necesitan un archivo XLSX importado.',
   appSparklineNeedsCols:
-    'Seleccione al menos dos columnas de datos — un minigráfico por fila, colocado en la columna a la derecha de la selección.',
+    'Seleccione al menos dos columnas de datos - un minigráfico por fila, colocado en la columna a la derecha de la selección.',
   appSparklineNoSpace: 'No hay espacio para los minigráficos a la derecha de la selección.',
   appSparklinesInserted:
-    'Se insertaron {count} minigráfico(s) en la columna a la derecha de la selección — ⌘S guarda en el archivo.',
+    'Se insertaron {count} minigráfico(s) en la columna a la derecha de la selección - ⌘S guarda en el archivo.',
   appSaveHeldStranded:
-    'Las tablas dinámicas/tablas no se pueden guardar junto con hojas nuevas más cambios de filas/columnas — guarde primero la estructura y luego agréguelas.',
+    'Las tablas dinámicas/tablas no se pueden guardar junto con hojas nuevas más cambios de filas/columnas - guarde primero la estructura y luego agréguelas.',
   appSaveSecondCanceled:
-    'La segunda fase de guardado se canceló — la estructura está guardada; las tablas dinámicas/tablas/nombres definidos aún no se escribieron.',
+    'La segunda fase de guardado se canceló - la estructura está guardada; las tablas dinámicas/tablas/nombres definidos aún no se escribieron.',
   appSavedTwoPhase: 'Guardado.',
   appSaveSecondFailed:
     'La estructura está guardada, pero la segunda fase (tablas dinámicas/tablas/nombres definidos) falló: {reason}',
@@ -304,52 +304,52 @@ export const es = {
   appAiNoAction:
     'La IA no realizó ninguna acción ni dio respuesta. Inténtalo de nuevo o reformula.',
   appNewConversation: 'Se inició una conversación nueva.',
-  appPivotCellNoEdit: 'Esta celda forma parte de una tabla dinámica — su edición aún no se admite.',
+  appPivotCellNoEdit: 'Esta celda forma parte de una tabla dinámica - su edición aún no se admite.',
   appAreaStreaming:
-    'Esa área todavía se está cargando por streaming — inténtelo de nuevo en un momento.',
+    'Esa área todavía se está cargando por streaming - inténtelo de nuevo en un momento.',
   appFormulaRecordedPartial:
-    'Fórmula registrada — se guardará en el archivo, pero el resultado en pantalla puede estar incompleto porque este libro grande se carga parcialmente por streaming.',
+    'Fórmula registrada - se guardará en el archivo, pero el resultado en pantalla puede estar incompleto porque este libro grande se carga parcialmente por streaming.',
   appFormulaTooExpensive:
-    'Esta fórmula evalúa un rango grande elemento por elemento — el cálculo congelaría la aplicación, así que se canceló. Reduzca el rango referenciado y vuelva a intentarlo.',
+    'Esta fórmula evalúa un rango grande elemento por elemento - el cálculo congelaría la aplicación, así que se canceló. Reduzca el rango referenciado y vuelva a intentarlo.',
   appPivotSheetNoStructural:
-    'Esta hoja contiene una tabla dinámica — los cambios estructurales aún no se admiten.',
+    'Esta hoja contiene una tabla dinámica - los cambios estructurales aún no se admiten.',
   appDeleteSpanFormulas:
     'Una fórmula solo hace referencia a las filas/columnas eliminadas: actualícela o elimínela primero.',
   appIconSetUnsupported:
-    'Esta combinación de iconos no se puede guardar en xlsx — elige otro conjunto de iconos.',
+    'Esta combinación de iconos no se puede guardar en xlsx - elige otro conjunto de iconos.',
   appNeedFullLoadSort:
-    'Ordenar, filtrar, mover rangos y dividir texto en columnas requieren el modo de carga completa — este libro es demasiado grande y se carga parcialmente por streaming.',
-  appPivotSheetNoMove: 'Esta hoja contiene una tabla dinámica — mover rangos aún no se admite.',
+    'Ordenar, filtrar, mover rangos y dividir texto en columnas requieren el modo de carga completa - este libro es demasiado grande y se carga parcialmente por streaming.',
+  appPivotSheetNoMove: 'Esta hoja contiene una tabla dinámica - mover rangos aún no se admite.',
   appTableFilterNoEdit:
-    'El filtro de esta hoja pertenece a una tabla de Excel — su edición aún no se puede guardar.',
+    'El filtro de esta hoja pertenece a una tabla de Excel - su edición aún no se puede guardar.',
   appAutofillStreaming:
     'Aún no se permite el autorrelleno hacia un área que todavía se está cargando por streaming.',
   appDvNeedsIndexed:
-    'Editar la validación de datos requiere que esta hoja esté totalmente indexada — inténtelo de nuevo en un momento.',
+    'Editar la validación de datos requiere que esta hoja esté totalmente indexada - inténtelo de nuevo en un momento.',
   appDuplicateNeedsFullLoad:
-    'Duplicar una hoja requiere el modo de carga completa — este libro es demasiado grande y se carga parcialmente por streaming.',
+    'Duplicar una hoja requiere el modo de carga completa - este libro es demasiado grande y se carga parcialmente por streaming.',
   appPivotSheetNoDuplicate:
-    'Esta hoja contiene una tabla dinámica — su duplicación aún no se admite.',
+    'Esta hoja contiene una tabla dinámica - su duplicación aún no se admite.',
   appDuplicateScopedNames:
     'Esta hoja tiene nombres definidos con ámbito de hoja: duplicarla aún no es compatible.',
   appMoveRowsColsUnsaved:
-    'Mover columnas enteras aún no se puede guardar en libros importados — mover filas enteras ya es compatible.',
+    'Mover columnas enteras aún no se puede guardar en libros importados - mover filas enteras ya es compatible.',
   appNoWorkbookOpen: 'No hay ningún libro abierto.',
   appDvListOptions: 'Lista: {items}',
   appDvListFromRange: 'Lista (del rango {range})',
   appRuleBrokenRef: 'Referencia rota (#REF!): esta regla nunca se aplicará',
   appCellStreaming:
-    'Esa celda todavía se está cargando por streaming — inténtelo de nuevo en un momento.',
-  appPreviewCreated: 'Vista previa creada — nada cambia hasta que la aplique.',
+    'Esa celda todavía se está cargando por streaming - inténtelo de nuevo en un momento.',
+  appPreviewCreated: 'Vista previa creada - nada cambia hasta que la aplique.',
   appPreviewCreatedDemo: 'Vista previa creada. El estado del libro no ha cambiado.',
   appPreviewFailed: 'No se puede crear una vista previa.',
   appApplyTxFailed: 'No se puede aplicar la transacción.',
   appTxCommitted: 'Transacción confirmada (revisión {revision}).',
-  appPreviewOtherWorkbook: 'La vista previa pertenecía a otro libro — cree una nueva.',
-  appPreviewSheetGone: 'La hoja de la vista previa ya no existe — cree una vista previa nueva.',
+  appPreviewOtherWorkbook: 'La vista previa pertenecía a otro libro - cree una nueva.',
+  appPreviewSheetGone: 'La hoja de la vista previa ya no existe - cree una vista previa nueva.',
   appWorkbookChangedSincePreview:
-    'El libro cambió desde la vista previa — cree una vista previa nueva.',
-  appAppliedJournaled: 'Aplicado — los cambios quedaron registrados; guarde con ⌘S.',
+    'El libro cambió desde la vista previa - cree una vista previa nueva.',
+  appAppliedJournaled: 'Aplicado - los cambios quedaron registrados; guarde con ⌘S.',
   appUndoCommitted: 'Deshacer confirmado (revisión {revision}).',
   appUndoFailed: 'No se puede deshacer.',
   appAutoFilterCreateFailed: 'No se puede crear el autofiltro.',
@@ -357,32 +357,32 @@ export const es = {
   appSelectDataRangeFirst: 'Seleccione primero el rango de datos.',
   appUnsupportedChartType: 'Tipo de gráfico no admitido: {kind}.',
   appChartInsertedDemo:
-    'Gráfico insertado — las ediciones de demostración permanecen en memoria; abra un archivo XLSX para guardar en disco.',
+    'Gráfico insertado - las ediciones de demostración permanecen en memoria; abra un archivo XLSX para guardar en disco.',
   appChartInsertFailed: 'No se puede insertar el gráfico.',
   appChartNeedsNumericColumn:
     'Seleccione un rango con al menos una columna numérica (encabezados opcionales).',
-  appChartInserted: 'Gráfico insertado — selecciónelo para editarlo, ⌘S lo escribe en el archivo.',
+  appChartInserted: 'Gráfico insertado - selecciónelo para editarlo, ⌘S lo escribe en el archivo.',
   appShapeNeedsFile:
-    'Abra primero un archivo XLSX — las formas insertadas se escriben en el archivo.',
+    'Abra primero un archivo XLSX - las formas insertadas se escriben en el archivo.',
   appSelectCellFirst: 'Seleccione primero una celda.',
-  appTextBoxInserted: 'Cuadro de texto insertado — se escribe en el archivo al guardar (⌘S).',
-  appShapeInserted: 'Forma insertada — se escribe en el archivo al guardar (⌘S).',
+  appTextBoxInserted: 'Cuadro de texto insertado - se escribe en el archivo al guardar (⌘S).',
+  appShapeInserted: 'Forma insertada - se escribe en el archivo al guardar (⌘S).',
   appPictureNeedsFile:
-    'Abra primero un archivo XLSX — las imágenes insertadas se escriben en el archivo.',
+    'Abra primero un archivo XLSX - las imágenes insertadas se escriben en el archivo.',
   appPictureTooLarge: 'No se admiten imágenes de más de 20 MB.',
   appPictureBadType: 'Solo se admiten imágenes PNG, JPEG o GIF.',
-  appPictureInserted: 'Imagen insertada — se escribe en el archivo al guardar (⌘S).',
+  appPictureInserted: 'Imagen insertada - se escribe en el archivo al guardar (⌘S).',
   appTableNeedsRows: 'Una tabla necesita una fila de encabezado más al menos una fila de datos.',
   appTableTooWide: 'Una tabla puede abarcar como máximo 1.000 columnas.',
   appTableNameUsed: 'El nombre de tabla "{name}" ya se usó en esta sesión.',
   appTableOverlapsSession: 'El rango se superpone con la tabla "{name}" creada en esta sesión.',
-  appTablesNeedFile: 'Abra primero un archivo XLSX — las tablas se escriben en el archivo.',
+  appTablesNeedFile: 'Abra primero un archivo XLSX - las tablas se escriben en el archivo.',
   appTableSelectRange:
-    'Seleccione primero el rango de datos — con los encabezados en su primera fila.',
-  appTableCreated: 'Tabla creada — guarde con ⌘S.',
+    'Seleccione primero el rango de datos - con los encabezados en su primera fila.',
+  appTableCreated: 'Tabla creada - guarde con ⌘S.',
   appTableCreateFailed: 'No se puede crear la tabla.',
   appPivotOnAddedSheet:
-    'Las tablas dinámicas en hojas agregadas en esta sesión aún no se admiten — guarde primero.',
+    'Las tablas dinámicas en hojas agregadas en esta sesión aún no se admiten - guarde primero.',
   appPivotSourceNeedsRows:
     'El origen de la tabla dinámica necesita una fila de encabezado más filas de datos.',
   appPivotSourceRowLimit: 'El origen de la tabla dinámica está limitado a 10.000 filas de datos.',
@@ -396,7 +396,7 @@ export const es = {
   appPivotNeedsValues: 'La tabla dinámica necesita un campo de valores.',
   appPivotTooManyRowLines: 'La tabla dinámica tiene más de 20.000 líneas de diseño de filas.',
   appPivotOverlapSource:
-    'La salida de la tabla dinámica se superpondría con su rango de origen — elija otra celda de destino.',
+    'La salida de la tabla dinámica se superpondría con su rango de origen - elija otra celda de destino.',
   appPivotOverlapExisting:
     'La salida de la tabla dinámica se superpondría con una tabla dinámica existente en la hoja de destino.',
   appPivotOverlapSession:
@@ -404,7 +404,7 @@ export const es = {
   appPivotNameUsed: 'El nombre de tabla dinámica "{name}" ya se usó en esta sesión.',
   appActiveCellFallback: 'la celda activa',
   appFormulaStartsEquals: 'Una fórmula empieza con "=".',
-  appUnbalancedParens: 'Paréntesis sin equilibrar — complete los argumentos.',
+  appUnbalancedParens: 'Paréntesis sin equilibrar - complete los argumentos.',
   appSetFormulaFailed: 'No se puede establecer la fórmula.',
   appFormulaSet: 'Fórmula escrita en {cell}.',
   appSelectSourceRangeFirst: 'Seleccione primero el rango de datos de origen.',
@@ -412,7 +412,7 @@ export const es = {
   appSubtotalSameColumns: 'Elija columnas distintas para el grupo y los valores.',
   appRangeNoDataRows: 'El rango seleccionado no tiene filas de datos.',
   appSubtotalTooManyGroups:
-    'Demasiados grupos (máx. 200) — ordene primero por la columna de grupo.',
+    'Demasiados grupos (máx. 200) - ordene primero por la columna de grupo.',
   appSubtotalInsertFailed: 'No se pueden insertar las filas de subtotales.',
   appSubtotalsInserted: 'Subtotales insertados: {count} grupo(s) más un total general.',
   appSelectTargetCellFirst: 'Seleccione primero la celda de destino.',
@@ -420,50 +420,50 @@ export const es = {
   appNoSheetNamed: 'No hay ninguna hoja llamada "{name}".',
   appConsolidateEmptySources: 'Las áreas de origen están vacías.',
   appConsolidateOverlap:
-    'El área de salida se superpone con un área de origen — elija otra celda de destino.',
+    'El área de salida se superpone con un área de origen - elija otra celda de destino.',
   appConsolidateWriteFailed: 'No se puede escribir la consolidación.',
   appConsolidateDone:
     'Se consolidaron {count} área(s) en {cell} ({rows}×{columns} fórmulas activas).',
   appConsolidateMaxMinLabels:
-    'Máx. y mín. no se admiten con etiquetas en la columna izquierda — use la consolidación por posición.',
+    'Máx. y mín. no se admiten con etiquetas en la columna izquierda - use la consolidación por posición.',
   appConsolidateLabelNeedsCols:
     'El modo de etiquetas necesita al menos dos columnas por área (etiquetas más una columna de valores).',
   appConsolidateNoLabels:
     'No se encontraron etiquetas en la columna izquierda de las áreas de origen.',
   appOutlineNeedsFile:
-    'Abra primero un archivo XLSX — los grupos de esquema se escriben en el archivo.',
+    'Abra primero un archivo XLSX - los grupos de esquema se escriben en el archivo.',
   appOutlineSelectFirst: 'Seleccione primero las filas o columnas que desea agrupar.',
-  appDetailHidden: 'Detalle oculto — guarde con ⌘S.',
-  appDetailShown: 'Detalle mostrado — guarde con ⌘S.',
+  appDetailHidden: 'Detalle oculto - guarde con ⌘S.',
+  appDetailShown: 'Detalle mostrado - guarde con ⌘S.',
   appOutlineMaxLevel: 'Ya está en el nivel de esquema más profundo (7).',
   appNothingToUngroup: 'No hay nada que desagrupar en la selección.',
-  appRowsGrouped: 'Filas agrupadas — guarde con ⌘S. Contráigalas con "Ocultar detalle".',
-  appColsGrouped: 'Columnas agrupadas — guarde con ⌘S. Contráigalas con "Ocultar detalle".',
-  appRowsUngrouped: 'Filas desagrupadas — guarde con ⌘S.',
-  appColsUngrouped: 'Columnas desagrupadas — guarde con ⌘S.',
-  appSheetAdded: 'Hoja agregada — haga doble clic en su pestaña para cambiarle el nombre.',
+  appRowsGrouped: 'Filas agrupadas - guarde con ⌘S. Contráigalas con "Ocultar detalle".',
+  appColsGrouped: 'Columnas agrupadas - guarde con ⌘S. Contráigalas con "Ocultar detalle".',
+  appRowsUngrouped: 'Filas desagrupadas - guarde con ⌘S.',
+  appColsUngrouped: 'Columnas desagrupadas - guarde con ⌘S.',
+  appSheetAdded: 'Hoja agregada - haga doble clic en su pestaña para cambiarle el nombre.',
   appSheetAddFailed: 'No se puede agregar una hoja.',
-  appFormatCopied: 'Formato copiado — seleccione las celdas de destino para aplicarlo.',
-  appProtectionNeedsFile: 'Abra primero un archivo XLSX — la protección se guarda en el archivo.',
+  appFormatCopied: 'Formato copiado - seleccione las celdas de destino para aplicarlo.',
+  appProtectionNeedsFile: 'Abra primero un archivo XLSX - la protección se guarda en el archivo.',
   appProtectionNeedsIndexed:
-    'La protección requiere que esta hoja esté totalmente indexada — inténtelo de nuevo en un momento.',
+    'La protección requiere que esta hoja esté totalmente indexada - inténtelo de nuevo en un momento.',
   appProtectedWithPassword:
-    'Esta hoja está protegida con contraseña — quitar su protección no se admite.',
+    'Esta hoja está protegida con contraseña - quitar su protección no se admite.',
   appProtectionWillWrite:
     'La protección de la hoja se escribirá al guardar (sin contraseña). El editor en sí no la aplica.',
   appProtectionWillRemove: 'La protección de la hoja se quitará al guardar.',
   appZoom: 'Zoom {percent} %.',
-  appTopRowFrozen: 'Fila superior inmovilizada — guarde con ⌘S.',
-  appFirstColFrozen: 'Primera columna inmovilizada — guarde con ⌘S.',
+  appTopRowFrozen: 'Fila superior inmovilizada - guarde con ⌘S.',
+  appFirstColFrozen: 'Primera columna inmovilizada - guarde con ⌘S.',
   appFindScanTruncated:
     'Hoja grande: la búsqueda se detuvo tras {cells} celdas; los resultados pueden estar incompletos.',
   appReplaceNeedsFullLoad:
-    'Reemplazar requiere el modo de carga completa — use Buscar en su lugar.',
-  appGridlinesHiddenSave: 'Líneas de cuadrícula ocultas — guarde con ⌘S.',
-  appGridlinesShownSave: 'Líneas de cuadrícula mostradas — guarde con ⌘S.',
+    'Reemplazar requiere el modo de carga completa - use Buscar en su lugar.',
+  appGridlinesHiddenSave: 'Líneas de cuadrícula ocultas - guarde con ⌘S.',
+  appGridlinesShownSave: 'Líneas de cuadrícula mostradas - guarde con ⌘S.',
   appGridlinesHidden: 'Líneas de cuadrícula ocultas.',
   appGridlinesShown: 'Líneas de cuadrícula mostradas.',
-  appShowingFormulas: 'Mostrando fórmulas — vuelva a alternar para ver los valores.',
+  appShowingFormulas: 'Mostrando fórmulas - vuelva a alternar para ver los valores.',
   appShowingValues: 'Mostrando los valores calculados.',
   appTraceNoFormula: 'Rastrear precedentes: la celda activa no tiene fórmula.',
   appTraceNoRefs: 'Rastrear precedentes: esta fórmula no tiene referencias de celda.',
@@ -477,34 +477,34 @@ export const es = {
   appNoTraceArrows: 'No hay flechas de rastreo que quitar.',
   appWorkbookStats:
     'Estadísticas del libro: {sheets} hojas · {cells} celdas con datos · {formulas} fórmulas{note}.',
-  appFrozenAtSelection: 'Paneles inmovilizados en la selección — guarde con ⌘S.',
+  appFrozenAtSelection: 'Paneles inmovilizados en la selección - guarde con ⌘S.',
   appSelectCellsFirst: 'Seleccione primero las celdas.',
   appCellStyleApplied:
-    'Estilo de celda aplicado — se registra como cualquier edición de formato (⌘S para guardar).',
+    'Estilo de celda aplicado - se registra como cualquier edición de formato (⌘S para guardar).',
   appSelectRangeFirst: 'Seleccione primero un rango de celdas.',
   appSettingNeedsFile:
-    'Abra primero un archivo XLSX — esta configuración solo se guarda en el archivo.',
+    'Abra primero un archivo XLSX - esta configuración solo se guarda en el archivo.',
   appTooManyCellsForSetting: 'Seleccione menos de 10.000 celdas para esta configuración.',
   appProtectionFlagsRecorded:
-    'Indicadores de protección registrados — se aplican cuando la hoja está protegida.',
+    'Indicadores de protección registrados - se aplican cuando la hoja está protegida.',
   appSortSelectRows:
-    'Seleccione primero las filas que desea ordenar — incluya todas las columnas relacionadas.',
+    'Seleccione primero las filas que desea ordenar - incluya todas las columnas relacionadas.',
   appSortedAsc: 'Ordenado de A a Z por la primera columna seleccionada.',
   appSortedDesc: 'Ordenado de Z a A por la primera columna seleccionada.',
-  appAutofnSelectCells: 'Seleccione las celdas que desea agregar — {fn} va en la fila de abajo.',
+  appAutofnSelectCells: 'Seleccione las celdas que desea agregar - {fn} va en la fila de abajo.',
   appRowBelowStreaming:
-    'La fila de abajo todavía se está cargando por streaming — inténtelo de nuevo en un momento.',
+    'La fila de abajo todavía se está cargando por streaming - inténtelo de nuevo en un momento.',
   appAutofnInserted: '{fn} insertado debajo de la selección.',
   appSortedCustom: 'Ordenado según sus niveles personalizados.',
   appDedupeNeedsFullLoad:
-    'Quitar duplicados requiere el modo de carga completa — este libro es demasiado grande y se carga parcialmente por streaming.',
+    'Quitar duplicados requiere el modo de carga completa - este libro es demasiado grande y se carga parcialmente por streaming.',
   appDedupeSelectRows: 'Seleccione primero las filas que desea comprobar.',
   appNoDuplicates: 'No se encontraron filas duplicadas en la selección.',
   appDuplicatesRemoved: 'Se quitaron {count} fila(s) duplicada(s).',
   appLinksNeedFile: 'Abra un archivo XLSX para editar vínculos.',
   appLinkRemoved: 'Vínculo quitado.',
   appLinkInvalid: 'Escriba una dirección web (https://…) o una referencia de hoja como Sheet1!A1.',
-  appLinkSaved: 'Vínculo guardado — haga clic en la celda para seguirlo.',
+  appLinkSaved: 'Vínculo guardado - haga clic en la celda para seguirlo.',
   appTextToColsSelectOne: 'Seleccione una sola columna de texto para dividir.',
   appSplitIntoColumns: 'Dividido en columnas.',
   appAppliedToSelection: 'Aplicado a la selección actual.',
@@ -513,11 +513,11 @@ export const es = {
   appBridgeUnavailable:
     'El puente de archivos de escritorio no está disponible. Reinicie la aplicación Electron.',
   appOpenCanceled: 'Selección de libro cancelada.',
-  appOpened: 'Se abrió {name} — las ediciones de celdas se vuelven a guardar con ⌘S.',
+  appOpened: 'Se abrió {name} - las ediciones de celdas se vuelven a guardar con ⌘S.',
   appOpenFailed: 'No se puede abrir el libro.',
   appPageSetupNeedsFile:
-    'Abra primero un archivo XLSX — la configuración de página se guarda en el archivo.',
-  appPageSetupRecorded: '{note} — guarde con ⌘S.',
+    'Abra primero un archivo XLSX - la configuración de página se guarda en el archivo.',
+  appPageSetupRecorded: '{note} - guarde con ⌘S.',
   appOrientationPortrait: 'Orientación: vertical',
   appOrientationLandscape: 'Orientación: horizontal',
   appMarginsNormal: 'Márgenes: normales',
@@ -541,65 +541,65 @@ export const es = {
   appSelectRepeatRows: 'Seleccione primero las filas que desea repetir.',
   appRowsRepeat: 'Las filas {rows} se repiten en cada página impresa',
   appHfNeedsFile:
-    'Abra primero un archivo XLSX — los encabezados y pies de página se guardan en el archivo.',
+    'Abra primero un archivo XLSX - los encabezados y pies de página se guardan en el archivo.',
   appActiveSheetUnavailable: 'La hoja activa no está disponible.',
-  appHfUpdated: 'Encabezado y pie de página actualizados — guarde con ⌘S.',
+  appHfUpdated: 'Encabezado y pie de página actualizados - guarde con ⌘S.',
   appPdfNeedsFullLoad:
-    'La exportación a PDF requiere el libro completamente cargado — espere a que termine la carga.',
+    'La exportación a PDF requiere el libro completamente cargado - espere a que termine la carga.',
   appPdfRendering: 'Generando el PDF…',
   appPdfCanceled: 'Exportación a PDF cancelada.',
   appPdfExported: 'Se exportó {path}.',
   appPdfExportFailed: 'No se puede exportar el PDF.',
   appCsvExportNeedsFullLoad:
-    'La exportación a CSV requiere el libro completamente cargado — espere a que termine la carga.',
+    'La exportación a CSV requiere el libro completamente cargado - espere a que termine la carga.',
   appCsvExportTooLarge: 'La hoja es demasiado grande para exportarla como CSV.',
   appCsvExportCanceled: 'Exportación a CSV cancelada.',
   appCsvExported: 'Se exportó {path}.',
   appCsvExportedActiveOnly:
-    'Los archivos CSV solo contienen una hoja — se exportó la hoja activa «{name}» a {path}.',
+    'Los archivos CSV solo contienen una hoja - se exportó la hoja activa «{name}» a {path}.',
   appCsvExportFailed: 'No se puede exportar el CSV.',
   appDemoNoSave:
-    'Las ediciones de demostración permanecen en memoria — abra un archivo XLSX para guardar en disco.',
+    'Las ediciones de demostración permanecen en memoria - abra un archivo XLSX para guardar en disco.',
   appFilterSnapshotFailed: 'No se puede tomar una instantánea de los filtros.',
   appColorFiltersUnsaveable:
-    'Los filtros por color aún no se pueden guardar como XLSX — bórrelos antes de guardar.',
+    'Los filtros por color aún no se pueden guardar como XLSX - bórrelos antes de guardar.',
   appNoEditsToSave: 'Aún no hay ediciones que guardar.',
-  appSheetOrderReadFailed: 'No se puede leer el orden de las hojas — inténtelo de nuevo.',
+  appSheetOrderReadFailed: 'No se puede leer el orden de las hojas - inténtelo de nuevo.',
   appSavingEdits: 'Guardando {count} edición(es)…',
   appSaveCanceled: 'Guardado cancelado.',
   appSaved: 'Guardado.',
   appSaveFailed: 'No se puede guardar el libro.',
   appCfRuleUnsaveable:
-    'Esta regla de formato condicional no se puede guardar en xlsx — use otro tipo de regla.',
+    'Esta regla de formato condicional no se puede guardar en xlsx - use otro tipo de regla.',
   appSaveErrX14Dv:
     'Esta hoja tiene validación de datos extendida (x14); editar sus reglas de validación aún no es compatible.',
   appSaveErrMultiSelectList:
-    'La validación de lista de selección múltiple no se puede guardar en xlsx — elimine la regla antes de guardar.',
+    'La validación de lista de selección múltiple no se puede guardar en xlsx - elimine la regla antes de guardar.',
   appSaveErrX14Cf:
     'Este rango tiene formato condicional extendido (x14) y por ahora no se puede modificar.',
   appSaveErrPivotWithSheetOps:
-    'Una tabla dinámica recién creada no se puede guardar junto con cambios de gestión de hojas — guarde primero la tabla dinámica.',
+    'Una tabla dinámica recién creada no se puede guardar junto con cambios de gestión de hojas - guarde primero la tabla dinámica.',
   appSaveErrPivotWithRowCol:
-    'Una tabla dinámica recién creada no se puede guardar junto con cambios de filas/columnas en su hoja — guarde primero la tabla dinámica.',
+    'Una tabla dinámica recién creada no se puede guardar junto con cambios de filas/columnas en su hoja - guarde primero la tabla dinámica.',
   appSaveErrTableWithRowCol:
-    'Una tabla recién creada no se puede guardar junto con cambios de filas/columnas en su hoja — guarde primero la tabla.',
+    'Una tabla recién creada no se puede guardar junto con cambios de filas/columnas en su hoja - guarde primero la tabla.',
   appSaveErrNamesWithStructural:
-    'Los cambios de nombres definidos no se pueden guardar junto con cambios de filas/columnas o de estructura de hojas — guarde en dos pasos.',
+    'Los cambios de nombres definidos no se pueden guardar junto con cambios de filas/columnas o de estructura de hojas - guarde en dos pasos.',
   appSaveErrChangedOnDisk:
-    'Otro programa modificó el archivo en el disco — guardado cancelado; vuelva a abrir el archivo e inténtelo de nuevo.',
+    'Otro programa modificó el archivo en el disco - guardado cancelado; vuelva a abrir el archivo e inténtelo de nuevo.',
   appSaveErrStylesheetLimited:
     'La hoja de estilos de este libro carece de estructura básica; los cambios de estilo no se pueden guardar.',
   appSaveErrPackageGuard:
-    'Guardar cambiaría la estructura del paquete del libro — se canceló para proteger el archivo.',
+    'Guardar cambiaría la estructura del paquete del libro - se canceló para proteger el archivo.',
   appSaveErrChartUnsupported:
-    'Este tipo de gráfico no admite esa edición; guardado cancelado — deshaga el cambio del gráfico.',
+    'Este tipo de gráfico no admite esa edición; guardado cancelado - deshaga el cambio del gráfico.',
   appSaveErrMoveOverlap:
-    'Una fórmula, un rango con formato, una forma o una tabla abarca las filas movidas; guardado cancelado — deshaga el movimiento.',
+    'Una fórmula, un rango con formato, una forma o una tabla abarca las filas movidas; guardado cancelado - deshaga el movimiento.',
   appFromTextCsvTitle: 'Importar un archivo CSV/de texto en la selección actual',
   appCsvImported: 'Se importaron {rows} filas × {columns} columnas del archivo en {cell}.',
   appCsvEmpty: 'El archivo CSV no contiene datos.',
   appCsvTooLarge:
-    'El CSV es demasiado grande — con más de 50.000 celdas, use «Abrir» como libro nuevo.',
+    'El CSV es demasiado grande - con más de 50.000 celdas, use «Abrir» como libro nuevo.',
   appCsvImportFailed: 'Error al importar el CSV.',
   appNoNotesOnSheet: 'No hay comentarios en la hoja actual.',
   appNotePrevTitle: 'Ir al comentario anterior',
@@ -610,42 +610,42 @@ export const es = {
   appAiChangesNotSaved: 'Cambios de IA aplicados (sin guardar). Deshaga con ⌘Z; guarde con ⌘S.',
   appChartUpdated: 'Gráfico actualizado.',
   appChartNotEditable: 'Este gráfico no es editable.',
-  appChartEditRecorded: 'Edición del gráfico registrada — guarde con ⌘S.',
+  appChartEditRecorded: 'Edición del gráfico registrada - guarde con ⌘S.',
   appChartDeleted: 'Gráfico eliminado.',
   appChartMoved: 'Gráfico movido.',
   appVisualNotEditable: 'Este objeto no es editable.',
-  appVisualNoDelete: 'Este objeto no se puede eliminar — su forma de dibujo no es editable.',
+  appVisualNoDelete: 'Este objeto no se puede eliminar - su forma de dibujo no es editable.',
   appFileVisualMoveDeleteOnly:
     'Para los objetos ya presentes en el archivo solo se admite mover o eliminar.',
-  appVisualNoMove: 'Este objeto no se puede mover — su forma de dibujo no es editable.',
-  appVisualDeleted: 'Objeto eliminado — guarde con ⌘S.',
-  appShapeTextUpdated: 'Texto de la forma actualizado — guarde con ⌘S.',
-  appShapeMoved: 'Forma movida — guarde con ⌘S.',
+  appVisualNoMove: 'Este objeto no se puede mover - su forma de dibujo no es editable.',
+  appVisualDeleted: 'Objeto eliminado - guarde con ⌘S.',
+  appShapeTextUpdated: 'Texto de la forma actualizado - guarde con ⌘S.',
+  appShapeMoved: 'Forma movida - guarde con ⌘S.',
   appScopeWorkbook: 'Libro',
   appNamesNeedFile:
-    'Abra primero un archivo XLSX — los nombres definidos se guardan en el archivo.',
+    'Abra primero un archivo XLSX - los nombres definidos se guardan en el archivo.',
   appNameGone: 'Ese nombre ya no existe.',
   appNameApplyFailed: 'No se pudo aplicar el nombre.',
-  appNamesUpdated: 'Nombres definidos actualizados — guarde con ⌘S.',
+  appNamesUpdated: 'Nombres definidos actualizados - guarde con ⌘S.',
   appLinkInternal: 'El vínculo apunta dentro del libro: {location}',
   appLinkSheetNotFound: 'No se encontró la hoja "{name}".',
   appLinkJumpFailed: 'No se puede saltar a {location}.',
   appClosureActive:
     '{count} fórmulas se recalculan en vivo (modo clausura); el resto del libro se carga por streaming bajo demanda.',
   appRecalcPartial:
-    'Fórmulas recalculadas según sus ediciones — {count} conservaron valores en caché (funciones que faltan en el motor de reserva).',
+    'Fórmulas recalculadas según sus ediciones - {count} conservaron valores en caché (funciones que faltan en el motor de reserva).',
   appRecalcDone: 'Fórmulas recalculadas según sus ediciones ({count} celdas, motor de reserva).',
   appIndexing: 'Indexando {name}: {rows} filas listas.',
   appStreamingRows: 'Cargando {name} por streaming: {rows} filas disponibles.',
   appLoadRangeFailed: 'No se puede cargar el rango visible.',
   appFullyLoaded:
-    'Libro completamente cargado — las fórmulas se recalculan en vivo y las filas/columnas son editables.',
+    'Libro completamente cargado - las fórmulas se recalculan en vivo y las filas/columnas son editables.',
   appRangeMustBeVector: '{range} debe ser una sola fila o una sola columna de celdas.',
   appRangeTooManyCells: '{range} abarca más de {max} celdas.',
-  appSheetStillIndexing: 'La hoja todavía se está indexando — inténtelo de nuevo en un momento.',
+  appSheetStillIndexing: 'La hoja todavía se está indexando - inténtelo de nuevo en un momento.',
   appPrintNothing: 'La hoja no tiene nada que imprimir.',
   appPrintTooLarge:
-    'El rango de impresión es demasiado grande — establezca un área de impresión más pequeña en la pestaña Disposición de página.',
+    'El rango de impresión es demasiado grande - establezca un área de impresión más pequeña en la pestaña Disposición de página.',
   appPrintBadArea: 'Área de impresión "{area}" no válida.',
   appPrintBadTitles: 'Títulos de impresión "{titles}" no válidos.',
   appPrintTitlesLimit: 'Los títulos de impresión repiten como máximo 21 filas.',
@@ -666,9 +666,9 @@ export const es = {
   appSeriesData: 'Datos de {name}',
   appValuesPlaceholder: 'Valores, p. ej. B2:B13',
   appLabelsPlaceholder: 'Etiquetas, p. ej. A2:A13',
-  appValuesRangeTitle: 'Rango de valores para {name} — una sola fila o columna, p. ej. B2:B13',
+  appValuesRangeTitle: 'Rango de valores para {name} - una sola fila o columna, p. ej. B2:B13',
   appCategoriesRangeTitle:
-    'Rango de etiquetas de categorías para {name} — una sola fila o columna, p. ej. A2:A13',
+    'Rango de etiquetas de categorías para {name} - una sola fila o columna, p. ej. A2:A13',
   appTypeLabel: 'Tipo',
   appApply: 'Aplicar',
   appTabHome: 'Inicio',
@@ -714,7 +714,7 @@ export const es = {
   appEditLinkTitle: 'Editar vínculo',
   appInsertLinkTitle: 'Insertar vínculo',
   appLinkAddressLabel:
-    'Dirección — una página web (https://…) o una referencia de hoja (Sheet1!A1)',
+    'Dirección - una página web (https://…) o una referencia de hoja (Sheet1!A1)',
   appLinkPlaceholder: 'https://example.com o Sheet1!A1',
   appRemoveLink: 'Quitar vínculo',
   appNotAvailableYet: 'Aún no disponible',
@@ -742,10 +742,10 @@ export const es = {
   appChartElLegendNone: 'Leyenda: ninguna',
   appLayoutLabelsNamePct: 'etiquetas de nombre + %',
   appLayoutLabelsValue: 'etiquetas de valores',
-  appLayout1: 'Diseño 1 — leyenda a la derecha, {labels}',
-  appLayout2: 'Diseño 2 — leyenda arriba, {labels}',
-  appLayout3: 'Diseño 3 — leyenda abajo, sin etiquetas',
-  appLayout4: 'Diseño 4 — sin leyenda, {labels}',
+  appLayout1: 'Diseño 1 - leyenda a la derecha, {labels}',
+  appLayout2: 'Diseño 2 - leyenda arriba, {labels}',
+  appLayout3: 'Diseño 3 - leyenda abajo, sin etiquetas',
+  appLayout4: 'Diseño 4 - sin leyenda, {labels}',
   appColorsOffice: 'Office',
   appColorsBlue: 'Azul monocromático',
   appColorsGreen: 'Verde monocromático',
@@ -1013,7 +1013,7 @@ export const es = {
   appGroupCheckbox: 'Casilla',
   appGroupCharts: 'Gráficos',
   appRecommendedCharts: 'Gráficos recomendados',
-  appChartGridTitle: 'Gráfico de {type} — desde la selección',
+  appChartGridTitle: 'Gráfico de {type} - desde la selección',
   appChartScatter: 'Dispersión',
   appPivotChart: 'Gráfico dinámico',
   appGroupSparklines: 'Minigráficos',
@@ -1042,25 +1042,25 @@ export const es = {
   appFonts: 'Fuentes',
   appGroupPageSetup: 'Configurar página',
   appMargins: 'Márgenes',
-  appMarginsTitle: 'Márgenes — {value}',
+  appMarginsTitle: 'Márgenes - {value}',
   appAsSavedInFile: 'según lo guardado en el archivo',
   appMarginNormal: 'Normal',
   appMarginWide: 'Ancho',
   appMarginNarrow: 'Estrecho',
   appOrientationLabel: 'Orientación',
-  appOrientationTitle: 'Orientación — {value}',
+  appOrientationTitle: 'Orientación - {value}',
   appPortrait: 'Vertical',
   appLandscape: 'Horizontal',
   appSizeLabel: 'Tamaño',
   appPaperSizeTitle: 'Tamaño de papel',
   appPrintArea: 'Área de impresión',
-  appPrintAreaTitle: 'Área de impresión — {area}',
-  appPrintAreaFromSelection: 'Área de impresión — desde la selección',
+  appPrintAreaTitle: 'Área de impresión - {area}',
+  appPrintAreaFromSelection: 'Área de impresión - desde la selección',
   appSetPrintArea: 'Establecer área de impresión',
   appClearPrintArea: 'Borrar área de impresión',
   appBreaks: 'Saltos',
   appPrintTitlesLabel: 'Imprimir títulos',
-  appPrintTitlesTitle: 'Títulos de impresión — las filas {rows} se repiten en cada página',
+  appPrintTitlesTitle: 'Títulos de impresión - las filas {rows} se repiten en cada página',
   appPrintTitlesHint: 'Filas repetidas en la parte superior de cada página impresa',
   appRepeatRow1: 'Repetir fila 1',
   appRepeatSelectedRows: 'Repetir filas seleccionadas',
@@ -1084,7 +1084,7 @@ export const es = {
   appBrowseCatalog: 'Examinar el catálogo',
   appBrowseCatalogFiltered: 'Explorar esta categoría',
   appAutoSum: 'Autosuma',
-  appAutoSumTitle: 'Autosuma — debajo de la selección',
+  appAutoSumTitle: 'Autosuma - debajo de la selección',
   appFnSum: 'Suma',
   appFnAverage: 'Promedio',
   appFnCountNumbers: 'Contar números',
@@ -1151,7 +1151,7 @@ export const es = {
   appWorkbookNoPivot: 'No hay tablas dinámicas en este libro.',
   appRefreshAllTitle: 'Actualizar todas las tablas dinámicas',
   appErrorCheckingDetail: 'Buscar valores de error en la hoja',
-  appErrorsFound: '{count} errores — en {cell}: {value}',
+  appErrorsFound: '{count} errores - en {cell}: {value}',
   appCheckingErrors: 'Buscando errores en toda la hoja…',
   appNoErrorsFound: 'No se encontraron valores de error.',
   appGroupSortFilter: 'Ordenar y filtrar',

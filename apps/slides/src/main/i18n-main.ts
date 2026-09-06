@@ -1496,7 +1496,7 @@ export const tMain = createI18n({
     btnCancel: 'Anuluj',
     mediaUnsupportedTitle: 'Ten film może nie odtwarzać się w aplikacji',
     mediaNoAudioBody:
-      'Kodek audio filmu ({codec}) nie jest obsługiwany przez wbudowany odtwarzacz — odtwarzanie w aplikacji będzie bez dźwięku. Plik jest osadzany bez zmian i po eksporcie odtwarza się normalnie w programie PowerPoint.',
+      'Kodek audio filmu ({codec}) nie jest obsługiwany przez wbudowany odtwarzacz - odtwarzanie w aplikacji będzie bez dźwięku. Plik jest osadzany bez zmian i po eksporcie odtwarza się normalnie w programie PowerPoint.',
     mediaAviBody:
       'Format AVI nie jest obsługiwany przez wbudowany odtwarzacz i nie można go odtworzyć w aplikacji. Plik jest osadzany bez zmian i po eksporcie nadal odtwarza się w programie PowerPoint.',
     legacyPptTitle: 'Nie można otworzyć starego formatu .ppt',

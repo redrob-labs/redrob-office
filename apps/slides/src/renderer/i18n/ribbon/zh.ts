@@ -32,7 +32,7 @@ export const zh = {
   ribbonFileExportPdf: '导出为 PDF…',
   ribbonFilePrint: '打印…',
   ribbonFileExportImages: '导出为图片…',
-  ribbonUnsavedSuffix: ' — 未保存',
+  ribbonUnsavedSuffix: ' - 未保存',
   ribbonSaveTip: '保存 (⌘S)',
   ribbonAutoSave: '自动保存',
   ribbonAutoSaveTip: '开启后每 30 秒自动保存到原文件',

@@ -4,7 +4,7 @@ export const nl = {
   aiComposerPlaceholderBuild: 'Beschrijf de tabel, gegevens of grafiek om te maken…',
   aiEmptyBuildTitle: 'Laat AI deze werkmap voor je opbouwen',
   aiEmptyBuildBody:
-    'Beschrijf de tabel, gegevens of grafiek die je nodig hebt — AI maakt het direct.',
+    'Beschrijf de tabel, gegevens of grafiek die je nodig hebt - AI maakt het direct.',
   aiGskLoginBtn: 'Aanmelden bij Redrob',
   aiUndelivered: 'Niet verzonden',
   aiRetry: 'Opnieuw proberen',
@@ -20,7 +20,7 @@ export const nl = {
   aiSetUp: 'AI instellen',
   aiNewChat: 'Nieuw gesprek',
   aiCollapsePanel: 'AI-paneel samenvouwen',
-  aiHistorySep: '—— Eerder gesprek ——',
+  aiHistorySep: '-- Eerder gesprek --',
   aiEmptyTitle: 'Stel de AI een vraag over deze werkmap',
   aiEmptyBodyLine1: 'Beschrijf een wijziging of stel een vraag over de gegevens.',
   aiThinkingAria: 'Aan het nadenken',
@@ -63,7 +63,7 @@ export const nl = {
   aiUnknownError: 'Onbekende fout',
   aiTimeoutError:
     'AI-verzoek verlopen: geen reactie van het netwerk, uitvoering gestopt. Controleer je verbinding en probeer het opnieuw',
-  aiOverloadedError: 'De AI-service is momenteel overbelast — probeer het zo opnieuw',
+  aiOverloadedError: 'De AI-service is momenteel overbelast - probeer het zo opnieuw',
   aiNetworkError:
     'Netwerkprobleem: kan de AI-service niet bereiken. Controleer je verbinding en probeer het opnieuw',
   aiCreditsExhausted:

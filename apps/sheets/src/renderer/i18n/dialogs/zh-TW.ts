@@ -26,7 +26,7 @@ export const zhTW = {
   dlgCreate: '建立',
 
   dlgAdvFilterTitle: '進階篩選',
-  dlgAdvFilterNoColumns: '篩選範圍中沒有可用的欄——請先選取資料並開啟自動篩選，再開啟進階篩選。',
+  dlgAdvFilterNoColumns: '篩選範圍中沒有可用的欄--請先選取資料並開啟自動篩選，再開啟進階篩選。',
   dlgAdvFilterColumn: '欄',
   dlgAdvFilterCondition1: '條件 1',
   dlgAdvFilterCondition2: '條件 2（可留空）',
@@ -185,7 +185,7 @@ export const zhTW = {
   dlgSymbolCatGreek: '希臘字母',
   dlgSymbolCatMisc: '幾何/其他',
   dlgSymbolInsertHint: '插入 {symbol}',
-  dlgSymbolNote: '點一下符號附加到作用中儲存格 — 可連續插入，完成後關閉。',
+  dlgSymbolNote: '點一下符號附加到作用中儲存格 - 可連續插入，完成後關閉。',
 
   dlgFcTitle: '設定儲存格格式',
   dlgFcTabNumber: '數值',
@@ -290,12 +290,12 @@ export const zhTW = {
   dlgConsLeftLabels: '標籤位置：最左欄',
   dlgConsNoteLabels: '各範圍依首欄標籤比對列；結果從 {target} 開始，是參照來源範圍的即時公式。',
   dlgConsNotePosition: '各範圍依位置逐格合併；結果從 {target} 開始，是參照來源範圍的即時公式。',
-  dlgConsBadRef: '參照無效：{ref}——請用 A1:C5 或 Sheet2!A1:C5 的形式。',
+  dlgConsBadRef: '參照無效：{ref}--請用 A1:C5 或 Sheet2!A1:C5 的形式。',
   dlgConsNeedOneRef: '請至少新增一個來源參照。',
 
   dlgSubtotalTitle: '小計',
   dlgSubtotalNoFields:
-    '請先選取來源資料——含標題列和至少一列資料的範圍（依分組欄位排序），再開啟小計。',
+    '請先選取來源資料--含標題列和至少一列資料的範圍（依分組欄位排序），再開啟小計。',
   dlgSubtotalGroupBy: '分組欄位',
   dlgSubtotalFunction: '使用函數',
   dlgSubtotalAddTo: '新增小計位置',
@@ -312,7 +312,7 @@ export const zhTW = {
   dlgNmAdd: '加入',
   dlgNmUpdate: '更新',
 
-  dlgFnTitle: '插入函數 — 目標 {target}',
+  dlgFnTitle: '插入函數 - 目標 {target}',
   dlgFnSearchPlaceholder: '搜尋函數…',
   dlgFnNoMatch: '沒有相符的函數。',
   dlgFnFormula: '公式',

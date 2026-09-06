@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const pl = {
   aiComposerPlaceholderBuild: 'Opisz tabelę, dane lub wykres do utworzenia…',
   aiEmptyBuildTitle: 'Pozwól AI zbudować ten skoroszyt',
-  aiEmptyBuildBody: 'Opisz potrzebną tabelę, dane lub wykres — AI utworzy je od razu.',
+  aiEmptyBuildBody: 'Opisz potrzebną tabelę, dane lub wykres - AI utworzy je od razu.',
   aiGskLoginBtn: 'Zaloguj się do Redrob',
   aiUndelivered: 'Nie wysłano',
   aiRetry: 'Ponów',
@@ -18,7 +18,7 @@ export const pl = {
   aiSetUp: 'Skonfiguruj AI',
   aiNewChat: 'Nowa rozmowa',
   aiCollapsePanel: 'Zwiń panel AI',
-  aiHistorySep: '—— Wcześniejsza rozmowa ——',
+  aiHistorySep: '-- Wcześniejsza rozmowa --',
   aiEmptyTitle: 'Zapytaj AI o ten skoroszyt',
   aiEmptyBodyLine1: 'Opisz zmianę lub zadaj pytanie o dane.',
   aiThinkingAria: 'Myślenie',
@@ -41,7 +41,7 @@ export const pl = {
   aiComposerPlaceholder: 'Poproś AI o analizę lub zmianę tego skoroszytu…',
   aiHintIdle: 'Enter, aby wysłać',
   aiHintBusy: 'Esc, aby zatrzymać',
-  aiHintIdleTitle: 'Enter, aby wysłać · Shift+Enter — nowy wiersz',
+  aiHintIdleTitle: 'Enter, aby wysłać · Shift+Enter - nowy wiersz',
   aiSend: 'Wyślij',
   aiStop: 'Zatrzymaj',
   aiInstructionAria: 'Instrukcja dla AI',
@@ -61,7 +61,7 @@ export const pl = {
   aiUnknownError: 'Nieznany błąd',
   aiTimeoutError:
     'Przekroczono limit czasu żądania AI: brak odpowiedzi sieci, przerwano. Sprawdź połączenie i spróbuj ponownie',
-  aiOverloadedError: 'Usługa AI jest obecnie przeciążona — spróbuj ponownie za chwilę',
+  aiOverloadedError: 'Usługa AI jest obecnie przeciążona - spróbuj ponownie za chwilę',
   aiNetworkError:
     'Problem z siecią: nie można połączyć się z usługą AI. Sprawdź połączenie i spróbuj ponownie',
   aiCreditsExhausted:

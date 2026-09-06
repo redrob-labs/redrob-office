@@ -19,7 +19,7 @@ export const it = {
   aiSetUp: 'Configura IA',
   aiNewChat: 'Nuova conversazione',
   aiCollapsePanel: 'Comprimi il pannello IA',
-  aiHistorySep: '—— Conversazione precedente ——',
+  aiHistorySep: '-- Conversazione precedente --',
   aiEmptyTitle: "Chiedi all'IA informazioni su questa cartella di lavoro",
   aiEmptyBodyLine1: 'Descrivi una modifica o fai una domanda sui dati.',
   aiThinkingAria: 'In elaborazione',
@@ -62,7 +62,7 @@ export const it = {
   aiUnknownError: 'Errore sconosciuto',
   aiTimeoutError:
     'Richiesta IA scaduta: nessuna risposta dalla rete, esecuzione interrotta. Controlla la connessione e riprova',
-  aiOverloadedError: 'Il servizio IA è momentaneamente sovraccarico — riprova tra poco',
+  aiOverloadedError: 'Il servizio IA è momentaneamente sovraccarico - riprova tra poco',
   aiNetworkError:
     'Problema di rete: impossibile raggiungere il servizio IA. Controlla la connessione e riprova',
   aiCreditsExhausted:

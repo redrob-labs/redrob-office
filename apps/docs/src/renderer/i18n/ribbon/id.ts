@@ -597,7 +597,7 @@ export const id = {
   ribbonAiRevisionsTip:
     'AI membaca {count} revisi tertunda, meringkas perubahan per bagian, dan menandai risiko',
   ribbonAiRevisionsPrompt:
-    'Ringkas semua revisi terlacak yang tertunda di dokumen: mulai dengan statistik keseluruhan (jumlah sisipan/penghapusan, penulis, rentang tanggal), lalu jelaskan perubahan per bagian (sebutkan indeks blok), dan akhiri dengan daftar hal yang perlu diwaspadai (kewajiban atau kualifikasi yang dihapus, angka/tanggal/jumlah yang berubah). Ringkas saja — jangan mengubah dokumen atau menerima/menolak revisi apa pun.',
+    'Ringkas semua revisi terlacak yang tertunda di dokumen: mulai dengan statistik keseluruhan (jumlah sisipan/penghapusan, penulis, rentang tanggal), lalu jelaskan perubahan per bagian (sebutkan indeks blok), dan akhiri dengan daftar hal yang perlu diwaspadai (kewajiban atau kualifikasi yang dihapus, angka/tanggal/jumlah yang berubah). Ringkas saja - jangan mengubah dokumen atau menerima/menolak revisi apa pun.',
   ribbonAiCommentsTip:
     'AI memproses {count} komentar yang belum selesai: ubah, balas, lalu selesaikan',
   ribbonAiCommentsPrompt:

@@ -174,7 +174,7 @@ const tMain = createI18n({
     errImgNotFound: '找不到图片文件: {path}',
     errImgTooLarge20: '图片超过 20MB,不支持插入。',
     errImgBadType: '该文件不是 PNG/JPEG/GIF 图片。',
-    errDiskChanged: '工作簿在打开后被磁盘上的改动覆盖——请改用另存为。',
+    errDiskChanged: '工作簿在打开后被磁盘上的改动覆盖--请改用另存为。',
     autosaveFoundTitle: '发现自动恢复版本',
     autosaveFoundBody:
       '上次会话有未保存的更改。要恢复自动保存的版本吗?恢复后,保存将直接覆盖原文件。',
@@ -194,17 +194,17 @@ const tMain = createI18n({
     closeUnsavedDetail: '不保存直接关闭,这些修改将丢失。',
     btnDontSave: '不保存',
     btnCancel: '取消',
-    csvSaveAsNotice: 'CSV 格式不保留样式等格式修改——另存为 .xlsx 可保留全部内容。',
+    csvSaveAsNotice: 'CSV 格式不保留样式等格式修改--另存为 .xlsx 可保留全部内容。',
     menuExportCsv: '导出 CSV…',
     filterCsv: 'CSV (逗号分隔)',
     csvFormulaLossMsg: '当前工作表包含公式,CSV 格式无法保留。',
-    csvFormulaLossDetail: 'CSV 只保留纯文本值——公式会被替换为当前计算结果,格式也会丢失。',
+    csvFormulaLossDetail: 'CSV 只保留纯文本值--公式会被替换为当前计算结果,格式也会丢失。',
     csvKeepXlsxBtn: '另存为 .xlsx',
     csvContinueBtn: '继续保存为 CSV',
-    csvActiveSheetOnlyNotice: 'CSV 文件只包含一张工作表——只会导出当前工作表“{name}”。',
+    csvActiveSheetOnlyNotice: 'CSV 文件只包含一张工作表--只会导出当前工作表“{name}”。',
     csvKeepFormatMsg: '继续以 CSV 格式保存吗?',
     csvKeepFormatDetail:
-      'CSV 只保留单张工作表的纯文本值——公式、格式和其他工作表不会存入 .csv 文件。',
+      'CSV 只保留单张工作表的纯文本值--公式、格式和其他工作表不会存入 .csv 文件。',
   },
   en: {
     filterSpreadsheets: 'Spreadsheets',
@@ -225,13 +225,13 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Not signed in to Redrob: click “Sign in to Redrob” below, sign in, then retry',
     errNoApiKey: 'No API key configured for {provider}',
-    errAiBusy: 'The AI service is busy right now — please try again in a moment',
+    errAiBusy: 'The AI service is busy right now - please try again in a moment',
     errNoModel: 'No model name configured',
     errImgAbsPath: 'Image path must be absolute.',
     errImgNotFound: 'Image file not found: {path}',
     errImgTooLarge20: 'Image exceeds 20MB and cannot be inserted.',
     errImgBadType: 'The file is not a PNG/JPEG/GIF image.',
-    errDiskChanged: 'The workbook changed on disk after it was opened — use Save As instead.',
+    errDiskChanged: 'The workbook changed on disk after it was opened - use Save As instead.',
     autosaveFoundTitle: 'Recovered version found',
     autosaveFoundBody:
       'There are unsaved changes from your last session. Restore the autosaved version? Saving after a restore overwrites the original file.',
@@ -251,19 +251,19 @@ const tMain = createI18n({
     closeUnsavedDetail: 'Your changes will be lost if you close without saving.',
     btnDontSave: "Don't Save",
     btnCancel: 'Cancel',
-    csvSaveAsNotice: "CSV files can't keep formatting — saving as .xlsx keeps all your changes.",
+    csvSaveAsNotice: "CSV files can't keep formatting - saving as .xlsx keeps all your changes.",
     menuExportCsv: 'Export CSV…',
     filterCsv: 'CSV (Comma delimited)',
     csvFormulaLossMsg: 'This sheet contains formulas that CSV cannot keep.',
     csvFormulaLossDetail:
-      'CSV keeps plain values only — formulas are flattened to their current results, and formatting is lost.',
+      'CSV keeps plain values only - formulas are flattened to their current results, and formatting is lost.',
     csvKeepXlsxBtn: 'Save as .xlsx',
     csvContinueBtn: 'Continue as CSV',
     csvActiveSheetOnlyNotice:
-      'CSV files hold a single sheet — only the active sheet "{name}" will be exported.',
+      'CSV files hold a single sheet - only the active sheet "{name}" will be exported.',
     csvKeepFormatMsg: 'Keep saving in CSV format?',
     csvKeepFormatDetail:
-      'CSV keeps plain values of a single sheet only — formulas, formatting, and any additional sheets are not saved to the .csv file.',
+      'CSV keeps plain values of a single sheet only - formulas, formatting, and any additional sheets are not saved to the .csv file.',
   },
   ja: {
     filterSpreadsheets: 'スプレッドシート',
@@ -292,7 +292,7 @@ const tMain = createI18n({
     errImgTooLarge20: '画像が 20MB を超えているため挿入できません。',
     errImgBadType: 'このファイルは PNG/JPEG/GIF 画像ではありません。',
     errDiskChanged:
-      'ブックを開いた後にディスク上で変更されています — 名前を付けて保存を使用してください。',
+      'ブックを開いた後にディスク上で変更されています - 名前を付けて保存を使用してください。',
     autosaveFoundTitle: '自動回復バージョンがあります',
     autosaveFoundBody:
       '前回のセッションに未保存の変更があります。自動保存版を復元しますか?復元後に保存すると、元のファイルは上書きされます。',
@@ -322,7 +322,7 @@ const tMain = createI18n({
     csvKeepXlsxBtn: '.xlsx として保存',
     csvContinueBtn: 'CSV のまま保存',
     csvActiveSheetOnlyNotice:
-      'CSV ファイルには 1 枚のシートしか含められません — アクティブなシート「{name}」のみがエクスポートされます。',
+      'CSV ファイルには 1 枚のシートしか含められません - アクティブなシート「{name}」のみがエクスポートされます。',
     csvKeepFormatMsg: 'CSV 形式のまま保存しますか?',
     csvKeepFormatDetail:
       'CSV は 1 枚のシートの値のみを保持します。数式、書式、追加のシートは .csv ファイルには保存されません。',
@@ -380,14 +380,14 @@ const tMain = createI18n({
     filterCsv: 'CSV (쉼표로 분리)',
     csvFormulaLossMsg: '현재 시트에 CSV 형식이 유지할 수 없는 수식이 포함되어 있습니다.',
     csvFormulaLossDetail:
-      'CSV는 값만 유지합니다 — 수식은 현재 계산 결과로 바뀌고 서식은 손실됩니다.',
+      'CSV는 값만 유지합니다 - 수식은 현재 계산 결과로 바뀌고 서식은 손실됩니다.',
     csvKeepXlsxBtn: '.xlsx로 저장',
     csvContinueBtn: 'CSV로 계속 저장',
     csvActiveSheetOnlyNotice:
-      'CSV 파일에는 시트 하나만 포함됩니다 — 활성 시트 "{name}"만 내보냅니다.',
+      'CSV 파일에는 시트 하나만 포함됩니다 - 활성 시트 "{name}"만 내보냅니다.',
     csvKeepFormatMsg: 'CSV 형식으로 계속 저장하시겠습니까?',
     csvKeepFormatDetail:
-      'CSV는 시트 하나의 값만 유지합니다 — 수식, 서식, 추가 시트는 .csv 파일에 저장되지 않습니다.',
+      'CSV는 시트 하나의 값만 유지합니다 - 수식, 서식, 추가 시트는 .csv 파일에 저장되지 않습니다.',
   },
   fr: {
     filterSpreadsheets: 'Feuilles de calcul',
@@ -409,14 +409,14 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Non connecté à Redrob : cliquez sur « Se connecter à Redrob » ci-dessous, connectez-vous puis réessayez',
     errNoApiKey: 'Aucune clé API configurée pour {provider}',
-    errAiBusy: "Le service d'IA est actuellement surchargé — réessayez dans un instant",
+    errAiBusy: "Le service d'IA est actuellement surchargé - réessayez dans un instant",
     errNoModel: 'Aucun nom de modèle configuré',
     errImgAbsPath: "Le chemin de l'image doit être absolu.",
     errImgNotFound: 'Fichier image introuvable : {path}',
     errImgTooLarge20: "L'image dépasse 20 Mo et ne peut pas être insérée.",
     errImgBadType: "Ce fichier n'est pas une image PNG/JPEG/GIF.",
     errDiskChanged:
-      'Le classeur a été modifié sur le disque après son ouverture — utilisez Enregistrer sous.',
+      'Le classeur a été modifié sur le disque après son ouverture - utilisez Enregistrer sous.',
     autosaveFoundTitle: 'Version récupérée trouvée',
     autosaveFoundBody:
       "Des modifications non enregistrées existent. Restaurer la version auto-enregistrée ? Après restauration, l'enregistrement remplacera le fichier d'origine.",
@@ -437,20 +437,20 @@ const tMain = createI18n({
     btnDontSave: 'Ne pas enregistrer',
     btnCancel: 'Annuler',
     csvSaveAsNotice:
-      'Le format CSV ne conserve pas la mise en forme — enregistrez en .xlsx pour conserver toutes vos modifications.',
+      'Le format CSV ne conserve pas la mise en forme - enregistrez en .xlsx pour conserver toutes vos modifications.',
     menuExportCsv: 'Exporter en CSV…',
     filterCsv: 'CSV (délimité par des virgules)',
     csvFormulaLossMsg:
       'Cette feuille contient des formules que le format CSV ne peut pas conserver.',
     csvFormulaLossDetail:
-      'Le CSV ne conserve que les valeurs — les formules sont remplacées par leur résultat actuel et la mise en forme est perdue.',
+      'Le CSV ne conserve que les valeurs - les formules sont remplacées par leur résultat actuel et la mise en forme est perdue.',
     csvKeepXlsxBtn: 'Enregistrer en .xlsx',
     csvContinueBtn: 'Continuer en CSV',
     csvActiveSheetOnlyNotice:
-      "Les fichiers CSV ne contiennent qu'une seule feuille — seule la feuille active « {name} » sera exportée.",
+      "Les fichiers CSV ne contiennent qu'une seule feuille - seule la feuille active « {name} » sera exportée.",
     csvKeepFormatMsg: 'Continuer à enregistrer au format CSV ?',
     csvKeepFormatDetail:
-      "Le CSV ne conserve que les valeurs d'une seule feuille — les formules, la mise en forme et les feuilles supplémentaires ne sont pas enregistrées dans le fichier .csv.",
+      "Le CSV ne conserve que les valeurs d'une seule feuille - les formules, la mise en forme et les feuilles supplémentaires ne sont pas enregistrées dans le fichier .csv.",
   },
   de: {
     filterSpreadsheets: 'Tabellenkalkulationen',
@@ -472,14 +472,14 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Nicht bei Redrob angemeldet: Klicken Sie unten auf „Bei Redrob anmelden“, melden Sie sich an und versuchen Sie es erneut',
     errNoApiKey: 'Kein API-Schlüssel für {provider} konfiguriert',
-    errAiBusy: 'Der KI-Dienst ist derzeit überlastet — bitte gleich erneut versuchen',
+    errAiBusy: 'Der KI-Dienst ist derzeit überlastet - bitte gleich erneut versuchen',
     errNoModel: 'Kein Modellname konfiguriert',
     errImgAbsPath: 'Der Bildpfad muss absolut sein.',
     errImgNotFound: 'Bilddatei nicht gefunden: {path}',
     errImgTooLarge20: 'Das Bild überschreitet 20 MB und kann nicht eingefügt werden.',
     errImgBadType: 'Die Datei ist kein PNG/JPEG/GIF-Bild.',
     errDiskChanged:
-      'Die Arbeitsmappe wurde nach dem Öffnen auf dem Datenträger geändert — verwenden Sie stattdessen „Speichern unter“.',
+      'Die Arbeitsmappe wurde nach dem Öffnen auf dem Datenträger geändert - verwenden Sie stattdessen „Speichern unter“.',
     autosaveFoundTitle: 'Wiederhergestellte Version gefunden',
     autosaveFoundBody:
       'Es gibt ungespeicherte Änderungen. Automatisch gespeicherte Version wiederherstellen? Nach der Wiederherstellung überschreibt Speichern die Originaldatei.',
@@ -602,7 +602,7 @@ const tMain = createI18n({
     errImgNotFound: 'ไม่พบไฟล์รูปภาพ: {path}',
     errImgTooLarge20: 'รูปภาพเกิน 20MB ไม่สามารถแทรกได้',
     errImgBadType: 'ไฟล์นี้ไม่ใช่รูปภาพ PNG/JPEG/GIF',
-    errDiskChanged: 'เวิร์กบุ๊กถูกเปลี่ยนแปลงบนดิสก์หลังจากเปิด — โปรดใช้บันทึกเป็นแทน',
+    errDiskChanged: 'เวิร์กบุ๊กถูกเปลี่ยนแปลงบนดิสก์หลังจากเปิด - โปรดใช้บันทึกเป็นแทน',
     autosaveFoundTitle: 'พบเวอร์ชันกู้คืนอัตโนมัติ',
     autosaveFoundBody:
       'มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึกจากครั้งก่อน ต้องการกู้คืนหรือไม่? หลังกู้คืน การบันทึกจะเขียนทับไฟล์ต้นฉบับ',
@@ -623,19 +623,19 @@ const tMain = createI18n({
     btnDontSave: 'ไม่บันทึก',
     btnCancel: 'ยกเลิก',
     csvSaveAsNotice:
-      'ไฟล์ CSV ไม่สามารถเก็บการจัดรูปแบบได้ — บันทึกเป็น .xlsx เพื่อเก็บการเปลี่ยนแปลงทั้งหมดของคุณ',
+      'ไฟล์ CSV ไม่สามารถเก็บการจัดรูปแบบได้ - บันทึกเป็น .xlsx เพื่อเก็บการเปลี่ยนแปลงทั้งหมดของคุณ',
     menuExportCsv: 'ส่งออก CSV…',
     filterCsv: 'CSV (คั่นด้วยเครื่องหมายจุลภาค)',
     csvFormulaLossMsg: 'ชีตนี้มีสูตรที่รูปแบบ CSV เก็บไว้ไม่ได้',
     csvFormulaLossDetail:
-      'CSV เก็บเฉพาะค่าเท่านั้น — สูตรจะถูกแทนที่ด้วยผลลัพธ์ปัจจุบัน และการจัดรูปแบบจะหายไป',
+      'CSV เก็บเฉพาะค่าเท่านั้น - สูตรจะถูกแทนที่ด้วยผลลัพธ์ปัจจุบัน และการจัดรูปแบบจะหายไป',
     csvKeepXlsxBtn: 'บันทึกเป็น .xlsx',
     csvContinueBtn: 'บันทึกเป็น CSV ต่อไป',
     csvActiveSheetOnlyNotice:
-      'ไฟล์ CSV มีได้เพียงชีตเดียว — จะส่งออกเฉพาะชีตที่ใช้งานอยู่ “{name}” เท่านั้น',
+      'ไฟล์ CSV มีได้เพียงชีตเดียว - จะส่งออกเฉพาะชีตที่ใช้งานอยู่ “{name}” เท่านั้น',
     csvKeepFormatMsg: 'บันทึกเป็นรูปแบบ CSV ต่อไปหรือไม่',
     csvKeepFormatDetail:
-      'CSV เก็บเฉพาะค่าของชีตเดียวเท่านั้น — สูตร การจัดรูปแบบ และชีตอื่น ๆ จะไม่ถูกบันทึกลงในไฟล์ .csv',
+      'CSV เก็บเฉพาะค่าของชีตเดียวเท่านั้น - สูตร การจัดรูปแบบ และชีตอื่น ๆ จะไม่ถูกบันทึกลงในไฟล์ .csv',
   },
   id: {
     filterSpreadsheets: 'Lembar bentang',
@@ -655,13 +655,13 @@ const tMain = createI18n({
     errNotImage: 'bukan jenis gambar yang didukung',
     errGskNotLoggedIn: 'Belum masuk ke Redrob: klik “Masuk ke Redrob” di bawah, lalu coba lagi',
     errNoApiKey: 'API Key untuk {provider} belum dikonfigurasi',
-    errAiBusy: 'Layanan AI sedang sibuk — silakan coba lagi sebentar lagi',
+    errAiBusy: 'Layanan AI sedang sibuk - silakan coba lagi sebentar lagi',
     errNoModel: 'Nama model belum dikonfigurasi',
     errImgAbsPath: 'Jalur gambar harus berupa jalur absolut.',
     errImgNotFound: 'File gambar tidak ditemukan: {path}',
     errImgTooLarge20: 'Gambar melebihi 20MB dan tidak dapat disisipkan.',
     errImgBadType: 'File ini bukan gambar PNG/JPEG/GIF.',
-    errDiskChanged: 'Buku kerja berubah di disk setelah dibuka — gunakan Simpan Sebagai.',
+    errDiskChanged: 'Buku kerja berubah di disk setelah dibuka - gunakan Simpan Sebagai.',
     autosaveFoundTitle: 'Versi pemulihan ditemukan',
     autosaveFoundBody:
       'Ada perubahan yang belum disimpan dari sesi terakhir. Pulihkan versi tersimpan otomatis? Setelah dipulihkan, menyimpan akan menimpa file asli.',
@@ -682,19 +682,19 @@ const tMain = createI18n({
     btnDontSave: 'Jangan Simpan',
     btnCancel: 'Batal',
     csvSaveAsNotice:
-      'File CSV tidak dapat menyimpan pemformatan — simpan sebagai .xlsx untuk mempertahankan semua perubahan Anda.',
+      'File CSV tidak dapat menyimpan pemformatan - simpan sebagai .xlsx untuk mempertahankan semua perubahan Anda.',
     menuExportCsv: 'Ekspor CSV…',
     filterCsv: 'CSV (dipisahkan koma)',
     csvFormulaLossMsg: 'Lembar ini berisi rumus yang tidak dapat disimpan dalam format CSV.',
     csvFormulaLossDetail:
-      'CSV hanya menyimpan nilai — rumus diganti dengan hasil saat ini, dan pemformatan akan hilang.',
+      'CSV hanya menyimpan nilai - rumus diganti dengan hasil saat ini, dan pemformatan akan hilang.',
     csvKeepXlsxBtn: 'Simpan sebagai .xlsx',
     csvContinueBtn: 'Lanjutkan sebagai CSV',
     csvActiveSheetOnlyNotice:
-      'File CSV hanya memuat satu lembar — hanya lembar aktif “{name}” yang akan diekspor.',
+      'File CSV hanya memuat satu lembar - hanya lembar aktif “{name}” yang akan diekspor.',
     csvKeepFormatMsg: 'Terus menyimpan dalam format CSV?',
     csvKeepFormatDetail:
-      'CSV hanya menyimpan nilai dari satu lembar — rumus, pemformatan, dan lembar tambahan tidak disimpan ke file .csv.',
+      'CSV hanya menyimpan nilai dari satu lembar - rumus, pemformatan, dan lembar tambahan tidak disimpan ke file .csv.',
   },
   ru: {
     filterSpreadsheets: 'Электронные таблицы',
@@ -716,13 +716,13 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Вы не вошли в Redrob: нажмите «Войти в Redrob» ниже, войдите и повторите попытку',
     errNoApiKey: 'API-ключ для {provider} не настроен',
-    errAiBusy: 'Сервис ИИ сейчас перегружен — повторите попытку чуть позже',
+    errAiBusy: 'Сервис ИИ сейчас перегружен - повторите попытку чуть позже',
     errNoModel: 'Имя модели не настроено',
     errImgAbsPath: 'Путь к изображению должен быть абсолютным.',
     errImgNotFound: 'Файл изображения не найден: {path}',
     errImgTooLarge20: 'Изображение превышает 20 МБ и не может быть вставлено.',
     errImgBadType: 'Этот файл не является изображением PNG/JPEG/GIF.',
-    errDiskChanged: 'Книга была изменена на диске после открытия — используйте «Сохранить как».',
+    errDiskChanged: 'Книга была изменена на диске после открытия - используйте «Сохранить как».',
     autosaveFoundTitle: 'Найдена восстановленная версия',
     autosaveFoundBody:
       'Есть несохранённые изменения из прошлого сеанса. Восстановить автосохранённую версию? После восстановления сохранение перезапишет исходный файл.',
@@ -743,19 +743,19 @@ const tMain = createI18n({
     btnDontSave: 'Не сохранять',
     btnCancel: 'Отмена',
     csvSaveAsNotice:
-      'Формат CSV не сохраняет форматирование — сохраните в .xlsx, чтобы не потерять изменения.',
+      'Формат CSV не сохраняет форматирование - сохраните в .xlsx, чтобы не потерять изменения.',
     menuExportCsv: 'Экспорт в CSV…',
-    filterCsv: 'CSV (разделители — запятые)',
+    filterCsv: 'CSV (разделители - запятые)',
     csvFormulaLossMsg: 'Этот лист содержит формулы, которые формат CSV не сохраняет.',
     csvFormulaLossDetail:
-      'CSV сохраняет только значения — формулы заменяются текущими результатами, а форматирование теряется.',
+      'CSV сохраняет только значения - формулы заменяются текущими результатами, а форматирование теряется.',
     csvKeepXlsxBtn: 'Сохранить как .xlsx',
     csvContinueBtn: 'Продолжить в CSV',
     csvActiveSheetOnlyNotice:
-      'Файлы CSV содержат только один лист — будет экспортирован только активный лист «{name}».',
+      'Файлы CSV содержат только один лист - будет экспортирован только активный лист «{name}».',
     csvKeepFormatMsg: 'Продолжить сохранение в формате CSV?',
     csvKeepFormatDetail:
-      'CSV сохраняет только значения одного листа — формулы, форматирование и дополнительные листы не сохраняются в файле .csv.',
+      'CSV сохраняет только значения одного листа - формулы, форматирование и дополнительные листы не сохраняются в файле .csv.',
   },
   ar: {
     filterSpreadsheets: 'جداول البيانات',
@@ -776,13 +776,13 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'لم تسجّل الدخول إلى Redrob: انقر على «تسجيل الدخول إلى Redrob» أدناه ثم أعد المحاولة',
     errNoApiKey: 'لم يتم تكوين مفتاح API لـ {provider}',
-    errAiBusy: 'خدمة الذكاء الاصطناعي مشغولة حاليًا — يرجى المحاولة مرة أخرى بعد قليل',
+    errAiBusy: 'خدمة الذكاء الاصطناعي مشغولة حاليًا - يرجى المحاولة مرة أخرى بعد قليل',
     errNoModel: 'لم يتم تكوين اسم النموذج',
     errImgAbsPath: 'يجب أن يكون مسار الصورة مسارًا مطلقًا.',
     errImgNotFound: 'لم يتم العثور على ملف الصورة: {path}',
     errImgTooLarge20: 'الصورة تتجاوز 20 ميغابايت ولا يمكن إدراجها.',
     errImgBadType: 'هذا الملف ليس صورة PNG/JPEG/GIF.',
-    errDiskChanged: 'تم تغيير المصنف على القرص بعد فتحه — استخدم «حفظ باسم» بدلاً من ذلك.',
+    errDiskChanged: 'تم تغيير المصنف على القرص بعد فتحه - استخدم «حفظ باسم» بدلاً من ذلك.',
     autosaveFoundTitle: 'تم العثور على نسخة مستردة',
     autosaveFoundBody:
       'توجد تغييرات غير محفوظة من الجلسة الأخيرة. هل تريد استعادة النسخة المحفوظة تلقائيًا؟ بعد الاستعادة، سيؤدي الحفظ إلى استبدال الملف الأصلي.',
@@ -802,18 +802,18 @@ const tMain = createI18n({
     closeUnsavedDetail: 'ستفقد هذه التغييرات إذا أغلقت دون حفظ.',
     btnDontSave: 'عدم الحفظ',
     btnCancel: 'إلغاء',
-    csvSaveAsNotice: 'ملفات CSV لا تحتفظ بالتنسيق — احفظ بصيغة ‎.xlsx للاحتفاظ بجميع تغييراتك.',
+    csvSaveAsNotice: 'ملفات CSV لا تحتفظ بالتنسيق - احفظ بصيغة ‎.xlsx للاحتفاظ بجميع تغييراتك.',
     menuExportCsv: 'تصدير CSV…',
     filterCsv: 'CSV (محدد بفواصل)',
     csvFormulaLossMsg: 'تحتوي هذه الورقة على صيغ لا يمكن لتنسيق CSV الاحتفاظ بها.',
-    csvFormulaLossDetail: 'يحتفظ CSV بالقيم فقط — تُستبدل الصيغ بنتائجها الحالية ويُفقد التنسيق.',
+    csvFormulaLossDetail: 'يحتفظ CSV بالقيم فقط - تُستبدل الصيغ بنتائجها الحالية ويُفقد التنسيق.',
     csvKeepXlsxBtn: 'حفظ بصيغة .xlsx',
     csvContinueBtn: 'المتابعة بتنسيق CSV',
     csvActiveSheetOnlyNotice:
-      'ملفات CSV تحتوي على ورقة واحدة فقط — سيتم تصدير الورقة النشطة «{name}» فقط.',
+      'ملفات CSV تحتوي على ورقة واحدة فقط - سيتم تصدير الورقة النشطة «{name}» فقط.',
     csvKeepFormatMsg: 'هل تريد متابعة الحفظ بتنسيق CSV؟',
     csvKeepFormatDetail:
-      'يحتفظ CSV بقيم ورقة واحدة فقط — لا تُحفظ الصيغ والتنسيق والأوراق الإضافية في ملف .csv.',
+      'يحتفظ CSV بقيم ورقة واحدة فقط - لا تُحفظ الصيغ والتنسيق والأوراق الإضافية في ملف .csv.',
   },
   pt: {
     filterSpreadsheets: 'Planilhas',
@@ -835,13 +835,13 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Não conectado ao Redrob: clique em “Entrar no Redrob” abaixo, entre e tente novamente',
     errNoApiKey: 'Nenhuma chave de API configurada para {provider}',
-    errAiBusy: 'O serviço de IA está sobrecarregado no momento — tente novamente em instantes',
+    errAiBusy: 'O serviço de IA está sobrecarregado no momento - tente novamente em instantes',
     errNoModel: 'Nenhum nome de modelo configurado',
     errImgAbsPath: 'O caminho da imagem deve ser absoluto.',
     errImgNotFound: 'Arquivo de imagem não encontrado: {path}',
     errImgTooLarge20: 'A imagem excede 20MB e não pode ser inserida.',
     errImgBadType: 'O arquivo não é uma imagem PNG/JPEG/GIF.',
-    errDiskChanged: 'A pasta de trabalho foi alterada no disco após ser aberta — use Salvar Como.',
+    errDiskChanged: 'A pasta de trabalho foi alterada no disco após ser aberta - use Salvar Como.',
     autosaveFoundTitle: 'Versão recuperada encontrada',
     autosaveFoundBody:
       'Há alterações não salvas da sua última sessão. Restaurar a versão salva automaticamente? Após restaurar, salvar sobrescreverá o arquivo original.',
@@ -862,19 +862,19 @@ const tMain = createI18n({
     btnDontSave: 'Não Salvar',
     btnCancel: 'Cancelar',
     csvSaveAsNotice:
-      'Arquivos CSV não mantêm a formatação — salve como .xlsx para manter todas as suas alterações.',
+      'Arquivos CSV não mantêm a formatação - salve como .xlsx para manter todas as suas alterações.',
     menuExportCsv: 'Exportar CSV…',
     filterCsv: 'CSV (separado por vírgulas)',
     csvFormulaLossMsg: 'Esta planilha contém fórmulas que o formato CSV não pode manter.',
     csvFormulaLossDetail:
-      'O CSV mantém apenas valores — as fórmulas são substituídas pelos resultados atuais e a formatação é perdida.',
+      'O CSV mantém apenas valores - as fórmulas são substituídas pelos resultados atuais e a formatação é perdida.',
     csvKeepXlsxBtn: 'Salvar como .xlsx',
     csvContinueBtn: 'Continuar como CSV',
     csvActiveSheetOnlyNotice:
-      'Arquivos CSV contêm apenas uma planilha — apenas a planilha ativa “{name}” será exportada.',
+      'Arquivos CSV contêm apenas uma planilha - apenas a planilha ativa “{name}” será exportada.',
     csvKeepFormatMsg: 'Continuar salvando no formato CSV?',
     csvKeepFormatDetail:
-      'O CSV mantém apenas os valores de uma única planilha — fórmulas, formatação e planilhas adicionais não são salvas no arquivo .csv.',
+      'O CSV mantém apenas os valores de uma única planilha - fórmulas, formatação e planilhas adicionais não são salvas no arquivo .csv.',
   },
   it: {
     filterSpreadsheets: 'Fogli di calcolo',
@@ -896,14 +896,14 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Accesso a Redrob non effettuato: fai clic su “Accedi a Redrob” qui sotto, accedi e riprova',
     errNoApiKey: 'Nessuna chiave API configurata per {provider}',
-    errAiBusy: 'Il servizio IA è momentaneamente sovraccarico — riprova tra poco',
+    errAiBusy: 'Il servizio IA è momentaneamente sovraccarico - riprova tra poco',
     errNoModel: 'Nessun nome di modello configurato',
     errImgAbsPath: "Il percorso dell'immagine deve essere assoluto.",
     errImgNotFound: 'File immagine non trovato: {path}',
     errImgTooLarge20: "L'immagine supera i 20 MB e non può essere inserita.",
     errImgBadType: "Il file non è un'immagine PNG/JPEG/GIF.",
     errDiskChanged:
-      "La cartella di lavoro è stata modificata sul disco dopo l'apertura — usa Salva con nome.",
+      "La cartella di lavoro è stata modificata sul disco dopo l'apertura - usa Salva con nome.",
     autosaveFoundTitle: 'Trovata versione recuperata',
     autosaveFoundBody:
       "Ci sono modifiche non salvate dall'ultima sessione. Ripristinare la versione salvata automaticamente? Dopo il ripristino, il salvataggio sovrascriverà il file originale.",
@@ -958,13 +958,13 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Nie zalogowano do Redrob: kliknij „Zaloguj się do Redrob” poniżej, zaloguj się i spróbuj ponownie',
     errNoApiKey: 'Nie skonfigurowano klucza API dla {provider}',
-    errAiBusy: 'Usługa AI jest obecnie przeciążona — spróbuj ponownie za chwilę',
+    errAiBusy: 'Usługa AI jest obecnie przeciążona - spróbuj ponownie za chwilę',
     errNoModel: 'Nie skonfigurowano nazwy modelu',
     errImgAbsPath: 'Ścieżka obrazu musi być bezwzględna.',
     errImgNotFound: 'Nie znaleziono pliku obrazu: {path}',
     errImgTooLarge20: 'Obraz przekracza 20 MB i nie może zostać wstawiony.',
     errImgBadType: 'Plik nie jest obrazem PNG/JPEG/GIF.',
-    errDiskChanged: 'Skoroszyt został zmieniony na dysku po otwarciu — użyj polecenia Zapisz jako.',
+    errDiskChanged: 'Skoroszyt został zmieniony na dysku po otwarciu - użyj polecenia Zapisz jako.',
     autosaveFoundTitle: 'Znaleziono odzyskaną wersję',
     autosaveFoundBody:
       'Istnieją niezapisane zmiany z ostatniej sesji. Przywrócić wersję zapisaną automatycznie? Po przywróceniu zapisanie nadpisze oryginalny plik.',
@@ -985,19 +985,19 @@ const tMain = createI18n({
     btnDontSave: 'Nie zapisuj',
     btnCancel: 'Anuluj',
     csvSaveAsNotice:
-      'Pliki CSV nie zachowują formatowania — zapisz jako .xlsx, aby zachować wszystkie zmiany.',
+      'Pliki CSV nie zachowują formatowania - zapisz jako .xlsx, aby zachować wszystkie zmiany.',
     menuExportCsv: 'Eksportuj CSV…',
     filterCsv: 'CSV (rozdzielany przecinkami)',
     csvFormulaLossMsg: 'Ten arkusz zawiera formuły, których format CSV nie zachowuje.',
     csvFormulaLossDetail:
-      'CSV zachowuje tylko wartości — formuły są zastępowane bieżącymi wynikami, a formatowanie jest tracone.',
+      'CSV zachowuje tylko wartości - formuły są zastępowane bieżącymi wynikami, a formatowanie jest tracone.',
     csvKeepXlsxBtn: 'Zapisz jako .xlsx',
     csvContinueBtn: 'Kontynuuj jako CSV',
     csvActiveSheetOnlyNotice:
-      'Pliki CSV zawierają tylko jeden arkusz — wyeksportowany zostanie tylko aktywny arkusz „{name}”.',
+      'Pliki CSV zawierają tylko jeden arkusz - wyeksportowany zostanie tylko aktywny arkusz „{name}”.',
     csvKeepFormatMsg: 'Kontynuować zapisywanie w formacie CSV?',
     csvKeepFormatDetail:
-      'CSV zachowuje tylko wartości jednego arkusza — formuły, formatowanie i dodatkowe arkusze nie są zapisywane w pliku .csv.',
+      'CSV zachowuje tylko wartości jednego arkusza - formuły, formatowanie i dodatkowe arkusze nie są zapisywane w pliku .csv.',
   },
   nl: {
     filterSpreadsheets: 'Spreadsheets',
@@ -1019,14 +1019,14 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Niet aangemeld bij Redrob: klik hieronder op “Aanmelden bij Redrob”, meld u aan en probeer het opnieuw',
     errNoApiKey: 'Geen API-sleutel geconfigureerd voor {provider}',
-    errAiBusy: 'De AI-service is momenteel overbelast — probeer het zo opnieuw',
+    errAiBusy: 'De AI-service is momenteel overbelast - probeer het zo opnieuw',
     errNoModel: 'Geen modelnaam geconfigureerd',
     errImgAbsPath: 'Het afbeeldingspad moet absoluut zijn.',
     errImgNotFound: 'Afbeeldingsbestand niet gevonden: {path}',
     errImgTooLarge20: 'De afbeelding is groter dan 20 MB en kan niet worden ingevoegd.',
     errImgBadType: 'Het bestand is geen PNG/JPEG/GIF-afbeelding.',
     errDiskChanged:
-      'De werkmap is op de schijf gewijzigd nadat deze was geopend — gebruik Opslaan als.',
+      'De werkmap is op de schijf gewijzigd nadat deze was geopend - gebruik Opslaan als.',
     autosaveFoundTitle: 'Herstelde versie gevonden',
     autosaveFoundBody:
       'Er zijn niet-opgeslagen wijzigingen van uw laatste sessie. De automatisch opgeslagen versie herstellen? Na herstel overschrijft opslaan het originele bestand.',
@@ -1047,19 +1047,19 @@ const tMain = createI18n({
     btnDontSave: 'Niet opslaan',
     btnCancel: 'Annuleren',
     csvSaveAsNotice:
-      'CSV-bestanden bewaren geen opmaak — sla op als .xlsx om al uw wijzigingen te behouden.',
+      'CSV-bestanden bewaren geen opmaak - sla op als .xlsx om al uw wijzigingen te behouden.',
     menuExportCsv: 'CSV exporteren…',
     filterCsv: 'CSV (kommagescheiden)',
     csvFormulaLossMsg: 'Dit blad bevat formules die het CSV-formaat niet kan bewaren.',
     csvFormulaLossDetail:
-      'CSV bewaart alleen waarden — formules worden vervangen door hun huidige resultaten en opmaak gaat verloren.',
+      'CSV bewaart alleen waarden - formules worden vervangen door hun huidige resultaten en opmaak gaat verloren.',
     csvKeepXlsxBtn: 'Opslaan als .xlsx',
     csvContinueBtn: 'Doorgaan als CSV',
     csvActiveSheetOnlyNotice:
-      'CSV-bestanden bevatten slechts één blad — alleen het actieve blad “{name}” wordt geëxporteerd.',
+      'CSV-bestanden bevatten slechts één blad - alleen het actieve blad “{name}” wordt geëxporteerd.',
     csvKeepFormatMsg: 'Doorgaan met opslaan in CSV-indeling?',
     csvKeepFormatDetail:
-      'CSV bewaart alleen de waarden van één blad — formules, opmaak en extra bladen worden niet in het .csv-bestand opgeslagen.',
+      'CSV bewaart alleen de waarden van één blad - formules, opmaak en extra bladen worden niet in het .csv-bestand opgeslagen.',
   },
   ms: {
     filterSpreadsheets: 'Hamparan',
@@ -1080,13 +1080,13 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Belum log masuk ke Redrob: klik “Log masuk ke Redrob” di bawah, kemudian cuba lagi',
     errNoApiKey: 'Kunci API untuk {provider} belum dikonfigurasikan',
-    errAiBusy: 'Perkhidmatan AI sedang sibuk — sila cuba lagi sebentar lagi',
+    errAiBusy: 'Perkhidmatan AI sedang sibuk - sila cuba lagi sebentar lagi',
     errNoModel: 'Nama model belum dikonfigurasikan',
     errImgAbsPath: 'Laluan imej mestilah laluan mutlak.',
     errImgNotFound: 'Fail imej tidak ditemui: {path}',
     errImgTooLarge20: 'Imej melebihi 20MB dan tidak boleh disisipkan.',
     errImgBadType: 'Fail ini bukan imej PNG/JPEG/GIF.',
-    errDiskChanged: 'Buku kerja telah diubah pada cakera selepas dibuka — gunakan Simpan Sebagai.',
+    errDiskChanged: 'Buku kerja telah diubah pada cakera selepas dibuka - gunakan Simpan Sebagai.',
     autosaveFoundTitle: 'Versi pulihan ditemui',
     autosaveFoundBody:
       'Terdapat perubahan yang belum disimpan daripada sesi terakhir anda. Pulihkan versi yang disimpan secara automatik? Selepas pemulihan, menyimpan akan menulis ganti fail asal.',
@@ -1107,20 +1107,20 @@ const tMain = createI18n({
     btnDontSave: 'Jangan Simpan',
     btnCancel: 'Batal',
     csvSaveAsNotice:
-      'Fail CSV tidak dapat menyimpan pemformatan — simpan sebagai .xlsx untuk mengekalkan semua perubahan anda.',
+      'Fail CSV tidak dapat menyimpan pemformatan - simpan sebagai .xlsx untuk mengekalkan semua perubahan anda.',
     menuExportCsv: 'Eksport CSV…',
     filterCsv: 'CSV (dipisahkan koma)',
     csvFormulaLossMsg:
       'Helaian ini mengandungi formula yang tidak dapat disimpan dalam format CSV.',
     csvFormulaLossDetail:
-      'CSV hanya menyimpan nilai — formula digantikan dengan hasil semasa, dan pemformatan akan hilang.',
+      'CSV hanya menyimpan nilai - formula digantikan dengan hasil semasa, dan pemformatan akan hilang.',
     csvKeepXlsxBtn: 'Simpan sebagai .xlsx',
     csvContinueBtn: 'Teruskan sebagai CSV',
     csvActiveSheetOnlyNotice:
-      'Fail CSV hanya mengandungi satu helaian — hanya helaian aktif “{name}” akan dieksport.',
+      'Fail CSV hanya mengandungi satu helaian - hanya helaian aktif “{name}” akan dieksport.',
     csvKeepFormatMsg: 'Terus simpan dalam format CSV?',
     csvKeepFormatDetail:
-      'CSV hanya menyimpan nilai satu helaian — formula, pemformatan dan helaian tambahan tidak disimpan ke fail .csv.',
+      'CSV hanya menyimpan nilai satu helaian - formula, pemformatan dan helaian tambahan tidak disimpan ke fail .csv.',
   },
   he: {
     filterSpreadsheets: 'גיליונות אלקטרוניים',
@@ -1140,13 +1140,13 @@ const tMain = createI18n({
     errNotImage: 'סוג תמונה שאינו נתמך',
     errGskNotLoggedIn: 'לא מחובר ל-Redrob: לחץ על "התחבר ל-Redrob" למטה, התחבר ונסה שוב',
     errNoApiKey: 'לא הוגדר מפתח API עבור {provider}',
-    errAiBusy: 'שירות ה-AI עמוס כרגע — נסו שוב בעוד רגע',
+    errAiBusy: 'שירות ה-AI עמוס כרגע - נסו שוב בעוד רגע',
     errNoModel: 'לא הוגדר שם מודל',
     errImgAbsPath: 'נתיב התמונה חייב להיות מוחלט.',
     errImgNotFound: 'קובץ התמונה לא נמצא: {path}',
     errImgTooLarge20: 'התמונה חורגת מ-20MB ולא ניתן להוסיף אותה.',
     errImgBadType: 'הקובץ אינו תמונת PNG/JPEG/GIF.',
-    errDiskChanged: 'חוברת העבודה השתנתה בדיסק לאחר פתיחתה — השתמש בשמירה בשם.',
+    errDiskChanged: 'חוברת העבודה השתנתה בדיסק לאחר פתיחתה - השתמש בשמירה בשם.',
     autosaveFoundTitle: 'נמצאה גרסה משוחזרת',
     autosaveFoundBody:
       'קיימים שינויים שלא נשמרו מהפעלה הקודמת. לשחזר את הגרסה שנשמרה אוטומטית? לאחר השחזור, שמירה תדרוס את הקובץ המקורי.',
@@ -1166,18 +1166,18 @@ const tMain = createI18n({
     closeUnsavedDetail: 'השינויים שלך יאבדו אם תסגור בלי לשמור.',
     btnDontSave: 'אל תשמור',
     btnCancel: 'ביטול',
-    csvSaveAsNotice: 'קובצי CSV אינם שומרים עיצוב — שמרו כ‑.xlsx כדי לשמור על כל השינויים.',
+    csvSaveAsNotice: 'קובצי CSV אינם שומרים עיצוב - שמרו כ‑.xlsx כדי לשמור על כל השינויים.',
     menuExportCsv: 'ייצוא CSV…',
     filterCsv: 'CSV (מופרד באמצעות פסיקים)',
     csvFormulaLossMsg: 'גיליון זה מכיל נוסחאות שתבנית CSV אינה יכולה לשמור.',
     csvFormulaLossDetail:
-      'CSV שומר ערכים בלבד — נוסחאות מוחלפות בתוצאות הנוכחיות שלהן, והעיצוב אובד.',
+      'CSV שומר ערכים בלבד - נוסחאות מוחלפות בתוצאות הנוכחיות שלהן, והעיצוב אובד.',
     csvKeepXlsxBtn: 'שמירה כ-.xlsx',
     csvContinueBtn: 'המשך שמירה כ-CSV',
-    csvActiveSheetOnlyNotice: 'קובצי CSV מכילים גיליון אחד בלבד — רק הגיליון הפעיל "{name}" ייוצא.',
+    csvActiveSheetOnlyNotice: 'קובצי CSV מכילים גיליון אחד בלבד - רק הגיליון הפעיל "{name}" ייוצא.',
     csvKeepFormatMsg: 'להמשיך לשמור בתבנית CSV?',
     csvKeepFormatDetail:
-      'CSV שומר רק את הערכים של גיליון אחד — נוסחאות, עיצוב וגיליונות נוספים אינם נשמרים בקובץ ה-.csv.',
+      'CSV שומר רק את הערכים של גיליון אחד - נוסחאות, עיצוב וגיליונות נוספים אינם נשמרים בקובץ ה-.csv.',
   },
   hi: {
     filterSpreadsheets: 'स्प्रेडशीट',
@@ -1198,14 +1198,14 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Redrob में साइन इन नहीं है: नीचे “Redrob में साइन इन करें” पर क्लिक करें, साइन इन करें और फिर से कोशिश करें',
     errNoApiKey: '{provider} के लिए कोई API कुंजी कॉन्फ़िगर नहीं है',
-    errAiBusy: 'AI सेवा अभी व्यस्त है — कृपया थोड़ी देर बाद फिर से प्रयास करें',
+    errAiBusy: 'AI सेवा अभी व्यस्त है - कृपया थोड़ी देर बाद फिर से प्रयास करें',
     errNoModel: 'कोई मॉडल नाम कॉन्फ़िगर नहीं है',
     errImgAbsPath: 'छवि पथ निरपेक्ष होना चाहिए।',
     errImgNotFound: 'छवि फ़ाइल नहीं मिली: {path}',
     errImgTooLarge20: 'छवि 20MB से अधिक है और सम्मिलित नहीं की जा सकती।',
     errImgBadType: 'यह फ़ाइल PNG/JPEG/GIF छवि नहीं है।',
     errDiskChanged:
-      'खोले जाने के बाद कार्यपुस्तिका डिस्क पर बदल गई — इसके बजाय इस रूप में सहेजें का उपयोग करें।',
+      'खोले जाने के बाद कार्यपुस्तिका डिस्क पर बदल गई - इसके बजाय इस रूप में सहेजें का उपयोग करें।',
     autosaveFoundTitle: 'पुनर्प्राप्त संस्करण मिला',
     autosaveFoundBody:
       'आपके पिछले सत्र से सहेजे नहीं गए परिवर्तन हैं। स्वतः सहेजा गया संस्करण पुनर्स्थापित करें? पुनर्स्थापना के बाद, सहेजने पर मूल फ़ाइल अधिलेखित हो जाएगी।',
@@ -1226,19 +1226,19 @@ const tMain = createI18n({
     btnDontSave: 'न सहेजें',
     btnCancel: 'रद्द करें',
     csvSaveAsNotice:
-      'CSV फ़ाइलें फ़ॉर्मेटिंग सहेज नहीं सकतीं — सभी बदलाव बनाए रखने के लिए .xlsx के रूप में सहेजें।',
+      'CSV फ़ाइलें फ़ॉर्मेटिंग सहेज नहीं सकतीं - सभी बदलाव बनाए रखने के लिए .xlsx के रूप में सहेजें।',
     menuExportCsv: 'CSV निर्यात करें…',
     filterCsv: 'CSV (अल्पविराम द्वारा सीमांकित)',
     csvFormulaLossMsg: 'इस शीट में ऐसे सूत्र हैं जिन्हें CSV प्रारूप सहेज नहीं सकता।',
     csvFormulaLossDetail:
-      'CSV केवल मान रखता है — सूत्र उनके वर्तमान परिणामों से बदल दिए जाते हैं और फ़ॉर्मेटिंग खो जाती है।',
+      'CSV केवल मान रखता है - सूत्र उनके वर्तमान परिणामों से बदल दिए जाते हैं और फ़ॉर्मेटिंग खो जाती है।',
     csvKeepXlsxBtn: '.xlsx के रूप में सहेजें',
     csvContinueBtn: 'CSV के रूप में जारी रखें',
     csvActiveSheetOnlyNotice:
-      'CSV फ़ाइलों में केवल एक शीट होती है — केवल सक्रिय शीट “{name}” निर्यात की जाएगी।',
+      'CSV फ़ाइलों में केवल एक शीट होती है - केवल सक्रिय शीट “{name}” निर्यात की जाएगी।',
     csvKeepFormatMsg: 'CSV प्रारूप में सहेजना जारी रखें?',
     csvKeepFormatDetail:
-      'CSV केवल एक शीट के मान रखता है — सूत्र, स्वरूपण और अतिरिक्त शीट .csv फ़ाइल में सहेजे नहीं जाते।',
+      'CSV केवल एक शीट के मान रखता है - सूत्र, स्वरूपण और अतिरिक्त शीट .csv फ़ाइल में सहेजे नहीं जाते।',
   },
   'zh-TW': {
     filterSpreadsheets: '電子試算表',
@@ -1264,7 +1264,7 @@ const tMain = createI18n({
     errImgNotFound: '找不到圖片檔案: {path}',
     errImgTooLarge20: '圖片超過 20MB,不支援插入。',
     errImgBadType: '該檔案不是 PNG/JPEG/GIF 圖片。',
-    errDiskChanged: '活頁簿在開啟後被磁碟上的變更覆蓋——請改用另存新檔。',
+    errDiskChanged: '活頁簿在開啟後被磁碟上的變更覆蓋--請改用另存新檔。',
     autosaveFoundTitle: '發現自動復原版本',
     autosaveFoundBody:
       '上次工作階段有未儲存的變更。要復原自動儲存的版本嗎?復原後,儲存將直接覆寫原檔案。',
@@ -1284,16 +1284,16 @@ const tMain = createI18n({
     closeUnsavedDetail: '不儲存直接關閉,這些修改將遺失。',
     btnDontSave: '不儲存',
     btnCancel: '取消',
-    csvSaveAsNotice: 'CSV 格式不保留樣式等格式修改——另存為 .xlsx 可保留全部內容。',
+    csvSaveAsNotice: 'CSV 格式不保留樣式等格式修改--另存為 .xlsx 可保留全部內容。',
     menuExportCsv: '匯出 CSV…',
     filterCsv: 'CSV (逗號分隔)',
     csvFormulaLossMsg: '目前工作表包含公式,CSV 格式無法保留。',
-    csvFormulaLossDetail: 'CSV 只保留純文字值——公式會被取代為目前計算結果,格式也會遺失。',
+    csvFormulaLossDetail: 'CSV 只保留純文字值--公式會被取代為目前計算結果,格式也會遺失。',
     csvKeepXlsxBtn: '另存為 .xlsx',
     csvContinueBtn: '繼續儲存為 CSV',
-    csvActiveSheetOnlyNotice: 'CSV 檔案只包含一張工作表——只會匯出目前工作表「{name}」。',
+    csvActiveSheetOnlyNotice: 'CSV 檔案只包含一張工作表--只會匯出目前工作表「{name}」。',
     csvKeepFormatMsg: '要繼續以 CSV 格式儲存嗎?',
-    csvKeepFormatDetail: 'CSV 只保留單張工作表的純值——公式、格式和其他工作表不會存入 .csv 檔案。',
+    csvKeepFormatDetail: 'CSV 只保留單張工作表的純值--公式、格式和其他工作表不會存入 .csv 檔案。',
   },
 })
 const tm = (key: Parameters<typeof tMain>[1], params?: Parameters<typeof tMain>[2]) =>

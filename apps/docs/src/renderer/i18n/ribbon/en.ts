@@ -595,7 +595,7 @@ export const en = {
   ribbonAiRevisionsTip:
     'AI reads the {count} pending revisions, summarizes the changes by section and flags risks',
   ribbonAiRevisionsPrompt:
-    'Summarize all pending tracked revisions in the document: start with overall stats (insertion/deletion counts, authors, date range), then describe the changes section by section (cite block indexes), and end with a list of potential concerns (e.g. deleted obligations or qualifiers, changed numbers/dates/amounts). Summarize only — do not modify the document or accept/reject any revision.',
+    'Summarize all pending tracked revisions in the document: start with overall stats (insertion/deletion counts, authors, date range), then describe the changes section by section (cite block indexes), and end with a list of potential concerns (e.g. deleted obligations or qualifiers, changed numbers/dates/amounts). Summarize only - do not modify the document or accept/reject any revision.',
   ribbonAiCommentsTip:
     'AI works through the {count} unresolved comments: edits per comment, replies with what changed, then resolves',
   ribbonAiCommentsPrompt:

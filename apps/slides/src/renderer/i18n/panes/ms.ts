@@ -55,7 +55,7 @@ export const ms = {
   paneCommentsCollapse: 'Runtuhkan Anak Tetingkap Komen',
   paneCommentsEmpty: 'Tiada komen pada slaid ini',
   paneCommentsEmptySub:
-    'Taip di bawah — komen ditulis ke dalam pptx dan turut kelihatan dalam PowerPoint.',
+    'Taip di bawah - komen ditulis ke dalam pptx dan turut kelihatan dalam PowerPoint.',
   paneCommentsDelete: 'Padam komen',
   paneCommentsPlaceholder: 'Komen baharu… (⌘/Ctrl+Enter untuk menyiarkan)',
   paneCommentsPost: 'Siarkan',

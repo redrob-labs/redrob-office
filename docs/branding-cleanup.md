@@ -2,12 +2,17 @@
 
 The multi-editor office suite (`apps/shell` + `apps/docs`, `apps/sheets`,
 `apps/slides`, `apps/pdf`, `apps/markdown`, `apps/hangul`) is **Redrob Office**.
-Every user-visible surface uses Redrob branding and the official Redrob logo
-assets. Some internal, load-bearing identifiers keep their `GenOffice` /
-`Genspark` names because renaming them would break files, data, packages, or the
-ported cloud endpoints. This document is the single source of truth for what is
-user-facing (must be Redrob) versus what is an allowed internal exception. The
-static audit test (`apps/shell/tests/branding-audit.test.ts`) enforces it.
+The user-visible surfaces the static audit covers (JSX text, brand-bearing
+attributes, HTML `<title>`, i18n string values, error/dialog copy, and CSS
+`content`) use Redrob branding and the official Redrob logo assets. Some
+internal, load-bearing identifiers keep their `GenOffice` / `Genspark` names
+because renaming them would break files, data, packages, or the ported cloud
+endpoints; and the ported Genspark cloud client libraries (`packages/ai-search`,
+`packages/ai-provider`) truthfully name the upstream service they talk to and
+are excluded from the user-facing scan. This document is the single source of
+truth for what is user-facing (must be Redrob) versus what is an allowed
+internal exception. The static audit test
+(`apps/shell/tests/branding-audit.test.ts`) enforces it.
 
 ## Product names
 
@@ -19,7 +24,13 @@ static audit test (`apps/shell/tests/branding-audit.test.ts`) enforces it.
   Sheets` / … labels are gone.
 - AI: **Redrob AI** (the single Redrob engine / Redrob Console). There is no
   provider picker and no BYOK vendor choice.
-- No em dash (`—`) in user-facing copy.
+- Em dashes (`—`) are removed from user-facing copy: the i18n / strings tables
+  and the UI text they render. Two things are intentionally left and are NOT
+  user-facing display copy: the lone `—` typographic "none/empty" glyph (an
+  empty-value placeholder), and the AI system-prompt / tool-description strings
+  sent to the model (`ai/*` `-skill.ts`, `protocol.ts`, `tools.ts`), which are
+  model instructions, not shown to the user. Enforced for the i18n tables by the
+  em-dash check in `apps/shell/tests/branding-audit.test.ts`.
 
 ## Cloud-account surfaces are hidden (credential-destination honesty)
 
@@ -75,8 +86,14 @@ copies of these:
 - Per-file-type document icons (`docx`, `xlsx`, `pptx`, `pdf`, `md` `.icns` /
   `.ico`) are intentionally left as-is: they are document-type glyphs, not the
   product brand.
-- `GensparkMark` (the inline AI-panel badge component) keeps its identifier to
-  avoid churn across many call sites, but its artwork is now the Redrob mark.
+- **AI-panel / ribbon brand mark:** there is ONE canonical component,
+  `RedrobMark` in `@genoffice/ui` (`packages/genoffice-ui/src/icons.tsx`). It
+  draws the official gradient mark (same geometry + gradient stops as
+  `office/scripts/render-icons.mjs` / `logo.svg`) on a rounded tile, with a
+  `useId`-unique gradient id per instance. Each editor's `GensparkMark` export
+  is a thin wrapper that delegates to `RedrobMark` (the export name is kept to
+  avoid churn across call sites); there are no more copied per-editor mark
+  paths. Locked by `apps/shell/tests/redrob-mark.test.ts`.
 
 ## Allowed internal exceptions (NOT user-facing; do not rename)
 

@@ -4,7 +4,7 @@ export const de = {
   aiComposerPlaceholderBuild: 'Beschreibe die zu erstellende Tabelle, Daten oder Diagramme…',
   aiEmptyBuildTitle: 'Lass die KI diese Arbeitsmappe für dich aufbauen',
   aiEmptyBuildBody:
-    'Beschreibe die gewünschte Tabelle, Daten oder Diagramme — die KI erstellt sie direkt.',
+    'Beschreibe die gewünschte Tabelle, Daten oder Diagramme - die KI erstellt sie direkt.',
   aiGskLoginBtn: 'Bei Redrob anmelden',
   aiUndelivered: 'Nicht gesendet',
   aiRetry: 'Erneut versuchen',
@@ -20,7 +20,7 @@ export const de = {
   aiSetUp: 'KI einrichten',
   aiNewChat: 'Neue Unterhaltung',
   aiCollapsePanel: 'KI-Bereich einklappen',
-  aiHistorySep: '—— Frühere Unterhaltung ——',
+  aiHistorySep: '-- Frühere Unterhaltung --',
   aiEmptyTitle: 'KI zu dieser Arbeitsmappe befragen',
   aiEmptyBodyLine1: 'Beschreiben Sie eine Änderung oder stellen Sie eine Frage zu den Daten.',
   aiThinkingAria: 'Denkt nach',
@@ -63,7 +63,7 @@ export const de = {
   aiUnknownError: 'Unbekannter Fehler',
   aiTimeoutError:
     'Zeitüberschreitung der KI-Anfrage: keine Antwort vom Netzwerk, der Vorgang wurde abgebrochen. Prüfe deine Verbindung und versuche es erneut',
-  aiOverloadedError: 'Der KI-Dienst ist derzeit überlastet — bitte gleich erneut versuchen',
+  aiOverloadedError: 'Der KI-Dienst ist derzeit überlastet - bitte gleich erneut versuchen',
   aiNetworkError:
     'Netzwerkproblem: Der KI-Dienst ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut',
   aiCreditsExhausted:

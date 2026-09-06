@@ -55,7 +55,7 @@ export const de = {
   paneCommentsCollapse: 'Kommentarbereich einklappen',
   paneCommentsEmpty: 'Keine Kommentare auf dieser Folie',
   paneCommentsEmptySub:
-    'Geben Sie unten Text ein — Kommentare werden in die pptx-Datei geschrieben und sind auch in PowerPoint sichtbar.',
+    'Geben Sie unten Text ein - Kommentare werden in die pptx-Datei geschrieben und sind auch in PowerPoint sichtbar.',
   paneCommentsDelete: 'Kommentar löschen',
   paneCommentsPlaceholder: 'Neuer Kommentar… (⌘/Strg+Eingabetaste zum Veröffentlichen)',
   paneCommentsPost: 'Veröffentlichen',

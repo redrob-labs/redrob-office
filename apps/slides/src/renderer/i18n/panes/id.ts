@@ -55,7 +55,7 @@ export const id = {
   paneCommentsCollapse: 'Ciutkan Panel Komentar',
   paneCommentsEmpty: 'Belum ada komentar pada slide ini',
   paneCommentsEmptySub:
-    'Ketik di bawah — komentar ditulis ke dalam pptx dan juga terlihat di PowerPoint.',
+    'Ketik di bawah - komentar ditulis ke dalam pptx dan juga terlihat di PowerPoint.',
   paneCommentsDelete: 'Hapus komentar',
   paneCommentsPlaceholder: 'Komentar baru… (⌘/Ctrl+Enter untuk memposting)',
   paneCommentsPost: 'Posting',

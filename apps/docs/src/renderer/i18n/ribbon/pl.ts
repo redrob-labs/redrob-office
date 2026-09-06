@@ -599,7 +599,7 @@ export const pl = {
   ribbonAiRevisionsTip:
     'AI czyta oczekujące zmiany ({count}), podsumowuje je według sekcji i wskazuje ryzyka',
   ribbonAiRevisionsPrompt:
-    'Podsumuj wszystkie oczekujące zmiany w dokumencie: zacznij od ogólnych statystyk (liczba wstawień/usunięć, autorzy, zakres dat), następnie opisz zmiany sekcja po sekcji (podaj indeksy bloków), a na końcu wypisz punkty wymagające uwagi (usunięte zobowiązania lub zastrzeżenia, zmienione liczby/daty/kwoty). Tylko podsumuj — nie modyfikuj dokumentu ani nie akceptuj/odrzucaj żadnych zmian.',
+    'Podsumuj wszystkie oczekujące zmiany w dokumencie: zacznij od ogólnych statystyk (liczba wstawień/usunięć, autorzy, zakres dat), następnie opisz zmiany sekcja po sekcji (podaj indeksy bloków), a na końcu wypisz punkty wymagające uwagi (usunięte zobowiązania lub zastrzeżenia, zmienione liczby/daty/kwoty). Tylko podsumuj - nie modyfikuj dokumentu ani nie akceptuj/odrzucaj żadnych zmian.',
   ribbonAiCommentsTip:
     'AI przetwarza nierozwiązane komentarze ({count}): zmiana, odpowiedź, rozwiązanie',
   ribbonAiCommentsPrompt:

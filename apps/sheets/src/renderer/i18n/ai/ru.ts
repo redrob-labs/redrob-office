@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const ru = {
   aiComposerPlaceholderBuild: 'Опишите таблицу, данные или диаграмму для создания…',
   aiEmptyBuildTitle: 'Пусть ИИ построит эту книгу за вас',
-  aiEmptyBuildBody: 'Опишите нужную таблицу, данные или диаграмму — ИИ создаст их на месте.',
+  aiEmptyBuildBody: 'Опишите нужную таблицу, данные или диаграмму - ИИ создаст их на месте.',
   aiGskLoginBtn: 'Войти в Redrob',
   aiUndelivered: 'Не отправлено',
   aiRetry: 'Повторить',
@@ -19,7 +19,7 @@ export const ru = {
   aiSetUp: 'Настроить ИИ',
   aiNewChat: 'Новый диалог',
   aiCollapsePanel: 'Свернуть панель ИИ',
-  aiHistorySep: '—— Предыдущий диалог ——',
+  aiHistorySep: '-- Предыдущий диалог --',
   aiEmptyTitle: 'Спросите ИИ об этой книге',
   aiEmptyBodyLine1: 'Опишите нужное изменение или задайте вопрос о данных.',
   aiThinkingAria: 'Думает',
@@ -40,9 +40,9 @@ export const ru = {
   aiRemoveAttachment: 'Удалить вложение',
   aiAttachTitle: 'Прикрепить локальные файлы (или перетащите их на панель)',
   aiComposerPlaceholder: 'Попросите ИИ проанализировать или изменить эту книгу…',
-  aiHintIdle: 'Enter — отправить',
-  aiHintBusy: 'Esc — остановить',
-  aiHintIdleTitle: 'Enter — отправить · Shift+Enter — новая строка',
+  aiHintIdle: 'Enter - отправить',
+  aiHintBusy: 'Esc - остановить',
+  aiHintIdleTitle: 'Enter - отправить · Shift+Enter - новая строка',
   aiSend: 'Отправить',
   aiStop: 'Остановить',
   aiInstructionAria: 'Инструкция для ИИ',
@@ -62,7 +62,7 @@ export const ru = {
   aiUnknownError: 'Неизвестная ошибка',
   aiTimeoutError:
     'Тайм-аут запроса ИИ: сеть не отвечает, выполнение остановлено. Проверьте подключение и повторите попытку',
-  aiOverloadedError: 'Сервис ИИ сейчас перегружен — повторите попытку чуть позже',
+  aiOverloadedError: 'Сервис ИИ сейчас перегружен - повторите попытку чуть позже',
   aiNetworkError:
     'Проблема с сетью: не удалось подключиться к сервису ИИ. Проверьте подключение и повторите попытку',
   aiCreditsExhausted:
@@ -103,7 +103,7 @@ export const ru = {
   aiToolTraceDependentsOf: 'Зависимые ячейки для {address} ({count})',
   aiScopeRange: 'Выделено: {range}',
   aiScopeColumn: 'Выделен столбец «{name}»',
-  aiScopeColumns: 'Выделено: {names} — столбцов: {count}',
+  aiScopeColumns: 'Выделено: {names} - столбцов: {count}',
   aiScopeRangeTip:
     'ИИ понимает «этот столбец / эти строки / выделенную часть» как этот диапазон; после отправки он фиксируется на весь запуск',
   aiScopeClearTitle: 'Снять область диапазона и работать со всем листом',

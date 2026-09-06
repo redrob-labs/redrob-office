@@ -55,7 +55,7 @@ export const fr = {
   paneCommentsCollapse: 'Réduire le volet Commentaires',
   paneCommentsEmpty: 'Aucun commentaire sur cette diapositive',
   paneCommentsEmptySub:
-    'Saisissez ci-dessous — les commentaires sont écrits dans le pptx et visibles aussi dans PowerPoint.',
+    'Saisissez ci-dessous - les commentaires sont écrits dans le pptx et visibles aussi dans PowerPoint.',
   paneCommentsDelete: 'Supprimer le commentaire',
   paneCommentsPlaceholder: 'Nouveau commentaire… (⌘/Ctrl+Entrée pour publier)',
   paneCommentsPost: 'Publier',

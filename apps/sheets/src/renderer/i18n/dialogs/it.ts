@@ -171,7 +171,7 @@ export const it = {
   dlgIconsCatNature: 'Natura',
   dlgIconsCatTravel: 'Viaggi',
   dlgRecoTitle: 'Grafici consigliati',
-  dlgRecoNote: 'Ordinati in base alla forma dei dati selezionati — fai clic per inserire.',
+  dlgRecoNote: 'Ordinati in base alla forma dei dati selezionati - fai clic per inserire.',
   dlgRecoReasonTime: 'Le serie temporali si leggono meglio come tendenze',
   dlgRecoReasonProportion: 'Poche categorie si leggono bene come quote del totale',
   dlgRecoReasonCorrelation: 'Due colonne numeriche si leggono bene come correlazione',
@@ -309,7 +309,7 @@ export const it = {
 
   dlgSubtotalTitle: 'Subtotale',
   dlgSubtotalNoFields:
-    'Seleziona prima i dati di origine — un intervallo con riga di intestazione e almeno una riga di dati (ordinato per la colonna di raggruppamento) — e riapri Subtotale.',
+    'Seleziona prima i dati di origine - un intervallo con riga di intestazione e almeno una riga di dati (ordinato per la colonna di raggruppamento) - e riapri Subtotale.',
   dlgSubtotalGroupBy: 'A ogni cambiamento in',
   dlgSubtotalFunction: 'Usa la funzione',
   dlgSubtotalAddTo: 'Aggiungi subtotale a',
@@ -327,7 +327,7 @@ export const it = {
   dlgNmAdd: 'Aggiungi',
   dlgNmUpdate: 'Aggiorna',
 
-  dlgFnTitle: 'Inserisci funzione — in {target}',
+  dlgFnTitle: 'Inserisci funzione - in {target}',
   dlgFnSearchPlaceholder: 'Cerca funzioni…',
   dlgFnNoMatch: 'Nessuna funzione corrispondente.',
   dlgFnFormula: 'Formula',

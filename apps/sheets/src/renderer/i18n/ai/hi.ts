@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const hi = {
   aiComposerPlaceholderBuild: 'बनाने के लिए तालिका, डेटा या चार्ट बताएँ…',
   aiEmptyBuildTitle: 'AI से यह वर्कबुक बनवाएँ',
-  aiEmptyBuildBody: 'जो तालिका, डेटा या चार्ट चाहिए बताएँ — AI उसे तुरंत बना देता है।',
+  aiEmptyBuildBody: 'जो तालिका, डेटा या चार्ट चाहिए बताएँ - AI उसे तुरंत बना देता है।',
   aiGskLoginBtn: 'Redrob में साइन इन करें',
   aiUndelivered: 'भेजा नहीं गया',
   aiRetry: 'फिर से कोशिश करें',
@@ -19,7 +19,7 @@ export const hi = {
   aiSetUp: 'AI सेट करें',
   aiNewChat: 'नई बातचीत',
   aiCollapsePanel: 'AI पैनल संक्षिप्त करें',
-  aiHistorySep: '—— पिछली बातचीत ——',
+  aiHistorySep: '-- पिछली बातचीत --',
   aiEmptyTitle: 'इस कार्यपुस्तिका के बारे में AI से पूछें',
   aiEmptyBodyLine1: 'कोई बदलाव बताएं या डेटा के बारे में पूछें।',
   aiThinkingAria: 'सोच रहा है',
@@ -62,7 +62,7 @@ export const hi = {
   aiUnknownError: 'अज्ञात त्रुटि',
   aiTimeoutError:
     'AI अनुरोध का समय समाप्त: नेटवर्क से कोई प्रतिक्रिया नहीं मिली, इसलिए रोक दिया गया। कनेक्शन जांचें और फिर से प्रयास करें',
-  aiOverloadedError: 'AI सेवा अभी व्यस्त है — कृपया थोड़ी देर बाद फिर से प्रयास करें',
+  aiOverloadedError: 'AI सेवा अभी व्यस्त है - कृपया थोड़ी देर बाद फिर से प्रयास करें',
   aiNetworkError:
     'नेटवर्क समस्या: AI सेवा से कनेक्ट नहीं हो सका। कनेक्शन जांचें और फिर से प्रयास करें',
   aiCreditsExhausted:

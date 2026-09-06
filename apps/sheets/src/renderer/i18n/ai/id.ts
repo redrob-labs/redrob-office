@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const id = {
   aiComposerPlaceholderBuild: 'Jelaskan tabel, data, atau bagan yang akan dibuat…',
   aiEmptyBuildTitle: 'Biarkan AI membangun buku kerja ini untuk Anda',
-  aiEmptyBuildBody: 'Jelaskan tabel, data, atau bagan yang Anda perlukan — AI langsung membuatnya.',
+  aiEmptyBuildBody: 'Jelaskan tabel, data, atau bagan yang Anda perlukan - AI langsung membuatnya.',
   aiGskLoginBtn: 'Masuk ke Redrob',
   aiUndelivered: 'Tidak terkirim',
   aiRetry: 'Coba lagi',
@@ -18,7 +18,7 @@ export const id = {
   aiSetUp: 'Siapkan AI',
   aiNewChat: 'Percakapan baru',
   aiCollapsePanel: 'Ciutkan panel AI',
-  aiHistorySep: '—— Percakapan sebelumnya ——',
+  aiHistorySep: '-- Percakapan sebelumnya --',
   aiEmptyTitle: 'Tanyakan kepada AI tentang buku kerja ini',
   aiEmptyBodyLine1: 'Jelaskan perubahan yang diinginkan atau tanyakan tentang datanya.',
   aiThinkingAria: 'Berpikir',
@@ -61,7 +61,7 @@ export const id = {
   aiUnknownError: 'Kesalahan tidak dikenal',
   aiTimeoutError:
     'Permintaan AI habis waktu: jaringan tidak merespons sehingga proses dihentikan. Periksa koneksi Anda lalu coba lagi',
-  aiOverloadedError: 'Layanan AI sedang sibuk — silakan coba lagi sebentar lagi',
+  aiOverloadedError: 'Layanan AI sedang sibuk - silakan coba lagi sebentar lagi',
   aiNetworkError:
     'Masalah jaringan: tidak dapat terhubung ke layanan AI. Periksa koneksi Anda lalu coba lagi',
   aiCreditsExhausted:

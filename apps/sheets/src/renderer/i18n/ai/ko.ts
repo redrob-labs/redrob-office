@@ -18,7 +18,7 @@ export const ko = {
   aiSetUp: 'AI 설정하기',
   aiNewChat: '새 대화',
   aiCollapsePanel: 'AI 패널 접기',
-  aiHistorySep: '—— 이전 대화 ——',
+  aiHistorySep: '-- 이전 대화 --',
   aiEmptyTitle: '이 통합 문서에 대해 AI에게 질문',
   aiEmptyBodyLine1: '원하는 변경을 설명하거나 데이터에 대해 질문하세요.',
   aiThinkingAria: '생각 중',

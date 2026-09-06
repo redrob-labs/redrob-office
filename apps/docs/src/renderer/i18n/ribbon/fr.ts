@@ -603,7 +603,7 @@ export const fr = {
   ribbonAiRevisionsTip:
     "L'IA lit les {count} révisions en attente, résume les changements par section et signale les risques",
   ribbonAiRevisionsPrompt:
-    "Résumez toutes les révisions en attente du document : commencez par des statistiques globales (nombre d'insertions/suppressions, auteurs, plage de dates), puis décrivez les changements section par section (citez les index de blocs), et terminez par les points de vigilance (obligations ou réserves supprimées, chiffres/dates/montants modifiés). Résumez seulement — ne modifiez pas le document et n'acceptez/rejetez aucune révision.",
+    "Résumez toutes les révisions en attente du document : commencez par des statistiques globales (nombre d'insertions/suppressions, auteurs, plage de dates), puis décrivez les changements section par section (citez les index de blocs), et terminez par les points de vigilance (obligations ou réserves supprimées, chiffres/dates/montants modifiés). Résumez seulement - ne modifiez pas le document et n'acceptez/rejetez aucune révision.",
   ribbonAiCommentsTip:
     "L'IA traite les {count} commentaires non résolus : modification, réponse, puis résolution",
   ribbonAiCommentsPrompt:

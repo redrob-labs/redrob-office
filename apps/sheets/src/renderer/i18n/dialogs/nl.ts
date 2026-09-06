@@ -28,7 +28,7 @@ export const nl = {
 
   dlgAdvFilterTitle: 'Uitgebreid filter',
   dlgAdvFilterNoColumns:
-    'Er zijn geen kolommen beschikbaar in het filterbereik — selecteer de gegevens en schakel AutoFilter in voordat u het uitgebreide filter opent.',
+    'Er zijn geen kolommen beschikbaar in het filterbereik - selecteer de gegevens en schakel AutoFilter in voordat u het uitgebreide filter opent.',
   dlgAdvFilterColumn: 'Kolom',
   dlgAdvFilterCondition1: 'Voorwaarde 1',
   dlgAdvFilterCondition2: 'Voorwaarde 2 (optioneel)',
@@ -169,14 +169,14 @@ export const nl = {
   dlgIconsCatNature: 'Natuur',
   dlgIconsCatTravel: 'Reizen',
   dlgRecoTitle: 'Aanbevolen grafieken',
-  dlgRecoNote: 'Gerangschikt op de vorm van de geselecteerde gegevens — klik om in te voegen.',
+  dlgRecoNote: 'Gerangschikt op de vorm van de geselecteerde gegevens - klik om in te voegen.',
   dlgRecoReasonTime: 'Tijdreeksen lezen het best als trends',
   dlgRecoReasonProportion: 'Weinig categorieën lezen goed als delen van een geheel',
   dlgRecoReasonCorrelation: 'Twee numerieke kolommen lezen goed als correlatie',
   dlgRecoReasonComparison: 'Goed om waarden tussen categorieën te vergelijken',
   dlgRecoReasonManyPoints: 'Veel punten blijven leesbaar als lijn',
   dlgRecoReasonLongLabels: 'Lange labels passen beter bij een staafdiagram',
-  dlgRecoReasonMixedScales: 'Sterk verschillende schalen — een combinatiegrafiek past',
+  dlgRecoReasonMixedScales: 'Sterk verschillende schalen - een combinatiegrafiek past',
   dlgScreenshotTitle: 'Schermafbeelding',
   dlgScreenshotScreens: 'Schermen',
   dlgScreenshotWindows: 'Beschikbare vensters',
@@ -194,7 +194,7 @@ export const nl = {
   dlgSymbolCatMisc: 'Vormen en overig',
   dlgSymbolInsertHint: '{symbol} invoegen',
   dlgSymbolNote:
-    'Klik op een symbool om het aan de actieve cel toe te voegen — voeg er meerdere achter elkaar in en sluit daarna.',
+    'Klik op een symbool om het aan de actieve cel toe te voegen - voeg er meerdere achter elkaar in en sluit daarna.',
 
   dlgFcTitle: 'Celeigenschappen',
   dlgFcTabNumber: 'Getal',
@@ -301,12 +301,12 @@ export const nl = {
     'Rijen worden gekoppeld op basis van de eerste kolom van elk gebied; de resultaten beginnen bij {target} als live formules over de bronnen.',
   dlgConsNotePosition:
     'Gebieden worden positie voor positie gecombineerd; de resultaten beginnen bij {target} als live formules over de bronnen.',
-  dlgConsBadRef: 'Geen geldige verwijzing: {ref} — gebruik A1:C5 of Sheet2!A1:C5.',
+  dlgConsBadRef: 'Geen geldige verwijzing: {ref} - gebruik A1:C5 of Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Voeg ten minste één bronverwijzing toe.',
 
   dlgSubtotalTitle: 'Subtotaal',
   dlgSubtotalNoFields:
-    'Selecteer eerst de brongegevens — een bereik met een veldnamenrij en minimaal één gegevensrij (gesorteerd op de groepeerkolom) — en open Subtotaal opnieuw.',
+    'Selecteer eerst de brongegevens - een bereik met een veldnamenrij en minimaal één gegevensrij (gesorteerd op de groepeerkolom) - en open Subtotaal opnieuw.',
   dlgSubtotalGroupBy: 'Bij iedere wijziging in',
   dlgSubtotalFunction: 'Functie gebruiken',
   dlgSubtotalAddTo: 'Subtotaal toevoegen aan',
@@ -324,7 +324,7 @@ export const nl = {
   dlgNmAdd: 'Toevoegen',
   dlgNmUpdate: 'Bijwerken',
 
-  dlgFnTitle: 'Functie invoegen — in {target}',
+  dlgFnTitle: 'Functie invoegen - in {target}',
   dlgFnSearchPlaceholder: 'Functies zoeken…',
   dlgFnNoMatch: 'Geen overeenkomende functies.',
   dlgFnFormula: 'Formule',

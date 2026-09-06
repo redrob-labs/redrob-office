@@ -343,7 +343,7 @@ export const pl = {
   appPaginationPreview: 'Podgląd podziału na strony',
   appPvCommented: 'Komentarz',
   appTotalPagesN: 'Stron: {n}',
-  appPvHint: 'Migawka tylko do odczytu; po edycji otwórz ponownie · Esc — zamknij',
+  appPvHint: 'Migawka tylko do odczytu; po edycji otwórz ponownie · Esc - zamknij',
   appPvExportTip:
     'Eksportuje strona po stronie zgodnie z podglądem; nagłówki, stopki i numery stron odpowiadają temu, co widzisz',
   appStylesTitle: 'Style',

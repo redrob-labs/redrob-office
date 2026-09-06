@@ -301,7 +301,7 @@ export const ja = {
     '各範囲は先頭列のラベルで行を照合します。結果は {target} から出力され、統合元を参照するライブ数式になります。',
   dlgConsNotePosition:
     '各範囲は位置ごとに統合します。結果は {target} から出力され、統合元を参照するライブ数式になります。',
-  dlgConsBadRef: '無効な参照です: {ref} — A1:C5 または Sheet2!A1:C5 の形式で指定してください。',
+  dlgConsBadRef: '無効な参照です: {ref} - A1:C5 または Sheet2!A1:C5 の形式で指定してください。',
   dlgConsNeedOneRef: '統合元範囲を少なくとも 1 つ追加してください。',
 
   dlgSubtotalTitle: '小計',
@@ -324,7 +324,7 @@ export const ja = {
   dlgNmAdd: '追加',
   dlgNmUpdate: '更新',
 
-  dlgFnTitle: '関数の挿入 — 対象 {target}',
+  dlgFnTitle: '関数の挿入 - 対象 {target}',
   dlgFnSearchPlaceholder: '関数を検索…',
   dlgFnNoMatch: '一致する関数がありません。',
   dlgFnFormula: '数式',

@@ -17,7 +17,7 @@ export const zh = {
   aiSetUp: '设置 AI',
   aiNewChat: '新对话',
   aiCollapsePanel: '收起 AI 面板',
-  aiHistorySep: '—— 以上是历史对话 ——',
+  aiHistorySep: '-- 以上是历史对话 --',
   aiEmptyTitle: '向 AI 询问这个工作簿',
   aiEmptyBodyLine1: '描述想要的修改，或询问数据。',
   aiThinkingAria: '思考中',

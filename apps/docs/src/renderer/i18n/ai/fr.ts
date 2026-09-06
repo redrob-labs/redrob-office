@@ -54,11 +54,11 @@ export const fr = {
   aiSumResolveComment: 'Commentaire résolu',
   aiTidyBtn: 'Mise en forme IA',
   aiTidyPrompt:
-    "Mettez en ordre la mise en forme du document — par exemple corrigez les niveaux de titres, uniformisez les listes, supprimez les gras et italiques superflus et harmonisez l'indentation des paragraphes. Ne modifiez que la mise en forme, sans changer le texte",
+    "Mettez en ordre la mise en forme du document - par exemple corrigez les niveaux de titres, uniformisez les listes, supprimez les gras et italiques superflus et harmonisez l'indentation des paragraphes. Ne modifiez que la mise en forme, sans changer le texte",
   aiSwitchModelTitle: "Changer de modèle d'IA",
   aiNewChatTitle: 'Nouvelle conversation',
   aiCollapseTitle: 'Réduire le panneau',
-  aiHistorySep: '—— Conversation précédente ——',
+  aiHistorySep: '-- Conversation précédente --',
   aiEmptyTitle: "Laissez l'IA vous aider à rédiger et à modifier",
   aiEmptyBody1: 'Donnez une instruction ou posez simplement une question ;',
   aiEmptyBody2:
@@ -104,7 +104,7 @@ export const fr = {
   aiUnknownError: 'Erreur inconnue',
   aiTimeoutError:
     "Délai de la requête IA dépassé : aucune réponse du réseau, l'exécution a été interrompue. Vérifiez votre connexion et réessayez",
-  aiOverloadedError: "Le service d'IA est actuellement surchargé — réessayez dans un instant",
+  aiOverloadedError: "Le service d'IA est actuellement surchargé - réessayez dans un instant",
   aiNetworkError:
     'Problème réseau : impossible de joindre le service IA. Vérifiez votre connexion et réessayez',
   aiCreditsExhausted:
@@ -140,7 +140,7 @@ export const fr = {
   aiSumApplyCommands: 'Appliquer des commandes de mise en forme',
   aiCmdNone: "Aucun bloc correspondant ; le document n'a pas été modifié.",
   aiCmdNoneSkipped:
-    "Aucun bloc modifiable ; le document n'a pas été modifié ({count} blocs protégés ignorés — les tableaux/images ne peuvent pas être modifiés par des commandes de style).",
+    "Aucun bloc modifiable ; le document n'a pas été modifié ({count} blocs protégés ignorés - les tableaux/images ne peuvent pas être modifiés par des commandes de style).",
   aiCmdTextStyle: 'Style de texte mis à jour sur {count} bloc(s)',
   aiCmdMatchedStyle: 'Style appliqué à {count} occurrence(s) dans {blocks} bloc(s)',
   aiCmdParaStyle: 'Format de paragraphe mis à jour sur {count} bloc(s)',

@@ -55,7 +55,7 @@ export const nl = {
   paneCommentsCollapse: 'Deelvenster Opmerkingen samenvouwen',
   paneCommentsEmpty: 'Geen opmerkingen op deze dia',
   paneCommentsEmptySub:
-    'Typ hieronder — opmerkingen worden in het pptx-bestand geschreven en zijn ook zichtbaar in PowerPoint.',
+    'Typ hieronder - opmerkingen worden in het pptx-bestand geschreven en zijn ook zichtbaar in PowerPoint.',
   paneCommentsDelete: 'Opmerking verwijderen',
   paneCommentsPlaceholder: 'Nieuwe opmerking… (⌘/Ctrl+Enter om te plaatsen)',
   paneCommentsPost: 'Plaatsen',

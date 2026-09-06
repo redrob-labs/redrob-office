@@ -28,7 +28,7 @@ export const he = {
 
   dlgAdvFilterTitle: 'סינון מתקדם',
   dlgAdvFilterNoColumns:
-    'אין עמודות זמינות בטווח הסינון — בחרו את הנתונים והפעילו סינון אוטומטי לפני פתיחת הסינון המתקדם.',
+    'אין עמודות זמינות בטווח הסינון - בחרו את הנתונים והפעילו סינון אוטומטי לפני פתיחת הסינון המתקדם.',
   dlgAdvFilterColumn: 'עמודה',
   dlgAdvFilterCondition1: 'תנאי 1',
   dlgAdvFilterCondition2: 'תנאי 2 (אופציונלי)',
@@ -164,14 +164,14 @@ export const he = {
   dlgIconsCatNature: 'טבע',
   dlgIconsCatTravel: 'נסיעות',
   dlgRecoTitle: 'תרשימים מומלצים',
-  dlgRecoNote: 'מדורגים לפי צורת הנתונים שנבחרו — לחצו כדי להוסיף.',
+  dlgRecoNote: 'מדורגים לפי צורת הנתונים שנבחרו - לחצו כדי להוסיף.',
   dlgRecoReasonTime: 'סדרות זמן נקראות הכי טוב כמגמות',
   dlgRecoReasonProportion: 'מעט קטגוריות נקראות היטב כחלקים משלם',
   dlgRecoReasonCorrelation: 'שתי עמודות מספריות מתאימות להצגת מתאם',
   dlgRecoReasonComparison: 'מתאים להשוואת ערכים בין קטגוריות',
   dlgRecoReasonManyPoints: 'נקודות רבות נשארות קריאות כקו',
   dlgRecoReasonLongLabels: 'תוויות ארוכות מתאימות יותר לתרשים עמודות אופקי',
-  dlgRecoReasonMixedScales: 'קני המידה שונים מאוד — תרשים משולב מתאים',
+  dlgRecoReasonMixedScales: 'קני המידה שונים מאוד - תרשים משולב מתאים',
   dlgScreenshotTitle: 'צילום מסך',
   dlgScreenshotScreens: 'מסכים',
   dlgScreenshotWindows: 'חלונות זמינים',
@@ -188,7 +188,7 @@ export const he = {
   dlgSymbolCatGreek: 'יוונית',
   dlgSymbolCatMisc: 'צורות ושונות',
   dlgSymbolInsertHint: 'הוספת {symbol}',
-  dlgSymbolNote: 'לחצו על סמל כדי לצרף אותו לתא הפעיל — אפשר להוסיף כמה ברצף ואז לסגור.',
+  dlgSymbolNote: 'לחצו על סמל כדי לצרף אותו לתא הפעיל - אפשר להוסיף כמה ברצף ואז לסגור.',
 
   dlgFcTitle: 'עיצוב תאים',
   dlgFcTabNumber: 'מספר',
@@ -295,12 +295,12 @@ export const he = {
     'שורות מותאמות לפי העמודה הראשונה של כל אזור; התוצאות מתחילות ב-{target} כנוסחאות חיות על המקורות.',
   dlgConsNotePosition:
     'האזורים משולבים מיקום אחר מיקום; התוצאות מתחילות ב-{target} כנוסחאות חיות על המקורות.',
-  dlgConsBadRef: 'הפניה לא חוקית: {ref} — השתמשו בתבנית A1:C5 או Sheet2!A1:C5.',
+  dlgConsBadRef: 'הפניה לא חוקית: {ref} - השתמשו בתבנית A1:C5 או Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'הוסיפו לפחות הפניית מקור אחת.',
 
   dlgSubtotalTitle: 'סכום ביניים',
   dlgSubtotalNoFields:
-    'בחרו תחילה את נתוני המקור — טווח עם שורת כותרות ולפחות שורת נתונים אחת (ממוין לפי עמודת הקיבוץ) — ואז פתחו שוב את סכום הביניים.',
+    'בחרו תחילה את נתוני המקור - טווח עם שורת כותרות ולפחות שורת נתונים אחת (ממוין לפי עמודת הקיבוץ) - ואז פתחו שוב את סכום הביניים.',
   dlgSubtotalGroupBy: 'בכל שינוי ב',
   dlgSubtotalFunction: 'שימוש בפונקציה',
   dlgSubtotalAddTo: 'הוספת סכום ביניים ל',
@@ -318,7 +318,7 @@ export const he = {
   dlgNmAdd: 'הוספה',
   dlgNmUpdate: 'עדכון',
 
-  dlgFnTitle: 'הוספת פונקציה — אל {target}',
+  dlgFnTitle: 'הוספת פונקציה - אל {target}',
   dlgFnSearchPlaceholder: 'חיפוש פונקציות…',
   dlgFnNoMatch: 'אין פונקציות תואמות.',
   dlgFnFormula: 'נוסחה',

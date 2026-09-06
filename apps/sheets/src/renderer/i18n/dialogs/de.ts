@@ -29,7 +29,7 @@ export const de = {
 
   dlgAdvFilterTitle: 'Spezialfilter',
   dlgAdvFilterNoColumns:
-    'Im Filterbereich sind keine Spalten verfügbar — markieren Sie die Daten und aktivieren Sie den AutoFilter, bevor Sie den Spezialfilter öffnen.',
+    'Im Filterbereich sind keine Spalten verfügbar - markieren Sie die Daten und aktivieren Sie den AutoFilter, bevor Sie den Spezialfilter öffnen.',
   dlgAdvFilterColumn: 'Spalte',
   dlgAdvFilterCondition1: 'Bedingung 1',
   dlgAdvFilterCondition2: 'Bedingung 2 (optional)',
@@ -173,14 +173,14 @@ export const de = {
   dlgIconsCatNature: 'Natur',
   dlgIconsCatTravel: 'Reisen',
   dlgRecoTitle: 'Empfohlene Diagramme',
-  dlgRecoNote: 'Nach der Form der ausgewählten Daten sortiert — zum Einfügen klicken.',
+  dlgRecoNote: 'Nach der Form der ausgewählten Daten sortiert - zum Einfügen klicken.',
   dlgRecoReasonTime: 'Zeitreihen liest man am besten als Trend',
   dlgRecoReasonProportion: 'Wenige Kategorien wirken gut als Anteile am Ganzen',
   dlgRecoReasonCorrelation: 'Zwei Zahlenspalten eignen sich für eine Korrelation',
   dlgRecoReasonComparison: 'Gut zum Vergleichen von Werten über Kategorien',
   dlgRecoReasonManyPoints: 'Viele Datenpunkte bleiben als Linie lesbar',
   dlgRecoReasonLongLabels: 'Lange Beschriftungen passen besser ins Balkendiagramm',
-  dlgRecoReasonMixedScales: 'Sehr unterschiedliche Skalen — ein Verbunddiagramm passt',
+  dlgRecoReasonMixedScales: 'Sehr unterschiedliche Skalen - ein Verbunddiagramm passt',
   dlgScreenshotTitle: 'Bildschirmfoto',
   dlgScreenshotScreens: 'Bildschirme',
   dlgScreenshotWindows: 'Verfügbare Fenster',
@@ -198,7 +198,7 @@ export const de = {
   dlgSymbolCatMisc: 'Formen und Sonstiges',
   dlgSymbolInsertHint: '{symbol} einfügen',
   dlgSymbolNote:
-    'Klicken Sie auf ein Symbol, um es an die aktive Zelle anzuhängen — fügen Sie mehrere nacheinander ein und schließen Sie dann.',
+    'Klicken Sie auf ein Symbol, um es an die aktive Zelle anzuhängen - fügen Sie mehrere nacheinander ein und schließen Sie dann.',
 
   dlgFcTitle: 'Zellen formatieren',
   dlgFcTabNumber: 'Zahlen',
@@ -305,12 +305,12 @@ export const de = {
     'Zeilen werden über die erste Spalte jedes Bereichs zugeordnet; die Ergebnisse beginnen bei {target} als dynamische Formeln über den Quellen.',
   dlgConsNotePosition:
     'Die Bereiche werden Position für Position kombiniert; die Ergebnisse beginnen bei {target} als dynamische Formeln über den Quellen.',
-  dlgConsBadRef: 'Kein gültiger Verweis: {ref} — verwenden Sie A1:C5 oder Sheet2!A1:C5.',
+  dlgConsBadRef: 'Kein gültiger Verweis: {ref} - verwenden Sie A1:C5 oder Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Fügen Sie mindestens einen Quellverweis hinzu.',
 
   dlgSubtotalTitle: 'Teilergebnis',
   dlgSubtotalNoFields:
-    'Markieren Sie zuerst die Quelldaten — einen Bereich mit Überschriftenzeile und mindestens einer Datenzeile (nach der Gruppierungsspalte sortiert) — und öffnen Sie dann Teilergebnis erneut.',
+    'Markieren Sie zuerst die Quelldaten - einen Bereich mit Überschriftenzeile und mindestens einer Datenzeile (nach der Gruppierungsspalte sortiert) - und öffnen Sie dann Teilergebnis erneut.',
   dlgSubtotalGroupBy: 'Gruppieren nach',
   dlgSubtotalFunction: 'Unter Verwendung von',
   dlgSubtotalAddTo: 'Teilergebnis addieren zu',
@@ -328,7 +328,7 @@ export const de = {
   dlgNmAdd: 'Hinzufügen',
   dlgNmUpdate: 'Aktualisieren',
 
-  dlgFnTitle: 'Funktion einfügen — in {target}',
+  dlgFnTitle: 'Funktion einfügen - in {target}',
   dlgFnSearchPlaceholder: 'Funktionen suchen…',
   dlgFnNoMatch: 'Keine passenden Funktionen.',
   dlgFnFormula: 'Formel',

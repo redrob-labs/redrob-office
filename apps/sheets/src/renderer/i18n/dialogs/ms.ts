@@ -29,7 +29,7 @@ export const ms = {
 
   dlgAdvFilterTitle: 'Penapis Lanjutan',
   dlgAdvFilterNoColumns:
-    'Tiada lajur tersedia dalam julat penapis — pilih data dan hidupkan AutoPenapis dahulu sebelum membuka Penapis Lanjutan.',
+    'Tiada lajur tersedia dalam julat penapis - pilih data dan hidupkan AutoPenapis dahulu sebelum membuka Penapis Lanjutan.',
   dlgAdvFilterColumn: 'Lajur',
   dlgAdvFilterCondition1: 'Syarat 1',
   dlgAdvFilterCondition2: 'Syarat 2 (pilihan)',
@@ -169,14 +169,14 @@ export const ms = {
   dlgIconsCatNature: 'Alam',
   dlgIconsCatTravel: 'Perjalanan',
   dlgRecoTitle: 'Carta Disyorkan',
-  dlgRecoNote: 'Disusun mengikut bentuk data yang dipilih — klik untuk menyisipkan.',
+  dlgRecoNote: 'Disusun mengikut bentuk data yang dipilih - klik untuk menyisipkan.',
   dlgRecoReasonTime: 'Siri masa paling jelas sebagai arah aliran',
   dlgRecoReasonProportion: 'Kategori yang sedikit jelas sebagai bahagian keseluruhan',
   dlgRecoReasonCorrelation: 'Dua lajur nombor sesuai untuk melihat korelasi',
   dlgRecoReasonComparison: 'Sesuai untuk membandingkan nilai antara kategori',
   dlgRecoReasonManyPoints: 'Banyak titik data kekal jelas sebagai garisan',
   dlgRecoReasonLongLabels: 'Label panjang lebih sesuai pada carta bar',
-  dlgRecoReasonMixedScales: 'Skala siri jauh berbeza — carta kombo sesuai',
+  dlgRecoReasonMixedScales: 'Skala siri jauh berbeza - carta kombo sesuai',
   dlgScreenshotTitle: 'Tangkapan Skrin',
   dlgScreenshotScreens: 'Skrin',
   dlgScreenshotWindows: 'Tetingkap tersedia',
@@ -194,7 +194,7 @@ export const ms = {
   dlgSymbolCatMisc: 'Bentuk & lain-lain',
   dlgSymbolInsertHint: 'Selitkan {symbol}',
   dlgSymbolNote:
-    'Klik simbol untuk menambahkannya pada sel aktif — boleh selitkan beberapa berturut-turut, kemudian tutup.',
+    'Klik simbol untuk menambahkannya pada sel aktif - boleh selitkan beberapa berturut-turut, kemudian tutup.',
 
   dlgFcTitle: 'Format Sel',
   dlgFcTabNumber: 'Nombor',
@@ -301,12 +301,12 @@ export const ms = {
     'Baris dipadankan mengikut lajur pertama setiap kawasan; hasil bermula di {target} sebagai formula langsung ke atas sumber.',
   dlgConsNotePosition:
     'Kawasan digabungkan kedudukan demi kedudukan; hasil bermula di {target} sebagai formula langsung ke atas sumber.',
-  dlgConsBadRef: 'Rujukan tidak sah: {ref} — gunakan format A1:C5 atau Sheet2!A1:C5.',
+  dlgConsBadRef: 'Rujukan tidak sah: {ref} - gunakan format A1:C5 atau Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Tambah sekurang-kurangnya satu rujukan sumber.',
 
   dlgSubtotalTitle: 'Subjumlah',
   dlgSubtotalNoFields:
-    'Pilih data sumber dahulu — julat dengan baris pengepala dan sekurang-kurangnya satu baris data (diisih mengikut lajur kumpulan) — kemudian buka semula Subjumlah.',
+    'Pilih data sumber dahulu - julat dengan baris pengepala dan sekurang-kurangnya satu baris data (diisih mengikut lajur kumpulan) - kemudian buka semula Subjumlah.',
   dlgSubtotalGroupBy: 'Pada setiap perubahan dalam',
   dlgSubtotalFunction: 'Guna fungsi',
   dlgSubtotalAddTo: 'Tambah subjumlah pada',
@@ -324,7 +324,7 @@ export const ms = {
   dlgNmAdd: 'Tambah',
   dlgNmUpdate: 'Kemas kini',
 
-  dlgFnTitle: 'Selitkan Fungsi — ke {target}',
+  dlgFnTitle: 'Selitkan Fungsi - ke {target}',
   dlgFnSearchPlaceholder: 'Cari fungsi…',
   dlgFnNoMatch: 'Tiada fungsi yang sepadan.',
   dlgFnFormula: 'Formula',

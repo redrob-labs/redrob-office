@@ -16,9 +16,9 @@ export const fr = {
   appThemesTitle: 'Choisir un thème de document (couleurs et polices)',
   appThemeColorsTitle: 'Modifier les couleurs du thème',
   appThemeFontsTitle: 'Modifier les polices du thème',
-  appThemeApplied: "Thème « {name} » appliqué — écrit dans le fichier à l'enregistrement.",
+  appThemeApplied: "Thème « {name} » appliqué - écrit dans le fichier à l'enregistrement.",
   appThemeNeedsThemePart:
-    "Ce classeur n'a pas de partie de thème — impossible d'appliquer un thème.",
+    "Ce classeur n'a pas de partie de thème - impossible d'appliquer un thème.",
   appBreaksTitle: 'Insérer, supprimer ou rétablir les sauts de page manuels',
   appInsertPageBreak: 'Insérer un saut de page',
   appRemovePageBreak: 'Supprimer le saut de page',
@@ -45,12 +45,12 @@ export const fr = {
   appWorkbookProtectionWillRemove:
     "La protection de la structure du classeur sera supprimée à l'enregistrement.",
   appWorkbookProtectedWithPassword:
-    'La structure du classeur est protégée par mot de passe — impossible de la modifier ici.',
+    'La structure du classeur est protégée par mot de passe - impossible de la modifier ici.',
   appWorkbookStructureLocked:
-    "La structure du classeur est protégée — impossible d'ajouter, de supprimer, de renommer ou de déplacer des feuilles.",
+    "La structure du classeur est protégée - impossible d'ajouter, de supprimer, de renommer ou de déplacer des feuilles.",
   appAllowEditRangesTitle: 'Plages qui restent modifiables quand la feuille est protégée',
   appRangesPasswordBlocked:
-    "Cette feuille contient des plages modifiables protégées par mot de passe — leur modification n'est pas prise en charge.",
+    "Cette feuille contient des plages modifiables protégées par mot de passe - leur modification n'est pas prise en charge.",
   appRangesRecorded: "{count} plage(s) modifiable(s) seront écrites à l'enregistrement.",
   appNumFmtAccounting: 'Comptabilité',
   appNumFmtShortDate: 'Date courte',
@@ -73,7 +73,7 @@ export const fr = {
   appValueAxis: 'Axe des valeurs',
   appCategoryAxis: 'Axe des catégories',
   appAuto: 'Automatique',
-  appFormatHeader: 'Format — {target}',
+  appFormatHeader: 'Format - {target}',
   appClose: 'Fermer',
   appSeries: 'Série',
   appDataPoint: 'Point de données',
@@ -134,7 +134,7 @@ export const fr = {
   appMoreItems: '+{count} éléments…',
   appTruncationNote: '{shown} premiers sur {total}',
   appGoToButtonTitle: 'Atteindre (⌘G)',
-  appNameBoxTitle: 'Zone Nom — saisissez une adresse ou un nom, puis appuyez sur Entrée',
+  appNameBoxTitle: 'Zone Nom - saisissez une adresse ou un nom, puis appuyez sur Entrée',
   appPivotChartHintIn:
     'Créer un graphique croisé dynamique à partir du tableau croisé dynamique actuel',
   appPivotChartHintOut:
@@ -154,35 +154,35 @@ export const fr = {
   appAttachmentReadFailed: '{name} : échec de la lecture',
   appTooManyImages: '{max} images maximum par message ; les images en trop ont été ignorées',
   appAppliedRevision:
-    'Appliqué (révision {revision}) — annulez avec ⌘Z, enregistrez dans le fichier avec ⌘S.',
+    'Appliqué (révision {revision}) - annulez avec ⌘Z, enregistrez dans le fichier avec ⌘S.',
   appCannotReadImage: 'Impossible de lire le fichier image.',
   appTableNotDeletable:
-    "Le tableau « {name} » n'existe pas ou n'a pas été créé pendant cette session — les tableaux déjà présents dans le fichier ne peuvent pas encore être supprimés.",
+    "Le tableau « {name} » n'existe pas ou n'a pas été créé pendant cette session - les tableaux déjà présents dans le fichier ne peuvent pas encore être supprimés.",
   appImageNotLoaded: "L'image n'a pas pu être chargée : {path}",
   appApplyFailed: "⚠️ Échec de l'application : {reason}",
   appPivotChartNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — le graphique croisé dynamique est écrit dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - le graphique croisé dynamique est écrit dans le fichier.",
   appCursorNotInPivot:
-    "Le curseur n'est pas dans un tableau croisé dynamique — sélectionnez d'abord une cellule dans sa zone de sortie.",
+    "Le curseur n'est pas dans un tableau croisé dynamique - sélectionnez d'abord une cellule dans sa zone de sortie.",
   appPivotDefNotLoaded:
-    "La définition du tableau croisé dynamique n'est pas encore chargée (ou son analyse a échoué) — réessayez dans un instant.",
+    "La définition du tableau croisé dynamique n'est pas encore chargée (ou son analyse a échoué) - réessayez dans un instant.",
   appPivotNoChartData:
     "Ce tableau croisé dynamique n'a aucune ligne/colonne de données à représenter.",
   appPivotChartInsertedTruncated:
-    "Graphique croisé dynamique inséré (trop de points de données, tronqué) — enregistrez (⌘S) pour l'écrire dans le fichier.",
+    "Graphique croisé dynamique inséré (trop de points de données, tronqué) - enregistrez (⌘S) pour l'écrire dans le fichier.",
   appPivotChartInserted:
-    "Graphique croisé dynamique inséré — il suit les actualisations du tableau croisé dynamique ; enregistrez (⌘S) pour l'écrire dans le fichier.",
+    "Graphique croisé dynamique inséré - il suit les actualisations du tableau croisé dynamique ; enregistrez (⌘S) pour l'écrire dans le fichier.",
   appSheetNoPivot: 'Cette feuille ne contient aucun tableau croisé dynamique.',
   appPivotNeedsFullLoad:
-    "L'actualisation des tableaux croisés dynamiques nécessite le mode de chargement complet — ce classeur est trop volumineux et a été chargé en flux.",
+    "L'actualisation des tableaux croisés dynamiques nécessite le mode de chargement complet - ce classeur est trop volumineux et a été chargé en flux.",
   appPivotSourceSheetMissing:
     "La feuille source « {name} » du tableau croisé dynamique n'existe pas.",
   appPivotLayoutMismatch:
-    'La disposition du tableau croisé dynamique ne correspond pas à sa zone de sortie — actualisez-le dans Excel avant de recalculer.',
+    'La disposition du tableau croisé dynamique ne correspond pas à sa zone de sortie - actualisez-le dans Excel avant de recalculer.',
   appPivotGrowUnsupported:
-    "Cette disposition de tableau croisé dynamique (compacte/en-têtes multilignes) ne prend pas encore en charge l'agrandissement automatique — actualisez-la dans Excel.",
+    "Cette disposition de tableau croisé dynamique (compacte/en-têtes multilignes) ne prend pas encore en charge l'agrandissement automatique - actualisez-la dans Excel.",
   appPivotGrowConflict:
-    "La zone agrandie du tableau croisé dynamique entre en conflit avec du contenu existant — effacez d'abord la zone cible, puis actualisez.",
+    "La zone agrandie du tableau croisé dynamique entre en conflit avec du contenu existant - effacez d'abord la zone cible, puis actualisez.",
   appShapeNotEditable:
     'Aucune forme modifiable « {id} » (seules les formes ajoutées pendant cette session sont modifiables).',
   appCalcFieldNameClash:
@@ -191,7 +191,7 @@ export const fr = {
   appValueFilterFieldMissing:
     "Le filtre de valeurs référence le champ de valeurs {index}, qui n'existe pas.",
   appPivotRelayoutOverlap:
-    "La nouvelle disposition du tableau croisé dynamique écraserait du contenu existant — effacez d'abord la zone cible.",
+    "La nouvelle disposition du tableau croisé dynamique écraserait du contenu existant - effacez d'abord la zone cible.",
   appInvalidRowField: 'Champ de ligne non valide.',
   appNeedRowField: 'Sélectionnez au moins un champ de ligne.',
   appInvalidColumnField: 'Champ de colonne non valide.',
@@ -203,18 +203,18 @@ export const fr = {
   appOpenWorkbookFirst: "Ouvrez d'abord un classeur.",
   appOpenXlsxFirst: "Ouvrez d'abord un fichier XLSX.",
   appPivotCreated:
-    "Tableau croisé dynamique créé en {cell} — écrit dans le fichier à l'enregistrement. Après l'enregistrement, les segments, les chronologies et l'actualisation seront disponibles.",
+    "Tableau croisé dynamique créé en {cell} - écrit dans le fichier à l'enregistrement. Après l'enregistrement, les segments, les chronologies et l'actualisation seront disponibles.",
   appPivotCreateFailed: 'Échec de la création du tableau croisé dynamique.',
   appPutCursorInPivot:
     'Placez le curseur dans la zone de sortie du tableau croisé dynamique à modifier.',
   appPivotNoCacheDef:
     "Ce tableau croisé dynamique n'a pas de définition de cache et ne peut pas être modifié.",
   appPivotDefNotLoadedSave:
-    "La définition du tableau croisé dynamique n'est pas encore chargée — si vous l'avez modifié pendant cette session, enregistrez d'abord (⌘S).",
+    "La définition du tableau croisé dynamique n'est pas encore chargée - si vous l'avez modifié pendant cette session, enregistrez d'abord (⌘S).",
   appPivotEditUnsupported:
     'Ce tableau croisé dynamique ne peut pas encore être modifié : {reasons}',
   appPivotEditHasFeatures:
-    'Les tableaux croisés dynamiques avec regroupements, filtres, filtres de rapport ou champs calculés ne prennent pas encore en charge la modification de disposition — ajustez-les dans Excel.',
+    'Les tableaux croisés dynamiques avec regroupements, filtres, filtres de rapport ou champs calculés ne prennent pas encore en charge la modification de disposition - ajustez-les dans Excel.',
   appPivotEditValuesOnRows:
     "Les tableaux croisés dynamiques dont les champs de valeurs sont sur l'axe des lignes ne prennent pas encore en charge la modification de disposition.",
   appPivotEditAggUnsupported:
@@ -222,15 +222,15 @@ export const fr = {
   appPivotSourceSheetNotFound:
     'Impossible de trouver la feuille source « {name} » du tableau croisé dynamique.',
   appPivotLayoutUpdated:
-    "Disposition du tableau croisé dynamique mise à jour — enregistrez (⌘S) pour l'écrire dans le fichier ; Excel reconstruit le cache à l'ouverture.",
+    "Disposition du tableau croisé dynamique mise à jour - enregistrez (⌘S) pour l'écrire dans le fichier ; Excel reconstruit le cache à l'ouverture.",
   appPivotEditFailed: 'Échec de la modification du tableau croisé dynamique.',
   appNoActiveSheet: 'Aucune feuille active.',
   appCurrentSheetNoPivot: 'La feuille active ne contient aucun tableau croisé dynamique.',
   appPivotsRefreshed:
-    '{count} tableau(x) croisé(s) dynamique(s) actualisé(s) — enregistrez pour écrire dans le fichier (⌘S).',
+    '{count} tableau(x) croisé(s) dynamique(s) actualisé(s) - enregistrez pour écrire dans le fichier (⌘S).',
   appRefreshFailed: "Échec de l'actualisation.",
   appSlicerNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — les segments s'appuient sur les tableaux croisés dynamiques du fichier.",
+    "Ouvrez d'abord un fichier XLSX - les segments s'appuient sur les tableaux croisés dynamiques du fichier.",
   appFieldN: 'Champ {n}',
   appPivotNoSlicerFields:
     "Ce tableau croisé dynamique n'a aucun champ de dimension pour un segment.",
@@ -238,15 +238,15 @@ export const fr = {
   appBlank: '(vide)',
   appFieldNoMembers: "Ce champ n'a aucun membre à filtrer.",
   appSlicerCreated:
-    'Segment « {name} » créé — cliquez sur les membres pour filtrer le tableau croisé dynamique.',
+    'Segment « {name} » créé - cliquez sur les membres pour filtrer le tableau croisé dynamique.',
   appSlicerNeedsFullLoad:
-    'Le filtrage par segment nécessite le mode de chargement complet — ce classeur est trop volumineux et a été chargé en flux.',
+    'Le filtrage par segment nécessite le mode de chargement complet - ce classeur est trop volumineux et a été chargé en flux.',
   appSlicerPivotMissing: "Le tableau croisé dynamique lié à ce segment n'existe plus.",
   appSlicerSheetMissing: "La feuille liée à ce segment n'existe plus.",
   appSlicerFilterFailed: 'Échec du filtrage par segment.',
   appSlicerKeepOne: 'Conservez au moins un membre sélectionné dans le segment.',
   appSlicerApplied:
-    'Segment « {name} » appliqué — enregistrez (⌘S) pour écrire le tableau croisé dynamique filtré.',
+    'Segment « {name} » appliqué - enregistrez (⌘S) pour écrire le tableau croisé dynamique filtré.',
   appSlicerCleared: 'Filtre du segment « {name} » effacé.',
   appSlicerRemoved: 'Segment « {name} » supprimé ; tous les membres ont été rétablis.',
   appTimelineHintIn:
@@ -254,17 +254,17 @@ export const fr = {
   appTimelineHintOut:
     "Sélectionnez d'abord une cellule dans la zone du tableau croisé dynamique, puis insérez une chronologie",
   appTimelineNoDateFields:
-    "Ce tableau croisé dynamique n'a aucun champ de date utilisable — une chronologie nécessite un champ non groupé dont les valeurs sont toutes des dates.",
+    "Ce tableau croisé dynamique n'a aucun champ de date utilisable - une chronologie nécessite un champ non groupé dont les valeurs sont toutes des dates.",
   appTimelineCreated:
-    'Chronologie « {name} » créée — cliquez sur les mois pour filtrer le tableau croisé dynamique.',
+    'Chronologie « {name} » créée - cliquez sur les mois pour filtrer le tableau croisé dynamique.',
   appTimelineApplied:
-    'Chronologie « {name} » appliquée — enregistrez (⌘S) pour écrire le tableau croisé dynamique filtré.',
+    'Chronologie « {name} » appliquée - enregistrez (⌘S) pour écrire le tableau croisé dynamique filtré.',
   appTimelineCleared: 'Filtre de la chronologie « {name} » effacé.',
   appTimelineRemoved: 'Chronologie « {name} » supprimée ; tous les membres ont été rétablis.',
   appTimelineEmptyRange: 'Aucun membre dans la plage de mois sélectionnée.',
   appFieldFilterTaken:
-    "Tous les champs éligibles ont déjà un segment ou une chronologie — supprimez d'abord l'existant.",
-  appGoToNotReady: "Le classeur n'est pas encore prêt — impossible d'atteindre une référence.",
+    "Tous les champs éligibles ont déjà un segment ou une chronologie - supprimez d'abord l'existant.",
+  appGoToNotReady: "Le classeur n'est pas encore prêt - impossible d'atteindre une référence.",
   appGoToEmpty: 'Saisissez une adresse de cellule ou un nom défini.',
   appGoToUnresolved:
     "Impossible d'atteindre « {ref} » : adresse non valide et nom défini non navigable.",
@@ -277,31 +277,31 @@ export const fr = {
   appSymbolInsertFailed: "Impossible d'insérer le symbole.",
   appSymbolInserted: '{char} inséré dans {cell}.',
   appAdvFilterNeedsFilter:
-    "Le filtre avancé nécessite une plage de filtre automatique — sélectionnez d'abord les données et cliquez sur Filtrer.",
+    "Le filtre avancé nécessite une plage de filtre automatique - sélectionnez d'abord les données et cliquez sur Filtrer.",
   appAdvFilterGone:
-    "La feuille active n'a pas de filtre automatique — réactivez-le puis réessayez.",
+    "La feuille active n'a pas de filtre automatique - réactivez-le puis réessayez.",
   appAdvFilterFailed: "Échec de l'application du filtre avancé.",
-  appAdvFilterApplied: 'Critères de filtre avancé appliqués — ⌘S enregistre dans le fichier.',
+  appAdvFilterApplied: 'Critères de filtre avancé appliqués - ⌘S enregistre dans le fichier.',
   appFlashFillNeedsLeft:
     'Le remplissage instantané nécessite des colonnes de données à gauche de la colonne cible.',
   appFlashFillNeedsRows: 'Le remplissage instantané nécessite au moins deux lignes de données.',
   appFlashFillNeedsExamples:
     "Saisissez d'abord 1 ou 2 exemples dans la colonne cible, puis cliquez sur Remplissage instantané.",
   appFlashFillNoPattern:
-    'Aucun modèle reconnu à partir des exemples — les valeurs cibles doivent pouvoir être déduites des colonnes de gauche ; ajoutez un autre exemple.',
+    'Aucun modèle reconnu à partir des exemples - les valeurs cibles doivent pouvoir être déduites des colonnes de gauche ; ajoutez un autre exemple.',
   appFlashFillNothingToFill: 'Aucune ligne vide à remplir.',
   appFlashFillDone:
     '⚡ Le remplissage instantané a rempli {count} ligne(s) à partir de vos exemples.',
   appSparklineNeedsFile: 'Les graphiques sparkline nécessitent un fichier XLSX importé.',
   appSparklineNeedsCols:
-    'Sélectionnez au moins deux colonnes de données — un graphique sparkline par ligne, placé dans la colonne à droite de la sélection.',
+    'Sélectionnez au moins deux colonnes de données - un graphique sparkline par ligne, placé dans la colonne à droite de la sélection.',
   appSparklineNoSpace: "Pas d'espace pour les graphiques sparkline à droite de la sélection.",
   appSparklinesInserted:
-    '{count} graphique(s) sparkline inséré(s) dans la colonne à droite de la sélection — ⌘S enregistre dans le fichier.',
+    '{count} graphique(s) sparkline inséré(s) dans la colonne à droite de la sélection - ⌘S enregistre dans le fichier.',
   appSaveHeldStranded:
-    "Les tableaux croisés dynamiques/tableaux ne peuvent pas être enregistrés en même temps que de nouvelles feuilles plus des modifications de lignes/colonnes — enregistrez d'abord la structure, puis ajoutez-les.",
+    "Les tableaux croisés dynamiques/tableaux ne peuvent pas être enregistrés en même temps que de nouvelles feuilles plus des modifications de lignes/colonnes - enregistrez d'abord la structure, puis ajoutez-les.",
   appSaveSecondCanceled:
-    "La deuxième phase d'enregistrement a été annulée — la structure est enregistrée ; les tableaux croisés dynamiques/tableaux/noms définis ne sont pas encore écrits.",
+    "La deuxième phase d'enregistrement a été annulée - la structure est enregistrée ; les tableaux croisés dynamiques/tableaux/noms définis ne sont pas encore écrits.",
   appSavedTwoPhase: 'Enregistré.',
   appSaveSecondFailed:
     'La structure est enregistrée, mais la deuxième phase (tableaux croisés dynamiques/tableaux/noms définis) a échoué : {reason}',
@@ -315,52 +315,52 @@ export const fr = {
   appAiNoAction: "L'IA n'a effectué aucune action ni donné de réponse. Réessayez ou reformulez.",
   appNewConversation: 'Nouvelle conversation démarrée.',
   appPivotCellNoEdit:
-    "Cette cellule fait partie d'un tableau croisé dynamique — sa modification n'est pas encore prise en charge.",
+    "Cette cellule fait partie d'un tableau croisé dynamique - sa modification n'est pas encore prise en charge.",
   appAreaStreaming:
-    'Cette zone est encore en cours de chargement en flux — réessayez dans un instant.',
+    'Cette zone est encore en cours de chargement en flux - réessayez dans un instant.',
   appFormulaRecordedPartial:
-    "Formule enregistrée — elle sera sauvegardée dans le fichier, mais le résultat à l'écran peut être incomplet, car ce grand classeur est chargé partiellement en flux.",
+    "Formule enregistrée - elle sera sauvegardée dans le fichier, mais le résultat à l'écran peut être incomplet, car ce grand classeur est chargé partiellement en flux.",
   appFormulaTooExpensive:
-    "Cette formule évalue une grande plage élément par élément — le calcul figerait l'application, elle a donc été annulée. Réduisez la plage référencée et réessayez.",
+    "Cette formule évalue une grande plage élément par élément - le calcul figerait l'application, elle a donc été annulée. Réduisez la plage référencée et réessayez.",
   appPivotSheetNoStructural:
-    'Cette feuille contient un tableau croisé dynamique — les modifications structurelles ne sont pas encore prises en charge.',
+    'Cette feuille contient un tableau croisé dynamique - les modifications structurelles ne sont pas encore prises en charge.',
   appDeleteSpanFormulas:
-    'Une formule ne référence que les lignes/colonnes supprimées — mettez-la à jour ou supprimez-la d’abord.',
+    'Une formule ne référence que les lignes/colonnes supprimées - mettez-la à jour ou supprimez-la d’abord.',
   appIconSetUnsupported:
-    "Cette combinaison d'icônes ne peut pas être enregistrée en xlsx — choisissez un autre jeu d'icônes.",
+    "Cette combinaison d'icônes ne peut pas être enregistrée en xlsx - choisissez un autre jeu d'icônes.",
   appNeedFullLoadSort:
-    'Le tri, le filtrage, le déplacement de plages et la conversion en colonnes nécessitent le mode de chargement complet — ce classeur est trop volumineux et est chargé partiellement en flux.',
+    'Le tri, le filtrage, le déplacement de plages et la conversion en colonnes nécessitent le mode de chargement complet - ce classeur est trop volumineux et est chargé partiellement en flux.',
   appPivotSheetNoMove:
-    "Cette feuille contient un tableau croisé dynamique — le déplacement de plages n'est pas encore pris en charge.",
+    "Cette feuille contient un tableau croisé dynamique - le déplacement de plages n'est pas encore pris en charge.",
   appTableFilterNoEdit:
-    'Le filtre de cette feuille appartient à un tableau Excel — sa modification ne peut pas encore être enregistrée.',
+    'Le filtre de cette feuille appartient à un tableau Excel - sa modification ne peut pas encore être enregistrée.',
   appAutofillStreaming:
     "La recopie automatique vers une zone encore en cours de chargement en flux n'est pas encore autorisée.",
   appDvNeedsIndexed:
-    "La modification de la validation des données nécessite que cette feuille soit d'abord entièrement indexée — réessayez dans un instant.",
+    "La modification de la validation des données nécessite que cette feuille soit d'abord entièrement indexée - réessayez dans un instant.",
   appDuplicateNeedsFullLoad:
-    "La duplication d'une feuille nécessite le mode de chargement complet — ce classeur est trop volumineux et est chargé partiellement en flux.",
+    "La duplication d'une feuille nécessite le mode de chargement complet - ce classeur est trop volumineux et est chargé partiellement en flux.",
   appPivotSheetNoDuplicate:
-    "Cette feuille contient un tableau croisé dynamique — sa duplication n'est pas encore prise en charge.",
+    "Cette feuille contient un tableau croisé dynamique - sa duplication n'est pas encore prise en charge.",
   appDuplicateScopedNames:
-    'Cette feuille contient des noms définis limités à la feuille — sa duplication n’est pas encore prise en charge.',
+    'Cette feuille contient des noms définis limités à la feuille - sa duplication n’est pas encore prise en charge.',
   appMoveRowsColsUnsaved:
-    'Le déplacement de colonnes entières ne peut pas encore être enregistré dans les classeurs importés — le déplacement de lignes entières est pris en charge.',
+    'Le déplacement de colonnes entières ne peut pas encore être enregistré dans les classeurs importés - le déplacement de lignes entières est pris en charge.',
   appNoWorkbookOpen: "Aucun classeur n'est ouvert.",
   appDvListOptions: 'Liste : {items}',
   appDvListFromRange: 'Liste (depuis la plage {range})',
-  appRuleBrokenRef: 'Référence rompue (#REF!) — cette règle ne peut jamais s’appliquer',
+  appRuleBrokenRef: 'Référence rompue (#REF!) - cette règle ne peut jamais s’appliquer',
   appCellStreaming:
-    'Cette cellule est encore en cours de chargement en flux — réessayez dans un instant.',
-  appPreviewCreated: "Aperçu créé — rien ne change tant que vous n'appliquez pas.",
+    'Cette cellule est encore en cours de chargement en flux - réessayez dans un instant.',
+  appPreviewCreated: "Aperçu créé - rien ne change tant que vous n'appliquez pas.",
   appPreviewCreatedDemo: "Aperçu créé. L'état du classeur n'a pas changé.",
   appPreviewFailed: 'Impossible de créer un aperçu.',
   appApplyTxFailed: "Impossible d'appliquer la transaction.",
   appTxCommitted: 'Transaction validée (révision {revision}).',
-  appPreviewOtherWorkbook: "L'aperçu appartenait à un autre classeur — créez-en un nouveau.",
-  appPreviewSheetGone: "La feuille de l'aperçu n'existe plus — créez un nouvel aperçu.",
-  appWorkbookChangedSincePreview: "Le classeur a changé depuis l'aperçu — créez un nouvel aperçu.",
-  appAppliedJournaled: 'Appliqué — les modifications sont journalisées ; enregistrez avec ⌘S.',
+  appPreviewOtherWorkbook: "L'aperçu appartenait à un autre classeur - créez-en un nouveau.",
+  appPreviewSheetGone: "La feuille de l'aperçu n'existe plus - créez un nouvel aperçu.",
+  appWorkbookChangedSincePreview: "Le classeur a changé depuis l'aperçu - créez un nouvel aperçu.",
+  appAppliedJournaled: 'Appliqué - les modifications sont journalisées ; enregistrez avec ⌘S.',
   appUndoCommitted: 'Annulation validée (révision {revision}).',
   appUndoFailed: "Impossible d'annuler.",
   appAutoFilterCreateFailed: 'Impossible de créer le filtre automatique.',
@@ -368,33 +368,33 @@ export const fr = {
   appSelectDataRangeFirst: "Sélectionnez d'abord la plage de données.",
   appUnsupportedChartType: 'Type de graphique non pris en charge : {kind}.',
   appChartInsertedDemo:
-    'Graphique inséré — les modifications en mode démo restent en mémoire ; ouvrez un fichier XLSX pour enregistrer sur le disque.',
+    'Graphique inséré - les modifications en mode démo restent en mémoire ; ouvrez un fichier XLSX pour enregistrer sur le disque.',
   appChartInsertFailed: "Impossible d'insérer le graphique.",
   appChartNeedsNumericColumn:
     'Sélectionnez une plage contenant au moins une colonne numérique (en-têtes facultatifs).',
   appChartInserted:
-    "Graphique inséré — sélectionnez-le pour le modifier, ⌘S l'écrit dans le fichier.",
+    "Graphique inséré - sélectionnez-le pour le modifier, ⌘S l'écrit dans le fichier.",
   appShapeNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — les formes insérées sont écrites dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - les formes insérées sont écrites dans le fichier.",
   appSelectCellFirst: "Sélectionnez d'abord une cellule.",
-  appTextBoxInserted: "Zone de texte insérée — écrite dans le fichier à l'enregistrement (⌘S).",
-  appShapeInserted: "Forme insérée — écrite dans le fichier à l'enregistrement (⌘S).",
+  appTextBoxInserted: "Zone de texte insérée - écrite dans le fichier à l'enregistrement (⌘S).",
+  appShapeInserted: "Forme insérée - écrite dans le fichier à l'enregistrement (⌘S).",
   appPictureNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — les images insérées sont écrites dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - les images insérées sont écrites dans le fichier.",
   appPictureTooLarge: 'Les images de plus de 20 Mo ne sont pas prises en charge.',
   appPictureBadType: 'Seules les images PNG, JPEG ou GIF sont prises en charge.',
-  appPictureInserted: "Image insérée — écrite dans le fichier à l'enregistrement (⌘S).",
+  appPictureInserted: "Image insérée - écrite dans le fichier à l'enregistrement (⌘S).",
   appTableNeedsRows: "Un tableau nécessite une ligne d'en-tête plus au moins une ligne de données.",
   appTableTooWide: 'Un tableau peut comporter au maximum 1 000 colonnes.',
   appTableNameUsed: 'Le nom de tableau « {name} » a déjà été utilisé pendant cette session.',
   appTableOverlapsSession: 'La plage chevauche le tableau « {name} » créé pendant cette session.',
-  appTablesNeedFile: "Ouvrez d'abord un fichier XLSX — les tableaux sont écrits dans le fichier.",
+  appTablesNeedFile: "Ouvrez d'abord un fichier XLSX - les tableaux sont écrits dans le fichier.",
   appTableSelectRange:
-    "Sélectionnez d'abord la plage de données — les en-têtes dans sa première ligne.",
-  appTableCreated: 'Tableau créé — enregistrez avec ⌘S.',
+    "Sélectionnez d'abord la plage de données - les en-têtes dans sa première ligne.",
+  appTableCreated: 'Tableau créé - enregistrez avec ⌘S.',
   appTableCreateFailed: 'Impossible de créer le tableau.',
   appPivotOnAddedSheet:
-    "Les tableaux croisés dynamiques sur des feuilles ajoutées pendant cette session ne sont pas encore pris en charge — enregistrez d'abord.",
+    "Les tableaux croisés dynamiques sur des feuilles ajoutées pendant cette session ne sont pas encore pris en charge - enregistrez d'abord.",
   appPivotSourceNeedsRows:
     "La source du tableau croisé dynamique nécessite une ligne d'en-tête plus des lignes de données.",
   appPivotSourceRowLimit:
@@ -411,7 +411,7 @@ export const fr = {
   appPivotTooManyRowLines:
     'Le tableau croisé dynamique compte plus de 20 000 lignes de disposition de lignes.',
   appPivotOverlapSource:
-    'La sortie du tableau croisé dynamique chevaucherait sa plage source — choisissez une autre cellule cible.',
+    'La sortie du tableau croisé dynamique chevaucherait sa plage source - choisissez une autre cellule cible.',
   appPivotOverlapExisting:
     'La sortie du tableau croisé dynamique chevaucherait un tableau croisé dynamique existant sur la feuille cible.',
   appPivotOverlapSession:
@@ -420,14 +420,14 @@ export const fr = {
     'Le nom de tableau croisé dynamique « {name} » a déjà été utilisé pendant cette session.',
   appActiveCellFallback: 'la cellule active',
   appFormulaStartsEquals: 'Une formule commence par « = ».',
-  appUnbalancedParens: 'Parenthèses non équilibrées — complétez les arguments.',
+  appUnbalancedParens: 'Parenthèses non équilibrées - complétez les arguments.',
   appSetFormulaFailed: 'Impossible de définir la formule.',
   appFormulaSet: 'Formule écrite dans {cell}.',
   appSelectSourceRangeFirst: "Sélectionnez d'abord la plage de données source.",
   appSelectRangeWithHeader: "Sélectionnez une plage de données avec une ligne d'en-tête.",
   appSubtotalSameColumns: 'Choisissez des colonnes différentes pour le groupe et les valeurs.',
   appRangeNoDataRows: 'La plage sélectionnée ne contient aucune ligne de données.',
-  appSubtotalTooManyGroups: "Trop de groupes (200 max) — triez d'abord par la colonne de groupe.",
+  appSubtotalTooManyGroups: "Trop de groupes (200 max) - triez d'abord par la colonne de groupe.",
   appSubtotalInsertFailed: "Impossible d'insérer les lignes de sous-total.",
   appSubtotalsInserted: 'Sous-totaux insérés : {count} groupe(s) plus un total général.',
   appSelectTargetCellFirst: "Sélectionnez d'abord la cellule cible.",
@@ -435,51 +435,51 @@ export const fr = {
   appNoSheetNamed: 'Aucune feuille nommée « {name} ».',
   appConsolidateEmptySources: 'Les zones sources sont vides.',
   appConsolidateOverlap:
-    'La zone de sortie chevauche une zone source — choisissez une autre cellule cible.',
+    'La zone de sortie chevauche une zone source - choisissez une autre cellule cible.',
   appConsolidateWriteFailed: "Impossible d'écrire la consolidation.",
   appConsolidateDone:
     '{count} zone(s) consolidée(s) en {cell} ({rows}×{columns} formules dynamiques).',
   appConsolidateMaxMinLabels:
-    'Max et Min ne sont pas pris en charge avec les étiquettes de la colonne de gauche — utilisez plutôt la consolidation par position.',
+    'Max et Min ne sont pas pris en charge avec les étiquettes de la colonne de gauche - utilisez plutôt la consolidation par position.',
   appConsolidateLabelNeedsCols:
     'Le mode étiquettes nécessite au moins deux colonnes par zone (étiquettes plus une colonne de valeurs).',
   appConsolidateNoLabels: 'Aucune étiquette trouvée dans la colonne de gauche des zones sources.',
   appOutlineNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — les groupes de plan sont écrits dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - les groupes de plan sont écrits dans le fichier.",
   appOutlineSelectFirst: "Sélectionnez d'abord les lignes ou colonnes à grouper.",
-  appDetailHidden: 'Détail masqué — enregistrez avec ⌘S.',
-  appDetailShown: 'Détail affiché — enregistrez avec ⌘S.',
+  appDetailHidden: 'Détail masqué - enregistrez avec ⌘S.',
+  appDetailShown: 'Détail affiché - enregistrez avec ⌘S.',
   appOutlineMaxLevel: 'Niveau de plan le plus profond déjà atteint (7).',
   appNothingToUngroup: 'Rien à dissocier dans la sélection.',
-  appRowsGrouped: 'Lignes groupées — enregistrez avec ⌘S. Réduisez-les avec « Masquer le détail ».',
+  appRowsGrouped: 'Lignes groupées - enregistrez avec ⌘S. Réduisez-les avec « Masquer le détail ».',
   appColsGrouped:
-    'Colonnes groupées — enregistrez avec ⌘S. Réduisez-les avec « Masquer le détail ».',
-  appRowsUngrouped: 'Lignes dissociées — enregistrez avec ⌘S.',
-  appColsUngrouped: 'Colonnes dissociées — enregistrez avec ⌘S.',
-  appSheetAdded: 'Feuille ajoutée — double-cliquez sur son onglet pour la renommer.',
+    'Colonnes groupées - enregistrez avec ⌘S. Réduisez-les avec « Masquer le détail ».',
+  appRowsUngrouped: 'Lignes dissociées - enregistrez avec ⌘S.',
+  appColsUngrouped: 'Colonnes dissociées - enregistrez avec ⌘S.',
+  appSheetAdded: 'Feuille ajoutée - double-cliquez sur son onglet pour la renommer.',
   appSheetAddFailed: "Impossible d'ajouter une feuille.",
-  appFormatCopied: "Format copié — sélectionnez les cellules cibles pour l'appliquer.",
+  appFormatCopied: "Format copié - sélectionnez les cellules cibles pour l'appliquer.",
   appProtectionNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — la protection est enregistrée dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - la protection est enregistrée dans le fichier.",
   appProtectionNeedsIndexed:
-    "La protection nécessite que cette feuille soit d'abord entièrement indexée — réessayez dans un instant.",
+    "La protection nécessite que cette feuille soit d'abord entièrement indexée - réessayez dans un instant.",
   appProtectedWithPassword:
-    "Cette feuille est protégée par un mot de passe — la suppression de sa protection n'est pas prise en charge.",
+    "Cette feuille est protégée par un mot de passe - la suppression de sa protection n'est pas prise en charge.",
   appProtectionWillWrite:
     "La protection de la feuille sera écrite à l'enregistrement (sans mot de passe). L'éditeur lui-même ne l'applique pas.",
   appProtectionWillRemove: "La protection de la feuille sera supprimée à l'enregistrement.",
   appZoom: 'Zoom {percent} %.',
-  appTopRowFrozen: 'Ligne supérieure figée — enregistrez avec ⌘S.',
-  appFirstColFrozen: 'Première colonne figée — enregistrez avec ⌘S.',
+  appTopRowFrozen: 'Ligne supérieure figée - enregistrez avec ⌘S.',
+  appFirstColFrozen: 'Première colonne figée - enregistrez avec ⌘S.',
   appFindScanTruncated:
-    'Grande feuille : recherche interrompue après {cells} cellules — les résultats peuvent être incomplets.',
+    'Grande feuille : recherche interrompue après {cells} cellules - les résultats peuvent être incomplets.',
   appReplaceNeedsFullLoad:
-    'Le remplacement nécessite le mode de chargement complet — utilisez plutôt Rechercher.',
-  appGridlinesHiddenSave: 'Quadrillage masqué — enregistrez avec ⌘S.',
-  appGridlinesShownSave: 'Quadrillage affiché — enregistrez avec ⌘S.',
+    'Le remplacement nécessite le mode de chargement complet - utilisez plutôt Rechercher.',
+  appGridlinesHiddenSave: 'Quadrillage masqué - enregistrez avec ⌘S.',
+  appGridlinesShownSave: 'Quadrillage affiché - enregistrez avec ⌘S.',
   appGridlinesHidden: 'Quadrillage masqué.',
   appGridlinesShown: 'Quadrillage affiché.',
-  appShowingFormulas: 'Affichage des formules — basculez à nouveau pour les valeurs.',
+  appShowingFormulas: 'Affichage des formules - basculez à nouveau pour les valeurs.',
   appShowingValues: 'Affichage des valeurs calculées.',
   appTraceNoFormula: "Repérer les antécédents : la cellule active n'a pas de formule.",
   appTraceNoRefs: "Repérer les antécédents : cette formule n'a aucune référence de cellule.",
@@ -493,27 +493,27 @@ export const fr = {
   appNoTraceArrows: 'Aucune flèche de repérage à supprimer.',
   appWorkbookStats:
     'Statistiques du classeur : {sheets} feuilles · {cells} cellules avec données · {formulas} formules{note}.',
-  appFrozenAtSelection: 'Volets figés à la sélection — enregistrez avec ⌘S.',
+  appFrozenAtSelection: 'Volets figés à la sélection - enregistrez avec ⌘S.',
   appSelectCellsFirst: "Sélectionnez d'abord les cellules.",
   appCellStyleApplied:
-    'Style de cellule appliqué — journalisé comme toute modification de format (⌘S pour enregistrer).',
+    'Style de cellule appliqué - journalisé comme toute modification de format (⌘S pour enregistrer).',
   appSelectRangeFirst: "Sélectionnez d'abord une plage de cellules.",
   appSettingNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — ce paramètre est enregistré uniquement dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - ce paramètre est enregistré uniquement dans le fichier.",
   appTooManyCellsForSetting: 'Sélectionnez moins de 10 000 cellules pour ce paramètre.',
   appProtectionFlagsRecorded:
-    "Indicateurs de protection enregistrés — ils s'appliquent quand la feuille est protégée.",
-  appSortSelectRows: "Sélectionnez d'abord les lignes à trier — incluez toutes les colonnes liées.",
+    "Indicateurs de protection enregistrés - ils s'appliquent quand la feuille est protégée.",
+  appSortSelectRows: "Sélectionnez d'abord les lignes à trier - incluez toutes les colonnes liées.",
   appSortedAsc: 'Trié de A à Z selon la première colonne sélectionnée.',
   appSortedDesc: 'Trié de Z à A selon la première colonne sélectionnée.',
   appAutofnSelectCells:
-    'Sélectionnez les cellules à agréger — {fn} sera placé dans la ligne du dessous.',
+    'Sélectionnez les cellules à agréger - {fn} sera placé dans la ligne du dessous.',
   appRowBelowStreaming:
-    'La ligne du dessous est encore en cours de chargement en flux — réessayez dans un instant.',
+    'La ligne du dessous est encore en cours de chargement en flux - réessayez dans un instant.',
   appAutofnInserted: '{fn} inséré sous la sélection.',
   appSortedCustom: 'Trié selon vos niveaux personnalisés.',
   appDedupeNeedsFullLoad:
-    'La suppression des doublons nécessite le mode de chargement complet — ce classeur est trop volumineux et est chargé partiellement en flux.',
+    'La suppression des doublons nécessite le mode de chargement complet - ce classeur est trop volumineux et est chargé partiellement en flux.',
   appDedupeSelectRows: "Sélectionnez d'abord les lignes à vérifier.",
   appNoDuplicates: 'Aucune ligne en double trouvée dans la sélection.',
   appDuplicatesRemoved: '{count} ligne(s) en double supprimée(s).',
@@ -521,7 +521,7 @@ export const fr = {
   appLinkRemoved: 'Lien supprimé.',
   appLinkInvalid:
     'Saisissez une adresse web (https://…) ou une référence de feuille comme Sheet1!A1.',
-  appLinkSaved: 'Lien enregistré — cliquez sur la cellule pour le suivre.',
+  appLinkSaved: 'Lien enregistré - cliquez sur la cellule pour le suivre.',
   appTextToColsSelectOne: 'Sélectionnez une seule colonne de texte à convertir.',
   appSplitIntoColumns: 'Converti en colonnes.',
   appAppliedToSelection: 'Appliqué à la sélection actuelle.',
@@ -530,11 +530,11 @@ export const fr = {
   appBridgeUnavailable:
     "Le pont de fichiers du bureau est indisponible. Redémarrez l'application Electron.",
   appOpenCanceled: 'Sélection du classeur annulée.',
-  appOpened: '{name} ouvert — les modifications de cellules se réenregistrent avec ⌘S.',
+  appOpened: '{name} ouvert - les modifications de cellules se réenregistrent avec ⌘S.',
   appOpenFailed: "Impossible d'ouvrir le classeur.",
   appPageSetupNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — la mise en page est enregistrée dans le fichier.",
-  appPageSetupRecorded: '{note} — enregistrez avec ⌘S.',
+    "Ouvrez d'abord un fichier XLSX - la mise en page est enregistrée dans le fichier.",
+  appPageSetupRecorded: '{note} - enregistrez avec ⌘S.',
   appOrientationPortrait: 'Orientation : portrait',
   appOrientationLandscape: 'Orientation : paysage',
   appMarginsNormal: 'Marges : normales',
@@ -558,65 +558,65 @@ export const fr = {
   appSelectRepeatRows: "Sélectionnez d'abord les lignes à répéter.",
   appRowsRepeat: 'Les lignes {rows} se répètent sur chaque page imprimée',
   appHfNeedsFile:
-    "Ouvrez d'abord un fichier XLSX — les en-têtes et pieds de page sont enregistrés dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - les en-têtes et pieds de page sont enregistrés dans le fichier.",
   appActiveSheetUnavailable: "La feuille active n'est pas disponible.",
-  appHfUpdated: 'En-tête et pied de page mis à jour — enregistrez avec ⌘S.',
+  appHfUpdated: 'En-tête et pied de page mis à jour - enregistrez avec ⌘S.',
   appPdfNeedsFullLoad:
-    "L'export PDF nécessite un classeur entièrement chargé — attendez la fin du chargement.",
+    "L'export PDF nécessite un classeur entièrement chargé - attendez la fin du chargement.",
   appPdfRendering: 'Rendu du PDF en cours…',
   appPdfCanceled: 'Export PDF annulé.',
   appPdfExported: '{path} exporté.',
   appPdfExportFailed: "Impossible d'exporter le PDF.",
   appCsvExportNeedsFullLoad:
-    "L'export CSV nécessite un classeur entièrement chargé — attendez la fin du chargement.",
+    "L'export CSV nécessite un classeur entièrement chargé - attendez la fin du chargement.",
   appCsvExportTooLarge: 'La feuille est trop grande pour être exportée en CSV.',
   appCsvExportCanceled: 'Export CSV annulé.',
   appCsvExported: '{path} exporté.',
   appCsvExportedActiveOnly:
-    "Les fichiers CSV ne contiennent qu'une seule feuille — la feuille active « {name} » a été exportée vers {path}.",
+    "Les fichiers CSV ne contiennent qu'une seule feuille - la feuille active « {name} » a été exportée vers {path}.",
   appCsvExportFailed: "Impossible d'exporter le CSV.",
   appDemoNoSave:
-    'Les modifications en mode démo restent en mémoire — ouvrez un fichier XLSX pour enregistrer sur le disque.',
+    'Les modifications en mode démo restent en mémoire - ouvrez un fichier XLSX pour enregistrer sur le disque.',
   appFilterSnapshotFailed: 'Impossible de prendre un instantané des filtres.',
   appColorFiltersUnsaveable:
-    "Les filtres par couleur ne peuvent pas encore être enregistrés en XLSX — effacez-les avant d'enregistrer.",
+    "Les filtres par couleur ne peuvent pas encore être enregistrés en XLSX - effacez-les avant d'enregistrer.",
   appNoEditsToSave: 'Aucune modification à enregistrer pour le moment.',
-  appSheetOrderReadFailed: "Impossible de lire l'ordre des feuilles — réessayez.",
+  appSheetOrderReadFailed: "Impossible de lire l'ordre des feuilles - réessayez.",
   appSavingEdits: 'Enregistrement de {count} modification(s)…',
   appSaveCanceled: 'Enregistrement annulé.',
   appSaved: 'Enregistré.',
   appSaveFailed: "Impossible d'enregistrer le classeur.",
   appCfRuleUnsaveable:
-    'Cette règle de mise en forme conditionnelle ne peut pas être enregistrée en xlsx — utilisez un autre type de règle.',
+    'Cette règle de mise en forme conditionnelle ne peut pas être enregistrée en xlsx - utilisez un autre type de règle.',
   appSaveErrX14Dv:
     "Cette feuille comporte une validation des données étendue (x14) ; la modification de ses règles de validation n'est pas encore prise en charge.",
   appSaveErrMultiSelectList:
-    "La validation par liste à sélection multiple ne peut pas être enregistrée en xlsx — supprimez la règle avant d'enregistrer.",
+    "La validation par liste à sélection multiple ne peut pas être enregistrée en xlsx - supprimez la règle avant d'enregistrer.",
   appSaveErrX14Cf:
     'Cette plage comporte une mise en forme conditionnelle étendue (x14) et ne peut pas être modifiée pour le moment.',
   appSaveErrPivotWithSheetOps:
-    "Un tableau croisé dynamique nouvellement créé ne peut pas être enregistré avec des changements de gestion des feuilles — enregistrez d'abord le tableau croisé dynamique.",
+    "Un tableau croisé dynamique nouvellement créé ne peut pas être enregistré avec des changements de gestion des feuilles - enregistrez d'abord le tableau croisé dynamique.",
   appSaveErrPivotWithRowCol:
-    "Un tableau croisé dynamique nouvellement créé ne peut pas être enregistré avec des changements de lignes/colonnes de sa feuille — enregistrez d'abord le tableau croisé dynamique.",
+    "Un tableau croisé dynamique nouvellement créé ne peut pas être enregistré avec des changements de lignes/colonnes de sa feuille - enregistrez d'abord le tableau croisé dynamique.",
   appSaveErrTableWithRowCol:
-    "Un tableau nouvellement créé ne peut pas être enregistré avec des changements de lignes/colonnes de sa feuille — enregistrez d'abord le tableau.",
+    "Un tableau nouvellement créé ne peut pas être enregistré avec des changements de lignes/colonnes de sa feuille - enregistrez d'abord le tableau.",
   appSaveErrNamesWithStructural:
-    'Les modifications de noms définis ne peuvent pas être enregistrées avec des changements de lignes/colonnes ou de structure des feuilles — enregistrez en deux fois.',
+    'Les modifications de noms définis ne peuvent pas être enregistrées avec des changements de lignes/colonnes ou de structure des feuilles - enregistrez en deux fois.',
   appSaveErrChangedOnDisk:
-    'Le fichier a été modifié sur le disque par un autre programme — enregistrement interrompu ; rouvrez le fichier puis réessayez.',
+    'Le fichier a été modifié sur le disque par un autre programme - enregistrement interrompu ; rouvrez le fichier puis réessayez.',
   appSaveErrStylesheetLimited:
     'La feuille de styles de ce classeur manque de structure de base ; les modifications de style ne peuvent pas être enregistrées.',
   appSaveErrPackageGuard:
-    "L'enregistrement modifierait la structure du package du classeur — interrompu pour protéger le fichier.",
+    "L'enregistrement modifierait la structure du package du classeur - interrompu pour protéger le fichier.",
   appSaveErrChartUnsupported:
-    'Ce type de graphique ne prend pas en charge cette modification ; enregistrement interrompu — annulez la modification du graphique.',
+    'Ce type de graphique ne prend pas en charge cette modification ; enregistrement interrompu - annulez la modification du graphique.',
   appSaveErrMoveOverlap:
-    'Une formule, une plage mise en forme, une forme ou un tableau chevauche les lignes déplacées ; enregistrement interrompu — annulez le déplacement.',
+    'Une formule, une plage mise en forme, une forme ou un tableau chevauche les lignes déplacées ; enregistrement interrompu - annulez le déplacement.',
   appFromTextCsvTitle: 'Importer un fichier CSV/texte dans la sélection actuelle',
   appCsvImported: '{rows} lignes × {columns} colonnes importées du fichier vers {cell}.',
   appCsvEmpty: 'Le fichier CSV ne contient aucune donnée.',
   appCsvTooLarge:
-    'CSV trop volumineux — au-delà de 50 000 cellules, utilisez « Ouvrir » pour créer un nouveau classeur.',
+    'CSV trop volumineux - au-delà de 50 000 cellules, utilisez « Ouvrir » pour créer un nouveau classeur.',
   appCsvImportFailed: "Échec de l'importation du CSV.",
   appNoNotesOnSheet: 'Aucun commentaire dans la feuille actuelle.',
   appNotePrevTitle: 'Aller au commentaire précédent',
@@ -628,44 +628,44 @@ export const fr = {
     'Modifications IA appliquées (non enregistrées). Annulez avec ⌘Z ; enregistrez avec ⌘S.',
   appChartUpdated: 'Graphique mis à jour.',
   appChartNotEditable: "Ce graphique n'est pas modifiable.",
-  appChartEditRecorded: 'Modification du graphique enregistrée — sauvegardez avec ⌘S.',
+  appChartEditRecorded: 'Modification du graphique enregistrée - sauvegardez avec ⌘S.',
   appChartDeleted: 'Graphique supprimé.',
   appChartMoved: 'Graphique déplacé.',
   appVisualNotEditable: "Cet objet n'est pas modifiable.",
   appVisualNoDelete:
-    "Cet objet ne peut pas être supprimé — sa forme de dessin n'est pas modifiable.",
+    "Cet objet ne peut pas être supprimé - sa forme de dessin n'est pas modifiable.",
   appFileVisualMoveDeleteOnly:
     'Seuls le déplacement et la suppression sont pris en charge pour les objets déjà présents dans le fichier.',
-  appVisualNoMove: "Cet objet ne peut pas être déplacé — sa forme de dessin n'est pas modifiable.",
-  appVisualDeleted: 'Objet supprimé — enregistrez avec ⌘S.',
-  appShapeTextUpdated: 'Texte de la forme mis à jour — enregistrez avec ⌘S.',
-  appShapeMoved: 'Forme déplacée — enregistrez avec ⌘S.',
+  appVisualNoMove: "Cet objet ne peut pas être déplacé - sa forme de dessin n'est pas modifiable.",
+  appVisualDeleted: 'Objet supprimé - enregistrez avec ⌘S.',
+  appShapeTextUpdated: 'Texte de la forme mis à jour - enregistrez avec ⌘S.',
+  appShapeMoved: 'Forme déplacée - enregistrez avec ⌘S.',
   appScopeWorkbook: 'Classeur',
   appNamesNeedFile:
-    "Ouvrez d'abord un fichier XLSX — les noms définis sont enregistrés dans le fichier.",
+    "Ouvrez d'abord un fichier XLSX - les noms définis sont enregistrés dans le fichier.",
   appNameGone: "Ce nom n'existe plus.",
   appNameApplyFailed: "Le nom n'a pas pu être appliqué.",
-  appNamesUpdated: 'Noms définis mis à jour — enregistrez avec ⌘S.',
+  appNamesUpdated: 'Noms définis mis à jour - enregistrez avec ⌘S.',
   appLinkInternal: "Le lien pointe à l'intérieur du classeur : {location}",
   appLinkSheetNotFound: 'La feuille « {name} » est introuvable.',
   appLinkJumpFailed: "Impossible d'accéder à {location}.",
   appClosureActive:
     '{count} formules se recalculent en direct (mode fermeture) ; le reste du classeur est chargé en flux à la demande.',
   appRecalcPartial:
-    'Formules recalculées selon vos modifications — {count} ont conservé leurs valeurs en cache (fonctions absentes du moteur de secours).',
+    'Formules recalculées selon vos modifications - {count} ont conservé leurs valeurs en cache (fonctions absentes du moteur de secours).',
   appRecalcDone:
     'Formules recalculées selon vos modifications ({count} cellules, moteur de secours).',
   appIndexing: 'Indexation de {name} : {rows} lignes prêtes.',
   appStreamingRows: 'Chargement en flux de {name} : {rows} lignes disponibles.',
   appLoadRangeFailed: 'Impossible de charger la zone visible.',
   appFullyLoaded:
-    'Classeur entièrement chargé — les formules se recalculent en direct, lignes/colonnes modifiables.',
+    'Classeur entièrement chargé - les formules se recalculent en direct, lignes/colonnes modifiables.',
   appRangeMustBeVector: '{range} doit être une seule ligne ou une seule colonne de cellules.',
   appRangeTooManyCells: '{range} couvre plus de {max} cellules.',
-  appSheetStillIndexing: "La feuille est encore en cours d'indexation — réessayez dans un instant.",
+  appSheetStillIndexing: "La feuille est encore en cours d'indexation - réessayez dans un instant.",
   appPrintNothing: 'Cette feuille ne contient rien à imprimer.',
   appPrintTooLarge:
-    "La plage d'impression est trop grande — définissez une zone d'impression plus petite dans l'onglet Mise en page.",
+    "La plage d'impression est trop grande - définissez une zone d'impression plus petite dans l'onglet Mise en page.",
   appPrintBadArea: "Zone d'impression « {area} » non valide.",
   appPrintBadTitles: "Titres d'impression « {titles} » non valides.",
   appPrintTitlesLimit: "Les titres d'impression répètent au maximum 21 lignes.",
@@ -686,9 +686,9 @@ export const fr = {
   appSeriesData: 'Données de {name}',
   appValuesPlaceholder: 'Valeurs, p. ex. B2:B13',
   appLabelsPlaceholder: 'Étiquettes, p. ex. A2:A13',
-  appValuesRangeTitle: 'Plage de valeurs pour {name} — une seule ligne ou colonne, p. ex. B2:B13',
+  appValuesRangeTitle: 'Plage de valeurs pour {name} - une seule ligne ou colonne, p. ex. B2:B13',
   appCategoriesRangeTitle:
-    "Plage d'étiquettes de catégories pour {name} — une seule ligne ou colonne, p. ex. A2:A13",
+    "Plage d'étiquettes de catégories pour {name} - une seule ligne ou colonne, p. ex. A2:A13",
   appTypeLabel: 'Type',
   appApply: 'Appliquer',
   appTabHome: 'Accueil',
@@ -735,7 +735,7 @@ export const fr = {
     'Les lignes de la sélection qui dupliquent une ligne précédente (comparaison de toutes les colonnes, sans tenir compte de la casse) sont supprimées ; les autres remontent.',
   appEditLinkTitle: 'Modifier le lien',
   appInsertLinkTitle: 'Insérer un lien',
-  appLinkAddressLabel: 'Adresse — une page web (https://…) ou une référence de feuille (Sheet1!A1)',
+  appLinkAddressLabel: 'Adresse - une page web (https://…) ou une référence de feuille (Sheet1!A1)',
   appLinkPlaceholder: 'https://example.com ou Sheet1!A1',
   appRemoveLink: 'Supprimer le lien',
   appNotAvailableYet: 'Pas encore disponible',
@@ -763,10 +763,10 @@ export const fr = {
   appChartElLegendNone: 'Légende : aucune',
   appLayoutLabelsNamePct: 'étiquettes nom + %',
   appLayoutLabelsValue: 'étiquettes de valeurs',
-  appLayout1: 'Disposition 1 — légende à droite, {labels}',
-  appLayout2: 'Disposition 2 — légende en haut, {labels}',
-  appLayout3: 'Disposition 3 — légende en bas, sans étiquettes',
-  appLayout4: 'Disposition 4 — sans légende, {labels}',
+  appLayout1: 'Disposition 1 - légende à droite, {labels}',
+  appLayout2: 'Disposition 2 - légende en haut, {labels}',
+  appLayout3: 'Disposition 3 - légende en bas, sans étiquettes',
+  appLayout4: 'Disposition 4 - sans légende, {labels}',
   appColorsOffice: 'Office',
   appColorsBlue: 'Bleu monochrome',
   appColorsGreen: 'Vert monochrome',
@@ -1034,7 +1034,7 @@ export const fr = {
   appGroupCheckbox: 'Case à cocher',
   appGroupCharts: 'Graphiques',
   appRecommendedCharts: 'Graphiques recommandés',
-  appChartGridTitle: 'Graphique {type} — à partir de la sélection',
+  appChartGridTitle: 'Graphique {type} - à partir de la sélection',
   appChartScatter: 'Nuage de points',
   appPivotChart: 'Graphique croisé dynamique',
   appGroupSparklines: 'Graphiques sparkline',
@@ -1063,25 +1063,25 @@ export const fr = {
   appFonts: 'Polices',
   appGroupPageSetup: 'Mise en page',
   appMargins: 'Marges',
-  appMarginsTitle: 'Marges — {value}',
+  appMarginsTitle: 'Marges - {value}',
   appAsSavedInFile: 'selon le fichier',
   appMarginNormal: 'Normales',
   appMarginWide: 'Larges',
   appMarginNarrow: 'Étroites',
   appOrientationLabel: 'Orientation',
-  appOrientationTitle: 'Orientation — {value}',
+  appOrientationTitle: 'Orientation - {value}',
   appPortrait: 'Portrait',
   appLandscape: 'Paysage',
   appSizeLabel: 'Taille',
   appPaperSizeTitle: 'Taille du papier',
   appPrintArea: "Zone d'impression",
-  appPrintAreaTitle: "Zone d'impression — {area}",
-  appPrintAreaFromSelection: "Zone d'impression — à partir de la sélection",
+  appPrintAreaTitle: "Zone d'impression - {area}",
+  appPrintAreaFromSelection: "Zone d'impression - à partir de la sélection",
   appSetPrintArea: "Définir la zone d'impression",
   appClearPrintArea: "Annuler la zone d'impression",
   appBreaks: 'Sauts de page',
   appPrintTitlesLabel: 'Imprimer les titres',
-  appPrintTitlesTitle: "Titres d'impression — les lignes {rows} se répètent sur chaque page",
+  appPrintTitlesTitle: "Titres d'impression - les lignes {rows} se répètent sur chaque page",
   appPrintTitlesHint: 'Lignes répétées en haut de chaque page imprimée',
   appRepeatRow1: 'Répéter la ligne 1',
   appRepeatSelectedRows: 'Répéter les lignes sélectionnées',
@@ -1105,7 +1105,7 @@ export const fr = {
   appBrowseCatalog: 'Parcourir le catalogue',
   appBrowseCatalogFiltered: 'Parcourir cette catégorie',
   appAutoSum: 'Somme automatique',
-  appAutoSumTitle: 'Somme automatique — sous la sélection',
+  appAutoSumTitle: 'Somme automatique - sous la sélection',
   appFnSum: 'Somme',
   appFnAverage: 'Moyenne',
   appFnCountNumbers: 'NB (nombres)',
@@ -1126,7 +1126,7 @@ export const fr = {
   appUseInFormula: 'Utiliser dans la formule',
   appUseInFormulaTitle: 'Insérer un nom défini dans la formule',
   appUseInFormulaNeedsEmptyCell:
-    "Sélectionnez d'abord une cellule vide — insérer le nom remplacerait le contenu de cette cellule",
+    "Sélectionnez d'abord une cellule vide - insérer le nom remplacerait le contenu de cette cellule",
   appCreateFromSelection: 'Créer à partir de la sélection',
   appCreateFromSelectionTitle: 'Créer des noms à partir des étiquettes de la sélection',
   appNoNamesYet: 'Aucun nom défini',
@@ -1158,7 +1158,7 @@ export const fr = {
   appCalculationOptionsTitle: 'Recalcul automatique ou manuel',
   appCalcAuto: 'Automatique',
   appCalcManual: 'Manuel',
-  appCalcManualOn: 'Calcul manuel activé — utilisez Calculer maintenant.',
+  appCalcManualOn: 'Calcul manuel activé - utilisez Calculer maintenant.',
   appCalcAutoOn: 'Calcul automatique activé.',
   appRecalculated: 'Recalculé.',
   appCalculateNowTitle: 'Recalculer tout le classeur',
@@ -1172,7 +1172,7 @@ export const fr = {
   appWorkbookNoPivot: 'Aucun tableau croisé dans ce classeur.',
   appRefreshAllTitle: 'Actualiser tous les tableaux croisés',
   appErrorCheckingDetail: 'Rechercher les valeurs d’erreur de la feuille',
-  appErrorsFound: '{count} erreurs — à {cell} : {value}',
+  appErrorsFound: '{count} erreurs - à {cell} : {value}',
   appCheckingErrors: 'Recherche d’erreurs dans toute la feuille…',
   appNoErrorsFound: 'Aucune valeur d’erreur trouvée.',
   appGroupSortFilter: 'Trier et filtrer',

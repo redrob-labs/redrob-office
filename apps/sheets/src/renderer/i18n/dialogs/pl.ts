@@ -28,7 +28,7 @@ export const pl = {
 
   dlgAdvFilterTitle: 'Filtr zaawansowany',
   dlgAdvFilterNoColumns:
-    'W zakresie filtru nie ma dostępnych kolumn — zaznacz dane i włącz Autofiltr przed otwarciem filtru zaawansowanego.',
+    'W zakresie filtru nie ma dostępnych kolumn - zaznacz dane i włącz Autofiltr przed otwarciem filtru zaawansowanego.',
   dlgAdvFilterColumn: 'Kolumna',
   dlgAdvFilterCondition1: 'Warunek 1',
   dlgAdvFilterCondition2: 'Warunek 2 (opcjonalny)',
@@ -171,14 +171,14 @@ export const pl = {
   dlgIconsCatNature: 'Przyroda',
   dlgIconsCatTravel: 'Podróże',
   dlgRecoTitle: 'Polecane wykresy',
-  dlgRecoNote: 'Uporządkowane według kształtu zaznaczonych danych — kliknij, aby wstawić.',
+  dlgRecoNote: 'Uporządkowane według kształtu zaznaczonych danych - kliknij, aby wstawić.',
   dlgRecoReasonTime: 'Szeregi czasowe najlepiej czyta się jako trendy',
   dlgRecoReasonProportion: 'Kilka kategorii dobrze czyta się jako udziały w całości',
   dlgRecoReasonCorrelation: 'Dwie kolumny liczb dobrze pokazują korelację',
   dlgRecoReasonComparison: 'Dobre do porównywania wartości między kategoriami',
   dlgRecoReasonManyPoints: 'Wiele punktów pozostaje czytelnych jako linia',
   dlgRecoReasonLongLabels: 'Długie etykiety lepiej pasują do wykresu słupkowego',
-  dlgRecoReasonMixedScales: 'Skale serii bardzo się różnią — pasuje wykres kombi',
+  dlgRecoReasonMixedScales: 'Skale serii bardzo się różnią - pasuje wykres kombi',
   dlgScreenshotTitle: 'Zrzut ekranu',
   dlgScreenshotScreens: 'Ekrany',
   dlgScreenshotWindows: 'Dostępne okna',
@@ -196,7 +196,7 @@ export const pl = {
   dlgSymbolCatMisc: 'Kształty i inne',
   dlgSymbolInsertHint: 'Wstaw {symbol}',
   dlgSymbolNote:
-    'Kliknij symbol, aby dołączyć go do aktywnej komórki — możesz wstawić kilka pod rząd, a potem zamknąć.',
+    'Kliknij symbol, aby dołączyć go do aktywnej komórki - możesz wstawić kilka pod rząd, a potem zamknąć.',
 
   dlgFcTitle: 'Formatowanie komórek',
   dlgFcTabNumber: 'Liczby',
@@ -304,12 +304,12 @@ export const pl = {
     'Wiersze są dopasowywane według pierwszej kolumny każdego obszaru; wyniki zaczynają się od {target} jako aktywne formuły odwołujące się do źródeł.',
   dlgConsNotePosition:
     'Obszary są łączone pozycja po pozycji; wyniki zaczynają się od {target} jako aktywne formuły odwołujące się do źródeł.',
-  dlgConsBadRef: 'Nieprawidłowe odwołanie: {ref} — użyj formatu A1:C5 lub Sheet2!A1:C5.',
+  dlgConsBadRef: 'Nieprawidłowe odwołanie: {ref} - użyj formatu A1:C5 lub Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Dodaj co najmniej jedno odwołanie źródłowe.',
 
   dlgSubtotalTitle: 'Sumy częściowe',
   dlgSubtotalNoFields:
-    'Najpierw zaznacz dane źródłowe — zakres z wierszem nagłówka i co najmniej jednym wierszem danych (posortowany według kolumny grupowania) — a następnie ponownie otwórz Sumy częściowe.',
+    'Najpierw zaznacz dane źródłowe - zakres z wierszem nagłówka i co najmniej jednym wierszem danych (posortowany według kolumny grupowania) - a następnie ponownie otwórz Sumy częściowe.',
   dlgSubtotalGroupBy: 'Dla każdej zmiany w',
   dlgSubtotalFunction: 'Użyj funkcji',
   dlgSubtotalAddTo: 'Dodaj sumę częściową do',
@@ -327,7 +327,7 @@ export const pl = {
   dlgNmAdd: 'Dodaj',
   dlgNmUpdate: 'Aktualizuj',
 
-  dlgFnTitle: 'Wstaw funkcję — do {target}',
+  dlgFnTitle: 'Wstaw funkcję - do {target}',
   dlgFnSearchPlaceholder: 'Szukaj funkcji…',
   dlgFnNoMatch: 'Brak pasujących funkcji.',
   dlgFnFormula: 'Formuła',

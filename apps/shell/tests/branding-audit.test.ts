@@ -36,7 +36,20 @@ const SKIP_DIR = new Set([
 /** File is source we scan for copy. */
 function isScannable(path: string): boolean {
   if (/\.(test|spec)\.[cm]?tsx?$/.test(path)) return false // test files allowlisted
-  return /\.(tsx?|html)$/.test(path)
+  return /\.(tsx?|html|css)$/.test(path)
+}
+
+/**
+ * Load-bearing internal integration code whose truthful references to the real
+ * upstream service are NOT user-facing product copy: the ported Genspark cloud
+ * client libraries. Their error strings (e.g. "Not logged in to Genspark (gsk
+ * login)") accurately name the endpoint they talk to and only surface on the
+ * hidden cloud path (see docs/branding-cleanup.md + cloud-account-hidden.test).
+ */
+function isLoadBearingInternal(relPath: string): boolean {
+  return (
+    relPath.startsWith('packages/ai-search/') || relPath.startsWith('packages/ai-provider/')
+  )
 }
 
 function walk(dir: string, out: string[]): void {
@@ -46,7 +59,8 @@ function walk(dir: string, out: string[]): void {
     const full = join(dir, name)
     const st = statSync(full)
     if (st.isDirectory()) walk(full, out)
-    else if (isScannable(full)) out.push(full)
+    else if (isScannable(full) && !isLoadBearingInternal(relative(REPO_ROOT, full).split(sep).join('/')))
+      out.push(full)
   }
 }
 
@@ -84,6 +98,10 @@ function offendingSnippetsLine(line: string): string[] {
     if (v && !isAllowlistedValue(v)) hits.push(v)
   }
 
+  // a line that is purely a // or /* */ comment is never user-visible copy
+  const t = line.trim()
+  const isCommentLine = t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')
+
   for (const m of line.matchAll(/>([^<>{}]*(?:GenOffice|Genspark)[^<>{}]*)</g)) push(m[1])
   for (const m of line.matchAll(
     /(?:aria-label|title|placeholder|alt)\s*=\s*"([^"]*(?:GenOffice|Genspark)[^"]*)"/g,
@@ -91,6 +109,20 @@ function offendingSnippetsLine(line: string): string[] {
     push(m[1])
   }
   for (const m of line.matchAll(/<title>([^<]*(?:GenOffice|Genspark)[^<]*)<\/title>/g)) push(m[1])
+
+  // Error / dialog copy shown to the user: `throw new Error('…Genspark…')`,
+  // `error: '…Genspark…'`, `message: '…'`, `dialog.showErrorBox('…')`.
+  if (!isCommentLine) {
+    for (const m of line.matchAll(
+      /(?:new Error|showErrorBox|showMessageBox|error|message)\s*[:(]\s*(['"`])((?:\\.|(?!\1).)*?(?:GenOffice|Genspark)(?:\\.|(?!\1).)*?)\1/g,
+    )) {
+      push(m[2])
+    }
+    // CSS content: '…' is the only user-visible CSS string
+    for (const m of line.matchAll(/content\s*:\s*(['"])((?:\\.|(?!\1).)*?(?:GenOffice|Genspark)(?:\\.|(?!\1).)*?)\1/g)) {
+      push(m[2])
+    }
+  }
 
   const valueMatch =
     /^\s*(?:[A-Za-z0-9_]+\s*:\s*)?(['"`])((?:\\.|(?!\1).)*?(?:GenOffice|Genspark)(?:\\.|(?!\1).)*?)\1\s*,?\s*$/.exec(
@@ -200,6 +232,61 @@ describe('branding audit: no user-visible GenOffice / Genspark literals', () => 
     // de-dupe (a multiline match can also surface per-line)
     const unique = [...new Set(offenders)]
     expect(unique, `user-visible legacy brand strings found:\n${unique.join('\n')}`).toEqual([])
+  })
+})
+
+describe('branding audit: no em dashes in user-facing copy', () => {
+  // The no-em-dash rule applies to user-facing copy. We scan the i18n / strings
+  // tables (whose every string is display copy) for an em dash inside a quoted
+  // value, allowing only the lone "—" typographic none/empty glyph.
+  const EM = '\u2014'
+  const I18N_GLOBS = [
+    'apps/shell/src/renderer/src/strings.ts',
+    'apps/markdown/src/renderer/i18n/strings.ts',
+    'apps/pdf/src/renderer/i18n/strings.ts',
+    'apps/docs/src/renderer/i18n',
+    'apps/slides/src/renderer/i18n',
+    'apps/sheets/src/renderer/i18n',
+  ]
+
+  function collectI18nFiles(): string[] {
+    const out: string[] = []
+    for (const g of I18N_GLOBS) {
+      const abs = resolve(REPO_ROOT, g)
+      if (!existsSync(abs)) continue
+      if (statSync(abs).isDirectory()) {
+        const stack = [abs]
+        while (stack.length) {
+          const d = stack.pop()!
+          for (const name of readdirSync(d)) {
+            const full = join(d, name)
+            const st = statSync(full)
+            if (st.isDirectory()) stack.push(full)
+            else if (/\.tsx?$/.test(full)) out.push(full)
+          }
+        }
+      } else out.push(abs)
+    }
+    return out
+  }
+
+  it('i18n string values contain no em dashes (except the lone none glyph)', () => {
+    const offenders: string[] = []
+    for (const file of collectI18nFiles()) {
+      const rel = relative(REPO_ROOT, file).split(sep).join('/')
+      readFileSync(file, 'utf8')
+        .split('\n')
+        .forEach((line, i) => {
+          const t = line.trim()
+          if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return // comments
+          // quoted value containing an em dash, where the value is not just "—"
+          for (const m of line.matchAll(/(['"`])((?:\\.|(?!\1).)*?)\1/g)) {
+            const v = m[2]
+            if (v.includes(EM) && v.trim() !== EM) offenders.push(`${rel}:${i + 1}  ${v}`)
+          }
+        })
+    }
+    expect(offenders, `em dashes in i18n copy:\n${offenders.join('\n')}`).toEqual([])
   })
 })
 

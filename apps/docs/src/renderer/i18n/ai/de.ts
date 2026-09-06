@@ -58,7 +58,7 @@ export const de = {
   aiSwitchModelTitle: 'KI-Modell wechseln',
   aiNewChatTitle: 'Neuer Chat',
   aiCollapseTitle: 'Bereich einklappen',
-  aiHistorySep: '—— Bisherige Unterhaltung ——',
+  aiHistorySep: '-- Bisherige Unterhaltung --',
   aiEmptyTitle: 'Lassen Sie sich von der KI beim Schreiben und Bearbeiten helfen',
   aiEmptyBody1: 'Geben Sie eine Anweisung oder stellen Sie einfach eine Frage;',
   aiEmptyBody2: 'bei markiertem Text wirken Umschreibbefehle auf die Auswahl.',
@@ -106,7 +106,7 @@ export const de = {
   aiUnknownError: 'Unbekannter Fehler',
   aiTimeoutError:
     'Zeitüberschreitung der KI-Anfrage: keine Antwort vom Netzwerk, der Vorgang wurde abgebrochen. Prüfe deine Verbindung und versuche es erneut',
-  aiOverloadedError: 'Der KI-Dienst ist derzeit überlastet — bitte gleich erneut versuchen',
+  aiOverloadedError: 'Der KI-Dienst ist derzeit überlastet - bitte gleich erneut versuchen',
   aiNetworkError:
     'Netzwerkproblem: Der KI-Dienst ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut',
   aiCreditsExhausted:
@@ -142,7 +142,7 @@ export const de = {
   aiSumApplyCommands: 'Formatierungsbefehle anwenden',
   aiCmdNone: 'Keine passenden Blöcke gefunden; das Dokument wurde nicht geändert.',
   aiCmdNoneSkipped:
-    'Keine bearbeitbaren Blöcke; das Dokument wurde nicht geändert ({count} geschützte Blöcke übersprungen — Tabellen/Bilder können nicht per Formatbefehl geändert werden).',
+    'Keine bearbeitbaren Blöcke; das Dokument wurde nicht geändert ({count} geschützte Blöcke übersprungen - Tabellen/Bilder können nicht per Formatbefehl geändert werden).',
   aiCmdTextStyle: 'Textformat in {count} Block/Blöcken aktualisiert',
   aiCmdMatchedStyle: 'Stil auf {count} Treffer in {blocks} Block/Blöcken angewendet',
   aiCmdParaStyle: 'Absatzformat in {count} Block/Blöcken aktualisiert',

@@ -601,7 +601,7 @@ export const nl = {
   ribbonAiRevisionsTip:
     'De AI leest de {count} openstaande wijzigingen, vat ze per sectie samen en markeert risico\u2019s',
   ribbonAiRevisionsPrompt:
-    'Vat alle openstaande bijgehouden wijzigingen in het document samen: begin met algemene statistieken (aantal invoegingen/verwijderingen, auteurs, datumbereik), beschrijf daarna de wijzigingen per sectie (noem blokindexen) en sluit af met aandachtspunten (verwijderde verplichtingen of voorbehouden, gewijzigde getallen/datums/bedragen). Alleen samenvatten — wijzig het document niet en accepteer/weiger geen enkele wijziging.',
+    'Vat alle openstaande bijgehouden wijzigingen in het document samen: begin met algemene statistieken (aantal invoegingen/verwijderingen, auteurs, datumbereik), beschrijf daarna de wijzigingen per sectie (noem blokindexen) en sluit af met aandachtspunten (verwijderde verplichtingen of voorbehouden, gewijzigde getallen/datums/bedragen). Alleen samenvatten - wijzig het document niet en accepteer/weiger geen enkele wijziging.',
   ribbonAiCommentsTip:
     'De AI verwerkt de {count} onopgeloste opmerkingen: wijzigen, beantwoorden, oplossen',
   ribbonAiCommentsPrompt:

@@ -57,7 +57,7 @@ export const ms = {
   aiSwitchModelTitle: 'Tukar model AI',
   aiNewChatTitle: 'Perbualan baharu',
   aiCollapseTitle: 'Runtuhkan panel',
-  aiHistorySep: '—— Perbualan terdahulu ——',
+  aiHistorySep: '-- Perbualan terdahulu --',
   aiEmptyTitle: 'Biarkan AI membantu anda menulis dan menyunting',
   aiEmptyBody1: 'Beri arahan atau terus ajukan soalan;',
   aiEmptyBody2: 'dengan teks dipilih, perintah tulis semula digunakan pada pilihan.',
@@ -102,7 +102,7 @@ export const ms = {
   aiUnknownError: 'Ralat tidak diketahui',
   aiTimeoutError:
     'Permintaan AI tamat masa: rangkaian tidak memberi respons, proses dihentikan. Semak sambungan anda dan cuba lagi',
-  aiOverloadedError: 'Perkhidmatan AI sedang sibuk — sila cuba lagi sebentar lagi',
+  aiOverloadedError: 'Perkhidmatan AI sedang sibuk - sila cuba lagi sebentar lagi',
   aiNetworkError:
     'Masalah rangkaian: tidak dapat menghubungi perkhidmatan AI. Semak sambungan anda dan cuba lagi',
   aiCreditsExhausted:
@@ -138,7 +138,7 @@ export const ms = {
   aiSumApplyCommands: 'Guna perintah pemformatan',
   aiCmdNone: 'Tiada blok sepadan; dokumen tidak diubah.',
   aiCmdNoneSkipped:
-    'Tiada blok boleh disunting; dokumen tidak diubah ({count} blok dilindungi dilangkau — jadual/imej tidak boleh diubah dengan perintah gaya).',
+    'Tiada blok boleh disunting; dokumen tidak diubah ({count} blok dilindungi dilangkau - jadual/imej tidak boleh diubah dengan perintah gaya).',
   aiCmdTextStyle: 'Gaya teks dikemas kini pada {count} blok',
   aiCmdMatchedStyle: 'Gaya digunakan pada {count} padanan dalam {blocks} blok',
   aiCmdParaStyle: 'Format perenggan dikemas kini pada {count} blok',

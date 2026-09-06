@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const ms = {
   aiComposerPlaceholderBuild: 'Terangkan jadual, data atau carta untuk dijana…',
   aiEmptyBuildTitle: 'Biarkan AI membina buku kerja ini untuk anda',
-  aiEmptyBuildBody: 'Terangkan jadual, data atau carta yang anda perlukan — AI terus menciptanya.',
+  aiEmptyBuildBody: 'Terangkan jadual, data atau carta yang anda perlukan - AI terus menciptanya.',
   aiGskLoginBtn: 'Log masuk ke Redrob',
   aiUndelivered: 'Tidak dihantar',
   aiRetry: 'Cuba lagi',
@@ -19,7 +19,7 @@ export const ms = {
   aiSetUp: 'Sediakan AI',
   aiNewChat: 'Perbualan baharu',
   aiCollapsePanel: 'Runtuhkan panel AI',
-  aiHistorySep: '—— Perbualan terdahulu ——',
+  aiHistorySep: '-- Perbualan terdahulu --',
   aiEmptyTitle: 'Tanya AI tentang buku kerja ini',
   aiEmptyBodyLine1: 'Terangkan perubahan yang diingini atau tanya tentang data.',
   aiThinkingAria: 'Sedang berfikir',
@@ -62,7 +62,7 @@ export const ms = {
   aiUnknownError: 'Ralat tidak diketahui',
   aiTimeoutError:
     'Permintaan AI tamat masa: rangkaian tidak memberi respons, proses dihentikan. Semak sambungan anda dan cuba lagi',
-  aiOverloadedError: 'Perkhidmatan AI sedang sibuk — sila cuba lagi sebentar lagi',
+  aiOverloadedError: 'Perkhidmatan AI sedang sibuk - sila cuba lagi sebentar lagi',
   aiNetworkError:
     'Masalah rangkaian: tidak dapat menghubungi perkhidmatan AI. Semak sambungan anda dan cuba lagi',
   aiCreditsExhausted:

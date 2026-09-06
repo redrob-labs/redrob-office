@@ -28,7 +28,7 @@ export const pt = {
 
   dlgAdvFilterTitle: 'Filtro Avançado',
   dlgAdvFilterNoColumns:
-    'Não há colunas disponíveis no intervalo de filtro — selecione os dados e ative o AutoFiltro antes de abrir o Filtro Avançado.',
+    'Não há colunas disponíveis no intervalo de filtro - selecione os dados e ative o AutoFiltro antes de abrir o Filtro Avançado.',
   dlgAdvFilterColumn: 'Coluna',
   dlgAdvFilterCondition1: 'Condição 1',
   dlgAdvFilterCondition2: 'Condição 2 (opcional)',
@@ -170,14 +170,14 @@ export const pt = {
   dlgIconsCatNature: 'Natureza',
   dlgIconsCatTravel: 'Viagens',
   dlgRecoTitle: 'Gráficos recomendados',
-  dlgRecoNote: 'Classificados pela forma dos dados selecionados — clique para inserir.',
+  dlgRecoNote: 'Classificados pela forma dos dados selecionados - clique para inserir.',
   dlgRecoReasonTime: 'Séries temporais leem-se melhor como tendências',
   dlgRecoReasonProportion: 'Poucas categorias leem-se bem como partes de um todo',
   dlgRecoReasonCorrelation: 'Duas colunas numéricas leem-se bem como correlação',
   dlgRecoReasonComparison: 'Bom para comparar valores entre categorias',
   dlgRecoReasonManyPoints: 'Muitos pontos continuam legíveis como linha',
   dlgRecoReasonLongLabels: 'Rótulos longos cabem melhor em barras',
-  dlgRecoReasonMixedScales: 'As escalas diferem muito — um gráfico combinado se encaixa',
+  dlgRecoReasonMixedScales: 'As escalas diferem muito - um gráfico combinado se encaixa',
   dlgScreenshotTitle: 'Captura de tela',
   dlgScreenshotScreens: 'Telas',
   dlgScreenshotWindows: 'Janelas disponíveis',
@@ -195,7 +195,7 @@ export const pt = {
   dlgSymbolCatMisc: 'Formas e diversos',
   dlgSymbolInsertHint: 'Inserir {symbol}',
   dlgSymbolNote:
-    'Clique em um símbolo para adicioná-lo à célula ativa — insira vários seguidos e depois feche.',
+    'Clique em um símbolo para adicioná-lo à célula ativa - insira vários seguidos e depois feche.',
 
   dlgFcTitle: 'Formatar Células',
   dlgFcTabNumber: 'Número',
@@ -303,12 +303,12 @@ export const pt = {
     'As linhas são correspondidas pela primeira coluna de cada área; os resultados começam em {target} como fórmulas dinâmicas sobre as origens.',
   dlgConsNotePosition:
     'As áreas são combinadas posição por posição; os resultados começam em {target} como fórmulas dinâmicas sobre as origens.',
-  dlgConsBadRef: 'Referência inválida: {ref} — use o formato A1:C5 ou Sheet2!A1:C5.',
+  dlgConsBadRef: 'Referência inválida: {ref} - use o formato A1:C5 ou Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Adicione pelo menos uma referência de origem.',
 
   dlgSubtotalTitle: 'Subtotal',
   dlgSubtotalNoFields:
-    'Selecione primeiro os dados de origem — um intervalo com linha de cabeçalho e pelo menos uma linha de dados (ordenado pela coluna de agrupamento) — e reabra Subtotal.',
+    'Selecione primeiro os dados de origem - um intervalo com linha de cabeçalho e pelo menos uma linha de dados (ordenado pela coluna de agrupamento) - e reabra Subtotal.',
   dlgSubtotalGroupBy: 'A cada alteração em',
   dlgSubtotalFunction: 'Usar função',
   dlgSubtotalAddTo: 'Adicionar subtotal a',
@@ -326,7 +326,7 @@ export const pt = {
   dlgNmAdd: 'Adicionar',
   dlgNmUpdate: 'Atualizar',
 
-  dlgFnTitle: 'Inserir Função — em {target}',
+  dlgFnTitle: 'Inserir Função - em {target}',
   dlgFnSearchPlaceholder: 'Pesquisar funções…',
   dlgFnNoMatch: 'Nenhuma função corresponde.',
   dlgFnFormula: 'Fórmula',

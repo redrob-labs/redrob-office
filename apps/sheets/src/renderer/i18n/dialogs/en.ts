@@ -28,7 +28,7 @@ export const en = {
 
   dlgAdvFilterTitle: 'Advanced Filter',
   dlgAdvFilterNoColumns:
-    'No columns are available in the filter range — select the data and turn on AutoFilter before opening Advanced Filter.',
+    'No columns are available in the filter range - select the data and turn on AutoFilter before opening Advanced Filter.',
   dlgAdvFilterColumn: 'Column',
   dlgAdvFilterCondition1: 'Condition 1',
   dlgAdvFilterCondition2: 'Condition 2 (optional)',
@@ -169,14 +169,14 @@ export const en = {
   dlgIconsCatNature: 'Nature',
   dlgIconsCatTravel: 'Travel',
   dlgRecoTitle: 'Recommended Charts',
-  dlgRecoNote: 'Ranked by the shape of the selected data — click to insert.',
+  dlgRecoNote: 'Ranked by the shape of the selected data - click to insert.',
   dlgRecoReasonTime: 'Time series read best as trends',
   dlgRecoReasonProportion: 'A few categories read well as shares of a whole',
   dlgRecoReasonCorrelation: 'Two numeric columns read well as a correlation',
   dlgRecoReasonComparison: 'Good for comparing values across categories',
   dlgRecoReasonManyPoints: 'Many data points stay readable as a line',
   dlgRecoReasonLongLabels: 'Long labels fit better on a bar chart',
-  dlgRecoReasonMixedScales: 'Series scales differ a lot — a combo chart fits',
+  dlgRecoReasonMixedScales: 'Series scales differ a lot - a combo chart fits',
   dlgScreenshotTitle: 'Screenshot',
   dlgScreenshotScreens: 'Screens',
   dlgScreenshotWindows: 'Available windows',
@@ -194,7 +194,7 @@ export const en = {
   dlgSymbolCatMisc: 'Shapes & Misc',
   dlgSymbolInsertHint: 'Insert {symbol}',
   dlgSymbolNote:
-    'Click a symbol to append it to the active cell — insert several in a row, then close.',
+    'Click a symbol to append it to the active cell - insert several in a row, then close.',
 
   dlgFcTitle: 'Format Cells',
   dlgFcTabNumber: 'Number',
@@ -302,12 +302,12 @@ export const en = {
     'Rows are matched by the first column of each area; results start at {target} as live formulas over the sources.',
   dlgConsNotePosition:
     'Areas are combined position-by-position; results start at {target} as live formulas over the sources.',
-  dlgConsBadRef: 'Not a valid reference: {ref} — use A1:C5 or Sheet2!A1:C5.',
+  dlgConsBadRef: 'Not a valid reference: {ref} - use A1:C5 or Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Add at least one source reference.',
 
   dlgSubtotalTitle: 'Subtotal',
   dlgSubtotalNoFields:
-    'Select the source data first — a range with a header row and at least one data row (sorted by the group column) — then reopen Subtotal.',
+    'Select the source data first - a range with a header row and at least one data row (sorted by the group column) - then reopen Subtotal.',
   dlgSubtotalGroupBy: 'At each change in',
   dlgSubtotalFunction: 'Use function',
   dlgSubtotalAddTo: 'Add subtotal to',
@@ -325,7 +325,7 @@ export const en = {
   dlgNmAdd: 'Add',
   dlgNmUpdate: 'Update',
 
-  dlgFnTitle: 'Insert Function — into {target}',
+  dlgFnTitle: 'Insert Function - into {target}',
   dlgFnSearchPlaceholder: 'Search functions…',
   dlgFnNoMatch: 'No functions match.',
   dlgFnFormula: 'Formula',

@@ -54,11 +54,11 @@ export const pt = {
   aiSumResolveComment: 'Comentário resolvido',
   aiTidyBtn: 'Formatação IA',
   aiTidyPrompt:
-    'Organize a formatação de todo o documento — por exemplo, corrija os níveis de título, uniformize as listas, remova negritos e itálicos desnecessários e padronize o recuo dos parágrafos. Ajuste apenas a formatação, sem alterar o texto',
+    'Organize a formatação de todo o documento - por exemplo, corrija os níveis de título, uniformize as listas, remova negritos e itálicos desnecessários e padronize o recuo dos parágrafos. Ajuste apenas a formatação, sem alterar o texto',
   aiSwitchModelTitle: 'Trocar modelo de IA',
   aiNewChatTitle: 'Nova conversa',
   aiCollapseTitle: 'Recolher painel',
-  aiHistorySep: '—— Conversa anterior ——',
+  aiHistorySep: '-- Conversa anterior --',
   aiEmptyTitle: 'Deixe a IA ajudar você a escrever e editar',
   aiEmptyBody1: 'Dê uma instrução ou simplesmente faça uma pergunta;',
   aiEmptyBody2: 'com texto selecionado, comandos de reescrita se aplicam à seleção.',
@@ -105,7 +105,7 @@ export const pt = {
   aiTimeoutError:
     'A solicitação de IA expirou: sem resposta da rede, a execução foi interrompida. Verifique sua conexão e tente novamente',
   aiOverloadedError:
-    'O serviço de IA está sobrecarregado no momento — tente novamente em instantes',
+    'O serviço de IA está sobrecarregado no momento - tente novamente em instantes',
   aiNetworkError:
     'Problema de rede: não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente',
   aiCreditsExhausted:
@@ -141,7 +141,7 @@ export const pt = {
   aiSumApplyCommands: 'Aplicar comandos de formatação',
   aiCmdNone: 'Nenhum bloco correspondente; o documento não foi alterado.',
   aiCmdNoneSkipped:
-    'Nenhum bloco editável; o documento não foi alterado ({count} blocos protegidos ignorados — tabelas/imagens não podem ser alteradas por comandos de estilo).',
+    'Nenhum bloco editável; o documento não foi alterado ({count} blocos protegidos ignorados - tabelas/imagens não podem ser alteradas por comandos de estilo).',
   aiCmdTextStyle: 'Estilo de texto atualizado em {count} bloco(s)',
   aiCmdMatchedStyle: 'Estilo aplicado a {count} ocorrência(s) em {blocks} bloco(s)',
   aiCmdParaStyle: 'Formato de parágrafo atualizado em {count} bloco(s)',

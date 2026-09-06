@@ -34,7 +34,7 @@ export const de = {
   ribbonFileExportPdf: 'Als PDF exportieren…',
   ribbonFilePrint: 'Drucken…',
   ribbonFileExportImages: 'Als Bilder exportieren…',
-  ribbonUnsavedSuffix: ' — Nicht gespeichert',
+  ribbonUnsavedSuffix: ' - Nicht gespeichert',
   ribbonSaveTip: 'Speichern (⌘S)',
   ribbonAutoSave: 'AutoSpeichern',
   ribbonAutoSaveTip: 'Speichert alle 30 Sekunden in die Datei',

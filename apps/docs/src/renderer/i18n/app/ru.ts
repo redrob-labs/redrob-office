@@ -152,7 +152,7 @@ export const ru = {
   appCompareFailed: 'Не удалось сравнить: {error}',
   appCompareResult: 'Результаты сравнения',
   appCompareWithPrefix: 'По сравнению с ',
-  appCompareStats: ': добавлено абзацев — {added}, удалено — {removed}, изменено — {changed}',
+  appCompareStats: ': добавлено абзацев - {added}, удалено - {removed}, изменено - {changed}',
   appCompareIdentical: 'Содержимое двух документов идентично',
   appCompareSameRun: '… одинаковых абзацев: {n} …',
   appEmptyParagraph: '(пустой абзац)',
@@ -341,7 +341,7 @@ export const ru = {
   appPaginationPreview: 'Предварительный просмотр страниц',
   appPvCommented: 'Примечание',
   appTotalPagesN: 'Всего страниц: {n}',
-  appPvHint: 'Снимок только для чтения; после правки откройте заново · Esc — закрыть',
+  appPvHint: 'Снимок только для чтения; после правки откройте заново · Esc - закрыть',
   appPvExportTip:
     'Экспорт постранично, как в предварительном просмотре; колонтитулы и номера страниц соответствуют отображению',
   appStylesTitle: 'Стили',

@@ -28,7 +28,7 @@ export const ar = {
 
   dlgAdvFilterTitle: 'تصفية متقدمة',
   dlgAdvFilterNoColumns:
-    'لا توجد أعمدة متاحة في نطاق التصفية — حدد البيانات وشغّل التصفية التلقائية قبل فتح التصفية المتقدمة.',
+    'لا توجد أعمدة متاحة في نطاق التصفية - حدد البيانات وشغّل التصفية التلقائية قبل فتح التصفية المتقدمة.',
   dlgAdvFilterColumn: 'العمود',
   dlgAdvFilterCondition1: 'الشرط 1',
   dlgAdvFilterCondition2: 'الشرط 2 (اختياري)',
@@ -168,14 +168,14 @@ export const ar = {
   dlgIconsCatNature: 'الطبيعة',
   dlgIconsCatTravel: 'السفر',
   dlgRecoTitle: 'المخططات الموصى بها',
-  dlgRecoNote: 'مرتبة حسب شكل البيانات المحددة — انقر للإدراج.',
+  dlgRecoNote: 'مرتبة حسب شكل البيانات المحددة - انقر للإدراج.',
   dlgRecoReasonTime: 'السلاسل الزمنية تُقرأ أفضل كاتجاهات',
   dlgRecoReasonProportion: 'الفئات القليلة تُقرأ جيدًا كنسب من الكل',
   dlgRecoReasonCorrelation: 'عمودان رقميان يناسبان عرض الارتباط',
   dlgRecoReasonComparison: 'مناسب لمقارنة القيم بين الفئات',
   dlgRecoReasonManyPoints: 'النقاط الكثيرة تبقى مقروءة كخط',
   dlgRecoReasonLongLabels: 'التسميات الطويلة تناسب المخطط الشريطي',
-  dlgRecoReasonMixedScales: 'تختلف المقاييس كثيرًا — يناسبها مخطط مركب',
+  dlgRecoReasonMixedScales: 'تختلف المقاييس كثيرًا - يناسبها مخطط مركب',
   dlgScreenshotTitle: 'لقطة شاشة',
   dlgScreenshotScreens: 'الشاشات',
   dlgScreenshotWindows: 'النوافذ المتاحة',
@@ -192,7 +192,7 @@ export const ar = {
   dlgSymbolCatGreek: 'حروف يونانية',
   dlgSymbolCatMisc: 'أشكال ومتنوعة',
   dlgSymbolInsertHint: 'إدراج {symbol}',
-  dlgSymbolNote: 'انقر على رمز لإلحاقه بالخلية النشطة — يمكنك إدراج عدة رموز متتالية ثم الإغلاق.',
+  dlgSymbolNote: 'انقر على رمز لإلحاقه بالخلية النشطة - يمكنك إدراج عدة رموز متتالية ثم الإغلاق.',
 
   dlgFcTitle: 'تنسيق خلايا',
   dlgFcTabNumber: 'رقم',
@@ -299,12 +299,12 @@ export const ar = {
     'تُطابَق الصفوف حسب العمود الأول في كل منطقة؛ تبدأ النتائج من {target} كصيغ حية تشير إلى المصادر.',
   dlgConsNotePosition:
     'تُدمج المناطق موضعًا بموضع؛ تبدأ النتائج من {target} كصيغ حية تشير إلى المصادر.',
-  dlgConsBadRef: 'مرجع غير صالح: {ref} — استخدم الصيغة A1:C5 أو Sheet2!A1:C5.',
+  dlgConsBadRef: 'مرجع غير صالح: {ref} - استخدم الصيغة A1:C5 أو Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'أضف مرجع مصدر واحدًا على الأقل.',
 
   dlgSubtotalTitle: 'المجموع الفرعي',
   dlgSubtotalNoFields:
-    'حدد أولاً البيانات المصدر — نطاقًا يضم صف رؤوس وصف بيانات واحدًا على الأقل (مرتبًا حسب عمود التجميع) — ثم أعد فتح المجموع الفرعي.',
+    'حدد أولاً البيانات المصدر - نطاقًا يضم صف رؤوس وصف بيانات واحدًا على الأقل (مرتبًا حسب عمود التجميع) - ثم أعد فتح المجموع الفرعي.',
   dlgSubtotalGroupBy: 'عند كل تغيير في',
   dlgSubtotalFunction: 'استخدام الدالة',
   dlgSubtotalAddTo: 'إضافة مجموع فرعي إلى',
@@ -322,7 +322,7 @@ export const ar = {
   dlgNmAdd: 'إضافة',
   dlgNmUpdate: 'تحديث',
 
-  dlgFnTitle: 'إدراج دالة — في {target}',
+  dlgFnTitle: 'إدراج دالة - في {target}',
   dlgFnSearchPlaceholder: 'البحث عن دالة…',
   dlgFnNoMatch: 'لا توجد دوال مطابقة.',
   dlgFnFormula: 'الصيغة',

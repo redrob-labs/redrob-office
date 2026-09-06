@@ -4,7 +4,7 @@ export const fr = {
   aiComposerPlaceholderBuild: 'Décrivez le tableau, les données ou le graphique à créer…',
   aiEmptyBuildTitle: "Laissez l'IA construire ce classeur pour vous",
   aiEmptyBuildBody:
-    "Décrivez le tableau, les données ou le graphique voulu — l'IA les crée directement.",
+    "Décrivez le tableau, les données ou le graphique voulu - l'IA les crée directement.",
   aiGskLoginBtn: 'Se connecter à Redrob',
   aiUndelivered: 'Non envoyé',
   aiRetry: 'Réessayer',
@@ -20,7 +20,7 @@ export const fr = {
   aiSetUp: "Configurer l'IA",
   aiNewChat: 'Nouvelle conversation',
   aiCollapsePanel: 'Réduire le volet IA',
-  aiHistorySep: '—— Conversation précédente ——',
+  aiHistorySep: '-- Conversation précédente --',
   aiEmptyTitle: "Interroger l'IA sur ce classeur",
   aiEmptyBodyLine1: 'Décrivez une modification ou posez une question sur les données.',
   aiThinkingAria: 'Réflexion',
@@ -63,7 +63,7 @@ export const fr = {
   aiUnknownError: 'Erreur inconnue',
   aiTimeoutError:
     "Délai de la requête IA dépassé : aucune réponse du réseau, l'exécution a été interrompue. Vérifiez votre connexion et réessayez",
-  aiOverloadedError: "Le service d'IA est actuellement surchargé — réessayez dans un instant",
+  aiOverloadedError: "Le service d'IA est actuellement surchargé - réessayez dans un instant",
   aiNetworkError:
     'Problème réseau : impossible de joindre le service IA. Vérifiez votre connexion et réessayez',
   aiCreditsExhausted:

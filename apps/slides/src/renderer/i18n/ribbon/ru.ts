@@ -33,7 +33,7 @@ export const ru = {
   ribbonFileExportPdf: 'Экспорт в PDF…',
   ribbonFilePrint: 'Печать…',
   ribbonFileExportImages: 'Экспорт в изображения…',
-  ribbonUnsavedSuffix: ' — Не сохранено',
+  ribbonUnsavedSuffix: ' - Не сохранено',
   ribbonSaveTip: 'Сохранить (⌘S)',
   ribbonAutoSave: 'Автосохранение',
   ribbonAutoSaveTip: 'Сохраняет в файл каждые 30 секунд',
@@ -47,11 +47,11 @@ export const ru = {
   ribbonCopyTip: 'Копировать (⌘C)',
   ribbonBrushTipNoSelection:
     'Формат по образцу (сначала выделите элемент; ⌘⇧C копировать формат / ⌘⇧V вставить формат)',
-  ribbonBrushTipContinuous: 'Формат по образцу, непрерывный режим (Esc — выход)',
+  ribbonBrushTipContinuous: 'Формат по образцу, непрерывный режим (Esc - выход)',
   ribbonBrushTipOnce:
     'Формат по образцу, однократный режим (щёлкните целевой элемент, чтобы применить)',
   ribbonBrushTipHasFormat:
-    'Формат по образцу (один щелчок — однократно / двойной — непрерывно; ⌘⇧C копировать формат / ⌘⇧V вставить формат)',
+    'Формат по образцу (один щелчок - однократно / двойной - непрерывно; ⌘⇧C копировать формат / ⌘⇧V вставить формат)',
   ribbonBrushTipDefault:
     'Формат по образцу (щёлкните, чтобы скопировать и применить формат; ⌘⇧C копировать формат / ⌘⇧V вставить формат)',
   ribbonGroupSlides: 'Слайды',
@@ -75,7 +75,7 @@ export const ru = {
   ribbonFontsDownloadable: 'Загружаемые шрифты',
   ribbonFontInstallLocal: 'Установить файл шрифта…',
   ribbonFontDownloading: 'Загрузка…',
-  ribbonFontDownloadFailed: 'Ошибка загрузки — нажмите, чтобы повторить',
+  ribbonFontDownloadFailed: 'Ошибка загрузки - нажмите, чтобы повторить',
   fontMissingBanner: 'В этой презентации используются неустановленные шрифты:',
   fontMissingDownloadAll: 'Загрузить все',
   fontMissingDismiss: 'Скрыть',
@@ -147,7 +147,7 @@ export const ru = {
   ribbonBulletHangNarrow: 'Узкий',
   ribbonBulletHangNormal: 'Обычный',
   ribbonBulletHangWide: 'Широкий',
-  ribbonBulletHangCustomTip: 'Пользовательский отступ маркера (px, Enter — применить)',
+  ribbonBulletHangCustomTip: 'Пользовательский отступ маркера (px, Enter - применить)',
   ribbonBulletSize: 'Размер маркера',
   ribbonBulletColor: 'Цвет маркера',
   ribbonIndentDec: 'Уменьшить отступ',
@@ -404,7 +404,7 @@ export const ru = {
   ribbonViewSorterTip:
     'Сортировщик слайдов: сетка со всеми слайдами, двойной щелчок для редактирования',
   ribbonViewReading: 'Режим чтения',
-  ribbonViewReadingTip: 'Режим чтения: полноэкранный просмотр слайдов по одному (Esc — выход)',
+  ribbonViewReadingTip: 'Режим чтения: полноэкранный просмотр слайдов по одному (Esc - выход)',
   ribbonViewMaster: 'Образец слайдов',
   ribbonViewMasterTip:
     'Изменить образец слайдов и макеты (изменения затронут все использующие их слайды)',
@@ -509,7 +509,7 @@ export const ru = {
   ribbonRemoveBgDisabledTip: 'Для этого рисунка удаление фона не поддерживается',
   ribbonGroupSize: 'Размер',
   ribbonCrop: 'Обрезка',
-  ribbonCropTip: 'Обрезать рисунок (перетащите маркеры, Enter — подтвердить)',
+  ribbonCropTip: 'Обрезать рисунок (перетащите маркеры, Enter - подтвердить)',
   ribbonDlgHyperlink: 'Гиперссылка',
   ribbonDlgWebAddress: 'Веб-адрес',
   ribbonDlgPlaceInDoc: 'Место в документе',

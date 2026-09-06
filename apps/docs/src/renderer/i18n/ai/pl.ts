@@ -53,11 +53,11 @@ export const pl = {
   aiSumResolveComment: 'Komentarz rozwiązany',
   aiTidyBtn: 'Formatowanie AI',
   aiTidyPrompt:
-    'Uporządkuj formatowanie całego dokumentu — na przykład popraw poziomy nagłówków, ujednolić listy, usuń zbędne pogrubienia i kursywę, wyrównaj wcięcia akapitów. Zmieniaj tylko formatowanie, nie zmieniając tekstu',
+    'Uporządkuj formatowanie całego dokumentu - na przykład popraw poziomy nagłówków, ujednolić listy, usuń zbędne pogrubienia i kursywę, wyrównaj wcięcia akapitów. Zmieniaj tylko formatowanie, nie zmieniając tekstu',
   aiSwitchModelTitle: 'Przełącz model AI',
   aiNewChatTitle: 'Nowa rozmowa',
   aiCollapseTitle: 'Zwiń panel',
-  aiHistorySep: '—— Wcześniejsza rozmowa ——',
+  aiHistorySep: '-- Wcześniejsza rozmowa --',
   aiEmptyTitle: 'Pozwól AI pomóc Ci pisać i edytować',
   aiEmptyBody1: 'Wydaj polecenie lub po prostu zadaj pytanie;',
   aiEmptyBody2: 'przy zaznaczonym tekście polecenia przepisania dotyczą zaznaczenia.',
@@ -78,9 +78,9 @@ export const pl = {
   aiScopeEmptyDoc: 'Pusty dokument',
   aiScopeCursor: 'Przy kursorze',
   aiInputPlaceholder: 'Opisz zmianę lub zadanie pisarskie albo zadaj pytanie',
-  aiHintIdle: 'Enter — wyślij',
-  aiHintBusy: 'Esc — zatrzymaj',
-  aiHintIdleTitle: 'Enter — wyślij · Shift+Enter — nowy wiersz',
+  aiHintIdle: 'Enter - wyślij',
+  aiHintBusy: 'Esc - zatrzymaj',
+  aiHintIdleTitle: 'Enter - wyślij · Shift+Enter - nowy wiersz',
   aiSend: 'Wyślij',
   aiStop: 'Zatrzymaj',
   aiContinue: 'Kontynuuj',
@@ -103,7 +103,7 @@ export const pl = {
   aiUnknownError: 'Nieznany błąd',
   aiTimeoutError:
     'Przekroczono limit czasu żądania AI: brak odpowiedzi sieci, przerwano. Sprawdź połączenie i spróbuj ponownie',
-  aiOverloadedError: 'Usługa AI jest obecnie przeciążona — spróbuj ponownie za chwilę',
+  aiOverloadedError: 'Usługa AI jest obecnie przeciążona - spróbuj ponownie za chwilę',
   aiNetworkError:
     'Problem z siecią: nie można połączyć się z usługą AI. Sprawdź połączenie i spróbuj ponownie',
   aiCreditsExhausted:
@@ -139,7 +139,7 @@ export const pl = {
   aiSumApplyCommands: 'Zastosuj polecenia formatowania',
   aiCmdNone: 'Brak pasujących bloków; dokument nie został zmieniony.',
   aiCmdNoneSkipped:
-    'Brak bloków do edycji; dokument nie został zmieniony (pominięto chronione bloki: {count} — tabel/obrazów nie można zmieniać poleceniami stylu).',
+    'Brak bloków do edycji; dokument nie został zmieniony (pominięto chronione bloki: {count} - tabel/obrazów nie można zmieniać poleceniami stylu).',
   aiCmdTextStyle: 'Zaktualizowano styl tekstu w blokach: {count}',
   aiCmdMatchedStyle: 'Zastosowano styl do {count} dopasowań w {blocks} blokach',
   aiCmdParaStyle: 'Zaktualizowano format akapitu w blokach: {count}',

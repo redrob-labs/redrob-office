@@ -34,7 +34,7 @@
 Node 22, pnpm 9.15.0, Electron. pnpm + Turborepo 모노레포입니다.
 
 ```bash
-pnpm install
+pnpm install          # postinstall 이 각 앱의 Electron 바이너리를 준비합니다
 pnpm dev              # Redrob Office 오피스 스위트 (@genoffice/shell). 표시 장치 필요
 pnpm dev:office       # 레거시 채용 앱 (@redrob/office). 표시 장치 필요
 pnpm dev:web          # @redrob/office 렌더러만 브라우저에서 (모의 IPC, GPU 불필요)
@@ -42,6 +42,8 @@ pnpm typecheck
 pnpm test
 pnpm dist             # 오피스 스위트 패키징 (dist:office 는 채용 앱)
 ```
+
+`pnpm install --ignore-scripts` 로 설치했다면 `postinstall` 이 건너뛰어지므로, 이후 **`pnpm ensure:electron`** 을 실행해 각 앱의 고정 Electron 바이너리를 준비해야 합니다. 그렇지 않으면 `pnpm dev` 가 `Error: Electron uninstall` 로 실패합니다. GUI 없이 typecheck/test/dev:web 만 돌리는 헤드리스 환경이라면 `REDROB_SKIP_ELECTRON_ENSURE=1` 로 명시적으로 건너뛸 수 있습니다(기본 `postinstall` 은 바이너리를 준비하지 못하면 0이 아닌 코드로 실패하므로, 설치가 dev 준비 완료를 거짓으로 주장하지 않습니다).
 
 `pnpm dev` 는 셸 앱(`@genoffice/shell`)을 띄웁니다. 하나의 창이 Docs·Sheets·Slides·PDF·Markdown·Hangul 편집기를 `WebContentsView` 자식으로 호스팅하는, 사용자가 보는 기본 화면입니다. `@redrob/office`(채용 앱 + Redrob 엔진)는 함께 유지되며 `pnpm dev:office` 로 따로 실행합니다.
 

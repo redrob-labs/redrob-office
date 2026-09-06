@@ -20,7 +20,7 @@ export const es = {
   aiSetUp: 'Configurar IA',
   aiNewChat: 'Nueva conversación',
   aiCollapsePanel: 'Contraer el panel de IA',
-  aiHistorySep: '—— Conversación anterior ——',
+  aiHistorySep: '-- Conversación anterior --',
   aiEmptyTitle: 'Pregunta a la IA sobre este libro',
   aiEmptyBodyLine1: 'Describe un cambio o pregunta sobre los datos.',
   aiThinkingAria: 'Pensando',

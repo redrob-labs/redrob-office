@@ -54,7 +54,7 @@ export const he = {
   paneCommentsTitle: 'הערות · שקופית {n}',
   paneCommentsCollapse: 'כווץ את חלונית ההערות',
   paneCommentsEmpty: 'אין הערות בשקופית זו',
-  paneCommentsEmptySub: 'הקלד למטה — ההערות נכתבות לקובץ ה-pptx וגלויות גם ב-PowerPoint.',
+  paneCommentsEmptySub: 'הקלד למטה - ההערות נכתבות לקובץ ה-pptx וגלויות גם ב-PowerPoint.',
   paneCommentsDelete: 'מחק הערה',
   paneCommentsPlaceholder: 'הערה חדשה… (⌘/Ctrl+Enter לפרסום)',
   paneCommentsPost: 'פרסם',

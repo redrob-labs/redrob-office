@@ -28,7 +28,7 @@ export const zh = {
   aiSwitchModel: '切换 AI 模型',
   aiNewChat: '新对话',
   aiCollapsePanel: '收起面板',
-  aiHistorySep: '—— 以上是历史对话 ——',
+  aiHistorySep: '-- 以上是历史对话 --',
   aiEmptyTitle: '让 AI 帮你打磨幻灯片',
   aiEmptyBody1: '可以下达指令,也可以直接提问;',
   aiEmptyBody2: '选中元素后,改写类指令默认作用于选中元素。',

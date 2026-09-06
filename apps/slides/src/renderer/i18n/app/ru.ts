@@ -27,7 +27,7 @@ export const ru = {
   appStatusFormatCopied: 'Формат скопирован',
   appStatusFormatPasted: 'Формат вставлен',
   appStatusBrushOnce:
-    'Щелкните целевой элемент, чтобы применить формат; двойной щелчок по кнопке — непрерывный режим',
+    'Щелкните целевой элемент, чтобы применить формат; двойной щелчок по кнопке - непрерывный режим',
   appStatusBrushContinuous: 'Непрерывный режим «Формат по образцу»; нажмите Esc для выхода',
   appStatusFormatApplied: 'Формат применен',
   appStatusTableInserted: 'Вставлена таблица {rows} × {cols}',
@@ -86,9 +86,9 @@ export const ru = {
   appStatusUngrouped: 'Группировка отменена',
   appStatusCommentAdded: 'Примечание добавлено',
   appStatusKeepOneSlide: 'Удаление невозможно; должен остаться хотя бы один слайд',
-  appStatusSlideCopied: 'Слайд скопирован — вставьте его в другую презентацию',
+  appStatusSlideCopied: 'Слайд скопирован - вставьте его в другую презентацию',
   appStatusSlideCopyFailed: 'Не удалось скопировать слайд',
-  appStatusSlideCut: 'Слайд вырезан — вставьте его в любой открытый файл',
+  appStatusSlideCut: 'Слайд вырезан - вставьте его в любой открытый файл',
   appStatusSlidePasteFailed: 'Не удалось вставить слайд',
   appSectionUntitled: 'Раздел без заголовка',
   appSectionDefault: 'Раздел по умолчанию',
@@ -160,7 +160,7 @@ export const ru = {
   appPrintNoPages: 'Нет слайдов для печати',
   appPrintRendering: 'Создание предварительного просмотра…',
   appGuideDragTip:
-    'Перетащите, чтобы переместить; двойной щелчок или перетаскивание за пределы — удалить',
+    'Перетащите, чтобы переместить; двойной щелчок или перетаскивание за пределы - удалить',
   appPrintFailed: 'Сбой печати: {error}',
   appCtxBringToFront: 'На передний план',
   appCtxSendToBack: 'На задний план',
@@ -198,7 +198,7 @@ export const ru = {
   appMasterStrokeNone: 'Без контура',
   appStartOpening: 'Открытие…',
   appReadingSlideTitle:
-    'Щелкните, чтобы перейти к следующему слайду (Esc — выйти из режима чтения)',
+    'Щелкните, чтобы перейти к следующему слайду (Esc - выйти из режима чтения)',
   appReadingPrev: '‹ Назад',
   appReadingNext: 'Далее ›',
   appReadingExit: 'Выйти из режима чтения',
@@ -235,5 +235,5 @@ export const ru = {
   appSettingsModel: 'Модель',
   appSettingsCancel: 'Отмена',
   appSettingsSave: 'Сохранить',
-  appCropHint: 'Enter — подтвердить · Esc — отменить · Щелчок снаружи — подтвердить',
+  appCropHint: 'Enter - подтвердить · Esc - отменить · Щелчок снаружи - подтвердить',
 } satisfies Record<keyof typeof zh, string>

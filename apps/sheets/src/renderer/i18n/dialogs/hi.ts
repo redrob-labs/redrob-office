@@ -28,7 +28,7 @@ export const hi = {
 
   dlgAdvFilterTitle: 'उन्नत फ़िल्टर',
   dlgAdvFilterNoColumns:
-    'फ़िल्टर श्रेणी में कोई स्तंभ उपलब्ध नहीं है — उन्नत फ़िल्टर खोलने से पहले डेटा चुनें और स्वतः फ़िल्टर चालू करें।',
+    'फ़िल्टर श्रेणी में कोई स्तंभ उपलब्ध नहीं है - उन्नत फ़िल्टर खोलने से पहले डेटा चुनें और स्वतः फ़िल्टर चालू करें।',
   dlgAdvFilterColumn: 'स्तंभ',
   dlgAdvFilterCondition1: 'शर्त 1',
   dlgAdvFilterCondition2: 'शर्त 2 (वैकल्पिक)',
@@ -168,14 +168,14 @@ export const hi = {
   dlgIconsCatNature: 'प्रकृति',
   dlgIconsCatTravel: 'यात्रा',
   dlgRecoTitle: 'अनुशंसित चार्ट',
-  dlgRecoNote: 'चयनित डेटा के स्वरूप के आधार पर क्रमित — सम्मिलित करने के लिए क्लिक करें।',
+  dlgRecoNote: 'चयनित डेटा के स्वरूप के आधार पर क्रमित - सम्मिलित करने के लिए क्लिक करें।',
   dlgRecoReasonTime: 'समय शृंखला रुझान के रूप में सबसे अच्छी दिखती है',
   dlgRecoReasonProportion: 'कम श्रेणियाँ पूर्ण के अंश के रूप में अच्छी दिखती हैं',
   dlgRecoReasonCorrelation: 'दो संख्यात्मक स्तंभ सहसंबंध के रूप में अच्छे दिखते हैं',
   dlgRecoReasonComparison: 'श्रेणियों के बीच मान तुलना के लिए उपयुक्त',
   dlgRecoReasonManyPoints: 'कई बिंदु रेखा के रूप में पठनीय रहते हैं',
   dlgRecoReasonLongLabels: 'लंबे लेबल क्षैतिज दंड चार्ट में बेहतर बैठते हैं',
-  dlgRecoReasonMixedScales: 'शृंखलाओं के पैमाने बहुत भिन्न हैं — कॉम्बो चार्ट उपयुक्त है',
+  dlgRecoReasonMixedScales: 'शृंखलाओं के पैमाने बहुत भिन्न हैं - कॉम्बो चार्ट उपयुक्त है',
   dlgScreenshotTitle: 'स्क्रीनशॉट',
   dlgScreenshotScreens: 'स्क्रीन',
   dlgScreenshotWindows: 'उपलब्ध विंडो',
@@ -193,7 +193,7 @@ export const hi = {
   dlgSymbolCatMisc: 'आकृतियां/अन्य',
   dlgSymbolInsertHint: '{symbol} सम्मिलित करें',
   dlgSymbolNote:
-    'किसी प्रतीक पर क्लिक करने से वह सक्रिय सेल में जुड़ जाता है — लगातार कई सम्मिलित कर सकते हैं, फिर बंद करें।',
+    'किसी प्रतीक पर क्लिक करने से वह सक्रिय सेल में जुड़ जाता है - लगातार कई सम्मिलित कर सकते हैं, फिर बंद करें।',
 
   dlgFcTitle: 'सेल स्वरूपित करें',
   dlgFcTabNumber: 'संख्या',
@@ -301,12 +301,12 @@ export const hi = {
     'हर क्षेत्र की पहली स्तंभ के लेबल से पंक्तियां मिलाई जाती हैं; परिणाम {target} से शुरू होते हैं और स्रोतों पर सक्रिय सूत्र होते हैं।',
   dlgConsNotePosition:
     'क्षेत्र स्थिति-दर-स्थिति संयोजित किए जाते हैं; परिणाम {target} से शुरू होते हैं और स्रोतों पर सक्रिय सूत्र होते हैं।',
-  dlgConsBadRef: 'अमान्य संदर्भ: {ref} — A1:C5 या Sheet2!A1:C5 का प्रारूप उपयोग करें।',
+  dlgConsBadRef: 'अमान्य संदर्भ: {ref} - A1:C5 या Sheet2!A1:C5 का प्रारूप उपयोग करें।',
   dlgConsNeedOneRef: 'कम से कम एक स्रोत संदर्भ जोड़ें।',
 
   dlgSubtotalTitle: 'उप-योग',
   dlgSubtotalNoFields:
-    'पहले स्रोत डेटा चुनें — शीर्ष पंक्ति और कम से कम एक डेटा पंक्ति वाली श्रेणी (समूह स्तंभ के अनुसार क्रमबद्ध) — फिर उप-योग दोबारा खोलें।',
+    'पहले स्रोत डेटा चुनें - शीर्ष पंक्ति और कम से कम एक डेटा पंक्ति वाली श्रेणी (समूह स्तंभ के अनुसार क्रमबद्ध) - फिर उप-योग दोबारा खोलें।',
   dlgSubtotalGroupBy: 'प्रत्येक परिवर्तन पर',
   dlgSubtotalFunction: 'फ़ंक्शन उपयोग करें',
   dlgSubtotalAddTo: 'उप-योग इसमें जोड़ें',
@@ -324,7 +324,7 @@ export const hi = {
   dlgNmAdd: 'जोड़ें',
   dlgNmUpdate: 'अद्यतन करें',
 
-  dlgFnTitle: 'फ़ंक्शन सम्मिलित करें — {target} में',
+  dlgFnTitle: 'फ़ंक्शन सम्मिलित करें - {target} में',
   dlgFnSearchPlaceholder: 'फ़ंक्शन खोजें…',
   dlgFnNoMatch: 'कोई मेल खाता फ़ंक्शन नहीं।',
   dlgFnFormula: 'सूत्र',

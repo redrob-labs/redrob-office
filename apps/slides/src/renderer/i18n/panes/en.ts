@@ -55,7 +55,7 @@ export const en = {
   paneCommentsCollapse: 'Collapse Comments Pane',
   paneCommentsEmpty: 'No comments on this slide',
   paneCommentsEmptySub:
-    'Type below — comments are written into the pptx and visible in PowerPoint too.',
+    'Type below - comments are written into the pptx and visible in PowerPoint too.',
   paneCommentsDelete: 'Delete comment',
   paneCommentsPlaceholder: 'New comment… (⌘/Ctrl+Enter to post)',
   paneCommentsPost: 'Post',

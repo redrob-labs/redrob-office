@@ -2,12 +2,20 @@
 
 ## Cursor Cloud specific instructions
 
-Redrob Office is a **single-product** pnpm + Turborepo monorepo: an on-device (offline-first)
-Electron office suite (`office/` = `@redrob/office`) backed by workspace packages under
-`packages/*` (`kernel`, `extract`, `compare`, `generate`, `store`, `registry`, `ui`, `telemetry`).
-There is **no backend server / database / broker to run** — all "services" are in-process
-subsystems of the Electron app. Node `>=22`, pnpm `9.15.0`. Standard scripts live in the root
-`package.json`.
+Redrob Office is a pnpm + Turborepo monorepo. The **primary product** is the office suite shell
+`@genoffice/shell` (`apps/shell`), which hosts the Docs/Sheets/Slides/PDF/Markdown/Hangul editors
+(`apps/*`) as `WebContentsView` children in one Electron window (`pnpm dev`). The legacy recruiting
+app `@redrob/office` (`office/`) coexists and is launched separately (`pnpm dev:office`); it, plus
+the workspace packages under `packages/*` (`kernel`, `extract`, `compare`, `generate`, `store`,
+`registry`, `ui`, `telemetry`), back the on-device (offline-first) AI/recruiting features. There is
+**no backend server / database / broker to run** — all "services" are in-process subsystems of the
+Electron apps. Node `>=22`, pnpm `9.15.0`. Standard scripts live in the root `package.json`.
+
+After a `pnpm install --ignore-scripts` (which skips the `postinstall`), run **`pnpm ensure:electron`**
+so each app's pinned Electron binary is materialized; otherwise `pnpm dev` fails with
+`Error: Electron uninstall`. On a headless machine that will only run typecheck/test/dev:web, set
+`REDROB_SKIP_ELECTRON_ENSURE=1` to opt out (the normal `postinstall` fails nonzero when a binary
+cannot be ensured, so a plain install cannot falsely claim a dev-ready tree).
 
 ### Running in the cloud VM (no GPU, headless)
 

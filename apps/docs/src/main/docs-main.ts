@@ -254,7 +254,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Not signed in to Redrob: click “Sign in to Redrob” below, sign in, then retry',
     errNoApiKey: 'No API key configured for {provider}',
-    errAiBusy: 'The AI service is busy right now — please try again in a moment',
+    errAiBusy: 'The AI service is busy right now - please try again in a moment',
     errNoModel: 'No model name configured',
     menuFile: 'File',
     menuNewDoc: 'New Document',
@@ -542,7 +542,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Non connecté à Redrob : cliquez sur « Se connecter à Redrob » ci-dessous, connectez-vous puis réessayez',
     errNoApiKey: 'Aucune clé API configurée pour {provider}',
-    errAiBusy: "Le service d'IA est actuellement surchargé — réessayez dans un instant",
+    errAiBusy: "Le service d'IA est actuellement surchargé - réessayez dans un instant",
     errNoModel: 'Aucun nom de modèle configuré',
     menuFile: 'Fichier',
     menuNewDoc: 'Nouveau document',
@@ -639,7 +639,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Nicht bei Redrob angemeldet: Klicken Sie unten auf „Bei Redrob anmelden“, melden Sie sich an und versuchen Sie es erneut',
     errNoApiKey: 'Kein API-Schlüssel für {provider} konfiguriert',
-    errAiBusy: 'Der KI-Dienst ist derzeit überlastet — bitte gleich erneut versuchen',
+    errAiBusy: 'Der KI-Dienst ist derzeit überlastet - bitte gleich erneut versuchen',
     errNoModel: 'Kein Modellname konfiguriert',
     menuFile: 'Datei',
     menuNewDoc: 'Neues Dokument',
@@ -926,7 +926,7 @@ const tMain = createI18n({
     errNotImage: 'bukan jenis gambar yang didukung',
     errGskNotLoggedIn: 'Belum masuk ke Redrob: klik “Masuk ke Redrob” di bawah, lalu coba lagi',
     errNoApiKey: 'API Key untuk {provider} belum dikonfigurasi',
-    errAiBusy: 'Layanan AI sedang sibuk — silakan coba lagi sebentar lagi',
+    errAiBusy: 'Layanan AI sedang sibuk - silakan coba lagi sebentar lagi',
     errNoModel: 'Nama model belum dikonfigurasi',
     menuFile: 'File',
     menuNewDoc: 'Dokumen Baru',
@@ -1022,7 +1022,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Вы не вошли в Redrob: нажмите «Войти в Redrob» ниже, войдите и повторите попытку',
     errNoApiKey: 'API-ключ для {provider} не настроен',
-    errAiBusy: 'Сервис ИИ сейчас перегружен — повторите попытку чуть позже',
+    errAiBusy: 'Сервис ИИ сейчас перегружен - повторите попытку чуть позже',
     errNoModel: 'Не указано имя модели',
     menuFile: 'Файл',
     menuNewDoc: 'Создать документ',
@@ -1118,7 +1118,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'لم تسجّل الدخول إلى Redrob: انقر على «تسجيل الدخول إلى Redrob» أدناه ثم أعد المحاولة',
     errNoApiKey: 'لم يتم تكوين مفتاح API لـ {provider}',
-    errAiBusy: 'خدمة الذكاء الاصطناعي مشغولة حاليًا — يرجى المحاولة مرة أخرى بعد قليل',
+    errAiBusy: 'خدمة الذكاء الاصطناعي مشغولة حاليًا - يرجى المحاولة مرة أخرى بعد قليل',
     errNoModel: 'لم يتم تكوين اسم النموذج',
     menuFile: 'ملف',
     menuNewDoc: 'مستند جديد',
@@ -1214,7 +1214,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Não conectado ao Redrob: clique em “Entrar no Redrob” abaixo, entre e tente novamente',
     errNoApiKey: 'Nenhuma chave de API configurada para {provider}',
-    errAiBusy: 'O serviço de IA está sobrecarregado no momento — tente novamente em instantes',
+    errAiBusy: 'O serviço de IA está sobrecarregado no momento - tente novamente em instantes',
     errNoModel: 'Nenhum nome de modelo configurado',
     menuFile: 'Arquivo',
     menuNewDoc: 'Novo Documento',
@@ -1310,7 +1310,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Accesso a Redrob non effettuato: fai clic su “Accedi a Redrob” qui sotto, accedi e riprova',
     errNoApiKey: 'Nessuna chiave API configurata per {provider}',
-    errAiBusy: 'Il servizio IA è momentaneamente sovraccarico — riprova tra poco',
+    errAiBusy: 'Il servizio IA è momentaneamente sovraccarico - riprova tra poco',
     errNoModel: 'Nessun nome di modello configurato',
     menuFile: 'File',
     menuNewDoc: 'Nuovo documento',
@@ -1406,7 +1406,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Nie zalogowano do Redrob: kliknij „Zaloguj się do Redrob” poniżej, zaloguj się i spróbuj ponownie',
     errNoApiKey: 'Nie skonfigurowano klucza API dla {provider}',
-    errAiBusy: 'Usługa AI jest obecnie przeciążona — spróbuj ponownie za chwilę',
+    errAiBusy: 'Usługa AI jest obecnie przeciążona - spróbuj ponownie za chwilę',
     errNoModel: 'Nie skonfigurowano nazwy modelu',
     menuFile: 'Plik',
     menuNewDoc: 'Nowy dokument',
@@ -1502,7 +1502,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Niet aangemeld bij Redrob: klik hieronder op “Aanmelden bij Redrob”, meld u aan en probeer het opnieuw',
     errNoApiKey: 'Geen API-sleutel geconfigureerd voor {provider}',
-    errAiBusy: 'De AI-service is momenteel overbelast — probeer het zo opnieuw',
+    errAiBusy: 'De AI-service is momenteel overbelast - probeer het zo opnieuw',
     errNoModel: 'Geen modelnaam geconfigureerd',
     menuFile: 'Bestand',
     menuNewDoc: 'Nieuw document',
@@ -1598,7 +1598,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Belum log masuk ke Redrob: klik “Log masuk ke Redrob” di bawah, kemudian cuba lagi',
     errNoApiKey: 'Kunci API untuk {provider} belum dikonfigurasikan',
-    errAiBusy: 'Perkhidmatan AI sedang sibuk — sila cuba lagi sebentar lagi',
+    errAiBusy: 'Perkhidmatan AI sedang sibuk - sila cuba lagi sebentar lagi',
     errNoModel: 'Nama model belum dikonfigurasikan',
     menuFile: 'Fail',
     menuNewDoc: 'Dokumen Baharu',
@@ -1692,7 +1692,7 @@ const tMain = createI18n({
     errNotImage: 'סוג תמונה שאינו נתמך',
     errGskNotLoggedIn: 'לא מחובר ל-Redrob: לחץ על "התחבר ל-Redrob" למטה, התחבר ונסה שוב',
     errNoApiKey: 'לא הוגדר מפתח API עבור {provider}',
-    errAiBusy: 'שירות ה-AI עמוס כרגע — נסו שוב בעוד רגע',
+    errAiBusy: 'שירות ה-AI עמוס כרגע - נסו שוב בעוד רגע',
     errNoModel: 'לא הוגדר שם מודל',
     menuFile: 'קובץ',
     menuNewDoc: 'מסמך חדש',
@@ -1788,7 +1788,7 @@ const tMain = createI18n({
     errGskNotLoggedIn:
       'Redrob में साइन इन नहीं है: नीचे “Redrob में साइन इन करें” पर क्लिक करें, साइन इन करें और फिर से कोशिश करें',
     errNoApiKey: '{provider} के लिए कोई API कुंजी कॉन्फ़िगर नहीं है',
-    errAiBusy: 'AI सेवा अभी व्यस्त है — कृपया थोड़ी देर बाद फिर से प्रयास करें',
+    errAiBusy: 'AI सेवा अभी व्यस्त है - कृपया थोड़ी देर बाद फिर से प्रयास करें',
     errNoModel: 'कोई मॉडल नाम कॉन्फ़िगर नहीं है',
     menuFile: 'फ़ाइल',
     menuNewDoc: 'नया दस्तावेज़',

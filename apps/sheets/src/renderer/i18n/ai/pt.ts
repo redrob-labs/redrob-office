@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const pt = {
   aiComposerPlaceholderBuild: 'Descreva a tabela, os dados ou o gráfico a criar…',
   aiEmptyBuildTitle: 'Deixe a IA montar esta pasta de trabalho para você',
-  aiEmptyBuildBody: 'Descreva a tabela, os dados ou o gráfico que precisa — a IA cria na hora.',
+  aiEmptyBuildBody: 'Descreva a tabela, os dados ou o gráfico que precisa - a IA cria na hora.',
   aiGskLoginBtn: 'Entrar no Redrob',
   aiUndelivered: 'Não enviado',
   aiRetry: 'Tentar novamente',
@@ -19,7 +19,7 @@ export const pt = {
   aiSetUp: 'Configurar IA',
   aiNewChat: 'Nova conversa',
   aiCollapsePanel: 'Recolher painel de IA',
-  aiHistorySep: '—— Conversa anterior ——',
+  aiHistorySep: '-- Conversa anterior --',
   aiEmptyTitle: 'Pergunte à IA sobre esta pasta de trabalho',
   aiEmptyBodyLine1: 'Descreva uma alteração ou pergunte sobre os dados.',
   aiThinkingAria: 'Pensando',
@@ -63,7 +63,7 @@ export const pt = {
   aiTimeoutError:
     'A solicitação de IA expirou: sem resposta da rede, a execução foi interrompida. Verifique sua conexão e tente novamente',
   aiOverloadedError:
-    'O serviço de IA está sobrecarregado no momento — tente novamente em instantes',
+    'O serviço de IA está sobrecarregado no momento - tente novamente em instantes',
   aiNetworkError:
     'Problema de rede: não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente',
   aiCreditsExhausted:

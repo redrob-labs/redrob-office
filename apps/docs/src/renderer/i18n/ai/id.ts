@@ -57,7 +57,7 @@ export const id = {
   aiSwitchModelTitle: 'Ganti model AI',
   aiNewChatTitle: 'Obrolan baru',
   aiCollapseTitle: 'Ciutkan panel',
-  aiHistorySep: '—— Percakapan sebelumnya ——',
+  aiHistorySep: '-- Percakapan sebelumnya --',
   aiEmptyTitle: 'Biarkan AI membantu Anda menulis dan mengedit',
   aiEmptyBody1: 'Berikan instruksi atau langsung ajukan pertanyaan;',
   aiEmptyBody2: 'dengan teks terpilih, perintah penulisan ulang berlaku pada pilihan.',
@@ -102,7 +102,7 @@ export const id = {
   aiUnknownError: 'Kesalahan tidak dikenal',
   aiTimeoutError:
     'Permintaan AI habis waktu: jaringan tidak merespons sehingga proses dihentikan. Periksa koneksi Anda lalu coba lagi',
-  aiOverloadedError: 'Layanan AI sedang sibuk — silakan coba lagi sebentar lagi',
+  aiOverloadedError: 'Layanan AI sedang sibuk - silakan coba lagi sebentar lagi',
   aiNetworkError:
     'Masalah jaringan: tidak dapat terhubung ke layanan AI. Periksa koneksi Anda lalu coba lagi',
   aiCreditsExhausted:
@@ -138,7 +138,7 @@ export const id = {
   aiSumApplyCommands: 'Terapkan perintah pemformatan',
   aiCmdNone: 'Tidak ada blok yang cocok; dokumen tidak diubah.',
   aiCmdNoneSkipped:
-    'Tidak ada blok yang dapat diedit; dokumen tidak diubah ({count} blok terlindungi dilewati — tabel/gambar tidak dapat diubah dengan perintah gaya).',
+    'Tidak ada blok yang dapat diedit; dokumen tidak diubah ({count} blok terlindungi dilewati - tabel/gambar tidak dapat diubah dengan perintah gaya).',
   aiCmdTextStyle: 'Gaya teks diperbarui pada {count} blok',
   aiCmdMatchedStyle: 'Gaya diterapkan pada {count} kecocokan di {blocks} blok',
   aiCmdParaStyle: 'Format paragraf diperbarui pada {count} blok',

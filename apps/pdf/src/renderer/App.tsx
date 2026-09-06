@@ -3041,7 +3041,7 @@ export default function App() {
       failure is diagnosable from the toast alone (page numbers never explain WHY) */
   const skipDetail = (skipped: { reason: string }[]): string => {
     const reason = skipped.find((s) => s.reason)?.reason
-    return reason ? ` — ${reason}` : ''
+    return reason ? ` - ${reason}` : ''
   }
 
   /** Skipped text edits are dropped from the file and from the pending list — surface

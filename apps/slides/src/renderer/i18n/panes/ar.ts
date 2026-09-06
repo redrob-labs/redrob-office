@@ -54,7 +54,7 @@ export const ar = {
   paneCommentsTitle: 'التعليقات · الشريحة {n}',
   paneCommentsCollapse: 'طي جزء التعليقات',
   paneCommentsEmpty: 'لا توجد تعليقات على هذه الشريحة بعد',
-  paneCommentsEmptySub: 'اكتب أدناه — تتم كتابة التعليقات في ملف pptx وتظهر أيضًا في PowerPoint.',
+  paneCommentsEmptySub: 'اكتب أدناه - تتم كتابة التعليقات في ملف pptx وتظهر أيضًا في PowerPoint.',
   paneCommentsDelete: 'حذف التعليق',
   paneCommentsPlaceholder: 'تعليق جديد… (⌘/Ctrl+Enter للنشر)',
   paneCommentsPost: 'نشر',

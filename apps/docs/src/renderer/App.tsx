@@ -4682,7 +4682,7 @@ export function App() {
                 </>
               )}
               {!doc && t('appReady')}
-              {status && <span className="status-msg"> — {status}</span>}
+              {status && <span className="status-msg"> - {status}</span>}
             </div>
             <div className="status-right">
               <button

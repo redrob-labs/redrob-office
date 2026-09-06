@@ -603,7 +603,7 @@ export const de = {
   ribbonAiRevisionsTip:
     'Die KI liest die {count} offenen Änderungen, fasst sie abschnittsweise zusammen und markiert Risiken',
   ribbonAiRevisionsPrompt:
-    'Fasse alle offenen nachverfolgten Änderungen des Dokuments zusammen: zuerst Gesamtstatistik (Anzahl Einfügungen/Löschungen, Autoren, Zeitraum), dann die Änderungen Abschnitt für Abschnitt (mit Blockindizes), zum Schluss eine Liste möglicher Risiken (gelöschte Pflichten oder Einschränkungen, geänderte Zahlen/Daten/Beträge). Nur zusammenfassen — das Dokument nicht ändern und keine Änderung annehmen oder ablehnen.',
+    'Fasse alle offenen nachverfolgten Änderungen des Dokuments zusammen: zuerst Gesamtstatistik (Anzahl Einfügungen/Löschungen, Autoren, Zeitraum), dann die Änderungen Abschnitt für Abschnitt (mit Blockindizes), zum Schluss eine Liste möglicher Risiken (gelöschte Pflichten oder Einschränkungen, geänderte Zahlen/Daten/Beträge). Nur zusammenfassen - das Dokument nicht ändern und keine Änderung annehmen oder ablehnen.',
   ribbonAiCommentsTip:
     'Die KI arbeitet die {count} offenen Kommentare ab: ändern, antworten, erledigen',
   ribbonAiCommentsPrompt:

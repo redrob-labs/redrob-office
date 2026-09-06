@@ -297,7 +297,7 @@ export const ko = {
     '각 영역은 첫 열의 레이블로 행을 맞춥니다. 결과는 {target}부터 출력되며 원본 영역을 참조하는 실시간 수식입니다.',
   dlgConsNotePosition:
     '각 영역을 위치별로 통합합니다. 결과는 {target}부터 출력되며 원본 영역을 참조하는 실시간 수식입니다.',
-  dlgConsBadRef: '잘못된 참조: {ref} — A1:C5 또는 Sheet2!A1:C5 형식으로 입력하세요.',
+  dlgConsBadRef: '잘못된 참조: {ref} - A1:C5 또는 Sheet2!A1:C5 형식으로 입력하세요.',
   dlgConsNeedOneRef: '원본 참조를 하나 이상 추가하세요.',
 
   dlgSubtotalTitle: '부분합',
@@ -320,7 +320,7 @@ export const ko = {
   dlgNmAdd: '추가',
   dlgNmUpdate: '업데이트',
 
-  dlgFnTitle: '함수 삽입 — 대상 {target}',
+  dlgFnTitle: '함수 삽입 - 대상 {target}',
   dlgFnSearchPlaceholder: '함수 검색…',
   dlgFnNoMatch: '일치하는 함수가 없습니다.',
   dlgFnFormula: '수식',

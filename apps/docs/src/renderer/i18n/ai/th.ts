@@ -55,7 +55,7 @@ export const th = {
   aiSwitchModelTitle: 'สลับโมเดล AI',
   aiNewChatTitle: 'การสนทนาใหม่',
   aiCollapseTitle: 'ยุบแผง',
-  aiHistorySep: '—— ด้านบนคือการสนทนาก่อนหน้า ——',
+  aiHistorySep: '-- ด้านบนคือการสนทนาก่อนหน้า --',
   aiEmptyTitle: 'ให้ AI ช่วยคุณเขียนและแก้ไข',
   aiEmptyBody1: 'สามารถสั่งงานหรือถามคำถามได้โดยตรง',
   aiEmptyBody2: 'เมื่อเลือกข้อความไว้ คำสั่งเขียนใหม่จะมีผลกับส่วนที่เลือก',

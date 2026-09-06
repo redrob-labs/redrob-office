@@ -599,7 +599,7 @@ export const ms = {
   ribbonAiRevisionsTip:
     'AI membaca {count} semakan tertunda, meringkaskan perubahan mengikut bahagian dan menandakan risiko',
   ribbonAiRevisionsPrompt:
-    'Ringkaskan semua semakan tertunda dalam dokumen: mulakan dengan statistik keseluruhan (bilangan sisipan/pemadaman, pengarang, julat tarikh), kemudian terangkan perubahan bahagian demi bahagian (nyatakan indeks blok), dan akhiri dengan senarai perkara yang perlu diberi perhatian (kewajipan atau syarat yang dipadamkan, nombor/tarikh/amaun yang diubah). Ringkaskan sahaja — jangan ubah dokumen atau terima/tolak sebarang semakan.',
+    'Ringkaskan semua semakan tertunda dalam dokumen: mulakan dengan statistik keseluruhan (bilangan sisipan/pemadaman, pengarang, julat tarikh), kemudian terangkan perubahan bahagian demi bahagian (nyatakan indeks blok), dan akhiri dengan senarai perkara yang perlu diberi perhatian (kewajipan atau syarat yang dipadamkan, nombor/tarikh/amaun yang diubah). Ringkaskan sahaja - jangan ubah dokumen atau terima/tolak sebarang semakan.',
   ribbonAiCommentsTip:
     'AI memproses {count} komen yang belum selesai: ubah, balas, kemudian selesaikan',
   ribbonAiCommentsPrompt:

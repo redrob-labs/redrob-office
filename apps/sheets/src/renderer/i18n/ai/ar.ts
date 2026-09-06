@@ -3,7 +3,7 @@ import type { zh } from './zh'
 export const ar = {
   aiComposerPlaceholderBuild: 'صف الجدول أو البيانات أو المخطط المطلوب إنشاؤه…',
   aiEmptyBuildTitle: 'دع الذكاء الاصطناعي ينشئ هذا المصنف لك',
-  aiEmptyBuildBody: 'صف الجدول أو البيانات أو المخطط الذي تريده — ينشئه الذكاء الاصطناعي مباشرة.',
+  aiEmptyBuildBody: 'صف الجدول أو البيانات أو المخطط الذي تريده - ينشئه الذكاء الاصطناعي مباشرة.',
   aiGskLoginBtn: 'تسجيل الدخول إلى Redrob',
   aiUndelivered: 'لم يتم الإرسال',
   aiRetry: 'إعادة المحاولة',
@@ -18,7 +18,7 @@ export const ar = {
   aiSetUp: 'إعداد الذكاء الاصطناعي',
   aiNewChat: 'محادثة جديدة',
   aiCollapsePanel: 'طي لوحة الذكاء الاصطناعي',
-  aiHistorySep: '—— المحادثة السابقة ——',
+  aiHistorySep: '-- المحادثة السابقة --',
   aiEmptyTitle: 'اسأل الذكاء الاصطناعي عن هذا المصنف',
   aiEmptyBodyLine1: 'صِف التغيير المطلوب أو اسأل عن البيانات.',
   aiThinkingAria: 'يفكّر',
@@ -61,7 +61,7 @@ export const ar = {
   aiUnknownError: 'خطأ غير معروف',
   aiTimeoutError:
     'انتهت مهلة طلب الذكاء الاصطناعي: لا توجد استجابة من الشبكة وتم الإيقاف. تحقق من الاتصال وحاول مجددًا',
-  aiOverloadedError: 'خدمة الذكاء الاصطناعي مشغولة حاليًا — يرجى المحاولة مرة أخرى بعد قليل',
+  aiOverloadedError: 'خدمة الذكاء الاصطناعي مشغولة حاليًا - يرجى المحاولة مرة أخرى بعد قليل',
   aiNetworkError:
     'مشكلة في الشبكة: تعذّر الوصول إلى خدمة الذكاء الاصطناعي. تحقق من الاتصال وحاول مجددًا',
   aiCreditsExhausted:

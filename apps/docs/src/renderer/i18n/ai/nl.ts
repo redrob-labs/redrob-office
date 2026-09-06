@@ -54,11 +54,11 @@ export const nl = {
   aiSumResolveComment: 'Opmerking opgelost',
   aiTidyBtn: 'AI-opmaak',
   aiTidyPrompt:
-    'Ruim de opmaak van het hele document op — bijvoorbeeld kopniveaus corrigeren, lijsten uniform maken, overbodige vet- en cursiefopmaak verwijderen en alinea-inspringingen consistent maken. Pas alleen de opmaak aan, verander de tekst niet',
+    'Ruim de opmaak van het hele document op - bijvoorbeeld kopniveaus corrigeren, lijsten uniform maken, overbodige vet- en cursiefopmaak verwijderen en alinea-inspringingen consistent maken. Pas alleen de opmaak aan, verander de tekst niet',
   aiSwitchModelTitle: 'AI-model wisselen',
   aiNewChatTitle: 'Nieuw gesprek',
   aiCollapseTitle: 'Paneel samenvouwen',
-  aiHistorySep: '—— Eerder gesprek ——',
+  aiHistorySep: '-- Eerder gesprek --',
   aiEmptyTitle: 'Laat AI je helpen met schrijven en bewerken',
   aiEmptyBody1: 'Geef een instructie of stel gewoon een vraag;',
   aiEmptyBody2: 'met geselecteerde tekst worden herschrijfopdrachten toegepast op de selectie.',
@@ -104,7 +104,7 @@ export const nl = {
   aiUnknownError: 'Onbekende fout',
   aiTimeoutError:
     'AI-verzoek verlopen: geen reactie van het netwerk, uitvoering gestopt. Controleer je verbinding en probeer het opnieuw',
-  aiOverloadedError: 'De AI-service is momenteel overbelast — probeer het zo opnieuw',
+  aiOverloadedError: 'De AI-service is momenteel overbelast - probeer het zo opnieuw',
   aiNetworkError:
     'Netwerkprobleem: kan de AI-service niet bereiken. Controleer je verbinding en probeer het opnieuw',
   aiCreditsExhausted:
@@ -140,7 +140,7 @@ export const nl = {
   aiSumApplyCommands: 'Opmaakopdrachten toepassen',
   aiCmdNone: 'Geen overeenkomende blokken; het document is niet gewijzigd.',
   aiCmdNoneSkipped:
-    'Geen bewerkbare blokken; het document is niet gewijzigd ({count} beveiligde blokken overgeslagen — tabellen/afbeeldingen kunnen niet met stijlopdrachten worden gewijzigd).',
+    'Geen bewerkbare blokken; het document is niet gewijzigd ({count} beveiligde blokken overgeslagen - tabellen/afbeeldingen kunnen niet met stijlopdrachten worden gewijzigd).',
   aiCmdTextStyle: 'Tekststijl bijgewerkt in {count} blok(ken)',
   aiCmdMatchedStyle: 'Stijl toegepast op {count} overeenkomst(en) in {blocks} blok(ken)',
   aiCmdParaStyle: 'Alineaopmaak bijgewerkt in {count} blok(ken)',

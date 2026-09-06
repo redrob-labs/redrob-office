@@ -55,11 +55,11 @@ export const it = {
   aiSumResolveComment: 'Commento risolto',
   aiTidyBtn: 'Formattazione IA',
   aiTidyPrompt:
-    'Sistema la formattazione di tutto il documento — ad esempio correggi i livelli dei titoli, uniforma gli elenchi, rimuovi grassetti e corsivi superflui e uniforma i rientri dei paragrafi. Modifica solo la formattazione, senza cambiare il testo',
+    'Sistema la formattazione di tutto il documento - ad esempio correggi i livelli dei titoli, uniforma gli elenchi, rimuovi grassetti e corsivi superflui e uniforma i rientri dei paragrafi. Modifica solo la formattazione, senza cambiare il testo',
   aiSwitchModelTitle: 'Cambia modello IA',
   aiNewChatTitle: 'Nuova conversazione',
   aiCollapseTitle: 'Comprimi pannello',
-  aiHistorySep: '—— Conversazione precedente ——',
+  aiHistorySep: '-- Conversazione precedente --',
   aiEmptyTitle: "Lascia che l'IA ti aiuti a scrivere e modificare",
   aiEmptyBody1: "Dai un'istruzione o fai semplicemente una domanda;",
   aiEmptyBody2: 'con del testo selezionato, i comandi di riscrittura si applicano alla selezione.',
@@ -106,7 +106,7 @@ export const it = {
   aiUnknownError: 'Errore sconosciuto',
   aiTimeoutError:
     'Richiesta IA scaduta: nessuna risposta dalla rete, esecuzione interrotta. Controlla la connessione e riprova',
-  aiOverloadedError: 'Il servizio IA è momentaneamente sovraccarico — riprova tra poco',
+  aiOverloadedError: 'Il servizio IA è momentaneamente sovraccarico - riprova tra poco',
   aiNetworkError:
     'Problema di rete: impossibile raggiungere il servizio IA. Controlla la connessione e riprova',
   aiCreditsExhausted:
@@ -142,7 +142,7 @@ export const it = {
   aiSumApplyCommands: 'Applica comandi di formattazione',
   aiCmdNone: 'Nessun blocco corrispondente; il documento non è stato modificato.',
   aiCmdNoneSkipped:
-    'Nessun blocco modificabile; il documento non è stato modificato ({count} blocchi protetti ignorati — tabelle/immagini non possono essere modificate con comandi di stile).',
+    'Nessun blocco modificabile; il documento non è stato modificato ({count} blocchi protetti ignorati - tabelle/immagini non possono essere modificate con comandi di stile).',
   aiCmdTextStyle: 'Stile del testo aggiornato in {count} blocco/i',
   aiCmdMatchedStyle: 'Stile applicato a {count} occorrenze in {blocks} blocchi',
   aiCmdParaStyle: 'Formato del paragrafo aggiornato in {count} blocco/i',

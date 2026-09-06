@@ -29,7 +29,7 @@ export const zhTW = {
   aiSwitchModel: '切換 AI 模型',
   aiNewChat: '新對話',
   aiCollapsePanel: '收合面板',
-  aiHistorySep: '—— 以上是歷史對話 ——',
+  aiHistorySep: '-- 以上是歷史對話 --',
   aiEmptyTitle: '讓 AI 幫你打磨投影片',
   aiEmptyBody1: '可以下達指令,也可以直接提問;',
   aiEmptyBody2: '選取元素後,改寫類指令預設作用於選取的元素。',

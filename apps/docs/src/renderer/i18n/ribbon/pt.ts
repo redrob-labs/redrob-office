@@ -597,7 +597,7 @@ export const pt = {
   ribbonAiRevisionsTip:
     'A IA lê as {count} revisões pendentes, resume as mudanças por seção e sinaliza riscos',
   ribbonAiRevisionsPrompt:
-    'Resuma todas as revisões pendentes do documento: comece com estatísticas gerais (número de inserções/exclusões, autores, intervalo de datas), depois descreva as mudanças seção por seção (cite os índices de bloco) e termine com os pontos de atenção (obrigações ou ressalvas excluídas, números/datas/valores alterados). Apenas resuma — não modifique o documento nem aceite/rejeite nenhuma revisão.',
+    'Resuma todas as revisões pendentes do documento: comece com estatísticas gerais (número de inserções/exclusões, autores, intervalo de datas), depois descreva as mudanças seção por seção (cite os índices de bloco) e termine com os pontos de atenção (obrigações ou ressalvas excluídas, números/datas/valores alterados). Apenas resuma - não modifique o documento nem aceite/rejeite nenhuma revisão.',
   ribbonAiCommentsTip:
     'A IA processa os {count} comentários não resolvidos: edita, responde e resolve',
   ribbonAiCommentsPrompt:

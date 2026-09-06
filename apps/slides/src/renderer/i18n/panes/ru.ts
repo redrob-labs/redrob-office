@@ -55,9 +55,9 @@ export const ru = {
   paneCommentsCollapse: 'Свернуть область примечаний',
   paneCommentsEmpty: 'На этом слайде пока нет примечаний',
   paneCommentsEmptySub:
-    'Введите текст ниже — примечания записываются в pptx и видны также в PowerPoint.',
+    'Введите текст ниже - примечания записываются в pptx и видны также в PowerPoint.',
   paneCommentsDelete: 'Удалить примечание',
-  paneCommentsPlaceholder: 'Новое примечание… (⌘/Ctrl+Enter — опубликовать)',
+  paneCommentsPlaceholder: 'Новое примечание… (⌘/Ctrl+Enter - опубликовать)',
   paneCommentsPost: 'Опубликовать',
 
   paneCsdTitle: 'Произвольные показы',

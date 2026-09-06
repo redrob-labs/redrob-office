@@ -52,11 +52,11 @@ export const en = {
   aiSumResolveComment: 'Resolved comment',
   aiTidyBtn: 'AI Format',
   aiTidyPrompt:
-    'Tidy up the document formatting — for example fix heading levels, unify list formatting, remove unnecessary bold and italics, and make paragraph indentation consistent. Adjust formatting only — do not change any text content',
+    'Tidy up the document formatting - for example fix heading levels, unify list formatting, remove unnecessary bold and italics, and make paragraph indentation consistent. Adjust formatting only - do not change any text content',
   aiSwitchModelTitle: 'Switch AI model',
   aiNewChatTitle: 'New chat',
   aiCollapseTitle: 'Collapse panel',
-  aiHistorySep: '—— Earlier conversation ——',
+  aiHistorySep: '-- Earlier conversation --',
   aiEmptyTitle: 'Let AI help you write and edit',
   aiEmptyBody1: 'Give an instruction or just ask a question;',
   aiEmptyBody2: 'with text selected, rewrite commands apply to the selection.',
@@ -101,7 +101,7 @@ export const en = {
   aiUnknownError: 'Unknown error',
   aiTimeoutError:
     'AI request timed out: no response from the network, so the run was stopped. Check your connection and try again',
-  aiOverloadedError: 'The AI service is busy right now — please try again in a moment',
+  aiOverloadedError: 'The AI service is busy right now - please try again in a moment',
   aiNetworkError:
     'Network problem: could not reach the AI service. Check your connection and try again',
   aiCreditsExhausted:
@@ -137,7 +137,7 @@ export const en = {
   aiSumApplyCommands: 'Apply formatting commands',
   aiCmdNone: 'No matching blocks; the document was not changed.',
   aiCmdNoneSkipped:
-    'No editable blocks; the document was not changed ({count} protected blocks skipped — tables/images cannot be changed by style commands).',
+    'No editable blocks; the document was not changed ({count} protected blocks skipped - tables/images cannot be changed by style commands).',
   aiCmdTextStyle: 'Updated text style on {count} block(s)',
   aiCmdMatchedStyle: 'Styled {count} match(es) across {blocks} block(s)',
   aiCmdParaStyle: 'Updated paragraph format on {count} block(s)',

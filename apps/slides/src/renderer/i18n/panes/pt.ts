@@ -55,7 +55,7 @@ export const pt = {
   paneCommentsCollapse: 'Recolher o Painel de Comentários',
   paneCommentsEmpty: 'Nenhum comentário neste slide',
   paneCommentsEmptySub:
-    'Digite abaixo — os comentários são gravados no pptx e também ficam visíveis no PowerPoint.',
+    'Digite abaixo - os comentários são gravados no pptx e também ficam visíveis no PowerPoint.',
   paneCommentsDelete: 'Excluir comentário',
   paneCommentsPlaceholder: 'Novo comentário… (⌘/Ctrl+Enter para publicar)',
   paneCommentsPost: 'Publicar',

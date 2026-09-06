@@ -25,7 +25,7 @@ export const zh = {
   dlgCreate: '创建',
 
   dlgAdvFilterTitle: '高级筛选',
-  dlgAdvFilterNoColumns: '筛选区域中没有可用的列 — 请先选中数据并开启自动筛选，再打开高级筛选。',
+  dlgAdvFilterNoColumns: '筛选区域中没有可用的列 - 请先选中数据并开启自动筛选，再打开高级筛选。',
   dlgAdvFilterColumn: '列',
   dlgAdvFilterCondition1: '条件 1',
   dlgAdvFilterCondition2: '条件 2（可留空）',
@@ -183,7 +183,7 @@ export const zh = {
   dlgSymbolCatGreek: '希腊字母',
   dlgSymbolCatMisc: '几何/其它',
   dlgSymbolInsertHint: '插入 {symbol}',
-  dlgSymbolNote: '点击符号追加到活动单元格 — 可连续插入，完成后关闭。',
+  dlgSymbolNote: '点击符号追加到活动单元格 - 可连续插入，完成后关闭。',
 
   dlgFcTitle: '设置单元格格式',
   dlgFcTabNumber: '数字',
@@ -288,12 +288,12 @@ export const zh = {
   dlgConsLeftLabels: '标签位置：最左列',
   dlgConsNoteLabels: '各区域按首列标签匹配行；结果从 {target} 开始，是引用源区域的实时公式。',
   dlgConsNotePosition: '各区域按位置逐格合并；结果从 {target} 开始，是引用源区域的实时公式。',
-  dlgConsBadRef: '引用无效：{ref}——请用 A1:C5 或 Sheet2!A1:C5 的形式。',
+  dlgConsBadRef: '引用无效：{ref}--请用 A1:C5 或 Sheet2!A1:C5 的形式。',
   dlgConsNeedOneRef: '请至少添加一个源引用。',
 
   dlgSubtotalTitle: '分类汇总',
   dlgSubtotalNoFields:
-    '请先选中源数据——含表头行和至少一行数据的区域（按分类字段排序），再打开分类汇总。',
+    '请先选中源数据--含表头行和至少一行数据的区域（按分类字段排序），再打开分类汇总。',
   dlgSubtotalGroupBy: '分类字段',
   dlgSubtotalFunction: '汇总方式',
   dlgSubtotalAddTo: '选定汇总项',
@@ -310,7 +310,7 @@ export const zh = {
   dlgNmAdd: '添加',
   dlgNmUpdate: '更新',
 
-  dlgFnTitle: '插入函数 — 目标 {target}',
+  dlgFnTitle: '插入函数 - 目标 {target}',
   dlgFnSearchPlaceholder: '搜索函数…',
   dlgFnNoMatch: '没有匹配的函数。',
   dlgFnFormula: '公式',

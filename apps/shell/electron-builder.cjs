@@ -28,7 +28,21 @@
 
 const { execFileSync } = require('node:child_process')
 const { existsSync, rmSync } = require('node:fs')
-const { join } = require('node:path')
+const { dirname, join } = require('node:path')
+
+// Resolve dependency files through Node module resolution from THIS package
+// (apps/shell), not a hardcoded repo-root node_modules path. Under pnpm's
+// isolated store there is no hoisted ../../node_modules/electron, so the old
+// '../../node_modules/electron/dist/...' path did not exist and packaging would
+// fail (or silently drop the file). require.resolve finds the real location
+// (e.g. node_modules/.pnpm/electron@43.6.0/node_modules/electron) regardless of
+// layout.
+const electronDir = dirname(require.resolve('electron/package.json'))
+// electron's Chromium license, materialized under dist/ after the binary
+// download (ensure-electron.mjs guarantees this before packaging).
+const CHROMIUM_LICENSE = join(electronDir, 'dist', 'LICENSES.chromium.html')
+// @embedpdf/pdfium exposes ./pdfium.wasm in its exports map.
+const PDFIUM_WASM = require.resolve('@embedpdf/pdfium/pdfium.wasm')
 
 function normalizeHttpsBaseUrl(name, value) {
   if (!value || !value.trim()) return null
@@ -67,14 +81,12 @@ const includeMacX64 = process.env.GENOFFICE_MAC_X64 === '1'
 // installer would silently ship without the Chromium license. The Redrob AI
 // engine is bundled with the app (no separate cloud CLI sidecar), so no gsk
 // CLI tree is packaged here.
-for (const rel of [
-  '../../node_modules/electron/dist/LICENSES.chromium.html',
-  '../../node_modules/@embedpdf/pdfium/dist/pdfium.wasm',
-  '../pdf/node_modules/harfbuzzjs/hb-subset.wasm',
-]) {
-  if (!existsSync(join(__dirname, rel))) {
+const HB_SUBSET_WASM = join(__dirname, '../pdf/node_modules/harfbuzzjs/hb-subset.wasm')
+for (const abs of [CHROMIUM_LICENSE, PDFIUM_WASM, HB_SUBSET_WASM]) {
+  if (!existsSync(abs)) {
     throw new Error(
-      `electron-builder extraResources source missing: ${rel} (npm hoisting changed?)`,
+      `electron-builder extraResources source missing: ${abs} ` +
+        `(run "pnpm ensure:electron" and "pnpm install" — dependency layout changed?)`,
     )
   }
 }
@@ -233,7 +245,9 @@ const config = {
       to: 'THIRD-PARTY-NOTICES.txt',
     },
     {
-      from: '../../node_modules/electron/dist/LICENSES.chromium.html',
+      // absolute, module-resolved (see CHROMIUM_LICENSE) so it works under
+      // pnpm's isolated store where there is no repo-root node_modules/electron
+      from: CHROMIUM_LICENSE,
       to: 'LICENSES.chromium.html',
     },
     {
@@ -259,7 +273,8 @@ const config = {
     // PDF text editing engines: the bundled main resolves these under
     // Resources/wasm when node_modules is absent (apps/pdf/src/main/wasm-path.ts)
     {
-      from: '../../node_modules/@embedpdf/pdfium/dist/pdfium.wasm',
+      // absolute, module-resolved (see PDFIUM_WASM) for the same pnpm reason
+      from: PDFIUM_WASM,
       to: 'wasm/pdfium.wasm',
     },
     {

@@ -29,7 +29,7 @@ export const fr = {
 
   dlgAdvFilterTitle: 'Filtre avancé',
   dlgAdvFilterNoColumns:
-    "Aucune colonne disponible dans la plage de filtre — sélectionnez les données et activez le filtre automatique avant d'ouvrir le filtre avancé.",
+    "Aucune colonne disponible dans la plage de filtre - sélectionnez les données et activez le filtre automatique avant d'ouvrir le filtre avancé.",
   dlgAdvFilterColumn: 'Colonne',
   dlgAdvFilterCondition1: 'Condition 1',
   dlgAdvFilterCondition2: 'Condition 2 (facultative)',
@@ -173,14 +173,14 @@ export const fr = {
   dlgIconsCatNature: 'Nature',
   dlgIconsCatTravel: 'Voyages',
   dlgRecoTitle: 'Graphiques recommandés',
-  dlgRecoNote: 'Classés selon la forme des données sélectionnées — cliquez pour insérer.',
+  dlgRecoNote: 'Classés selon la forme des données sélectionnées - cliquez pour insérer.',
   dlgRecoReasonTime: 'Les séries temporelles se lisent mieux en tendances',
   dlgRecoReasonProportion: 'Peu de catégories se lisent bien en parts d’un tout',
   dlgRecoReasonCorrelation: 'Deux colonnes numériques se lisent bien en corrélation',
   dlgRecoReasonComparison: 'Idéal pour comparer les valeurs entre catégories',
   dlgRecoReasonManyPoints: 'Beaucoup de points restent lisibles en courbe',
   dlgRecoReasonLongLabels: 'Les étiquettes longues conviennent mieux aux barres',
-  dlgRecoReasonMixedScales: 'Les échelles diffèrent beaucoup — un graphique combiné convient',
+  dlgRecoReasonMixedScales: 'Les échelles diffèrent beaucoup - un graphique combiné convient',
   dlgScreenshotTitle: 'Capture d’écran',
   dlgScreenshotScreens: 'Écrans',
   dlgScreenshotWindows: 'Fenêtres disponibles',
@@ -198,7 +198,7 @@ export const fr = {
   dlgSymbolCatMisc: 'Formes et divers',
   dlgSymbolInsertHint: 'Insérer {symbol}',
   dlgSymbolNote:
-    "Cliquez sur un symbole pour l'ajouter à la cellule active — insérez-en plusieurs d'affilée, puis fermez.",
+    "Cliquez sur un symbole pour l'ajouter à la cellule active - insérez-en plusieurs d'affilée, puis fermez.",
 
   dlgFcTitle: 'Format de cellule',
   dlgFcTabNumber: 'Nombre',
@@ -306,12 +306,12 @@ export const fr = {
     'Les lignes sont mises en correspondance par la première colonne de chaque zone ; les résultats commencent en {target} sous forme de formules dynamiques référençant les sources.',
   dlgConsNotePosition:
     'Les zones sont combinées position par position ; les résultats commencent en {target} sous forme de formules dynamiques référençant les sources.',
-  dlgConsBadRef: 'Référence non valide : {ref} — utilisez la forme A1:C5 ou Sheet2!A1:C5.',
+  dlgConsBadRef: 'Référence non valide : {ref} - utilisez la forme A1:C5 ou Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Ajoutez au moins une référence source.',
 
   dlgSubtotalTitle: 'Sous-total',
   dlgSubtotalNoFields:
-    "Sélectionnez d'abord les données sources — une plage avec une ligne d'en-tête et au moins une ligne de données (triée par la colonne de regroupement) — puis rouvrez Sous-total.",
+    "Sélectionnez d'abord les données sources - une plage avec une ligne d'en-tête et au moins une ligne de données (triée par la colonne de regroupement) - puis rouvrez Sous-total.",
   dlgSubtotalGroupBy: 'À chaque changement de',
   dlgSubtotalFunction: 'Utiliser la fonction',
   dlgSubtotalAddTo: 'Ajouter un sous-total à',
@@ -329,7 +329,7 @@ export const fr = {
   dlgNmAdd: 'Ajouter',
   dlgNmUpdate: 'Mettre à jour',
 
-  dlgFnTitle: 'Insérer une fonction — dans {target}',
+  dlgFnTitle: 'Insérer une fonction - dans {target}',
   dlgFnSearchPlaceholder: 'Rechercher une fonction…',
   dlgFnNoMatch: 'Aucune fonction ne correspond.',
   dlgFnFormula: 'Formule',

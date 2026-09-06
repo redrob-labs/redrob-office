@@ -58,7 +58,7 @@ export const es = {
   aiSwitchModelTitle: 'Cambiar modelo de IA',
   aiNewChatTitle: 'Nueva conversación',
   aiCollapseTitle: 'Contraer panel',
-  aiHistorySep: '—— Conversación anterior ——',
+  aiHistorySep: '-- Conversación anterior --',
   aiEmptyTitle: 'Deja que la IA te ayude a escribir y editar',
   aiEmptyBody1: 'Da una instrucción o simplemente haz una pregunta;',
   aiEmptyBody2: 'con texto seleccionado, los comandos de reescritura se aplican a la selección.',

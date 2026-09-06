@@ -326,7 +326,7 @@ export const es = {
   dlgNmAdd: 'Agregar',
   dlgNmUpdate: 'Actualizar',
 
-  dlgFnTitle: 'Insertar función — en {target}',
+  dlgFnTitle: 'Insertar función - en {target}',
   dlgFnSearchPlaceholder: 'Buscar funciones…',
   dlgFnNoMatch: 'Ninguna función coincide.',
   dlgFnFormula: 'Fórmula',

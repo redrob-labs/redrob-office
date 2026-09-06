@@ -90,9 +90,9 @@ export const pl = {
   appStatusUngrouped: 'Rozgrupowano',
   appStatusCommentAdded: 'Dodano komentarz',
   appStatusKeepOneSlide: 'Nie można usunąć; musi pozostać co najmniej jeden slajd',
-  appStatusSlideCopied: 'Slajd skopiowany — wklej go do innej prezentacji',
+  appStatusSlideCopied: 'Slajd skopiowany - wklej go do innej prezentacji',
   appStatusSlideCopyFailed: 'Nie udało się skopiować slajdu',
-  appStatusSlideCut: 'Slajd wycięty — wklej go w dowolnym otwartym pliku',
+  appStatusSlideCut: 'Slajd wycięty - wklej go w dowolnym otwartym pliku',
   appStatusSlidePasteFailed: 'Nie udało się wkleić slajdu',
   appSectionUntitled: 'Sekcja bez tytułu',
   appSectionDefault: 'Sekcja domyślna',
@@ -239,5 +239,5 @@ export const pl = {
   appSettingsModel: 'Model',
   appSettingsCancel: 'Anuluj',
   appSettingsSave: 'Zapisz',
-  appCropHint: 'Enter — potwierdź · Esc — anuluj · Kliknij poza obszarem, aby potwierdzić',
+  appCropHint: 'Enter - potwierdź · Esc - anuluj · Kliknij poza obszarem, aby potwierdzić',
 } satisfies Record<keyof typeof zh, string>

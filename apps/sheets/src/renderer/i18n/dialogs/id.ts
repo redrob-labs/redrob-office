@@ -28,7 +28,7 @@ export const id = {
 
   dlgAdvFilterTitle: 'Filter Tingkat Lanjut',
   dlgAdvFilterNoColumns:
-    'Tidak ada kolom yang tersedia dalam rentang filter — pilih data dan aktifkan Filter Otomatis sebelum membuka Filter Tingkat Lanjut.',
+    'Tidak ada kolom yang tersedia dalam rentang filter - pilih data dan aktifkan Filter Otomatis sebelum membuka Filter Tingkat Lanjut.',
   dlgAdvFilterColumn: 'Kolom',
   dlgAdvFilterCondition1: 'Kondisi 1',
   dlgAdvFilterCondition2: 'Kondisi 2 (opsional)',
@@ -170,14 +170,14 @@ export const id = {
   dlgIconsCatNature: 'Alam',
   dlgIconsCatTravel: 'Perjalanan',
   dlgRecoTitle: 'Bagan yang Disarankan',
-  dlgRecoNote: 'Diurutkan menurut bentuk data yang dipilih — klik untuk menyisipkan.',
+  dlgRecoNote: 'Diurutkan menurut bentuk data yang dipilih - klik untuk menyisipkan.',
   dlgRecoReasonTime: 'Deret waktu paling jelas sebagai tren',
   dlgRecoReasonProportion: 'Sedikit kategori jelas sebagai bagian dari keseluruhan',
   dlgRecoReasonCorrelation: 'Dua kolom angka cocok untuk melihat korelasi',
   dlgRecoReasonComparison: 'Cocok untuk membandingkan nilai antar kategori',
   dlgRecoReasonManyPoints: 'Banyak titik data tetap terbaca sebagai garis',
   dlgRecoReasonLongLabels: 'Label panjang lebih pas pada bagan batang',
-  dlgRecoReasonMixedScales: 'Skala seri sangat berbeda — bagan kombo cocok',
+  dlgRecoReasonMixedScales: 'Skala seri sangat berbeda - bagan kombo cocok',
   dlgScreenshotTitle: 'Tangkapan Layar',
   dlgScreenshotScreens: 'Layar',
   dlgScreenshotWindows: 'Jendela yang tersedia',
@@ -195,7 +195,7 @@ export const id = {
   dlgSymbolCatMisc: 'Bentuk & lainnya',
   dlgSymbolInsertHint: 'Sisipkan {symbol}',
   dlgSymbolNote:
-    'Klik sebuah simbol untuk menambahkannya ke sel aktif — sisipkan beberapa berturut-turut, lalu tutup.',
+    'Klik sebuah simbol untuk menambahkannya ke sel aktif - sisipkan beberapa berturut-turut, lalu tutup.',
 
   dlgFcTitle: 'Format Sel',
   dlgFcTabNumber: 'Angka',
@@ -303,12 +303,12 @@ export const id = {
     'Baris dicocokkan berdasarkan kolom pertama tiap area; hasil dimulai di {target} sebagai rumus aktif yang merujuk ke sumber.',
   dlgConsNotePosition:
     'Area digabungkan posisi demi posisi; hasil dimulai di {target} sebagai rumus aktif yang merujuk ke sumber.',
-  dlgConsBadRef: 'Referensi tidak valid: {ref} — gunakan bentuk A1:C5 atau Sheet2!A1:C5.',
+  dlgConsBadRef: 'Referensi tidak valid: {ref} - gunakan bentuk A1:C5 atau Sheet2!A1:C5.',
   dlgConsNeedOneRef: 'Tambahkan setidaknya satu referensi sumber.',
 
   dlgSubtotalTitle: 'Subtotal',
   dlgSubtotalNoFields:
-    'Pilih dulu data sumber — rentang dengan baris header dan minimal satu baris data (diurutkan berdasarkan kolom pengelompokan) — lalu buka kembali Subtotal.',
+    'Pilih dulu data sumber - rentang dengan baris header dan minimal satu baris data (diurutkan berdasarkan kolom pengelompokan) - lalu buka kembali Subtotal.',
   dlgSubtotalGroupBy: 'Pada setiap perubahan di',
   dlgSubtotalFunction: 'Gunakan fungsi',
   dlgSubtotalAddTo: 'Tambahkan subtotal ke',
@@ -326,7 +326,7 @@ export const id = {
   dlgNmAdd: 'Tambahkan',
   dlgNmUpdate: 'Perbarui',
 
-  dlgFnTitle: 'Sisipkan Fungsi — ke {target}',
+  dlgFnTitle: 'Sisipkan Fungsi - ke {target}',
   dlgFnSearchPlaceholder: 'Cari fungsi…',
   dlgFnNoMatch: 'Tidak ada fungsi yang cocok.',
   dlgFnFormula: 'Rumus',
