@@ -76,7 +76,7 @@ pnpm download:models -- --role text
 
 ### 릴리즈
 
-태그를 밀면 GitHub Actions가 서명·패키징·게시까지 합니다. 태그는 `office/package.json`의 버전과 같아야 합니다(`v0.0.5` ↔ `0.0.5`).
+태그를 밀면 GitHub Actions(`.github/workflows/release-desktop.yml`)가 Redrob Office 스위트 셸(`@genoffice/shell`)을 서명·패키징·게시합니다. 태그는 `apps/shell/package.json`의 버전과 같아야 합니다(`v0.8.0` ↔ `0.8.0`). 레거시 채용 앱(`@redrob/office`)은 이 릴리즈 파이프라인에 포함되지 않습니다.
 
 ## 문서
 

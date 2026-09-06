@@ -1,9 +1,9 @@
 {
   "name": "@genoffice/shell",
-  "productName": "Redrob",
+  "productName": "Redrob Office",
   "version": "0.8.0",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/genspark-ai/genoffice",
+  "homepage": "https://github.com/redrob-labs/redrob-office",
   "private": true,
   "description": "Unified Redrob shell: one app hosting the docs and sheets modules behind a home/launcher window",
   "main": "out/main/index.js",

@@ -208,7 +208,17 @@ function assertModuleTreesPresent() {
 /** @type {import('electron-builder').Configuration} */
 const config = {
   appId: 'com.redrob.app',
-  productName: 'Redrob',
+  // User-visible product name (macOS .app bundle, Windows install/About, Linux
+  // menu entry). The product is "Redrob Office"; the older builds shipped as
+  // "Redrob". appId, executableName, and the artifact/feed filenames below are
+  // pinned to their historic values so this display rename does NOT break the
+  // update feed or package upgrade lineage.
+  productName: 'Redrob Office',
+  // Binary/executable name is kept as "redrob" on every platform. Without this
+  // mac/win would derive the executable from productName and ship a
+  // "Redrob Office" binary, which breaks the Linux WM_CLASS contract below and
+  // changes the packaged executable path. Linux also sets it in its own block.
+  executableName: 'redrob',
   // Resolved from the installed electron package so dependency bumps can
   // never leave a stale hard-coded pin behind (packaging would silently ship
   // the old runtime).
@@ -357,6 +367,12 @@ const config = {
       { target: 'dmg', arch: includeMacX64 ? ['arm64', 'x64'] : ['arm64'] },
       { target: 'zip', arch: includeMacX64 ? ['arm64', 'x64'] : ['arm64'] },
     ],
+    // Pin the artifact/feed filename to the historic "Redrob-<v>-<arch>" that
+    // the default `${productName}-${version}-${arch}` produced when productName
+    // was "Redrob" — NOT the new "Redrob Office" productName. electron-updater
+    // matches feed entries by filename, so pinning this preserves auto-update
+    // for already-installed builds across the display rename.
+    artifactName: 'Redrob-${version}-${arch}.${ext}',
     category: 'public.app-category.productivity',
     hardenedRuntime: true,
     gatekeeperAssess: false,
@@ -402,6 +418,11 @@ const config = {
       { target: 'deb', arch: ['x64'] },
       { target: 'rpm', arch: ['x64'] },
     ],
+    // Pin the AppImage feed filename to the historic "Redrob-<v>.AppImage"
+    // (default was "${productName}-${version}.AppImage" when productName was
+    // "Redrob"); the "Redrob Office" display rename must not change the
+    // latest-linux.yml entry. deb/rpm names are pinned in their own blocks.
+    artifactName: 'Redrob-${version}.${ext}',
     // deb control metadata; values match the manually published 0.5.149 deb
     // so apt sees the new packages as the same lineage. Homepage comes from
     // package.json "homepage"; the Package field is pinned in the deb block
@@ -425,8 +446,8 @@ const config = {
     // Electron takes its X11 app_id from package.json "desktopName"
     // (redrob.desktop); syncDesktopName makes electron-builder name the
     // .desktop file and its StartupWMClass from the same value. Without it
-    // StartupWMClass falls back to productName ("Redrob"), which does not
-    // match the "redrob" WM_CLASS the window actually reports - and X11
+    // StartupWMClass falls back to productName ("Redrob Office"), which does
+    // not match the "redrob" WM_CLASS the window actually reports - and X11
     // compares case-sensitively, so the taskbar shows an unlinked window.
     syncDesktopName: true,
     extraResources: [
@@ -467,6 +488,11 @@ const config = {
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
+    // Pin the installer filename (default is "${productName} Setup ${version}",
+    // which the "Redrob Office" rename would turn into a space-heavy
+    // "Redrob Office Setup ...exe"). A stable, space-free name keeps the win
+    // update feed and the release workflow's *Setup*.exe matcher predictable.
+    artifactName: 'Redrob-Setup-${version}.${ext}',
   },
   beforePack: async (context) => {
     assertModuleTreesPresent()

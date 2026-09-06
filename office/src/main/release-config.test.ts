@@ -20,18 +20,28 @@ describe("signed desktop release configuration", () => {
     expect(config).not.toContain("${productName}-Setup");
   });
 
-  it("publishes Windows updater metadata after Authenticode verification", () => {
+  it("release workflow targets the Redrob Office suite shell, not the legacy office app", () => {
+    // The desktop release pipeline now builds/signs/packages @genoffice/shell
+    // (the product), not @redrob/office (the legacy recruiting app). This test
+    // guards against a regression back to the office/* paths.
     const workflow = readFileSync(
       resolve(repoRoot, ".github/workflows/release-desktop.yml"),
       "utf8",
     );
+    // Authenticode verification is preserved.
     expect(workflow).toContain("WIN_CSC_LINK");
     expect(workflow).toContain("WIN_CSC_KEY_PASSWORD");
     expect(workflow).toContain("Get-AuthenticodeSignature");
     expect(workflow).toContain("SignerCertificate");
-    expect(workflow).toContain("office/release/latest.yml");
     expect(workflow).toContain("needs: [windows]");
     expect(workflow).not.toContain("MAC_CSC_LINK");
-    expect(workflow).not.toContain("latest-mac.yml");
+
+    // Targets the shell, not the legacy office app.
+    expect(workflow).toContain("@genoffice/shell");
+    expect(workflow).toContain("apps/shell/release/latest.yml");
+    expect(workflow).toContain("require('./apps/shell/package.json').version");
+    expect(workflow).not.toContain("@redrob/office");
+    expect(workflow).not.toContain("office/release");
+    expect(workflow).not.toContain("require('./office/package.json')");
   });
 });
