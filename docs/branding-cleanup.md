@@ -46,8 +46,13 @@ token. The audit test allowlists them by exact file/value.
 1. **`@genoffice/*` workspace package names** and `tsconfig.genoffice.base.json`.
    Hundreds of imports and workspace refs resolve by these names; Apache-2.0
    requires only the product *name* to change, not internal identifiers.
-2. **`@genoffice/shell` and the `GENOFFICE_USER_DATA` / `GenOffice Dev` dev
-   profile plumbing** (dev/test harness, not display copy).
+2. **`@genoffice/shell` package name** (dev/test harness, not display copy). The
+   dev-profile userData directory was renamed from `GenOffice Dev` to
+   **`Redrob Office Dev`** (with a one-time non-destructive migration; see
+   `apps/shell/src/main/userdata-migration.ts`), so `GenOffice Dev` is no longer
+   used. Only the `GENOFFICE_USER_DATA` env-var NAME is kept, purely for
+   compatibility with existing test drivers / CI that set it; it is not shown to
+   users.
 3. **Font family names and files**: `GenOffice Sans KR`, `GenOffice Serif KR`,
    `GenOffice Gothic KR`, `GenOffice Poppins`, `GenOffice Songti SC`,
    `GenOffice Hiragino …`, `GenOffice Box Drawing`, `GenOffice PUA Blank`,

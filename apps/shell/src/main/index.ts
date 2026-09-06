@@ -10,6 +10,12 @@ import {
 } from 'node:fs'
 import { basename, dirname, extname, join } from 'node:path'
 import {
+  DEV_USER_DATA_DIR,
+  LEGACY_DEV_USER_DATA_DIRS,
+  LEGACY_PACKAGED_USER_DATA_DIRS,
+  planUserDataMigration,
+} from './userdata-migration'
+import {
   BrowserWindow,
   Menu,
   app,
@@ -213,21 +219,61 @@ import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
 
 // ANY unpacked run (`npm run shell`, `npm run dev`, `npx electron .`) must not
 // share the installed app's userData or single-instance lock — otherwise a dev
-// run silently quits and forwards its argv to the running installed GenOffice.
-// GENOFFICE_USER_DATA: test drivers point this at a scratch dir so an
-// automated instance can run alongside the dev instance (separate lock).
-if (!app.isPackaged)
-  app.setPath(
-    'userData',
-    process.env.GENOFFICE_USER_DATA ?? join(app.getPath('appData'), 'GenOffice Dev'),
-  )
+// run silently quits and forwards its argv to the running installed app.
+// GENOFFICE_USER_DATA (env name kept for compatibility with existing test
+// drivers/CI): point this at a scratch dir so an automated instance can run
+// alongside the dev instance (separate lock).
+if (!app.isPackaged) {
+  const appData = app.getPath('appData')
+  const devDir = process.env.GENOFFICE_USER_DATA ?? join(appData, DEV_USER_DATA_DIR)
+  app.setPath('userData', devDir)
+  // First run under "Redrob Office Dev": migrate an existing "GenOffice Dev"
+  // profile forward once (only when the new dir is missing/empty). Skipped when
+  // an explicit GENOFFICE_USER_DATA scratch dir is set.
+  if (!process.env.GENOFFICE_USER_DATA) {
+    migrateUserDataOnce(
+      devDir,
+      LEGACY_DEV_USER_DATA_DIRS.map((name) => join(appData, name)),
+    )
+  }
+}
 
-// The product rename from "AI Office" to GenOffice changed the userData path; migrate old user data once
+// The packaged userData dir follows the productName (now "Redrob"); migrate the
+// most recent prior product dir ("GenOffice", then "AI Office") forward once.
 if (app.isPackaged) {
-  const oldDir = join(app.getPath('appData'), 'AI Office')
-  const newDir = app.getPath('userData')
-  const newEmpty = !existsSync(newDir) || readdirSync(newDir).length === 0
-  if (newEmpty && existsSync(oldDir)) cpSync(oldDir, newDir, { recursive: true })
+  const appData = app.getPath('appData')
+  migrateUserDataOnce(
+    app.getPath('userData'),
+    LEGACY_PACKAGED_USER_DATA_DIRS.map((name) => join(appData, name)),
+  )
+}
+
+/**
+ * Copy the newest existing legacy userData dir into `target`, but only when
+ * `target` is missing or empty (no overwrite; idempotent). Preserves the source
+ * (a copy, not a move) so a rollback to an older build still finds its data,
+ * and so an in-use lock in the source is not disturbed.
+ */
+function migrateUserDataOnce(target: string, candidates: string[]): void {
+  const source = planUserDataMigration(target, candidates, {
+    exists: (dir) => existsSync(dir),
+    entryCount: (dir) => {
+      try {
+        return readdirSync(dir).length
+      } catch {
+        return 0
+      }
+    },
+  })
+  if (!source) return
+  try {
+    // errorOnExist:false + force:false => never clobber an existing entry, so a
+    // concurrently-created file in target is preserved rather than overwritten.
+    cpSync(source, target, { recursive: true, force: false, errorOnExist: false })
+  } catch {
+    // A partial/failed copy must not block startup; the app falls back to a
+    // fresh profile rather than crashing.
+  }
 }
 
 // module build outputs: packaged builds carry them as extraResources

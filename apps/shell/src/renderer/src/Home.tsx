@@ -18,6 +18,7 @@ import type {
 } from '../../shared/home-api'
 import { useDismissablePopover } from '@genoffice/ui'
 import { fileCountKey, visiblePageCount } from './counts'
+import { displayParentDir } from './recent-location'
 import { useI18n } from './locale'
 import type { I18n, StringKey } from './locale'
 import { SettingsModal } from './SettingsModal'
@@ -97,11 +98,6 @@ function formatModified(mtimeMs: number, i18n: I18n): string {
 function formatSize(bytes: number): string {
   if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`
   return `${Math.max(1, Math.round(bytes / 1024))} KB`
-}
-
-function parentDir(path: string): string {
-  const parts = path.split(/[\\/]/).filter(Boolean)
-  return parts[parts.length - 2] ?? ''
 }
 
 function fileName(path: string): string {
@@ -1684,7 +1680,9 @@ export function Home() {
           ) : (
             <span className="recent-name">{entry.name}</span>
           )}
-          <span className="recent-path">{parentDir(entry.path)}</span>
+          <span className="recent-path" title={entry.path}>
+            {displayParentDir(entry.path)}
+          </span>
           <span className="recent-time">
             {entry.missing ? '—' : formatModified(entry.mtimeMs, i18n)}
           </span>
