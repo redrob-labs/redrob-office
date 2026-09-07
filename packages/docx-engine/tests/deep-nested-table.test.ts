@@ -36,6 +36,14 @@ function collectTexts(model: TableModel): { texts: string[]; maxDepth: number } 
 }
 
 describe('deeply nested tables keep their content', () => {
+  // Parsing then byte-exact re-saving a 2000-level deeply-nested table is
+  // genuine, CPU-bound XML work. Its wall-clock time scales with runner load:
+  // isolated on this 4-core VM it runs ~2.3s, but under 2x CPU oversubscription
+  // it rose to ~5.3s, and on a contended shared CI runner a run has been
+  // observed at 23.14s — over this package's 20s default
+  // (packages/docx-engine/vitest.config.ts). Give this single heavy case a 60s
+  // ceiling (the third arg to `it`); every other docx-engine test keeps the
+  // strict 20s default and no assertion here is weakened.
   it('caps the modeled depth but keeps every paragraph of a 2000-level table', async () => {
     const source = await buildDocx({ bodyXml: deepTableXml(2000) })
     const doc = await parseDocx(source)
@@ -51,7 +59,7 @@ describe('deeply nested tables keep their content', () => {
     // untouched deep tables still save byte-identically
     const saved = await saveDocx(doc, [{ kind: 'original', docxIndex: 0 }])
     expect(saved).toEqual(source)
-  })
+  }, 60_000)
 
   it('does not flatten tables nested within the cap', async () => {
     const doc = await parseDocx(await buildDocx({ bodyXml: deepTableXml(4) }))
