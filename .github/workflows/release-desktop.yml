@@ -39,6 +39,10 @@ jobs:
       # electron-builder's built-in Authenticode signing reads these; the shell
       # config leaves win.signtoolOptions unset unless GENOFFICE_WIN_SIGN_MODE
       # is provided, so the default CSC path applies here.
+      #
+      # Both names are organization secrets (redrob-labs), shared with every
+      # desktop app that ships a Windows installer. A repository secret of the
+      # same name overrides the org value, so do not recreate them on this repo.
       CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
       CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
       # Generic update feed base URL baked into the shell's publish config so

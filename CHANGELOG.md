@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.3
+
+Resigns the Windows installer with the org-level Authenticode certificate.
+The previous builds were signed with a repo secret that is no longer the
+certificate in use. Product behavior is unchanged.
+
+- **Windows signing reads `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` from the
+  organization.** A repository secret of the same name would hide the org
+  value, so those two must not exist on `redrob-office` itself.
+
 ## 0.8.2
 
 Makes the published builds linkable from a page. 0.8.1 published everything it
