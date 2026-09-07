@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.8.2
+
+Makes the published builds linkable from a page. 0.8.1 published everything it
+should have, but not at addresses anything could point at for longer than one
+release.
+
+- **`office/latest/` now carries version-free filenames.** It was publishing
+  `Redrob-0.8.1.AppImage`, so the "latest" URL stopped being the latest release
+  the moment the next one shipped. Linux artifacts are now
+  `redrob-office-x64.AppImage`, `.deb` and `.rpm` under `office/latest/`, while
+  `office/<version>/` keeps the version-stamped names. Each `.sha256` sidecar is
+  regenerated rather than copied, so it names the file beside it and
+  `sha256sum -c` works on whichever one was downloaded.
+- **The signed Windows installer is published to the CDN.** It only existed as a
+  GitHub Release asset, whose URL carries the version. `release-desktop.yml`
+  gained a CDN job that takes the exact bytes the signing job produced (never a
+  rebuild, which would be unsigned) and publishes them to
+  `office/<version>/Redrob-Setup-<version>.exe` and
+  `office/latest/redrob-office-x64-setup.exe`, on the same two-phase contract as
+  Linux: the versioned copy must be publicly retrievable with a matching
+  checksum before `latest` may move, and only a real tag push may move it. The
+  GitHub Release does not wait on the CDN, so a CDN outage cannot withhold the
+  updater feed.
+
 ## 0.8.1
 
 Release-pipeline fixes for the Redrob Office suite shell (`@genoffice/shell`).

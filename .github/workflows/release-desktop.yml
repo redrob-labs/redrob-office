@@ -4,6 +4,15 @@ name: Release Redrob Office desktop apps
 # This is the product surface (`pnpm dev`), NOT the legacy recruiting app under
 # office/. Packaging uses apps/shell/electron-builder.cjs, the artifacts land in
 # apps/shell/release, and the release tag must match apps/shell/package.json.
+#
+# The signed installer is published twice, to two audiences:
+#   - the GitHub Release for the tag, with the blockmap and latest.yml the
+#     in-app updater feed needs;
+#   - the Redrob CDN under office/, so the Console product page can link a
+#     Windows download from the same host it links every other product from.
+# The Linux packages for this same tag are built and published by
+# release-office-cdn.yml. The two workflows share the tag and write disjoint
+# filenames, so they may run concurrently.
 
 on:
   push:
@@ -100,6 +109,148 @@ jobs:
             apps/shell/release/latest.yml
           if-no-files-found: error
           compression-level: 0
+
+  # Publishes the signed installer to the CDN, on the same two-phase contract as
+  # the Linux workflow: the immutable office/<version>/ copy must be publicly
+  # retrievable with a matching checksum before office/latest/ is allowed to
+  # move, and only a real tag push may move it. office/latest/ carries the
+  # version-free name redrob-office-x64-setup.exe, because a URL with the
+  # version in it stops being the latest release as soon as the next one ships.
+  cdn:
+    name: Publish signed Windows installer to CDN
+    needs: [windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      CDN_PUBLIC_HOST: cdn.redrob.ai
+      CDN_PREFIX: office
+      REDROB_CDN_BUCKET: ${{ vars.REDROB_CDN_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.REDROB_CDN_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.REDROB_CDN_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide whether this run can publish
+        id: guard
+        run: |
+          if [ -n "$REDROB_CDN_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "has_cdn_credentials=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_cdn_credentials=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CDN credentials are not configured (fork or unconfigured repo). Nothing will be uploaded."
+          fi
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "$REDROB_CDN_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "can_promote_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "can_promote_latest=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::office/latest/ will NOT be moved (preview run, fork, or missing credentials)."
+          fi
+
+      - name: Verify tag matches application version
+        run: |
+          VERSION="$(node -p "require('./apps/shell/package.json').version")"
+          test "$RELEASE_TAG" = "v$VERSION" || {
+            echo "Tag $RELEASE_TAG does not match Redrob Office (apps/shell) version $VERSION"
+            exit 1
+          }
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: signed-windows
+          path: signed-windows
+
+      # Only the installer goes to the CDN. The blockmap and latest.yml are the
+      # updater feed's business and stay on the GitHub Release.
+      - name: Stage the installer and compute sha256 sidecars
+        run: |
+          set -euo pipefail
+          INSTALLER="Redrob-Setup-${APP_VERSION}.exe"
+          test -f "signed-windows/$INSTALLER" || {
+            echo "Signed installer missing: signed-windows/$INSTALLER"
+            ls -la signed-windows
+            exit 1
+          }
+          mkdir -p cdn-staging cdn-latest
+          cp "signed-windows/$INSTALLER" "cdn-staging/$INSTALLER"
+          ( cd cdn-staging && sha256sum "$INSTALLER" > "$INSTALLER.sha256" )
+          cp "signed-windows/$INSTALLER" cdn-latest/redrob-office-x64-setup.exe
+          ( cd cdn-latest && sha256sum redrob-office-x64-setup.exe > redrob-office-x64-setup.exe.sha256 )
+          ls -la cdn-staging cdn-latest
+
+      - name: Publish immutable versioned installer
+        if: steps.guard.outputs.has_cdn_credentials == 'true'
+        run: |
+          set -euo pipefail
+          DEST="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/${APP_VERSION}"
+          for f in cdn-staging/*; do
+            name="$(basename "$f")"
+            case "$name" in
+              *.sha256) ctype="text/plain" ;;
+              *) ctype="application/x-msdownload" ;;
+            esac
+            aws s3 cp "$f" "$DEST/$name" \
+              --content-type "$ctype" \
+              --cache-control "public, max-age=31536000, immutable" \
+              --no-progress
+          done
+
+      - name: Verify public versioned CloudFront URLs
+        if: steps.guard.outputs.has_cdn_credentials == 'true'
+        run: |
+          set -euo pipefail
+          BASE="https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/${APP_VERSION}"
+          for f in cdn-staging/*; do
+            name="$(basename "$f")"
+            curl --fail --location --silent --show-error --retry 5 --retry-delay 5 \
+              --retry-all-errors -o "verify-$name" "$BASE/$name"
+            local_sum="$(sha256sum "$f" | awk '{print $1}')"
+            remote_sum="$(sha256sum "verify-$name" | awk '{print $1}')"
+            if [ "$local_sum" != "$remote_sum" ]; then
+              echo "Checksum mismatch for $name: local=$local_sum remote=$remote_sum"
+              exit 1
+            fi
+            echo "OK $name ($remote_sum)"
+          done
+
+      - name: Promote verified installer to office/latest
+        if: steps.guard.outputs.can_promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          DEST="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/latest"
+          for f in cdn-latest/*; do
+            name="$(basename "$f")"
+            case "$name" in
+              *.sha256) ctype="text/plain" ;;
+              *) ctype="application/x-msdownload" ;;
+            esac
+            aws s3 cp "$f" "$DEST/$name" \
+              --content-type "$ctype" \
+              --cache-control "no-cache, max-age=0, must-revalidate" \
+              --no-progress
+          done
+
+      - name: Verify public latest CloudFront URLs
+        if: steps.guard.outputs.can_promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          BASE="https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/latest"
+          for f in cdn-latest/*; do
+            name="$(basename "$f")"
+            curl --fail --location --silent --show-error --retry 5 --retry-delay 5 \
+              --retry-all-errors -o "verify-latest-$name" "$BASE/$name"
+            local_sum="$(sha256sum "$f" | awk '{print $1}')"
+            remote_sum="$(sha256sum "verify-latest-$name" | awk '{print $1}')"
+            if [ "$local_sum" != "$remote_sum" ]; then
+              echo "Checksum mismatch for latest/$name: local=$local_sum remote=$remote_sum"
+              exit 1
+            fi
+            echo "OK latest/$name ($remote_sum)"
+          done
 
   release:
     name: Publish GitHub Release

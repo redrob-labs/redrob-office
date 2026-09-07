@@ -11,10 +11,18 @@ name: Publish Redrob Office to CDN
 #      objects. Verify EVERY public versioned CloudFront URL + checksum.
 #   2. LATEST     s3://<bucket>/office/latest/       — the exact same local
 #      bytes re-uploaded (NOT a server-side S3 copy: the PutObject-only CDN
-#      credentials cannot Head/Get/List), with revalidating cache headers.
-#      Verify EVERY public latest URL + checksum.
+#      credentials cannot Head/Get/List), under VERSION-FREE filenames, with
+#      revalidating cache headers. Verify EVERY public latest URL + checksum.
 # Consumers pin a version via office/<version>/ (cached forever) or follow
 # office/latest/ (always revalidated) for the newest release.
+#
+# The two prefixes deliberately name their files differently. A versioned
+# prefix wants the version in the filename so a downloaded file identifies
+# itself. "latest" cannot: a URL with 0.8.1 in it stops being the latest
+# release the moment 0.8.2 ships, so anything linking it (the Console product
+# page above all) would keep serving an old build from a URL that claims
+# otherwise. office/latest/ therefore publishes redrob-office-x64.{AppImage,deb,rpm},
+# which stay correct across releases.
 #
 # This is the Linux distribution channel for the office suite. The Windows
 # installer is signed and published to the GitHub Release by
@@ -144,23 +152,37 @@ jobs:
       # (linux.artifactName / deb.artifactName / rpm.artifactName). Only these
       # three are staged for upload, so no blockmaps, latest*.yml, or unpacked
       # trees leak onto the CDN.
+      # Two staging trees, because the two CDN prefixes name their files
+      # differently (see the header): cdn-staging holds the version-stamped
+      # names for office/<version>/, cdn-latest the version-free names for
+      # office/latest/. Same bytes in both; the sidecars are regenerated rather
+      # than copied so each one names the file sitting beside it and
+      # `sha256sum -c` works on whichever the reader downloaded.
       - name: Stage artifacts and compute sha256 sidecars
         id: stage
         run: |
           set -euo pipefail
           RELEASE_DIR=apps/shell/release
           OUT=cdn-staging
-          mkdir -p "$OUT"
+          LATEST=cdn-latest
+          mkdir -p "$OUT" "$LATEST"
           APPIMAGE="Redrob-${APP_VERSION}.AppImage"
           DEB="redrob_${APP_VERSION}_amd64.deb"
           RPM="redrob-${APP_VERSION}.x86_64.rpm"
-          for f in "$APPIMAGE" "$DEB" "$RPM"; do
-            test -f "$RELEASE_DIR/$f" || { echo "Expected artifact missing: $RELEASE_DIR/$f"; exit 1; }
-            cp "$RELEASE_DIR/$f" "$OUT/$f"
-            ( cd "$OUT" && sha256sum "$f" > "$f.sha256" )
-          done
-          echo "Staged for CDN:"
+          stage() {
+            test -f "$RELEASE_DIR/$1" || { echo "Expected artifact missing: $RELEASE_DIR/$1"; exit 1; }
+            cp "$RELEASE_DIR/$1" "$OUT/$1"
+            ( cd "$OUT" && sha256sum "$1" > "$1.sha256" )
+            cp "$RELEASE_DIR/$1" "$LATEST/$2"
+            ( cd "$LATEST" && sha256sum "$2" > "$2.sha256" )
+          }
+          stage "$APPIMAGE" redrob-office-x64.AppImage
+          stage "$DEB" redrob-office-x64.deb
+          stage "$RPM" redrob-office-x64.rpm
+          echo "Staged for office/${APP_VERSION}/:"
           ls -la "$OUT"
+          echo "Staged for office/latest/:"
+          ls -la "$LATEST"
 
       - name: Upload build artifacts (always, for inspection)
         uses: actions/upload-artifact@v4
@@ -225,8 +247,9 @@ jobs:
       # verify above fully passed (step order + fail-fast), and ONLY on a real
       # tag push with credentials (can_promote_latest).
       #
-      # We re-UPLOAD the same local cdn-staging/* files we just published to and
-      # publicly verified at office/<version>/ — we do NOT server-side copy
+      # We re-UPLOAD the same local bytes we just published to and publicly
+      # verified at office/<version>/, under the version-free names in
+      # cdn-latest/ — we do NOT server-side copy
       # s3://<version>/ -> s3://latest/. The CDN credentials are PutObject-only
       # (no Head/Get/List): an `aws s3 cp s3://.. s3://..` first does a
       # HeadObject on the source and fails 403 (this is exactly what broke the
@@ -243,7 +266,7 @@ jobs:
         run: |
           set -euo pipefail
           DEST="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/latest"
-          for f in cdn-staging/*; do
+          for f in cdn-latest/*; do
             name="$(basename "$f")"
             case "$name" in
               *.sha256) ctype="text/plain" ;;
@@ -267,7 +290,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE="https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/latest"
-          for f in cdn-staging/*; do
+          for f in cdn-latest/*; do
             name="$(basename "$f")"
             url="$BASE/$name"
             echo "GET $url"

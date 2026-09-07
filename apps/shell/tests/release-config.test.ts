@@ -496,4 +496,104 @@ describe('Office CDN publisher workflow', () => {
     expect(workflow).not.toContain('action-gh-release')
     expect(workflow).not.toContain('--win')
   })
+
+  it('publishes office/latest/ under version-free filenames', () => {
+    // A latest URL with the version in it stops being the latest release the
+    // moment the next one ships, so anything that links it (the Console product
+    // page) would serve an old build from a URL claiming otherwise. latest/
+    // therefore gets its own names; the versioned prefix keeps the stamped ones.
+    for (const name of [
+      'redrob-office-x64.AppImage',
+      'redrob-office-x64.deb',
+      'redrob-office-x64.rpm',
+    ]) {
+      expect(workflow).toContain(name)
+    }
+    const promote = workflow.slice(
+      workflow.indexOf('Promote verified artifacts to office/latest'),
+      workflow.indexOf('Verify public latest CloudFront URLs'),
+    )
+    // promoted from the version-free staging tree, never the stamped one
+    expect(promote).toContain('cdn-latest/*')
+    expect(promote).not.toContain('cdn-staging/*')
+  })
+
+  it('regenerates each sidecar so it names the file beside it', () => {
+    // office/<version>/Redrob-0.8.2.AppImage.sha256 and
+    // office/latest/redrob-office-x64.AppImage.sha256 hold the same hash but
+    // different filenames; a copied sidecar would break `sha256sum -c` for
+    // whichever name the reader actually downloaded.
+    const stage = workflow.slice(
+      workflow.indexOf('Stage artifacts and compute sha256 sidecars'),
+      workflow.indexOf('Upload build artifacts'),
+    )
+    expect(stage).toContain('cd "$OUT" && sha256sum "$1"')
+    expect(stage).toContain('cd "$LATEST" && sha256sum "$2"')
+  })
+})
+
+describe('signed Windows installer reaches the CDN', () => {
+  const workflow = readFileSync(
+    resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'),
+    'utf8',
+  )
+  const cdn = workflow.slice(workflow.indexOf('Publish signed Windows installer to CDN'))
+
+  it('publishes the installer the signing job produced, not a rebuilt one', () => {
+    // Rebuilding would produce an UNSIGNED exe. The CDN copy has to be the same
+    // bytes the Authenticode verification passed, which means the artifact.
+    expect(cdn).toContain('needs: [windows]')
+    expect(cdn).toContain('name: signed-windows')
+    expect(cdn).toContain('Redrob-Setup-${APP_VERSION}.exe')
+    expect(cdn).not.toContain('electron-builder')
+  })
+
+  it('uploads only the installer (blockmap and latest.yml stay on the Release)', () => {
+    const stage = cdn.slice(
+      cdn.indexOf('Stage the installer'),
+      cdn.indexOf('Publish immutable versioned installer'),
+    )
+    expect(stage).not.toContain('.blockmap')
+    expect(stage).not.toContain('latest.yml')
+  })
+
+  it('carries the version-free name under office/latest/', () => {
+    expect(cdn).toContain('redrob-office-x64-setup.exe')
+  })
+
+  it('keeps the two-phase contract: versioned verify gates the latest write', () => {
+    const versionedVerify = cdn.indexOf('Verify public versioned CloudFront URLs')
+    const promote = cdn.indexOf('Promote verified installer to office/latest')
+    const latestVerify = cdn.indexOf('Verify public latest CloudFront URLs')
+    expect(versionedVerify).toBeGreaterThan(-1)
+    expect(versionedVerify).toBeLessThan(promote)
+    expect(promote).toBeLessThan(latestVerify)
+    expect(cdn).toContain('public, max-age=31536000, immutable')
+    expect(cdn).toContain('no-cache, max-age=0, must-revalidate')
+    expect(cdn).toContain('Checksum mismatch')
+  })
+
+  it('needs no Head/Get/List permission the CDN credentials do not have', () => {
+    const commandLines = cdn
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('#'))
+      .join('\n')
+    expect(commandLines).not.toMatch(/aws s3 (cp|mv|sync) "?s3:\/\/[^"]*"? "?s3:\/\//)
+    expect(commandLines).not.toContain('aws s3api head-object')
+    expect(commandLines).not.toContain('aws s3 ls')
+  })
+
+  it('never moves latest on a preview run, a fork, or without credentials', () => {
+    expect(cdn).toContain('can_promote_latest')
+    expect(cdn).toContain('"${{ github.event_name }}" = "push"')
+    expect(cdn).toContain('office/latest/ will NOT be moved')
+  })
+
+  it('does not gate the GitHub Release on the CDN upload', () => {
+    // The Release is the updater's feed and the tag's record; a CDN outage must
+    // not withhold it. Only the signing job is a prerequisite for it.
+    const release = workflow.slice(workflow.indexOf('name: Publish GitHub Release'))
+    expect(release).toContain('needs: [windows]')
+    expect(release).not.toContain('needs: [windows, cdn]')
+  })
 })
