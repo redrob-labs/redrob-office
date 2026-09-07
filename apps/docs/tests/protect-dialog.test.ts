@@ -73,7 +73,14 @@ async function mount(partial: Partial<Props>) {
   }
 }
 
-describe('ProtectDialog', () => {
+// The submit path hashes/verifies protection passwords with iterated SHA-512
+// (hashProtectionPassword / verifyProtectionPassword). That is genuine
+// CPU-bound work whose wall-clock time scales with runner load, so a single
+// case has been seen at ~23s on a contended CI runner, over vitest's 20s
+// default (apps/docs/vitest.config.ts). Raise the ceiling for this crypto suite
+// only; the assertions are unchanged. Measured under 4x CPU stress on this VM:
+// max ~6.8s; 60s leaves ~9x headroom.
+describe('ProtectDialog', { timeout: 60_000 }, () => {
   it('submitting untouched state yields an all-undefined diff (even when passwords exist)', async () => {
     const wp = await hashProtectionPassword('modify-pw', 1000)
     const d = await mount({ encrypted: true, writeProtection: wp })

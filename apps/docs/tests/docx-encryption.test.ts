@@ -23,6 +23,17 @@ import {
 
 const plainDocx = () => readFileSync(join(__dirname, 'pagination-corpus/docx/kitchen-sink.docx'))
 
+// Real ECMA-376 encryption/decryption (officecrypto-tool: Agile AES-256/SHA-512
+// with an iterated spin count, Standard AES-128/SHA-1). This is genuine,
+// CPU-bound key derivation whose wall-clock time scales with runner load: an
+// isolated run is well under a second per test, but on a contended shared CI
+// runner a single round-trip has been observed at ~23s, over vitest's 20s
+// default (apps/docs/vitest.config.ts). Raise the ceiling for these crypto
+// suites only — the assertions (byte-exact round-trip, wrong-password
+// rejection, real-Office interop) are unchanged. Measured under 4x CPU stress
+// on this VM: max ~3.5s here; the 60s ceiling is ~17x that headroom.
+const CRYPTO_TEST_TIMEOUT_MS = 60_000
+
 describe('isEncryptedDocx', () => {
   it('is false for a plain docx (zip) and random bytes', () => {
     expect(isEncryptedDocx(plainDocx())).toBe(false)
@@ -44,7 +55,7 @@ describe('isEncryptedDocx', () => {
   })
 })
 
-describe('encryptDocx / decryptDocx', () => {
+describe('encryptDocx / decryptDocx', { timeout: CRYPTO_TEST_TIMEOUT_MS }, () => {
   it('round-trips byte-exact with the right password', async () => {
     const original = plainDocx()
     const encrypted = encryptDocx(original, 'S3cret!密码')
@@ -75,7 +86,7 @@ describe('encryptDocx / decryptDocx', () => {
 // Interop lock: fixtures produced by real Microsoft Office, vendored from the
 // reference implementation's test suite (nolze/msoffcrypto-tool, MIT). The agile
 // one is >4096 bytes, covering multi-segment package decryption.
-describe('real Office files', () => {
+describe('real Office files', { timeout: CRYPTO_TEST_TIMEOUT_MS }, () => {
   const fixture = (name: string) => readFileSync(join(__dirname, 'encrypted-fixtures', name))
 
   it('decrypts a real Office agile-encrypted docx byte-exact (multi-segment)', async () => {
@@ -93,7 +104,7 @@ describe('real Office files', () => {
   })
 })
 
-describe('password store', () => {
+describe('password store', { timeout: CRYPTO_TEST_TIMEOUT_MS }, () => {
   it('remembers per renderer + path, and forget drops the whole renderer', () => {
     rememberDocPassword(1, '/a.docx', 'pw-a')
     rememberDocPassword(1, '/b.docx', 'pw-b')
