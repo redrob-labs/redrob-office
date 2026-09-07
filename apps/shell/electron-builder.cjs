@@ -201,17 +201,40 @@ function assertUniversalSidecar() {
   }
 }
 
+// Every editor module the shell can open MUST ship, or that tab opens WHITE in
+// the packaged app (the shell main resolves each at resources/modules/<name>
+// and, for hangul, resources/rhwp-studio — apps/shell/src/main/index.ts). A
+// packaged Hangul regression (missing modules/hangul + rhwp-studio) is exactly
+// what this guard exists to make impossible: enumerate all six editors plus the
+// rhwp-studio entry point and fail the build if any is absent. electron-builder
+// only WARNS on a missing extraResources source and still exits 0, so this is
+// the only thing that turns a silently-broken package into a failed build.
+const REQUIRED_MODULE_TREES = [
+  '../docs/out',
+  '../sheets/out',
+  '../slides/out',
+  '../pdf/out',
+  '../markdown/out',
+  '../hangul/out',
+]
+// The rhwp-studio build the Hangul editor embeds; index.html is its entry, so
+// its presence is proof the offline studio was built and staged.
+const REQUIRED_STUDIO_FILES = [['../hangul/resources/rhwp-studio/index.html', 'rhwp-studio']]
+
 function assertModuleTreesPresent() {
-  for (const rel of [
-    '../docs/out',
-    '../sheets/out',
-    '../slides/out',
-    '../pdf/out',
-    '../markdown/out',
-  ]) {
+  for (const rel of REQUIRED_MODULE_TREES) {
     if (!existsSync(join(__dirname, rel))) {
       throw new Error(
         `electron-builder extraResources source missing: ${rel} (run npm run build:all first)`,
+      )
+    }
+  }
+  for (const [rel, label] of REQUIRED_STUDIO_FILES) {
+    if (!existsSync(join(__dirname, rel))) {
+      throw new Error(
+        `electron-builder extraResources source missing: ${rel} — the ${label} entry point. ` +
+          'Build the Hangul module (its build step produces resources/rhwp-studio) before packaging; ' +
+          'without it the packaged Hangul editor opens white.',
       )
     }
   }
@@ -285,6 +308,23 @@ const config = {
     {
       from: '../markdown/out',
       to: 'modules/markdown',
+    },
+    {
+      // Hangul (.hwp/.hwpx) editor module. The shell main resolves it at
+      // resources/modules/hangul when packaged (apps/shell/src/main/index.ts
+      // HANGUL_OUT); without it the Hangul tab loads a nonexistent
+      // rendererFile and opens WHITE.
+      from: '../hangul/out',
+      to: 'modules/hangul',
+    },
+    {
+      // The bundled, offline rhwp-studio build the Hangul editor iframes over
+      // an app-local loopback origin (apps/hangul/src/main/studio-serve.ts).
+      // The shell main resolves it at resources/rhwp-studio when packaged
+      // (index.html + rhwp.js + assets); missing it leaves the editor with no
+      // studio to embed. Never a CDN.
+      from: '../hangul/resources/rhwp-studio',
+      to: 'rhwp-studio',
     },
     // PDF text editing engines: the bundled main resolves these under
     // Resources/wasm when node_modules is absent (apps/pdf/src/main/wasm-path.ts)
