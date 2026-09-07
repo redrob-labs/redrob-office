@@ -462,8 +462,11 @@ const config = {
     // deb/rpm control metadata. Homepage comes from package.json "homepage";
     // the Package field is pinned in the deb/rpm blocks below (packageName is a
     // per-target option, rejected here by the schema).
-    maintainer: 'Redrob <team@redrob.ai>',
-    vendor: 'Redrob <team@redrob.ai>',
+    // Contact is the established Redrob package identity used across the org's
+    // desktop apps (redrob-labs/redrob-work apps/desktop/package.json author:
+    // support@redrob.io). Do not invent a domain.
+    maintainer: 'Redrob <support@redrob.io>',
+    vendor: 'Redrob <support@redrob.io>',
     // Shown in software centers and `apt show` / `dnf info`. Names the full
     // suite; no upstream brand.
     description:

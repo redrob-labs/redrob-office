@@ -101,14 +101,19 @@ describe('Linux package control metadata is Redrob, no upstream brand', () => {
   it('maintainer and vendor are the Redrob repo identity (never Mainfunc/Genspark)', () => {
     const c = loadBuilderConfig()
     const linux = c.linux as { maintainer: string; vendor: string; description: string }
-    expect(linux.maintainer).toBe('Redrob <team@redrob.ai>')
-    expect(linux.vendor).toBe('Redrob <team@redrob.ai>')
+    // The established Redrob package contact (redrob-labs/redrob-work
+    // apps/desktop/package.json author). NOT an invented domain.
+    expect(linux.maintainer).toBe('Redrob <support@redrob.io>')
+    expect(linux.vendor).toBe('Redrob <support@redrob.io>')
     // No upstream brand may leak into apt/dnf control metadata.
     for (const value of [linux.maintainer, linux.vendor, linux.description]) {
       expect(value).not.toMatch(/mainfunc/i)
       expect(value).not.toMatch(/genspark/i)
       expect(value).not.toMatch(/genoffice/i)
     }
+    // Guard against re-introducing the invented team@redrob.ai contact.
+    expect(linux.maintainer).not.toMatch(/redrob\.ai/i)
+    expect(linux.vendor).not.toMatch(/redrob\.ai/i)
   })
 
   it('linux.description names the full Redrob Office suite editors', () => {
@@ -323,12 +328,57 @@ describe('Office CDN publisher workflow', () => {
     expect(workflow).toContain('Building packages only; nothing will be uploaded')
   })
 
-  it('verifies every public CloudFront URL by HTTP GET and checksum match', () => {
+  it('verifies every public versioned CloudFront URL by HTTP GET and checksum match', () => {
     expect(workflow).toContain('CDN_PUBLIC_HOST')
     expect(workflow).toContain('curl --fail')
     expect(workflow).toContain('Checksum mismatch')
-    // the verify step retrieves under the same office/<version> path it uploaded
+    // the versioned verify step retrieves under the same office/<version> path
+    // it uploaded
     expect(workflow).toContain('https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/${APP_VERSION}')
+  })
+
+  it('uploads the versioned prefix as immutable and copies latest server-side with revalidating headers', () => {
+    // office/<version>/ is written once and cached forever.
+    expect(workflow).toContain('public, max-age=31536000, immutable')
+    // office/latest/ must be revalidated on every fetch, or clients keep a
+    // stale release after the pointer moves.
+    expect(workflow).toContain('no-cache, max-age=0, must-revalidate')
+    // latest is a SERVER-SIDE copy of the already-verified versioned bytes
+    // (s3://.../<version>/ -> s3://.../latest/), not a re-upload.
+    expect(workflow).toContain('${CDN_PREFIX}/${APP_VERSION}')
+    expect(workflow).toContain('${CDN_PREFIX}/latest')
+    expect(workflow).toContain('--metadata-directive REPLACE')
+  })
+
+  it('verifies the versioned prefix BEFORE any latest write (order + gate)', () => {
+    const versionedVerify = workflow.indexOf('Verify public versioned CloudFront URLs')
+    const promote = workflow.indexOf('Promote verified artifacts to office/latest')
+    const latestVerify = workflow.indexOf('Verify public latest CloudFront URLs')
+    expect(versionedVerify).toBeGreaterThan(-1)
+    expect(promote).toBeGreaterThan(-1)
+    expect(latestVerify).toBeGreaterThan(-1)
+    // strict order: verify versioned -> promote latest -> verify latest
+    expect(versionedVerify).toBeLessThan(promote)
+    expect(promote).toBeLessThan(latestVerify)
+  })
+
+  it('verifies every public latest CloudFront URL by HTTP GET and checksum match', () => {
+    expect(workflow).toContain('https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/latest')
+    // both a versioned and a latest verify loop exist (two curl --fail loops)
+    const curlCount = (workflow.match(/curl --fail/g) ?? []).length
+    expect(curlCount).toBeGreaterThanOrEqual(2)
+    expect(workflow).toContain('Checksum mismatch for latest/')
+  })
+
+  it('never moves latest on preview / fork / no-credentials (can_promote_latest gate)', () => {
+    expect(workflow).toContain('can_promote_latest')
+    // promotion + latest-verify are gated on can_promote_latest, not merely on
+    // credentials
+    expect(workflow).toContain("if: steps.guard.outputs.can_promote_latest == 'true'")
+    // can_promote_latest requires a real tag push (github.event_name == push)
+    // AND credentials; a workflow_dispatch preview or fork does not qualify
+    expect(workflow).toContain('"${{ github.event_name }}" = "push"')
+    expect(workflow).toContain('office/latest/ will NOT be moved')
   })
 
   it('does not touch Windows signing or the GitHub Release (that stays in release-desktop.yml)', () => {

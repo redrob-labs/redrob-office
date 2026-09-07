@@ -1,19 +1,32 @@
 name: Publish Redrob Office to CDN
 
 # Builds the unsigned Linux packages for the Redrob Office suite shell
-# (@genoffice/shell) on a v* tag and uploads them, with sha256 sidecars, to the
-# Redrob CDN bucket under the "office" prefix, then verifies each public
-# CloudFront URL by HTTP GET.
+# (@genoffice/shell) on a v* tag and publishes them to the Redrob CDN bucket
+# under the "office" prefix. All three artifacts (AppImage, deb, rpm) plus their
+# sha256 sidecars are delivered.
+#
+# Two-phase delivery, in this exact order (a failure at any point stops the run
+# before "latest" ever moves):
+#   1. IMMUTABLE  s3://<bucket>/office/<version>/   — long-lived, never rewritten
+#      objects. Verify EVERY public versioned CloudFront URL + checksum.
+#   2. LATEST     s3://<bucket>/office/latest/       — the exact same bytes,
+#      copied server-side from the versioned objects, with revalidating cache
+#      headers. Verify EVERY public latest URL + checksum.
+# Consumers pin a version via office/<version>/ (cached forever) or follow
+# office/latest/ (always revalidated) for the newest release.
 #
 # This is the Linux distribution channel for the office suite. The Windows
 # installer is signed and published to the GitHub Release by
 # release-desktop.yml on the SAME tag; the two workflows share the tag and do
 # not overlap (this one never touches Windows or the GitHub Release).
 #
-# Fork / no-secrets safety: the publish + verify steps only run when the CDN
-# credentials are present (see the `has_cdn_credentials` guard). A fork build,
-# or a run in a repo without the org secrets, still BUILDS the packages (so the
-# build stays tested) but never uploads and never claims a publish happened.
+# "latest" only ever moves for a real v* TAG PUSH that publishes successfully.
+# It is NEVER moved on:
+#   - a preview run (workflow_dispatch): builds + can publish the versioned
+#     prefix for inspection, but leaves office/latest/ untouched;
+#   - a fork / missing-credentials run: builds only, no upload at all;
+#   - a partial failure: the versioned verify must fully pass before any latest
+#     write happens, and each phase fails the whole run on the first error.
 
 on:
   push:
@@ -61,6 +74,11 @@ jobs:
         id: guard
         # Only runs with the CDN bucket configured may upload. Fork PRs and
         # unconfigured repos build-only: no upload, no success claim.
+        #
+        # Promotion of office/latest/ is stricter still: only a real v* TAG PUSH
+        # may move it. A workflow_dispatch is a preview — it can publish the
+        # immutable versioned prefix for inspection but must never repoint
+        # "latest".
         run: |
           if [ -n "$REDROB_CDN_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
             echo "has_cdn_credentials=true" >> "$GITHUB_OUTPUT"
@@ -68,6 +86,13 @@ jobs:
           else
             echo "has_cdn_credentials=false" >> "$GITHUB_OUTPUT"
             echo "::notice::CDN credentials are not configured (fork or unconfigured repo). Building packages only; nothing will be uploaded."
+          fi
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "$REDROB_CDN_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "can_promote_latest=true" >> "$GITHUB_OUTPUT"
+            echo "This is a tag push with credentials: office/latest/ WILL be promoted after the versioned verify passes."
+          else
+            echo "can_promote_latest=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::office/latest/ will NOT be moved (preview run, fork, or missing credentials)."
           fi
 
       - name: Verify tag matches application version
@@ -144,7 +169,11 @@ jobs:
           if-no-files-found: error
           compression-level: 0
 
-      - name: Publish to CDN
+      # Phase 1a: upload to the IMMUTABLE versioned prefix. Because
+      # office/<version>/ objects are never rewritten, they carry a
+      # forever/immutable Cache-Control so CloudFront and clients may hold them
+      # indefinitely.
+      - name: Publish immutable versioned artifacts
         if: steps.guard.outputs.has_cdn_credentials == 'true'
         run: |
           set -euo pipefail
@@ -159,13 +188,17 @@ jobs:
               *) ctype="application/octet-stream" ;;
             esac
             echo "Uploading $name -> $DEST/$name ($ctype)"
-            aws s3 cp "$f" "$DEST/$name" --content-type "$ctype" --no-progress
+            aws s3 cp "$f" "$DEST/$name" \
+              --content-type "$ctype" \
+              --cache-control "public, max-age=31536000, immutable" \
+              --no-progress
           done
 
-      # Every uploaded object must be publicly retrievable through CloudFront
-      # before the run is allowed to succeed. A byte-for-byte match against the
-      # local sha256 sidecar proves the CDN really has the file we built.
-      - name: Verify public CloudFront URLs
+      # Phase 1b: every versioned object must be publicly retrievable through
+      # CloudFront, with a byte-for-byte checksum match, BEFORE "latest" is
+      # allowed to move. This is the gate that makes a partial upload fail the
+      # run without ever touching office/latest/.
+      - name: Verify public versioned CloudFront URLs
         if: steps.guard.outputs.has_cdn_credentials == 'true'
         run: |
           set -euo pipefail
@@ -185,4 +218,59 @@ jobs:
             fi
             echo "OK $name ($remote_sum)"
           done
-          echo "All CloudFront URLs verified under $BASE"
+          echo "All versioned CloudFront URLs verified under $BASE"
+
+      # Phase 2a: promote to office/latest/. Runs ONLY after the versioned
+      # verify above fully passed (step order + fail-fast), and ONLY on a real
+      # tag push with credentials (can_promote_latest). The bytes are copied
+      # SERVER-SIDE from the just-verified versioned objects (s3 cp s3://..
+      # s3://..), so "latest" is provably the same bytes we verified — never a
+      # re-upload that could differ. Unlike the versioned prefix, latest must be
+      # revalidated on every fetch (no-cache) or clients would keep serving a
+      # stale release after the pointer moves.
+      - name: Promote verified artifacts to office/latest
+        if: steps.guard.outputs.can_promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          SRC="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/${APP_VERSION}"
+          DEST="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/latest"
+          for f in cdn-staging/*; do
+            name="$(basename "$f")"
+            case "$name" in
+              *.sha256) ctype="text/plain" ;;
+              *.AppImage) ctype="application/x-executable" ;;
+              *.deb) ctype="application/vnd.debian.binary-package" ;;
+              *.rpm) ctype="application/x-rpm" ;;
+              *) ctype="application/octet-stream" ;;
+            esac
+            echo "Promoting $name: $SRC/$name -> $DEST/$name ($ctype)"
+            aws s3 cp "$SRC/$name" "$DEST/$name" \
+              --content-type "$ctype" \
+              --cache-control "no-cache, max-age=0, must-revalidate" \
+              --metadata-directive REPLACE \
+              --no-progress
+          done
+
+      # Phase 2b: verify every office/latest/ URL is publicly retrievable and
+      # its checksum matches the bytes we built. A latest object that does not
+      # match the release fails the run.
+      - name: Verify public latest CloudFront URLs
+        if: steps.guard.outputs.can_promote_latest == 'true'
+        run: |
+          set -euo pipefail
+          BASE="https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/latest"
+          for f in cdn-staging/*; do
+            name="$(basename "$f")"
+            url="$BASE/$name"
+            echo "GET $url"
+            curl --fail --location --silent --show-error --retry 5 --retry-delay 5 \
+              --retry-all-errors -o "verify-latest-$name" "$url"
+            local_sum="$(sha256sum "$f" | awk '{print $1}')"
+            remote_sum="$(sha256sum "verify-latest-$name" | awk '{print $1}')"
+            if [ "$local_sum" != "$remote_sum" ]; then
+              echo "Checksum mismatch for latest/$name: local=$local_sum remote=$remote_sum"
+              exit 1
+            fi
+            echo "OK latest/$name ($remote_sum)"
+          done
+          echo "All latest CloudFront URLs verified under $BASE"
