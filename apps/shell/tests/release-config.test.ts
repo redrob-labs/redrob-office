@@ -93,6 +93,117 @@ describe('packaged product identity', () => {
   })
 })
 
+describe('Linux package control metadata is Redrob, no upstream brand', () => {
+  const pkg = JSON.parse(readFileSync(resolve(SHELL_ROOT, 'package.json'), 'utf8')) as {
+    description: string
+  }
+
+  it('maintainer and vendor are the Redrob repo identity (never Mainfunc/Genspark)', () => {
+    const c = loadBuilderConfig()
+    const linux = c.linux as { maintainer: string; vendor: string; description: string }
+    expect(linux.maintainer).toBe('Redrob <team@redrob.ai>')
+    expect(linux.vendor).toBe('Redrob <team@redrob.ai>')
+    // No upstream brand may leak into apt/dnf control metadata.
+    for (const value of [linux.maintainer, linux.vendor, linux.description]) {
+      expect(value).not.toMatch(/mainfunc/i)
+      expect(value).not.toMatch(/genspark/i)
+      expect(value).not.toMatch(/genoffice/i)
+    }
+  })
+
+  it('linux.description names the full Redrob Office suite editors', () => {
+    const c = loadBuilderConfig()
+    const linux = c.linux as { description: string }
+    // The software-center / `apt show` blurb must describe the whole suite.
+    for (const editor of ['Docs', 'Sheets', 'Slides', 'Markdown', 'PDF', 'Hangul']) {
+      expect(linux.description).toContain(editor)
+    }
+    expect(linux.description).toMatch(/Redrob Office/)
+  })
+
+  it('the shell package.json description names the full suite (no upstream brand)', () => {
+    for (const editor of ['Docs', 'Sheets', 'Slides', 'Markdown', 'PDF', 'Hangul']) {
+      expect(pkg.description).toContain(editor)
+    }
+    expect(pkg.description).not.toMatch(/mainfunc/i)
+    expect(pkg.description).not.toMatch(/genspark/i)
+  })
+})
+
+describe('OCR helpers are declared per-platform, not for Linux', () => {
+  it('the top-level extraResources ships no macOS/Windows OCR helper', () => {
+    const c = loadBuilderConfig()
+    const top = c.extraResources as Array<{ from: string; to: string }>
+    // A top-level OCR entry is why a Linux package warned about (and would try
+    // to ship) win-ocr.exe / vision-ocr — helpers that only exist on their own
+    // build platform. They must live under the per-platform blocks instead.
+    for (const r of top) {
+      expect(r.to).not.toContain('ocr/vision-ocr')
+      expect(r.to).not.toContain('ocr/win-ocr')
+    }
+  })
+
+  it('macOS ships vision-ocr and Windows ships win-ocr.exe in their own blocks', () => {
+    const c = loadBuilderConfig()
+    const mac = (c.mac as { extraResources: Array<{ from: string; to: string }> }).extraResources
+    const win = (c.win as { extraResources: Array<{ from: string; to: string }> }).extraResources
+    expect(mac.some((r) => r.to === 'ocr/vision-ocr')).toBe(true)
+    expect(win.some((r) => r.to === 'ocr/win-ocr.exe')).toBe(true)
+    // and no cross-contamination: mac must not ship the Windows helper, vice versa
+    expect(mac.some((r) => r.to.includes('win-ocr'))).toBe(false)
+    expect(win.some((r) => r.to.includes('vision-ocr'))).toBe(false)
+  })
+
+  it('Linux extraResources carries only the Linux xlsx sidecar (no OCR helpers)', () => {
+    const c = loadBuilderConfig()
+    const linux = (c.linux as { extraResources?: Array<{ from: string; to: string }> })
+      .extraResources
+    if (linux) {
+      for (const r of linux) {
+        expect(r.to).not.toContain('ocr/')
+      }
+    }
+  })
+})
+
+describe('THIRD-PARTY-NOTICES packaging contract', () => {
+  it('the notices file is shipped to the resources root (where the app reads it)', () => {
+    const c = loadBuilderConfig()
+    const top = c.extraResources as Array<{ from: string; to: string }>
+    const entry = top.find((r) => r.to === 'THIRD-PARTY-NOTICES.txt')
+    expect(entry).toBeDefined()
+    expect(entry!.from).toBe('build/THIRD-PARTY-NOTICES.txt')
+  })
+
+  it('a generate-before-build step exists (notices script wired into every dist:*)', () => {
+    const scripts = (
+      JSON.parse(readFileSync(resolve(SHELL_ROOT, 'package.json'), 'utf8')) as {
+        scripts: Record<string, string>
+      }
+    ).scripts
+    expect(scripts.notices).toContain('gen-third-party-notices.mjs')
+    for (const target of ['dist:mac', 'dist:win', 'dist:linux']) {
+      expect(scripts[target]).toContain('notices')
+    }
+  })
+
+  it('the generator source (tools/gen-third-party-notices.mjs) exists and targets the shell build dir', () => {
+    const gen = readFileSync(resolve(REPO_ROOT, 'tools/gen-third-party-notices.mjs'), 'utf8')
+    expect(gen).toContain('THIRD-PARTY-NOTICES.txt')
+  })
+
+  it('beforePack fails loudly when the notices file is absent (no silent ship)', () => {
+    // The config module defines assertThirdPartyNoticesPresent and calls it from
+    // beforePack; electron-builder exits 0 on a missing extraResources source, so
+    // this guard is the only thing that keeps a notice-less installer from shipping.
+    const src = readFileSync(resolve(SHELL_ROOT, 'electron-builder.cjs'), 'utf8')
+    expect(src).toContain('assertThirdPartyNoticesPresent')
+    // it is invoked inside beforePack, not merely defined
+    const beforePack = src.slice(src.indexOf('beforePack:'))
+    expect(beforePack).toContain('assertThirdPartyNoticesPresent()')
+  })
+})
+
 describe('desktop release workflow targets @genoffice/shell', () => {
   const workflow = readFileSync(
     resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'),
@@ -120,5 +231,109 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).toContain('SignerCertificate')
     expect(workflow).toContain('apps/shell/release/latest.yml')
     expect(workflow).toContain('*Setup*.exe')
+  })
+})
+
+
+describe('Office CDN publisher workflow', () => {
+  const workflow = readFileSync(
+    resolve(REPO_ROOT, '.github/workflows/release-office-cdn.yml'),
+    'utf8',
+  )
+
+  it('triggers on v* tags (the same tag the Windows release workflow uses)', () => {
+    expect(workflow).toContain('tags:')
+    expect(workflow).toContain('"v*"')
+    // shares the tag with the GitHub Windows release workflow
+    const desktop = readFileSync(
+      resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'),
+      'utf8',
+    )
+    expect(desktop).toContain('"v*"')
+  })
+
+  it('verifies the tag matches apps/shell/package.json version', () => {
+    expect(workflow).toContain("require('./apps/shell/package.json').version")
+    expect(workflow).toContain('does not match Redrob Office')
+  })
+
+  it('installs rpmbuild and stable Rust, and uses pnpm 9.15 / Node 24', () => {
+    expect(workflow).toContain('apt-get install -y rpm')
+    expect(workflow).toContain('dtolnay/rust-toolchain@stable')
+    expect(workflow).toContain('version: 9.15.0')
+    expect(workflow).toContain('node-version: "24"')
+  })
+
+  it('builds the unsigned Linux AppImage/deb/rpm for the shell', () => {
+    expect(workflow).toContain('@genoffice/shell')
+    expect(workflow).toContain('--config electron-builder.cjs')
+    expect(workflow).toContain('--linux AppImage deb rpm')
+    expect(workflow).toContain('--publish never')
+  })
+
+  it('generates third-party notices before packaging', () => {
+    const noticesIdx = workflow.indexOf('run notices')
+    const packageIdx = workflow.indexOf('--linux AppImage deb rpm')
+    expect(noticesIdx).toBeGreaterThan(-1)
+    expect(packageIdx).toBeGreaterThan(-1)
+    // notices step comes before the package step
+    expect(noticesIdx).toBeLessThan(packageIdx)
+  })
+
+  it('stages exactly the three artifacts named by electron-builder.cjs and their sha256 sidecars', () => {
+    const c = loadBuilderConfig()
+    const appimage = (c.linux as { artifactName: string }).artifactName
+    const deb = (c.deb as { artifactName: string }).artifactName
+    const rpm = (c.rpm as { artifactName: string }).artifactName
+    // the workflow builds the concrete names from ${APP_VERSION}; assert the
+    // template shape it uses lines up with the config templates
+    expect(appimage).toBe('Redrob-${version}.${ext}')
+    expect(workflow).toContain('Redrob-${APP_VERSION}.AppImage')
+    expect(deb).toBe('redrob_${version}_${arch}.deb')
+    expect(workflow).toContain('redrob_${APP_VERSION}_amd64.deb')
+    expect(rpm).toBe('redrob-${version}.${arch}.rpm')
+    expect(workflow).toContain('redrob-${APP_VERSION}.x86_64.rpm')
+    // sha256 sidecars are produced for each
+    expect(workflow).toContain('sha256sum')
+  })
+
+  it('uploads no extra junk (no blockmaps, latest*.yml, or the unpacked tree)', () => {
+    // Only the cdn-staging dir (the 3 artifacts + their .sha256) is uploaded.
+    expect(workflow).toContain('cdn-staging')
+    expect(workflow).not.toContain('.blockmap')
+    expect(workflow).not.toContain('latest-linux.yml')
+    expect(workflow).not.toContain('linux-unpacked')
+  })
+
+  it('uses the org CDN vars/secrets and the "office" prefix', () => {
+    expect(workflow).toContain('vars.REDROB_CDN_BUCKET')
+    expect(workflow).toContain('secrets.REDROB_CDN_ACCESS_KEY_ID')
+    expect(workflow).toContain('secrets.REDROB_CDN_SECRET_ACCESS_KEY')
+    expect(workflow).toContain('CDN_PREFIX: office')
+    expect(workflow).toContain('/${CDN_PREFIX}/${APP_VERSION}')
+  })
+
+  it('gates publish + verify on credentials so forks build-only (no publish, no false success)', () => {
+    expect(workflow).toContain('has_cdn_credentials')
+    // both the upload and the verify step are guarded
+    const publishGuard = workflow.indexOf("if: steps.guard.outputs.has_cdn_credentials == 'true'")
+    expect(publishGuard).toBeGreaterThan(-1)
+    // guard is evaluated from the presence of the bucket + keys
+    expect(workflow).toContain('[ -n "$REDROB_CDN_BUCKET" ]')
+    expect(workflow).toContain('Building packages only; nothing will be uploaded')
+  })
+
+  it('verifies every public CloudFront URL by HTTP GET and checksum match', () => {
+    expect(workflow).toContain('CDN_PUBLIC_HOST')
+    expect(workflow).toContain('curl --fail')
+    expect(workflow).toContain('Checksum mismatch')
+    // the verify step retrieves under the same office/<version> path it uploaded
+    expect(workflow).toContain('https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/${APP_VERSION}')
+  })
+
+  it('does not touch Windows signing or the GitHub Release (that stays in release-desktop.yml)', () => {
+    expect(workflow).not.toContain('WIN_CSC_LINK')
+    expect(workflow).not.toContain('action-gh-release')
+    expect(workflow).not.toContain('--win')
   })
 })

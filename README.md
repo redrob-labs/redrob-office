@@ -78,7 +78,12 @@ pnpm download:models -- --role text
 
 ### 릴리즈
 
-태그를 밀면 GitHub Actions(`.github/workflows/release-desktop.yml`)가 Redrob Office 스위트 셸(`@genoffice/shell`)을 서명·패키징·게시합니다. 태그는 `apps/shell/package.json`의 버전과 같아야 합니다(`v0.8.0` ↔ `0.8.0`). 레거시 채용 앱(`@redrob/office`)은 이 릴리즈 파이프라인에 포함되지 않습니다.
+`v*` 태그를 밀면 두 워크플로가 같은 태그에서 함께 돕니다.
+
+- **Windows 릴리즈** — `.github/workflows/release-desktop.yml`가 Redrob Office 스위트 셸(`@genoffice/shell`)의 Windows 설치본을 서명·패키징해 GitHub Release에 게시합니다.
+- **Linux CDN 배포** — `.github/workflows/release-office-cdn.yml`가 서명 없는 Linux 패키지(AppImage/deb/rpm)를 빌드해 CDN에 올립니다. `rpm`(rpmbuild)과 안정 Rust 툴체인을 설치하고 pnpm 9.15 / Node 24로 빌드한 뒤, 각 산출물의 `sha256` 사이드카를 만들어 조직 변수/시크릿 `REDROB_CDN_BUCKET`·`REDROB_CDN_ACCESS_KEY_ID`·`REDROB_CDN_SECRET_ACCESS_KEY`로 `s3://<bucket>/office/<version>/`에 업로드합니다. 업로드 후 모든 공개 CloudFront URL을 HTTP GET으로 받아 로컬 `sha256`과 일치하는지 검증해야 통과합니다.
+
+태그는 `apps/shell/package.json`의 버전과 같아야 합니다(`v0.8.0` ↔ `0.8.0`). CDN 자격 증명이 없는 포크나 미설정 저장소에서는 패키지 빌드만 실행되고 업로드는 일어나지 않으며, 성공을 거짓으로 보고하지 않습니다. 업로드되는 파일은 `electron-builder.cjs`가 정한 정확한 산출물 이름(`Redrob-<version>.AppImage`, `redrob_<version>_amd64.deb`, `redrob-<version>.x86_64.rpm`)과 그 `.sha256`뿐이고, blockmap이나 `latest*.yml`, 언팩 트리는 올리지 않습니다. 레거시 채용 앱(`@redrob/office`)은 이 릴리즈 파이프라인에 포함되지 않습니다.
 
 ## 문서
 

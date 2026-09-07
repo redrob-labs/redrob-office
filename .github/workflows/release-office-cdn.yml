@@ -1,0 +1,188 @@
+name: Publish Redrob Office to CDN
+
+# Builds the unsigned Linux packages for the Redrob Office suite shell
+# (@genoffice/shell) on a v* tag and uploads them, with sha256 sidecars, to the
+# Redrob CDN bucket under the "office" prefix, then verifies each public
+# CloudFront URL by HTTP GET.
+#
+# This is the Linux distribution channel for the office suite. The Windows
+# installer is signed and published to the GitHub Release by
+# release-desktop.yml on the SAME tag; the two workflows share the tag and do
+# not overlap (this one never touches Windows or the GitHub Release).
+#
+# Fork / no-secrets safety: the publish + verify steps only run when the CDN
+# credentials are present (see the `has_cdn_credentials` guard). A fork build,
+# or a run in a repo without the org secrets, still BUILDS the packages (so the
+# build stays tested) but never uploads and never claims a publish happened.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag matching apps/shell/package.json (for example v0.8.0)
+        required: true
+        type: string
+
+concurrency:
+  group: office-cdn-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # CloudFront distribution serving the CDN bucket. Public artifact URLs are
+  # https://<CDN_PUBLIC_HOST>/office/<version>/<file>.
+  CDN_PUBLIC_HOST: cdn.redrob.ai
+  # Key prefix inside the bucket. Every object this workflow writes lives under
+  # office/<version>/ so the office suite never collides with other products in
+  # the shared bucket.
+  CDN_PREFIX: office
+
+jobs:
+  publish-linux:
+    name: Build unsigned Linux packages and publish to CDN
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      # Org-level vars/secrets. Absent on forks and in repos that have not been
+      # granted the CDN credentials; the guard below keys off REDROB_CDN_BUCKET.
+      REDROB_CDN_BUCKET: ${{ vars.REDROB_CDN_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.REDROB_CDN_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.REDROB_CDN_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide whether this run can publish
+        id: guard
+        # Only runs with the CDN bucket configured may upload. Fork PRs and
+        # unconfigured repos build-only: no upload, no success claim.
+        run: |
+          if [ -n "$REDROB_CDN_BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+            echo "has_cdn_credentials=true" >> "$GITHUB_OUTPUT"
+            echo "This run WILL publish to the CDN."
+          else
+            echo "has_cdn_credentials=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CDN credentials are not configured (fork or unconfigured repo). Building packages only; nothing will be uploaded."
+          fi
+
+      - name: Verify tag matches application version
+        run: |
+          VERSION="$(node -p "require('./apps/shell/package.json').version")"
+          test "$RELEASE_TAG" = "v$VERSION" || {
+            echo "Tag $RELEASE_TAG does not match Redrob Office (apps/shell) version $VERSION"
+            exit 1
+          }
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      # rpm/rpmbuild is required for the rpm target (electron-builder shells out
+      # to fpm, which needs rpmbuild on the host).
+      - name: Install rpmbuild
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+
+      # The sheets xlsx sidecar is a Rust crate; the shell package step expects
+      # its release binary to exist. Pin to the stable toolchain.
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the suite (all editor modules + shell)
+        run: pnpm build
+
+      # Generates apps/shell/build/THIRD-PARTY-NOTICES.txt; beforePack aborts the
+      # package if it is missing, so this must run before electron-builder.
+      - name: Generate third-party notices
+        run: pnpm --filter @genoffice/shell run notices
+
+      - name: Package unsigned Linux artifacts (AppImage, deb, rpm)
+        run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --linux AppImage deb rpm --publish never
+
+      # The exact filenames come straight from electron-builder.cjs
+      # (linux.artifactName / deb.artifactName / rpm.artifactName). Only these
+      # three are staged for upload, so no blockmaps, latest*.yml, or unpacked
+      # trees leak onto the CDN.
+      - name: Stage artifacts and compute sha256 sidecars
+        id: stage
+        run: |
+          set -euo pipefail
+          RELEASE_DIR=apps/shell/release
+          OUT=cdn-staging
+          mkdir -p "$OUT"
+          APPIMAGE="Redrob-${APP_VERSION}.AppImage"
+          DEB="redrob_${APP_VERSION}_amd64.deb"
+          RPM="redrob-${APP_VERSION}.x86_64.rpm"
+          for f in "$APPIMAGE" "$DEB" "$RPM"; do
+            test -f "$RELEASE_DIR/$f" || { echo "Expected artifact missing: $RELEASE_DIR/$f"; exit 1; }
+            cp "$RELEASE_DIR/$f" "$OUT/$f"
+            ( cd "$OUT" && sha256sum "$f" > "$f.sha256" )
+          done
+          echo "Staged for CDN:"
+          ls -la "$OUT"
+
+      - name: Upload build artifacts (always, for inspection)
+        uses: actions/upload-artifact@v4
+        with:
+          name: office-linux-${{ env.APP_VERSION }}
+          path: cdn-staging/*
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Publish to CDN
+        if: steps.guard.outputs.has_cdn_credentials == 'true'
+        run: |
+          set -euo pipefail
+          DEST="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/${APP_VERSION}"
+          for f in cdn-staging/*; do
+            name="$(basename "$f")"
+            case "$name" in
+              *.sha256) ctype="text/plain" ;;
+              *.AppImage) ctype="application/x-executable" ;;
+              *.deb) ctype="application/vnd.debian.binary-package" ;;
+              *.rpm) ctype="application/x-rpm" ;;
+              *) ctype="application/octet-stream" ;;
+            esac
+            echo "Uploading $name -> $DEST/$name ($ctype)"
+            aws s3 cp "$f" "$DEST/$name" --content-type "$ctype" --no-progress
+          done
+
+      # Every uploaded object must be publicly retrievable through CloudFront
+      # before the run is allowed to succeed. A byte-for-byte match against the
+      # local sha256 sidecar proves the CDN really has the file we built.
+      - name: Verify public CloudFront URLs
+        if: steps.guard.outputs.has_cdn_credentials == 'true'
+        run: |
+          set -euo pipefail
+          BASE="https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/${APP_VERSION}"
+          for f in cdn-staging/*; do
+            name="$(basename "$f")"
+            url="$BASE/$name"
+            echo "GET $url"
+            # Fail on any non-2xx (curl --fail) and keep the body for hashing.
+            curl --fail --location --silent --show-error --retry 5 --retry-delay 5 \
+              --retry-all-errors -o "verify-$name" "$url"
+            local_sum="$(sha256sum "$f" | awk '{print $1}')"
+            remote_sum="$(sha256sum "verify-$name" | awk '{print $1}')"
+            if [ "$local_sum" != "$remote_sum" ]; then
+              echo "Checksum mismatch for $name: local=$local_sum remote=$remote_sum"
+              exit 1
+            fi
+            echo "OK $name ($remote_sum)"
+          done
+          echo "All CloudFront URLs verified under $BASE"

@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "homepage": "https://github.com/redrob-labs/redrob-office",
   "private": true,
-  "description": "Unified Redrob shell: one app hosting the docs and sheets modules behind a home/launcher window",
+  "description": "Redrob Office suite shell: one window hosting the Redrob Docs, Sheets, Slides, Markdown, PDF, and Hangul editors with the Redrob AI assistant built in",
   "main": "out/main/index.js",
   "desktopName": "redrob.desktop",
   "scripts": {
@@ -14,9 +14,10 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "start": "electron-vite build && electron .",
-    "dist:mac": "electron-vite build && electron-builder --mac",
-    "dist:win": "electron-vite build && electron-builder --win",
-    "dist:linux": "electron-vite build && electron-builder --linux"
+    "notices": "node ../../tools/gen-third-party-notices.mjs",
+    "dist:mac": "pnpm run notices && electron-vite build && electron-builder --mac",
+    "dist:win": "pnpm run notices && electron-vite build && electron-builder --win",
+    "dist:linux": "pnpm run notices && electron-vite build && electron-builder --linux"
   },
   "devDependencies": {
     "@genoffice/agent-core": "workspace:*",
