@@ -9,9 +9,10 @@ name: Publish Redrob Office to CDN
 # before "latest" ever moves):
 #   1. IMMUTABLE  s3://<bucket>/office/<version>/   — long-lived, never rewritten
 #      objects. Verify EVERY public versioned CloudFront URL + checksum.
-#   2. LATEST     s3://<bucket>/office/latest/       — the exact same bytes,
-#      copied server-side from the versioned objects, with revalidating cache
-#      headers. Verify EVERY public latest URL + checksum.
+#   2. LATEST     s3://<bucket>/office/latest/       — the exact same local
+#      bytes re-uploaded (NOT a server-side S3 copy: the PutObject-only CDN
+#      credentials cannot Head/Get/List), with revalidating cache headers.
+#      Verify EVERY public latest URL + checksum.
 # Consumers pin a version via office/<version>/ (cached forever) or follow
 # office/latest/ (always revalidated) for the newest release.
 #
@@ -35,7 +36,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag matching apps/shell/package.json (for example v0.8.0)
+        description: Release tag matching apps/shell/package.json (for example v0.8.1)
         required: true
         type: string
 
@@ -222,17 +223,25 @@ jobs:
 
       # Phase 2a: promote to office/latest/. Runs ONLY after the versioned
       # verify above fully passed (step order + fail-fast), and ONLY on a real
-      # tag push with credentials (can_promote_latest). The bytes are copied
-      # SERVER-SIDE from the just-verified versioned objects (s3 cp s3://..
-      # s3://..), so "latest" is provably the same bytes we verified — never a
-      # re-upload that could differ. Unlike the versioned prefix, latest must be
-      # revalidated on every fetch (no-cache) or clients would keep serving a
-      # stale release after the pointer moves.
+      # tag push with credentials (can_promote_latest).
+      #
+      # We re-UPLOAD the same local cdn-staging/* files we just published to and
+      # publicly verified at office/<version>/ — we do NOT server-side copy
+      # s3://<version>/ -> s3://latest/. The CDN credentials are PutObject-only
+      # (no Head/Get/List): an `aws s3 cp s3://.. s3://..` first does a
+      # HeadObject on the source and fails 403 (this is exactly what broke the
+      # v0.8.0 run). Uploading the local bytes needs only PutObject. The bytes
+      # are provably identical to the versioned release: they are the very files
+      # whose office/<version>/ copies passed the checksum verify in Phase 1b,
+      # and Phase 2b re-verifies each latest object's checksum after upload.
+      #
+      # Unlike the immutable versioned prefix, latest must be revalidated on
+      # every fetch (no-cache) or clients keep serving a stale release after the
+      # pointer moves.
       - name: Promote verified artifacts to office/latest
         if: steps.guard.outputs.can_promote_latest == 'true'
         run: |
           set -euo pipefail
-          SRC="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/${APP_VERSION}"
           DEST="s3://${REDROB_CDN_BUCKET}/${CDN_PREFIX}/latest"
           for f in cdn-staging/*; do
             name="$(basename "$f")"
@@ -243,11 +252,10 @@ jobs:
               *.rpm) ctype="application/x-rpm" ;;
               *) ctype="application/octet-stream" ;;
             esac
-            echo "Promoting $name: $SRC/$name -> $DEST/$name ($ctype)"
-            aws s3 cp "$SRC/$name" "$DEST/$name" \
+            echo "Promoting (upload) $name -> $DEST/$name ($ctype)"
+            aws s3 cp "$f" "$DEST/$name" \
               --content-type "$ctype" \
               --cache-control "no-cache, max-age=0, must-revalidate" \
-              --metadata-directive REPLACE \
               --no-progress
           done
 

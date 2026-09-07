@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag matching apps/shell/package.json (for example v0.8.0)
+        description: Release tag matching apps/shell/package.json (for example v0.8.1)
         required: true
         type: string
 
@@ -59,6 +59,16 @@ jobs:
 
       - name: Build the suite (all editor modules + shell)
         run: pnpm build
+
+      # NOTICE (repo root) requires build/THIRD-PARTY-NOTICES.txt to ship in the
+      # installer, and electron-builder.cjs beforePack (assertThirdPartyNoticesPresent)
+      # aborts packaging if it is absent. This job calls electron-builder
+      # directly (not via the dist:* scripts that would run `notices`), so the
+      # file must be generated explicitly here, before the package step. Runs
+      # after `pnpm build` because the generator reads the built module out dirs
+      # and `cargo metadata`.
+      - name: Generate third-party notices
+        run: pnpm --filter @genoffice/shell run notices
 
       - name: Sign and package Redrob Office (shell)
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis --x64 --publish never

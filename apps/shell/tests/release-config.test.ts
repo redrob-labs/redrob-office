@@ -302,6 +302,23 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).toContain('apps/shell/release/latest.yml')
     expect(workflow).toContain('*Setup*.exe')
   })
+
+  it('generates THIRD-PARTY-NOTICES before packaging (beforePack asserts it exists)', () => {
+    // This job runs electron-builder directly, not the dist:* scripts that
+    // would run `notices`, so it must generate the file itself. Without this
+    // step the v0.8.0 Windows job failed: beforePack's
+    // assertThirdPartyNoticesPresent threw on the missing file.
+    const noticesIdx = workflow.indexOf('run notices')
+    const packageIdx = workflow.indexOf('--win nsis')
+    expect(noticesIdx).toBeGreaterThan(-1)
+    expect(packageIdx).toBeGreaterThan(-1)
+    // ordering: notices step precedes the electron-builder package step
+    expect(noticesIdx).toBeLessThan(packageIdx)
+    // and it runs after the build (the generator reads the built out dirs)
+    const buildIdx = workflow.indexOf('run: pnpm build')
+    expect(buildIdx).toBeGreaterThan(-1)
+    expect(buildIdx).toBeLessThan(noticesIdx)
+  })
 })
 
 
@@ -402,17 +419,45 @@ describe('Office CDN publisher workflow', () => {
     expect(workflow).toContain('https://${CDN_PUBLIC_HOST}/${CDN_PREFIX}/${APP_VERSION}')
   })
 
-  it('uploads the versioned prefix as immutable and copies latest server-side with revalidating headers', () => {
+  it('uploads versioned as immutable and promotes latest by re-uploading local bytes (no server-side copy)', () => {
     // office/<version>/ is written once and cached forever.
     expect(workflow).toContain('public, max-age=31536000, immutable')
     // office/latest/ must be revalidated on every fetch, or clients keep a
     // stale release after the pointer moves.
     expect(workflow).toContain('no-cache, max-age=0, must-revalidate')
-    // latest is a SERVER-SIDE copy of the already-verified versioned bytes
-    // (s3://.../<version>/ -> s3://.../latest/), not a re-upload.
-    expect(workflow).toContain('${CDN_PREFIX}/${APP_VERSION}')
-    expect(workflow).toContain('${CDN_PREFIX}/latest')
-    expect(workflow).toContain('--metadata-directive REPLACE')
+
+    // The PutObject-only CDN credentials cannot Head/Get/List, so latest must
+    // be promoted by re-uploading the local staged files, NOT by a server-side
+    // s3://<version>/ -> s3://latest/ copy (which HeadObjects the source and
+    // 403s — the v0.8.0 failure). The promote step must upload from the local
+    // cdn-staging dir and must not reference an s3:// source or a copy's
+    // metadata-directive.
+    const promote = workflow.slice(
+      workflow.indexOf('Promote verified artifacts to office/latest'),
+      workflow.indexOf('Verify public latest CloudFront URLs'),
+    )
+    expect(promote).toContain('aws s3 cp "$f"')
+    expect(promote).toContain('${CDN_PREFIX}/latest')
+    expect(promote).not.toContain('--metadata-directive')
+    // no s3:// SOURCE in the promote cp (would trigger a HeadObject)
+    expect(promote).not.toMatch(/aws s3 cp "s3:\/\//)
+    expect(promote).not.toContain('${CDN_PREFIX}/${APP_VERSION}')
+  })
+
+  it('the latest promotion depends on no Head/Get/List S3 permission', () => {
+    // Guard against reintroducing operations the PutObject-only credentials
+    // cannot perform on the CDN bucket. Inspect only executable lines (drop
+    // comment lines, which legitimately mention the s3->s3 copy we avoid).
+    const commandLines = workflow
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('#'))
+      .join('\n')
+    expect(commandLines).not.toContain('aws s3api head-object')
+    expect(commandLines).not.toContain('aws s3api get-object')
+    expect(commandLines).not.toContain('aws s3api list-objects')
+    expect(commandLines).not.toContain('aws s3 ls')
+    // and no s3://->s3:// copy/move/sync anywhere in the actual commands
+    expect(commandLines).not.toMatch(/aws s3 (cp|mv|sync) "?s3:\/\/[^"]*"? "?s3:\/\//)
   })
 
   it('verifies the versioned prefix BEFORE any latest write (order + gate)', () => {
