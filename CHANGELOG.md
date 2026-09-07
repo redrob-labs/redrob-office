@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.8.1
+
+Release-pipeline fixes for the Redrob Office suite shell (`@genoffice/shell`).
+The v0.8.0 tag build failed in three places; this release fixes them without
+touching product behavior.
+
+- **Windows release: generate third-party notices before packaging.** The
+  Windows job (`release-desktop.yml`) calls `electron-builder` directly, whose
+  `beforePack` guard aborts when `build/THIRD-PARTY-NOTICES.txt` is absent. A
+  `Generate third-party notices` step now runs after the build and before
+  packaging.
+- **CDN `latest` promotion no longer server-side-copies.** The CDN credentials
+  are PutObject-only, so `aws s3 cp s3://…/office/<version>/ s3://…/office/latest/`
+  failed with 403 (HeadObject on the source). `release-office-cdn.yml` now
+  re-uploads the same local, already publicly-verified files to
+  `office/latest/`; the versioned-verify-before-latest ordering and the latest
+  checksum re-verification are unchanged.
+- **Crypto test timeouts on loaded CI runners.** The docx encryption and
+  Protect-dialog suites do real iterated key derivation; on a contended runner a
+  case exceeded the 20s default. Those suites get a justified 60s timeout; all
+  other `apps/docs` tests keep the 20s default and no assertion changed.
+
 ## Unreleased
 
 ### Naming and cloud-account honesty
