@@ -10,7 +10,7 @@ import { resolve } from 'node:path'
  *     (appId), the executable name, and the update-feed artifact filenames stay
  *     on their historic values so a display rename never breaks auto-update; and
  *  2. the desktop release workflow builds/signs/packages THIS shell, not the
- *     legacy @redrob/office recruiting app.
+ *     retired application that is archived outside main.
  */
 
 const SHELL_ROOT = resolve(__dirname, '..')
@@ -287,7 +287,7 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).toContain("require('./apps/shell/package.json').version")
   })
 
-  it('does NOT reference the legacy @redrob/office / office/release / office version', () => {
+  it('does NOT reference the archived legacy application or its release directory', () => {
     expect(workflow).not.toContain('@redrob/office')
     expect(workflow).not.toContain('office/release')
     expect(workflow).not.toContain('electron-builder.yml')

@@ -1,9 +1,0 @@
-채용 지원서 (합성)
-지원자 성명: 오세린
-지원 직무: Backend Engineer
-기술: TypeScript, NestJS, PostgreSQL
-
-제출처 / 문의
-회사 대표메일: hr@example.com
-채용 담당 전화: 02-1234-5678
-※ 지원자 본인 이메일·전화번호는 이 문서에 기재되어 있지 않음.

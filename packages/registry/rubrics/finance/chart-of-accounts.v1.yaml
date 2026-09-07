@@ -1,7 +1,0 @@
-id: finance/chart-of-accounts
-version: 1
-axes:
-  - { id: classification, label: Account classification, range: [1, 5], guidance: "Score the fit between evidence and selected account." }
-rules:
-  - { id: required-account, kind: deterministic, severity: warn, implementation: requiredAccount }
-  - { id: ambiguous-expense, kind: model, severity: info, prompt: "Flag ambiguous classifications and list missing evidence." }

@@ -1,7 +1,0 @@
-id: design/i18n-overflow
-version: 1
-axes:
-  - { id: resilience, label: Localization resilience, range: [1, 5], guidance: "Score layout resilience across translated strings." }
-rules:
-  - { id: text-overflow, kind: deterministic, severity: warn, implementation: textOverflow }
-  - { id: translation-context, kind: model, severity: info, prompt: "Identify strings whose context could be ambiguous in translation." }

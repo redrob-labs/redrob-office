@@ -1,8 +1,0 @@
-Copyright 2026 Redrob
-
-Licensed under the Apache License, Version 2.0.
-See LICENSE in the project root.
-
-Redrob · Janghoon Lee
-On-device office: lookup · process · review.
-Solo use on this PC is free.

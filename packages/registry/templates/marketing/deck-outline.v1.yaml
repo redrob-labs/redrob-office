@@ -1,9 +1,0 @@
-id: marketing/deck-outline
-version: 1
-outputKind: markdown
-slots:
-  - { id: purpose, required: true, description: "Deck purpose (pitch, launch, webinar, etc.)" }
-  - { id: audience, required: true, description: "Audience" }
-  - { id: narrative, required: true, description: "Story or arc to cover" }
-  - { id: slideCount, required: false, description: "Target slide count" }
-  - { id: mustInclude, required: false, description: "Must-include slides or proof" }

@@ -4,9 +4,8 @@
  *
  * Why this exists
  * ---------------
- * The monorepo runs two Electron majors side by side: `@genoffice/shell` (the
- * office suite, Electron 43) and `@redrob/office` (the recruiting app, Electron
- * 35). pnpm gates package build scripts, and on a fresh
+ * The monorepo's editor apps share the Electron version used by `@genoffice/shell`.
+ * pnpm gates package build scripts, and on a fresh
  * `pnpm install --frozen-lockfile` an Electron package can end up WITHOUT its
  * downloaded binary (no `dist/` and no `path.txt`). Electron's own `index.js`
  * only re-downloads at require time, so `pnpm dev` for the shell then dies with

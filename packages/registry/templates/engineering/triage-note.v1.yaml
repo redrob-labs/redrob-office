@@ -1,9 +1,0 @@
-id: engineering/triage-note
-version: 1
-outputKind: markdown
-slots:
-  - { id: title, required: true, description: "Issue title" }
-  - { id: severity, required: true, description: "Severity (P0–P3)" }
-  - { id: symptoms, required: true, description: "Symptoms / repro" }
-  - { id: impact, required: true, description: "User or system impact" }
-  - { id: nextStep, required: false, description: "Suggested next step" }

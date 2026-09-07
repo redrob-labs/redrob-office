@@ -1,5 +1,0 @@
-Candidate profile
-Name: Alex Rivera
-Phone: +1-555-0102
-Experience: 36 months total
-Skills: Go, Kubernetes, gRPC

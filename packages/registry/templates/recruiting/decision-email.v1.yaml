@@ -1,9 +1,0 @@
-id: recruiting/decision-email
-version: 1
-outputKind: markdown
-slots:
-  - { id: subject, required: true, description: "Email subject", maxChars: 120 }
-  - { id: decision, required: true, description: "pass or reject", maxChars: 60 }
-  - { id: candidateName, required: true, description: "Candidate display name", maxChars: 60 }
-  - { id: roleTitle, required: false, description: "Role or JD title", maxChars: 60 }
-  - { id: body, required: true, description: "Email body ready to send", maxChars: 800 }

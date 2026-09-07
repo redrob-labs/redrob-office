@@ -1,9 +1,0 @@
-id: legal/memo-docx
-version: 1
-outputKind: docx
-slots:
-  - { id: matter, required: true, description: "Matter or case name" }
-  - { id: question, required: true, description: "Legal question to answer" }
-  - { id: facts, required: true, description: "Relevant facts" }
-  - { id: jurisdiction, required: false, description: "Jurisdiction / governing law" }
-  - { id: riskTolerance, required: false, description: "Risk tolerance or constraints" }

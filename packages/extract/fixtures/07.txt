@@ -1,3 +1,0 @@
-이름: 한지민
-기술스택: Rust, PostgreSQL, Linux
-연락처·이메일은 별도 제출 예정.

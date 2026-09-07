@@ -6,7 +6,7 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      // @genoffice/ui package lives at packages/genoffice-ui in this merged repo (dir renamed to coexist with @redrob/ui)
+      // @genoffice/ui package lives at packages/genoffice-ui in this monorepo
       "@genoffice/ui": ["../../packages/genoffice-ui/src/index.ts"]
     }
   },

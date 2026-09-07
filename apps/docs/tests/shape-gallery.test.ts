@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 // Path adjusted for FEAT-002's directory rename: GenOffice's packages/ui was
 // copied to packages/genoffice-ui in redrob-office (package name stays
-// @genoffice/ui) so it can coexist with the existing @redrob/ui at packages/ui.
+// @genoffice/ui), matching the shared suite package at packages/genoffice-ui.
 import { SHAPE_GALLERY_GROUPS } from '../../../packages/genoffice-ui/src/shape-gallery'
 import { shapeBackgroundCss, shapePreviewPathD } from '../src/renderer/editor/shape-svg'
 

@@ -1,8 +1,0 @@
-id: recruiting/candidate-report
-version: 1
-outputKind: markdown
-slots:
-  - { id: candidateSummary, required: true, description: "Evidence-based candidate summary" }
-  - { id: rubricScores, required: true, description: "Six-axis scores with evidence" }
-  - { id: risks, required: false, description: "Open questions and risks" }
-  - { id: recommendation, required: true, description: "Hiring recommendation" }

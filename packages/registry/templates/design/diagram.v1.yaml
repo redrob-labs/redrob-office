@@ -1,7 +1,0 @@
-id: design/diagram
-version: 1
-outputKind: html
-slots:
-  - { id: title, required: true, description: "Diagram title" }
-  - { id: mermaid, required: true, description: "Mermaid source (flowchart, sequence, etc.)" }
-  - { id: notes, required: false, description: "Optional notes under the diagram" }

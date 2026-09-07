@@ -1,7 +1,7 @@
 {
   "name": "redrob-office",
   "private": true,
-  "version": "0.0.5",
+  "version": "0.8.3",
   "license": "Apache-2.0",
   "description": "On-device office suite: lookup, process, and review without leaving this PC",
   "packageManager": "pnpm@9.15.0",
@@ -10,23 +10,12 @@
     "ensure:electron": "node ./scripts/ensure-electron.mjs",
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@genoffice/shell",
-    "dev:office": "turbo run dev --filter=@redrob/office",
-    "dev:web": "pnpm --filter @redrob/office dev:web",
-    "dev:cdp": "pnpm --filter @redrob/office dev:cdp",
     "test": "turbo run test",
-    "office:bench:minimized": "pnpm --filter @redrob/office office:bench:minimized",
     "audit:i18n": "node ./scripts/audit-i18n.mjs",
-    "audit:security": "node ./scripts/audit-security.mjs",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rimraf node_modules",
-    "download:models": "pnpm --filter @redrob/kernel build && node ./scripts/download-models.mjs",
-    "bench": "pnpm --filter @redrob/kernel bench",
-    "check-extract": "pnpm --filter @redrob/extract check-extract",
-    "rebuild:native": "pnpm --filter @redrob/office rebuild:native",
-    "dist": "pnpm build && pnpm --filter @genoffice/shell dist:linux",
-    "dist:office": "pnpm build && pnpm --filter @redrob/office dist",
-    "publish:test": "pnpm build && pnpm --filter @redrob/office publish:test"
+    "dist": "pnpm build && pnpm --filter @genoffice/shell dist:linux"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
