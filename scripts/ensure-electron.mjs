@@ -42,11 +42,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Workspace packages that consume Electron directly. Each is resolved from its
- * own directory so pnpm's per-package store hands us the exact version that
- * package depends on (shell -> 43, office -> 35), without us naming a version
- * or a store path.
+ * own directory so pnpm's per-package store hands us the exact version the
+ * suite depends on, without us naming a version or a store path.
  */
-const DEFAULT_CONSUMERS = ["apps/shell", "office"];
+const DEFAULT_CONSUMERS = ["apps/shell"];
 
 function readTrimmed(file) {
   try {

@@ -11,7 +11,6 @@
     "build": "turbo run build",
     "dev": "turbo run dev --filter=@genoffice/shell",
     "test": "turbo run test",
-    "audit:i18n": "node ./scripts/audit-i18n.mjs",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rimraf node_modules",
