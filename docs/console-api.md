@@ -27,8 +27,11 @@ Human reference: `https://console.redrob.ai/docs/api-reference`. Machine spec:
 - `POST /v1/chat/completions` — OpenAI-compatible completion. `stream: true`
   produces `data:`-prefixed SSE chunks terminated by `data: [DONE]`.
 
-Model ids are a closed enum: **`redrob-ai`** and **`redrob-translate`**.
-`model` is optional and defaults to `redrob-ai`.
+Model ids on the OpenAI-compatible chat path use the wire id **`auto`**
+(Console route `redrob/auto`). Older docs listed `redrob-ai` /
+`redrob-translate`; live Console chat/completions rejects `redrob-ai` with
+`model_not_found`, so Office wires `auto` only. `model` in settings may be
+empty because the engine ignores it.
 
 There are also Redrob-specific inference endpoints Office does not use:
 `POST /v1/complete`, `POST /v1/complete/stream`, `POST /v1/translate`. The rest
@@ -42,7 +45,7 @@ fields to the serving vendor. Important fields for Office are:
 
 | field | notes |
 | --- | --- |
-| `model` | enum `redrob-ai` \| `redrob-translate` |
+| `model` | wire id `auto` (route `redrob/auto`) |
 | `messages` | required; role is `system` \| `developer` \| `user` \| `assistant` \| `tool`; content is a string, text-part array, or `null` on an assistant tool-call turn |
 | `stream` | boolean |
 | `temperature` | 0 to 2 |

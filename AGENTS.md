@@ -32,8 +32,8 @@ The retired recruiting application is not on `main`. Its source archive is the
 - `apps/markdown`, `apps/hangul`: additional editors.
 - `packages/agent-core`: shared ReAct loop, tool execution, history and compaction.
 - `packages/ai-provider`: one Redrob engine route. Do not add provider selection, vendor BYOK, or an
-  arbitrary inference URL. The fixed Console API is `https://console.redrob.ai/api/backend/v1`, model
-  `redrob-ai` / route `redrob/auto`.
+  arbitrary inference URL. The fixed Console API is `https://console.redrob.ai/api/backend/v1`, wire
+  model `auto` / route `redrob/auto`. Settings may leave `model` empty; the engine always wires `auto`.
 - `packages/ai-search`: Redrob-hosted search/image helpers.
 - `packages/genoffice-ui`, `packages/i18n`, `packages/electron-utils`, `packages/project-store`:
   shared UI/runtime infrastructure.

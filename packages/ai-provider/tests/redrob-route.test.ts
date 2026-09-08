@@ -62,6 +62,11 @@ const EVERY_PROVIDER_ID: AiProviderId[] = [
 ]
 
 describe('single Redrob route', () => {
+  it('wires the fixed auto model id (not a legacy product alias)', () => {
+    expect(REDROB_ENGINE_MODEL).toBe('auto')
+    expect(REDROB_ENGINE_MODEL).not.toBe('redrob-ai')
+  })
+
   it('sends one-shot chat only to the fixed Redrob Console base with the fixed model', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'ok' } }] }))
     const result = await chatForProvider('anthropic', KEY, 'system', 'hi')
@@ -71,7 +76,16 @@ describe('single Redrob route', () => {
     expect(url).toBe(`${REDROB_CONSOLE_API_BASE}/chat/completions`)
     expect(url.startsWith('https://console.redrob.ai/api/backend/v1')).toBe(true)
     const body = JSON.parse((init as RequestInit).body as string)
+    expect(body.model).toBe('auto')
     expect(body.model).toBe(REDROB_ENGINE_MODEL)
+  })
+
+  it('ignores an empty settings model: the wire still sends auto', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'ok' } }] }))
+    const result = await chatForProvider('genspark', { apiKey: 'rk-test-key', model: '' }, 'system', 'hi')
+    expect(result.ok).toBe(true)
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as RequestInit).body as string)
+    expect(body.model).toBe('auto')
   })
 
   it('ignores the provider argument: no vendor id ever changes the base URL', async () => {
@@ -131,6 +145,7 @@ describe('single Redrob route', () => {
     const [url, init] = fetchMock.mock.calls[0]!
     expect(url).toBe(`${REDROB_CONSOLE_API_BASE}/chat/completions`)
     const body = JSON.parse((init as RequestInit).body as string)
+    expect(body.model).toBe('auto')
     expect(body.model).toBe(REDROB_ENGINE_MODEL)
     expect(body.stream).toBe(true)
     expect(deltas.join('')).toBe('Hello')

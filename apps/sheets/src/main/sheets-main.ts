@@ -3076,7 +3076,8 @@ export function registerSheetsAiIpc(): void {
         error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
       }
     }
-    if (!config.model) return { ok: false, error: tm('errNoModel') }
+    // The Redrob engine ignores settings.model and always wires `auto`; fresh
+    // defaults leave model empty, so an empty model must not fail preflight.
     try {
       const result = await chatForProvider(provider, config, request.system, request.user)
       // the one-shot path reports HTTP failures as ok:false with the raw body —
@@ -3114,10 +3115,8 @@ export function registerSheetsAiIpc(): void {
       })
       return
     }
-    if (!config.model) {
-      send({ requestId, type: 'error', error: tm('errNoModel') })
-      return
-    }
+    // The Redrob engine ignores settings.model and always wires `auto`; fresh
+    // defaults leave model empty, so an empty model must not fail preflight.
     const controller = new AbortController()
     entry.aiStreams.set(requestId, controller)
     // wire-activity keepalive: lets the renderer's silence watchdog tell a slow turn from a dead one

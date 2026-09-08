@@ -147,12 +147,38 @@ export function registerAiIpc(): void {
     const provider = settings.provider
     let config = settings.providers?.[provider]
     // The genspark key never enters the settings file; it is fetched from the gsk login state per request
-    if (provider === 'genspark' && config && !config.apiKey) {
+    const usedGskFallback = provider === 'genspark' && !!config && !config.apiKey
+    if (usedGskFallback) {
       config = { ...config, apiKey: gskApiKey() }
     }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
     }
+    // #region agent log
+    try {
+      appendFileSync(
+        '/opt/cursor/logs/debug.log',
+        JSON.stringify({
+          location: 'slides/ai-ipc.ts:stream',
+          message: 'slides ai stream gate',
+          data: {
+            provider,
+            hasSettingsKey: !!settings.providers?.[provider]?.apiKey,
+            usedGskFallback,
+            hasResolvedKey: !!config?.apiKey,
+            settingsModel: config?.model ?? null,
+            emptyModelOk: !config?.model,
+            skippedEmptyModelGate: true,
+          },
+          timestamp: Date.now(),
+          hypothesisId: 'C',
+          runId: 'post-fix',
+        }) + '\n',
+      )
+    } catch {
+      /* debug log */
+    }
+    // #endregion
     if (!config?.apiKey) {
       send({
         requestId,
@@ -161,10 +187,8 @@ export function registerAiIpc(): void {
       })
       return
     }
-    if (!config.model) {
-      send({ requestId, type: 'error', error: tm('errNoModel') })
-      return
-    }
+    // The Redrob engine ignores settings.model and always wires `auto`; fresh
+    // defaults leave model empty, so an empty model must not fail preflight.
     const controller = new AbortController()
     activeAiStreams.set(requestId, controller)
     // wire-activity keepalive: lets the renderer's silence watchdog tell a slow turn from a dead one

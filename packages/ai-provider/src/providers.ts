@@ -23,7 +23,10 @@ export const REDROB_ENGINE_ID: AiProviderId = 'genspark'
  * keys and their `defaultModel`/`models` metadata are kept so the ported editors
  * and their verbatim tests, which index `providers.<id>` and gate on model-family
  * heuristics, keep working; routing ignores all of it and targets the fixed
- * Console base (see ./redrob-engine).
+ * Console base (see ./redrob-engine). Fresh defaults intentionally leave
+ * `defaultModel` empty for the Redrob slot: the wire model is always
+ * `REDROB_ENGINE_MODEL` (`auto`), so an empty settings model must not fail
+ * preflight in the editor apps.
  */
 export const AI_PROVIDERS: AiProviderMeta[] = [
   {

@@ -1,4 +1,5 @@
 import type { AgentMessage, AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
+import { appendFileSync } from 'node:fs'
 import { aiFetch } from './fetch'
 import {
   AiCreditsError,
@@ -18,18 +19,18 @@ import { AI_CHAT_RESPONSE_TIMEOUT_MS, createStreamWatchdog } from './watchdog'
  * turn from every editor is routed here.
  *
  * The base and model are fixed by policy (see redrob-office/AGENTS.md): the
- * Console API base is https://console.redrob.ai/api/backend/v1 and the model is
- * redrob-ai / redrob/auto. Do not add a way to override either from settings or
- * the UI.
+ * Console API base is https://console.redrob.ai/api/backend/v1 and the wire
+ * model is `auto` (Console route `redrob/auto`). Do not add a way to override
+ * either from settings or the UI.
  */
 export const REDROB_CONSOLE_API_BASE = 'https://console.redrob.ai/api/backend/v1'
 
 /**
- * The one model id. `redrob-ai` is the product name; the Console routes it as
- * `redrob/auto`. Both are the same single engine and neither exposes a vendor
- * choice.
+ * The one wire model id. Console accepts `auto` on chat/completions; the
+ * product route name is `redrob/auto`. Settings may leave `model` empty because
+ * this constant is what every turn sends. Neither exposes a vendor choice.
  */
-export const REDROB_ENGINE_MODEL = 'redrob-ai'
+export const REDROB_ENGINE_MODEL = 'auto'
 export const REDROB_ENGINE_ROUTE = 'redrob/auto'
 
 /**
@@ -173,6 +174,28 @@ export async function redrobEngineChat(
   const watchdog = createStreamWatchdog(signal, AI_CHAT_RESPONSE_TIMEOUT_MS, AI_CHAT_RESPONSE_TIMEOUT_MS)
   try {
     return await watchdog.guard(async () => {
+      // #region agent log
+      try {
+        appendFileSync(
+          '/opt/cursor/logs/debug.log',
+          JSON.stringify({
+            location: 'redrob-engine.ts:chat',
+            message: 'chat request model',
+            data: {
+              wireModel: REDROB_ENGINE_MODEL,
+              routeConst: REDROB_ENGINE_ROUTE,
+              hasKey: !!auth.apiKey.trim(),
+              keyLen: auth.apiKey.trim().length,
+            },
+            timestamp: Date.now(),
+            hypothesisId: 'A',
+            runId: 'post-fix',
+          }) + '\n',
+        )
+      } catch {
+        /* debug log */
+      }
+      // #endregion
       const response = await aiFetch(`${REDROB_CONSOLE_API_BASE}/chat/completions`, {
         method: 'POST',
         headers: authHeaders(auth),
@@ -184,6 +207,28 @@ export async function redrobEngineChat(
         signal: watchdog.signal,
       })
       const bodyText = await response.text()
+      // #region agent log
+      try {
+        appendFileSync(
+          '/opt/cursor/logs/debug.log',
+          JSON.stringify({
+            location: 'redrob-engine.ts:chat-response',
+            message: 'chat response',
+            data: {
+              status: response.status,
+              ok: response.ok,
+              bodyPrefix: bodyText.slice(0, 180).replace(/rrk_[^\s"]+/g, '[REDACTED]'),
+              modelNotFound: /model_not_found|does not exist/.test(bodyText),
+            },
+            timestamp: Date.now(),
+            hypothesisId: 'A',
+            runId: 'post-fix',
+          }) + '\n',
+        )
+      } catch {
+        /* debug log */
+      }
+      // #endregion
       if (!response.ok) {
         throwIfCreditsNotice(bodyText)
         return { ok: false, error: bodyText.slice(0, 500) || `HTTP ${response.status}` }
@@ -237,6 +282,29 @@ export async function redrobEngineStream(
       body.tools = wireTools
       body.tool_choice = 'auto'
     }
+    // #region agent log
+    try {
+      appendFileSync(
+        '/opt/cursor/logs/debug.log',
+        JSON.stringify({
+          location: 'redrob-engine.ts:stream',
+          message: 'stream request model',
+          data: {
+            wireModel: body.model,
+            routeConst: REDROB_ENGINE_ROUTE,
+            hasTools: !!wireTools,
+            maxTokens,
+            hasKey: !!auth.apiKey.trim(),
+          },
+          timestamp: Date.now(),
+          hypothesisId: 'A',
+          runId: 'post-fix',
+        }) + '\n',
+      )
+    } catch {
+      /* debug log */
+    }
+    // #endregion
     const response = await aiFetch(`${REDROB_CONSOLE_API_BASE}/chat/completions`, {
       method: 'POST',
       headers: authHeaders(auth),
@@ -245,6 +313,27 @@ export async function redrobEngineStream(
     })
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
+      // #region agent log
+      try {
+        appendFileSync(
+          '/opt/cursor/logs/debug.log',
+          JSON.stringify({
+            location: 'redrob-engine.ts:stream-error',
+            message: 'stream HTTP error',
+            data: {
+              status: response.status,
+              detailPrefix: detail.slice(0, 180).replace(/rrk_[^\s"]+/g, '[REDACTED]'),
+              modelNotFound: /model_not_found|does not exist/.test(detail),
+            },
+            timestamp: Date.now(),
+            hypothesisId: 'A',
+            runId: 'post-fix',
+          }) + '\n',
+        )
+      } catch {
+        /* debug log */
+      }
+      // #endregion
       throwIfCreditsNotice(detail)
       throw new RedrobEngineError(
         `Redrob engine request failed: HTTP ${response.status}${detail ? ` ${detail.slice(0, 240)}` : ''}`,
