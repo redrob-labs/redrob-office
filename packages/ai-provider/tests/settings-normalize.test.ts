@@ -30,6 +30,7 @@ describe('AI settings normalize with empty model', () => {
     const settings = resolveAiSettings(
       {
         providers: {
+          ...defaultAiSettings().providers,
           genspark: { apiKey: 'rk-x', model: '' },
         },
       },
