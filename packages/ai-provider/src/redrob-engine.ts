@@ -1,5 +1,4 @@
 import type { AgentMessage, AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
-import { appendFileSync } from 'node:fs'
 import { aiFetch } from './fetch'
 import {
   AiCreditsError,
@@ -174,28 +173,6 @@ export async function redrobEngineChat(
   const watchdog = createStreamWatchdog(signal, AI_CHAT_RESPONSE_TIMEOUT_MS, AI_CHAT_RESPONSE_TIMEOUT_MS)
   try {
     return await watchdog.guard(async () => {
-      // #region agent log
-      try {
-        appendFileSync(
-          '/opt/cursor/logs/debug.log',
-          JSON.stringify({
-            location: 'redrob-engine.ts:chat',
-            message: 'chat request model',
-            data: {
-              wireModel: REDROB_ENGINE_MODEL,
-              routeConst: REDROB_ENGINE_ROUTE,
-              hasKey: !!auth.apiKey.trim(),
-              keyLen: auth.apiKey.trim().length,
-            },
-            timestamp: Date.now(),
-            hypothesisId: 'A',
-            runId: 'post-fix',
-          }) + '\n',
-        )
-      } catch {
-        /* debug log */
-      }
-      // #endregion
       const response = await aiFetch(`${REDROB_CONSOLE_API_BASE}/chat/completions`, {
         method: 'POST',
         headers: authHeaders(auth),
@@ -207,28 +184,6 @@ export async function redrobEngineChat(
         signal: watchdog.signal,
       })
       const bodyText = await response.text()
-      // #region agent log
-      try {
-        appendFileSync(
-          '/opt/cursor/logs/debug.log',
-          JSON.stringify({
-            location: 'redrob-engine.ts:chat-response',
-            message: 'chat response',
-            data: {
-              status: response.status,
-              ok: response.ok,
-              bodyPrefix: bodyText.slice(0, 180).replace(/rrk_[^\s"]+/g, '[REDACTED]'),
-              modelNotFound: /model_not_found|does not exist/.test(bodyText),
-            },
-            timestamp: Date.now(),
-            hypothesisId: 'A',
-            runId: 'post-fix',
-          }) + '\n',
-        )
-      } catch {
-        /* debug log */
-      }
-      // #endregion
       if (!response.ok) {
         throwIfCreditsNotice(bodyText)
         return { ok: false, error: bodyText.slice(0, 500) || `HTTP ${response.status}` }
@@ -282,29 +237,6 @@ export async function redrobEngineStream(
       body.tools = wireTools
       body.tool_choice = 'auto'
     }
-    // #region agent log
-    try {
-      appendFileSync(
-        '/opt/cursor/logs/debug.log',
-        JSON.stringify({
-          location: 'redrob-engine.ts:stream',
-          message: 'stream request model',
-          data: {
-            wireModel: body.model,
-            routeConst: REDROB_ENGINE_ROUTE,
-            hasTools: !!wireTools,
-            maxTokens,
-            hasKey: !!auth.apiKey.trim(),
-          },
-          timestamp: Date.now(),
-          hypothesisId: 'A',
-          runId: 'post-fix',
-        }) + '\n',
-      )
-    } catch {
-      /* debug log */
-    }
-    // #endregion
     const response = await aiFetch(`${REDROB_CONSOLE_API_BASE}/chat/completions`, {
       method: 'POST',
       headers: authHeaders(auth),
@@ -313,27 +245,6 @@ export async function redrobEngineStream(
     })
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      // #region agent log
-      try {
-        appendFileSync(
-          '/opt/cursor/logs/debug.log',
-          JSON.stringify({
-            location: 'redrob-engine.ts:stream-error',
-            message: 'stream HTTP error',
-            data: {
-              status: response.status,
-              detailPrefix: detail.slice(0, 180).replace(/rrk_[^\s"]+/g, '[REDACTED]'),
-              modelNotFound: /model_not_found|does not exist/.test(detail),
-            },
-            timestamp: Date.now(),
-            hypothesisId: 'A',
-            runId: 'post-fix',
-          }) + '\n',
-        )
-      } catch {
-        /* debug log */
-      }
-      // #endregion
       throwIfCreditsNotice(detail)
       throw new RedrobEngineError(
         `Redrob engine request failed: HTTP ${response.status}${detail ? ` ${detail.slice(0, 240)}` : ''}`,

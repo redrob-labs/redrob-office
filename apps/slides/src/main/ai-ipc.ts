@@ -147,38 +147,12 @@ export function registerAiIpc(): void {
     const provider = settings.provider
     let config = settings.providers?.[provider]
     // The genspark key never enters the settings file; it is fetched from the gsk login state per request
-    const usedGskFallback = provider === 'genspark' && !!config && !config.apiKey
-    if (usedGskFallback) {
+    if (provider === 'genspark' && config && !config.apiKey) {
       config = { ...config, apiKey: gskApiKey() }
     }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
     }
-    // #region agent log
-    try {
-      appendFileSync(
-        '/opt/cursor/logs/debug.log',
-        JSON.stringify({
-          location: 'slides/ai-ipc.ts:stream',
-          message: 'slides ai stream gate',
-          data: {
-            provider,
-            hasSettingsKey: !!settings.providers?.[provider]?.apiKey,
-            usedGskFallback,
-            hasResolvedKey: !!config?.apiKey,
-            settingsModel: config?.model ?? null,
-            emptyModelOk: !config?.model,
-            skippedEmptyModelGate: true,
-          },
-          timestamp: Date.now(),
-          hypothesisId: 'C',
-          runId: 'post-fix',
-        }) + '\n',
-      )
-    } catch {
-      /* debug log */
-    }
-    // #endregion
     if (!config?.apiKey) {
       send({
         requestId,
