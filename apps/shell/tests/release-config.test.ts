@@ -294,11 +294,12 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).not.toContain("require('./office/package.json')")
   })
 
-  it('preserves Authenticode verification and updater metadata upload', () => {
+  it('preserves Authenticode verification for the installer and bundled Code sidecar', () => {
     expect(workflow).toContain('WIN_CSC_LINK')
     expect(workflow).toContain('WIN_CSC_KEY_PASSWORD')
     expect(workflow).toContain('Get-AuthenticodeSignature')
     expect(workflow).toContain('SignerCertificate')
+    expect(workflow).toContain('win-unpacked/resources/native/redrob-code.exe')
     expect(workflow).toContain('apps/shell/release/latest.yml')
     expect(workflow).toContain('*Setup*.exe')
   })
@@ -593,7 +594,40 @@ describe('signed Windows installer reaches the CDN', () => {
     // The Release is the updater's feed and the tag's record; a CDN outage must
     // not withhold it. Only the signing job is a prerequisite for it.
     const release = workflow.slice(workflow.indexOf('name: Publish GitHub Release'))
-    expect(release).toContain('needs: [windows]')
-    expect(release).not.toContain('needs: [windows, cdn]')
+    expect(release).toContain('needs: [windows, macos]')
+    expect(release).not.toContain('needs: [windows, macos, cdn]')
+  })
+})
+
+
+describe('Redrob Code sidecar packaging', () => {
+  it('ships the platform sidecar at the runtime paths the transport resolves', () => {
+    const c = loadBuilderConfig()
+    const mac = (c.mac as { extraResources: Array<{ from: string; to: string }> }).extraResources
+    const win = (c.win as { extraResources: Array<{ from: string; to: string }> }).extraResources
+    const linux = (c.linux as { extraResources: Array<{ from: string; to: string }> }).extraResources
+    expect(mac.some((entry) => entry.to === 'native/redrob-code')).toBe(true)
+    expect(win.some((entry) => entry.to === 'native/redrob-code.exe')).toBe(true)
+    expect(linux.some((entry) => entry.to === 'native/redrob-code')).toBe(true)
+  })
+
+  it('fails packaging when the staged Redrob Code binary is missing', () => {
+    const source = readFileSync(resolve(SHELL_ROOT, 'electron-builder.cjs'), 'utf8')
+    expect(source).toContain('function assertRedrobCodeBinaryPresent()')
+    expect(source.slice(source.indexOf('beforePack:'))).toContain('assertRedrobCodeBinaryPresent()')
+  })
+})
+
+
+describe('Redrob Code release workflow wiring', () => {
+  it('builds and stages the Code sidecar for Windows, macOS, and Linux', () => {
+    const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
+    const linux = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-office-cdn.yml'), 'utf8')
+    expect(desktop).toContain('redrob-windows-x64/bin/redrob.exe')
+    expect(desktop).toContain('redrob-darwin-arm64/bin/redrob')
+    expect(linux).toContain('redrob-linux-x64/bin/redrob')
+    expect(desktop).toContain('APPLE_CODESIGN_CERT_P12_BASE64')
+    expect(desktop).toContain('APPLE_NOTARY_API_KEY_P8_BASE64')
+    expect(desktop).toContain('xcrun stapler validate')
   })
 })

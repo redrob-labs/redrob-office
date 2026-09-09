@@ -74,6 +74,33 @@ const fontCdnUrl = normalizeHttpsBaseUrl(
 // switch.
 const includeMacX64 = process.env.GENOFFICE_MAC_X64 === '1'
 
+// The Office AI transport always launches Redrob Code from Resources/native.
+// Release workflows stage the matching signed binary here before electron-builder
+// runs; contributor packaging fails loudly rather than shipping a UI whose AI
+// actions can only fail at runtime.
+const REDROB_CODE_BINARY = process.platform === 'win32' ? 'build/redrob-code.exe' : 'build/redrob-code'
+
+function assertRedrobCodeBinaryPresent() {
+  const binary = join(__dirname, REDROB_CODE_BINARY)
+  if (!existsSync(binary)) {
+    throw new Error(
+      `Redrob Code sidecar missing: ${binary} (set REDROB_CODE_BIN for development or stage the platform binary before packaging)`,
+    )
+  }
+}
+
+function assertUniversalRedrobCode() {
+  const binary = join(__dirname, REDROB_CODE_BINARY)
+  const archs = execFileSync('lipo', ['-archs', binary], { encoding: 'utf8' }).trim().split(/\s+/)
+  for (const want of ['x86_64', 'arm64']) {
+    if (!archs.includes(want)) {
+      throw new Error(
+        `Redrob Code sidecar is [${archs.join(', ')}] but dual-arch mac packages require a universal binary`,
+      )
+    }
+  }
+}
+
 // LICENSES.chromium.html only exists after the Electron binary download.
 // Since Electron 42 that no longer happens during install (the postinstall
 // script was replaced by the lazy `install-electron` bin), and electron-builder
@@ -445,6 +472,10 @@ const config = {
     notarize: true,
     extraResources: [
       {
+        from: REDROB_CODE_BINARY,
+        to: 'native/redrob-code',
+      },
+      {
         from: '../sheets/native/xlsx-engine/target/release/xlsx-sidecar',
         to: 'native/xlsx-sidecar',
       },
@@ -464,6 +495,10 @@ const config = {
       },
     ],
     extraResources: [
+      {
+        from: REDROB_CODE_BINARY,
+        to: 'native/redrob-code.exe',
+      },
       {
         from: '../sheets/native/xlsx-engine/target/x86_64-pc-windows-gnu/release/xlsx-sidecar.exe',
         to: 'native/xlsx-sidecar.exe',
@@ -536,6 +571,10 @@ const config = {
     syncDesktopName: true,
     extraResources: [
       {
+        from: REDROB_CODE_BINARY,
+        to: 'native/redrob-code',
+      },
+      {
         from: '../sheets/native/xlsx-engine/target/release/xlsx-sidecar',
         to: 'native/xlsx-sidecar',
       },
@@ -581,7 +620,9 @@ const config = {
   beforePack: async (context) => {
     assertModuleTreesPresent()
     assertThirdPartyNoticesPresent()
+    assertRedrobCodeBinaryPresent()
     if (context.electronPlatformName === 'darwin' && includeMacX64) {
+      assertUniversalRedrobCode()
       assertUniversalSidecar()
       assertUniversalVisionOcr()
     }
@@ -600,11 +641,12 @@ const config = {
 // self-signed PFX, "production" = DigiCert KeyLocker — the two modes of
 // scripts/win-sign.cjs, whose env-var contract applies here too), every
 // binary electron-builder signs for win (GenOffice.exe, the NSIS
-// uninstaller, and the installer) goes through that script. The static
-// extraResources binaries (xlsx-sidecar.exe, win-ocr.exe) are signed by the
-// workflow before packaging since electron-builder does not sign
-// extraResources. Unset (local / fork builds) keeps the old behavior:
-// electron-builder has no signing config and packages everything unsigned.
+// uninstaller, the installer, and .exe extraResources such as redrob-code.exe)
+// goes through that script. electron-builder 26 applies its extra-file
+// transformer to static PE resources before packaging, so every shipped helper
+// receives the same certificate. Unset (local / fork builds) keeps the old
+// behavior: electron-builder has no signing config and packages everything
+// unsigned.
 const winSignMode = process.env.GENOFFICE_WIN_SIGN_MODE
 if (winSignMode) {
   if (winSignMode !== 'test' && winSignMode !== 'production') {

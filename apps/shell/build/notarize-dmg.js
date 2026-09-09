@@ -3,19 +3,34 @@
 //
 // Credentials, in priority order:
 //   1. APPLE_KEYCHAIN_PROFILE                    — local builds (dist:mac)
-//   2. APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD +
-//      APPLE_TEAM_ID                             — release CI secrets
+//   2. APPLE_API_KEY_ID + APPLE_API_ISSUER +
+//      APPLE_API_KEY_PATH                        — release CI API key
+//   3. APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD +
+//      APPLE_TEAM_ID                             — legacy release CI
 // With neither present the step is skipped, which is the normal path for
 // contributor builds: `npm run dist:mac` then yields an unsigned dmg.
 const { execFileSync } = require('child_process')
 
 exports.default = function (result) {
   if (process.platform !== 'darwin') return []
-  const { APPLE_KEYCHAIN_PROFILE, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID } =
-    process.env
+  const {
+    APPLE_KEYCHAIN_PROFILE,
+    APPLE_API_KEY_ID,
+    APPLE_API_ISSUER,
+    APPLE_API_KEY_PATH,
+    APPLE_ID,
+    APPLE_APP_SPECIFIC_PASSWORD,
+    APPLE_TEAM_ID,
+  } = process.env
   let credArgs
   if (APPLE_KEYCHAIN_PROFILE) {
     credArgs = ['--keychain-profile', APPLE_KEYCHAIN_PROFILE]
+  } else if (APPLE_API_KEY_ID && APPLE_API_ISSUER && APPLE_API_KEY_PATH) {
+    credArgs = [
+      '--key', APPLE_API_KEY_PATH,
+      '--key-id', APPLE_API_KEY_ID,
+      '--issuer', APPLE_API_ISSUER,
+    ]
   } else if (APPLE_ID && APPLE_APP_SPECIFIC_PASSWORD && APPLE_TEAM_ID) {
     credArgs = [
       '--apple-id', APPLE_ID,
