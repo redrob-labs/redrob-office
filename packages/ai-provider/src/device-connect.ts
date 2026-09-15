@@ -29,14 +29,21 @@ export type DeviceAuthorization = {
   interval: number
 }
 
+/**
+ * The key Console issues, plus what it says about the account it belongs to.
+ *
+ * The optional fields are spelled `?: string | undefined` on purpose: the editor apps
+ * compile with `exactOptionalPropertyTypes`, under which `?: string` refuses an
+ * explicit `undefined`, and every one of these is absent-or-string as it arrives.
+ */
 export type DeviceKey = {
   apiKey: string
-  apiKeyId?: string
-  apiKeyName?: string
-  accountId?: string
-  accountName?: string
-  product?: string
-  apiBaseUrl?: string
+  apiKeyId?: string | undefined
+  apiKeyName?: string | undefined
+  accountId?: string | undefined
+  accountName?: string | undefined
+  product?: string | undefined
+  apiBaseUrl?: string | undefined
 }
 
 /**
