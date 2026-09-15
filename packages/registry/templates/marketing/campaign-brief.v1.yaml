@@ -1,0 +1,10 @@
+id: marketing/campaign-brief
+version: 1
+outputKind: markdown
+slots:
+  - { id: goal, required: true, description: "Campaign goal" }
+  - { id: audience, required: true, description: "Audience" }
+  - { id: offer, required: true, description: "Offer or message" }
+  - { id: channels, required: false, description: "Channels" }
+  - { id: constraints, required: false, description: "Brand, legal, or timing constraints" }
+  - { id: success, required: false, description: "Success metrics" }

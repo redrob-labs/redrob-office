@@ -1,0 +1,10 @@
+id: recruiting/degree-certificate.in
+version: 1
+locales: [en, hi, ta, bn]
+confidenceThreshold: 0.8
+fields:
+  - { path: /studentName, type: string, required: true }
+  - { path: /institution, type: string, required: true }
+  - { path: /degree, type: string, required: true }
+  - { path: /graduationDate, type: string, required: false, threshold: 0.9 }
+  - { path: /certificateNumber, type: string, required: false }

@@ -1,0 +1,9 @@
+id: design/svg-asset
+version: 1
+outputKind: svg
+slots:
+  - { id: title, required: true, description: "Asset title / aria label" }
+  - { id: svg, required: false, description: "Raw SVG markup, or leave empty to generate a text card" }
+  - { id: description, required: false, description: "Fallback text drawn into a simple SVG card" }
+  - { id: width, required: false, description: "Width in px (default 640)" }
+  - { id: height, required: false, description: "Height in px (default 360)" }

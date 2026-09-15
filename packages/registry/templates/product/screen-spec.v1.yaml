@@ -1,0 +1,8 @@
+id: product/screen-spec
+version: 1
+outputKind: markdown
+slots:
+  - { id: screenList, required: true, description: "Named screens and purpose" }
+  - { id: states, required: true, description: "Empty, loading, error, and unauthorised states" }
+  - { id: transitions, required: true, description: "Navigation and state transitions" }
+  - { id: tokens, required: false, description: "Relevant design token references" }

@@ -1,20 +1,22 @@
 import type { AgentMessage, AgentToolDef } from '@genoffice/agent-core'
-import { streamAnthropic } from './protocols/anthropic'
-import { streamGemini } from './protocols/gemini'
-import { streamOpenAiCompatible } from './protocols/openai-compatible'
 import type { StreamCallbacks } from './protocols/shared'
-import { getProviderAdapter } from './registry'
+import { redrobEngineStream } from './redrob-engine'
 import type { AiProviderConfig, AiProviderId } from './types'
 
-export { streamAnthropic } from './protocols/anthropic'
-export { streamGemini } from './protocols/gemini'
-export { streamOpenAiCompatible } from './protocols/openai-compatible'
 export { AiCreditsError, sseLines } from './protocols/shared'
 export type { StreamCallbacks } from './protocols/shared'
 
-/** route a streaming, tool-calling-capable turn by provider id */
+/**
+ * Streaming, tool-calling turn, routed to the single Redrob Console engine.
+ *
+ * The `provider` argument is ignored: there is one engine, no provider
+ * selection, and no BYOK. `config.apiKey` carries the Redrob Console key; the
+ * base URL and model are fixed by policy. A failure throws (the caller renders
+ * the Redrob honest-failure notice); there is no silent fallback onto another
+ * loop.
+ */
 export async function streamForProvider(
-  provider: AiProviderId,
+  _provider: AiProviderId,
   config: AiProviderConfig,
   system: string,
   messages: AgentMessage[],
@@ -22,20 +24,5 @@ export async function streamForProvider(
   maxTokens: number,
   cb: StreamCallbacks,
 ): Promise<void> {
-  const endpoint = getProviderAdapter(provider).resolveEndpoint(config)
-  const { baseUrl } = endpoint
-  switch (endpoint.protocol) {
-    case 'anthropic':
-      return streamAnthropic(config, system, messages, tools, maxTokens, cb, baseUrl)
-    case 'gemini':
-      return streamGemini(config, system, messages, tools, maxTokens, cb, baseUrl, {
-        omitTemperature: endpoint.omitTemperature,
-      })
-    case 'openai-compatible':
-      return streamOpenAiCompatible(baseUrl, config, system, messages, tools, maxTokens, cb, {
-        omitTemperature: endpoint.omitTemperature,
-        useMaxCompletionTokens: endpoint.useMaxCompletionTokens,
-        bodyExtras: endpoint.bodyExtras,
-      })
-  }
+  await redrobEngineStream({ apiKey: config.apiKey }, system, messages, tools, maxTokens, cb)
 }

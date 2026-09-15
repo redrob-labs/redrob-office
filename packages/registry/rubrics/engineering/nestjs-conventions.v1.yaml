@@ -1,0 +1,7 @@
+id: engineering/nestjs-conventions
+version: 1
+axes:
+  - { id: architecture, label: NestJS architecture, range: [1, 5], guidance: "Score module boundaries, dependency injection, and maintainability." }
+rules:
+  - { id: controller-thinness, kind: deterministic, severity: warn, implementation: controllerThinness }
+  - { id: error-handling, kind: model, severity: info, prompt: "Review exception handling and explain evidence-based concerns." }

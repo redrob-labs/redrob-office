@@ -1,0 +1,9 @@
+id: product/handoff
+version: 1
+outputKind: markdown
+slots:
+  - { id: feature, required: true, description: "Feature or epic name" }
+  - { id: goal, required: true, description: "User / business goal" }
+  - { id: scope, required: true, description: "In scope" }
+  - { id: outOfScope, required: false, description: "Out of scope" }
+  - { id: openQuestions, required: false, description: "Open questions" }

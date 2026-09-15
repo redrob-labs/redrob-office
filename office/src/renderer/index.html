@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss: http: https:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'self' blob:; media-src 'self' blob: data: file:"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <title>Redrob Office</title>
+    <!--
+      Boot splash, inline on purpose.
+
+      The window paints before the bundle has downloaded, parsed and mounted,
+      and everything in styles.css arrives with that bundle, so anything
+      defined there cannot cover the part of startup a person actually notices.
+      This block is what turns the opening white rectangle into the product
+      arriving.
+
+      React reuses these same class names for the rest of the wait, so the
+      handoff from document to app is invisible and the rules are written once.
+
+      One moving thing on screen: the ring under the logo. A splash with two
+      indicators leaves the reader working out whether they mean different
+      things, and they never do.
+    -->
+    <style>
+      @keyframes brand-boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /*
+        The only colours in the product written as literals.
+
+        A custom property declared in the bundle is a frame too late to be of any use here, which is
+        the whole reason this block exists, so these four are the token values transcribed:
+        Gray 1 and Gray 9 for the page, Redrob Blue and Blue 5 for the ring. `design-tokens.test.ts`
+        reads this file and fails if any of them stops matching `--background` or `--primary`.
+      */
+      .brand-boot {
+        display: flex;
+        min-height: 100vh;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.75rem;
+        background: #f8f9fb;
+      }
+
+      /*
+        The splash has to know the theme too. Reading it from the bundle is a
+        frame too late: on a dark desktop the window opened as a white sheet
+        and then went dark, which is the flash people notice most.
+      */
+      html[data-theme="dark"] body,
+      html[data-theme="dark"] .brand-boot {
+        background: #141719;
+      }
+
+      html[data-theme="dark"] .brand-boot-loader {
+        border-color: rgba(255, 255, 255, 0.15);
+        border-top-color: #507fff;
+      }
+
+      .brand-boot-mark {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 8px;
+        box-shadow:
+          0 10px 30px rgba(41, 46, 55, 0.16),
+          0 0 0 1px rgba(41, 46, 55, 0.05);
+      }
+
+      .brand-boot-loader {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 9999px;
+        border: 2px solid rgba(41, 46, 55, 0.15);
+        border-top-color: #2b52ff;
+        animation: brand-boot-spin 0.7s linear infinite;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        /*
+          Stop it turning, but keep it on screen: a splash with nothing on it
+          reads as a hang to exactly the people who asked for less motion.
+        */
+        .brand-boot-loader {
+          animation: none;
+        }
+      }
+    </style>
+    <!--
+      Theme before first paint.
+
+      `applyTheme` runs from main.tsx, which is a module: it cannot run until
+      the bundle has downloaded and parsed, and by then the white splash has
+      already been on screen for a frame or two. This is the same decision,
+      made from the same storage key, early enough to matter.
+    -->
+    <script>
+      (function () {
+        try {
+          var search = window.location.search || "";
+          var mode = search.indexOf("theme=dark") >= 0
+            ? "dark"
+            : search.indexOf("theme=light") >= 0
+              ? "light"
+              : window.localStorage.getItem("redrob_theme_mode") || "system";
+          var dark =
+            mode === "dark" ||
+            (mode === "system" &&
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          root.setAttribute("data-theme", dark ? "dark" : "light");
+          if (dark) root.classList.add("dark");
+        } catch (error) {
+          /* no storage: the light splash is the safe default */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <!-- Replaced by the app on mount, which renders the same markup while it
+         finishes working out what this machine can do. -->
+    <div id="root">
+      <div class="brand-boot" role="status" aria-label="Loading Redrob Office">
+        <img class="brand-boot-mark" src="/logo.svg" alt="Redrob" />
+        <span class="brand-boot-loader"></span>
+      </div>
+    </div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>

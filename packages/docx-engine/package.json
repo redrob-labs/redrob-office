@@ -17,7 +17,7 @@
     "fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
-    "@genoffice/pptx-engine": "*",
+    "@genoffice/pptx-engine": "workspace:*",
     "fast-xml-parser": "^5.3.4",
     "jszip": "^3.10.1",
     "utif2": "^4.1.0"
@@ -26,6 +26,7 @@
     "@types/node": "^24.10.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
+    "vite": "^7.3.1",
     "vitest": "^4.1.0"
   }
 }

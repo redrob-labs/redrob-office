@@ -1571,12 +1571,17 @@ export function Home() {
     void window.aiOffice.newPdf(selectedProjectId ? { projectId: selectedProjectId } : undefined)
   }
 
+  const handleNewHangul = () => {
+    void window.aiOffice.newHangul(selectedProjectId ? { projectId: selectedProjectId } : undefined)
+  }
+
   const NEW_ITEMS = [
     { ext: 'docx', title: t('newDoc'), sub: '.docx', action: handleNewDoc },
     { ext: 'xlsx', title: t('newSheet'), sub: '.xlsx', action: handleNewSheet },
     { ext: 'pptx', title: t('newSlide'), sub: '.pptx', action: handleNewSlide },
     { ext: 'md', title: t('newMarkdown'), sub: '.md', action: handleNewMarkdown },
     { ext: 'pdf', title: t('newPdf'), sub: '.pdf', action: handleNewPdf },
+    { ext: 'hwp', title: t('newHangul'), sub: '.hwp', action: handleNewHangul, ai: false },
   ]
 
   function renderQuickCards() {
@@ -1588,7 +1593,9 @@ export function Home() {
             <span className="quick-text">
               <span className="quick-title-row">
                 <span className="quick-title">{item.title}</span>
-                <span className="ai-chip">AI</span>
+                {(item as { ai?: boolean }).ai === false ? null : (
+                  <span className="ai-chip">AI</span>
+                )}
               </span>
               <span className="quick-sub">{item.sub}</span>
             </span>
@@ -2106,7 +2113,7 @@ export function Home() {
     <div className="home">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img className="logo-lockup" src={logoLockup} alt="GenOffice" />
+          <img className="logo-lockup" src={logoLockup} alt="Redrob" />
         </div>
 
         <nav className="sidebar-nav">

@@ -1,0 +1,10 @@
+id: legal/contract-review
+version: 1
+axes:
+  - { id: clarity, label: Clarity, range: [1, 5], guidance: "Score whether obligations, timelines, and remedies are clear." }
+  - { id: risk, label: Risk balance, range: [1, 5], guidance: "Score whether liability, indemnity, and termination risk look one-sided." }
+  - { id: gaps, label: Coverage gaps, range: [1, 5], guidance: "Score whether key commercial and legal topics are missing." }
+rules:
+  - { id: unclear-obligations, kind: model, severity: warn, prompt: "Flag vague obligations, open-ended timelines, or undefined terms that create enforcement risk." }
+  - { id: one-sided-risk, kind: model, severity: warn, prompt: "Identify indemnity, liability cap, IP, or termination language that is heavily one-sided." }
+  - { id: missing-basics, kind: model, severity: info, prompt: "List missing basics such as governing law, notice, confidentiality, assignment, or dispute resolution when relevant." }

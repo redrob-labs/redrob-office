@@ -1,0 +1,10 @@
+id: recruiting/interview-comment
+version: 1
+locales: [en, ko]
+confidenceThreshold: 0.72
+fields:
+  - { path: /candidateName, type: string, required: true, description: "Candidate name (maximum 80 characters)" }
+  - { path: /recommendation, type: string, required: true, description: "Advance, hold, or reject recommendation (maximum 24 characters)" }
+  - { path: /strengths, type: string, required: false, description: "Positive interview signals (maximum 400 characters)" }
+  - { path: /concerns, type: string, required: false, description: "Interview risks or concerns (maximum 400 characters)" }
+  - { path: /evidenceLineNos, type: string, required: false, description: "Comma-separated transcript evidence line numbers (maximum 80 characters)" }

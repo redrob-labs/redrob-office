@@ -1,0 +1,38 @@
+{
+  "format": "redrob.skill",
+  "formatVersion": 1,
+  "manifest": {
+    "id": "community/assess-candidates",
+    "title": "Score candidates (batch or single)",
+    "description": "Intake resumes, then score each candidate on the built-in 6-axis rubric.",
+    "workspaceId": "recruiting",
+    "author": "Redrob",
+    "createdAt": "2026-08-05T00:00:00.000Z"
+  },
+  "workflow": {
+    "id": "recruiting/assess-candidates",
+    "version": 1,
+    "title": "Score candidates (batch or single)",
+    "workspaceId": "recruiting",
+    "updatedAt": "2026-08-05T00:00:00.000Z",
+    "steps": [
+      {
+        "id": "step-1",
+        "engine": "lookup",
+        "action": "intake",
+        "title": "Resume intake",
+        "registryId": "recruiting/resume",
+        "notes": "Use a folder for batches, or drop a single file."
+      },
+      {
+        "id": "step-2",
+        "engine": "process",
+        "action": "assess",
+        "title": "Score against rubric",
+        "registryId": "recruiting/candidate-6axis",
+        "notes": "Score each candidate and leave feedback with a saved rubric."
+      }
+    ]
+  },
+  "rubrics": []
+}

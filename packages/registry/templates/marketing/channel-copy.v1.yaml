@@ -1,0 +1,10 @@
+id: marketing/channel-copy
+version: 1
+outputKind: markdown
+slots:
+  - { id: channel, required: true, description: "Channel (email, LinkedIn, ads, landing, etc.)" }
+  - { id: audience, required: true, description: "Audience" }
+  - { id: message, required: true, description: "Core message" }
+  - { id: proof, required: false, description: "Proof points" }
+  - { id: cta, required: true, description: "Call to action" }
+  - { id: tone, required: false, description: "Tone / brand voice notes" }

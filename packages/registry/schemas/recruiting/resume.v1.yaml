@@ -1,0 +1,10 @@
+id: recruiting/resume
+version: 1
+locales: [en, hi, ta, bn, ko]
+confidenceThreshold: 0.72
+fields:
+  - { path: /name, type: string, required: true, description: "Candidate full name" }
+  - { path: /email, type: string, required: false, semanticType: email, description: "Email address" }
+  - { path: /phone, type: string, required: false, semanticType: phone, description: "Phone number" }
+  - { path: /totalExperienceMonths, type: integer, required: false, threshold: 0.85, description: "Total experience in months as an integer" }
+  - { path: /skills, type: string, required: false, semanticType: list, description: "Comma-separated skills" }

@@ -1,6 +1,6 @@
 {
   "name": "@genoffice/docs",
-  "productName": "GenOffice Docs",
+  "productName": "Redrob Docs",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "private": true,
@@ -18,14 +18,14 @@
     "dist:dir": "electron-vite build && electron-builder --dir"
   },
   "devDependencies": {
-    "@genoffice/agent-core": "*",
-    "@genoffice/i18n": "*",
-    "@genoffice/ai-provider": "*",
-    "@genoffice/ai-search": "*",
-    "@genoffice/docx-engine": "*",
-    "@genoffice/file-parse": "*",
-    "@genoffice/project-store": "*",
-    "@genoffice/ui": "*",
+    "@genoffice/agent-core": "workspace:*",
+    "@genoffice/i18n": "workspace:*",
+    "@genoffice/ai-provider": "workspace:*",
+    "@genoffice/ai-search": "workspace:*",
+    "@genoffice/docx-engine": "workspace:*",
+    "@genoffice/file-parse": "workspace:*",
+    "@genoffice/project-store": "workspace:*",
+    "@genoffice/ui": "workspace:*",
     "@tiptap/core": "^3.28.0",
     "@tiptap/extensions": "^3.28.0",
     "@tiptap/pm": "^3.28.0",
@@ -38,6 +38,7 @@
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",
     "jsdom": "^28.0.0",
+    "jszip": "^3.10.1",
     "marked": "^17.0.6",
     "officecrypto-tool": "^0.0.19",
     "opentype.js": "^2.0.0",
@@ -47,10 +48,10 @@
     "vite": "^7.3.1",
     "vitest": "^4.1.0"
   },
-  "author": "GenOffice",
+  "author": "Redrob",
   "build": {
-    "appId": "com.genoffice.docs",
-    "productName": "GenOffice Docs",
+    "appId": "com.redrob.docs",
+    "productName": "Redrob Docs",
     "electronVersion": "43.3.0",
     "artifactName": "AIDocx-${version}-${arch}.${ext}",
     "directories": {
@@ -91,10 +92,10 @@
     }
   },
   "dependencies": {
-    "@genoffice/electron-utils": "*",
-    "@genoffice/font-metrics": "*",
+    "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/font-metrics": "workspace:*",
     "electron-updater": "^6.8.9",
     "pdf-lib": "^1.17.1",
-    "@genoffice/pptx-render": "*"
+    "@genoffice/pptx-render": "workspace:*"
   }
 }

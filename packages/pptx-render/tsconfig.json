@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.genoffice.base.json",
   "compilerOptions": {
     "types": ["node"],
     // Pin resolution to this repo's workspace sources (avoids stale types when node_modules links point elsewhere)

@@ -1,0 +1,9 @@
+id: finance/budget-model
+version: 1
+outputKind: markdown
+slots:
+  - { id: scenario, required: true, description: "Scenario name" }
+  - { id: assumptions, required: true, description: "Key assumptions" }
+  - { id: revenue, required: true, description: "Revenue drivers" }
+  - { id: costs, required: true, description: "Cost drivers" }
+  - { id: risks, required: false, description: "Sensitivities / risks" }

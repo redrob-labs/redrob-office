@@ -1,0 +1,7 @@
+id: design/tokens
+version: 1
+axes:
+  - { id: consistency, label: Token consistency, range: [1, 5], guidance: "Score adherence to declared color, type, and spacing tokens." }
+rules:
+  - { id: unknown-token, kind: deterministic, severity: warn, implementation: unknownToken }
+  - { id: visual-hierarchy, kind: model, severity: info, prompt: "Identify hierarchy issues while citing visible evidence." }

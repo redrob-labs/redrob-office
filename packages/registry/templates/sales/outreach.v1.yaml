@@ -1,0 +1,10 @@
+id: sales/outreach
+version: 1
+outputKind: markdown
+slots:
+  - { id: prospect, required: true, description: "Prospect name and company" }
+  - { id: role, required: false, description: "Prospect role" }
+  - { id: offer, required: true, description: "What you are offering" }
+  - { id: hook, required: true, description: "Why them / why now" }
+  - { id: ask, required: true, description: "Call to action" }
+  - { id: channel, required: false, description: "Channel (email, LinkedIn, etc.)" }

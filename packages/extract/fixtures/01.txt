@@ -1,0 +1,6 @@
+이력서
+이름: 박서연
+이메일: seoyeon.park@example.com
+전화: 010-5555-1212
+총 경력: 60개월
+기술: Python, FastAPI, Redis, Docker

@@ -10,13 +10,22 @@ import {
 import type { AiSettings } from '@genoffice/ai-provider'
 import { useI18n } from './locale'
 import type { StringKey, TFunc } from './locale'
-import type { AccountStatus, AiCatalogEntry, UiTheme } from '../../shared/home-api'
+import type { AccountStatus, UiTheme } from '../../shared/home-api'
 import { ProviderLogo } from './provider-logos'
 import './settings.css'
 
 // ── Settings modal (opened from the account menu) ─────────
-// Genspark-style two-pane dialog: section nav on the left, fields on the right.
-// All values go through the existing home IPC; nothing is stored locally.
+// Two-pane dialog: section nav on the left, fields on the right. All values go
+// through the existing home IPC; nothing is stored locally.
+//
+// AI is powered by the single Redrob engine (Redrob Console). There is no
+// provider picker, no BYOK vendor choice, and no configurable inference server
+// URL: the base and model are fixed by policy. The one field the person controls
+// is their Redrob Console key.
+
+/** The single AI engine slot key in the stored settings. The engine is fixed to
+ * Redrob Console, so a settings object always carries one Console key. */
+const REDROB_ENGINE_SLOT: AiSettings['provider'] = 'genspark'
 
 // sorted by ISO 639 language code — native-script labels have no natural
 // shared alphabet, so the code is the ordering key
@@ -151,9 +160,14 @@ function Field({
   )
 }
 
-/** AI model pane: provider / model / key / base URL, saved to userData/ai-settings.json */
+/**
+ * AI model pane. AI runs on the single Redrob engine (Redrob Console): no
+ * provider picker, no vendor BYOK, no configurable inference server URL. The one
+ * control is the Redrob Console key (issued at console.redrob.ai), stored on this
+ * device. The stored settings keep the same shape the editor apps read; the key
+ * lives in the single engine slot.
+ */
 function AiModelPane({ t }: { t: TFunc }) {
-  const [catalog] = useState<AiCatalogEntry[]>(() => window.aiOffice.getAiProviders?.() ?? [])
   const [settings, setSettings] = useState<AiSettings | null>(null)
   const [dirty, setDirty] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -166,15 +180,10 @@ function AiModelPane({ t }: { t: TFunc }) {
     let alive = true
     void window.aiOffice.getAiSettings?.().then((s) => {
       if (!alive || !s) return
-      // The switch is disabled with genspark, so never present it stranded
-      // off. Display-only: s.provider may be the activeProvider fallback for
-      // a half-configured BYOK selection, so writing anything back here would
-      // clobber the stored choice — the main process heals a genuine legacy
-      // genspark+off file itself, judged on the raw stored provider.
-      if (s.provider === 'genspark' && s.gskToolsEnabled === false) {
-        s = { ...s, gskToolsEnabled: true }
-      }
-      setSettings(s)
+      // The engine is fixed to Redrob Console; keep the stored provider pinned to
+      // the single engine slot so the key the person types is the one every
+      // editor reads.
+      setSettings({ ...s, provider: REDROB_ENGINE_SLOT })
     })
     return () => {
       alive = false
@@ -182,23 +191,21 @@ function AiModelPane({ t }: { t: TFunc }) {
   }, [])
 
   if (!settings) return null
-  const provider = settings.provider
-  const meta = catalog.find((c) => c.id === provider)
-  const config = settings.providers[provider] ?? {
-    apiKey: '',
-    model: meta?.defaultModel ?? '',
-  }
-  const isGenspark = provider === 'genspark'
+  const config = settings.providers[REDROB_ENGINE_SLOT] ?? { apiKey: '', model: '' }
 
   const touch = () => {
     setDirty(true)
     setSaved(false)
     setTestResult(null)
   }
-  const updateConfig = (patch: Partial<typeof config>) => {
+  const updateKey = (apiKey: string) => {
     setSettings({
       ...settings,
-      providers: { ...settings.providers, [provider]: { ...config, ...patch } },
+      provider: REDROB_ENGINE_SLOT,
+      providers: {
+        ...settings.providers,
+        [REDROB_ENGINE_SLOT]: { ...config, apiKey },
+      },
     })
     touch()
   }
@@ -209,15 +216,6 @@ function AiModelPane({ t }: { t: TFunc }) {
     const next = clampMaxOutputTokens(Number.parseInt(maxTokensDraft, 10))
     if (next === (settings.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS)) return
     setSettings({ ...settings, maxOutputTokens: next })
-    touch()
-  }
-  const selectProvider = (id: AiSettings['provider']) => {
-    // cloud tools cannot be off with genspark (chat runs through gsk anyway)
-    setSettings({
-      ...settings,
-      provider: id,
-      ...(id === 'genspark' ? { gskToolsEnabled: true } : {}),
-    })
     touch()
   }
   const save = () => {
@@ -248,97 +246,37 @@ function AiModelPane({ t }: { t: TFunc }) {
       <h3 className="set-pane-title">{t('setSecAiModel')}</h3>
       <div className="set-field">
         <div className="set-field-text">
-          <label className="set-field-label">{t('setAiProvider')}</label>
+          <div className="set-field-stack">
+            <div className="set-field-label">
+              <span className="set-provider-inline">
+                <ProviderLogo id="redrob" />
+                Redrob
+              </span>
+            </div>
+            <div className="set-field-desc">{t('setAiRedrobNote')}</div>
+          </div>
         </div>
-        <Dropdown
-          className="set-dd"
-          value={provider}
-          ariaLabel={t('setAiProvider')}
-          options={catalog.map((c) => ({
-            value: c.id,
-            label: c.label,
-            render: (
-              <>
-                <ProviderLogo id={c.id} />
-                {c.label}
-              </>
-            ),
-          }))}
-          onPick={(v) => selectProvider(v as AiSettings['provider'])}
-        />
-      </div>
-      <div className="set-field-desc set-ai-note">
-        {isGenspark ? t('setAiGensparkHint') : t('setAiByokNote')}
       </div>
       <div className="set-field">
         <div className="set-field-text">
-          <label className="set-field-label">{t('setAiModelId')}</label>
+          <div className="set-field-stack">
+            <label className="set-field-label" htmlFor="set-ai-key">
+              {t('setAiConsoleKey')}
+            </label>
+            <div className="set-field-desc">{t('setAiConsoleKeyHint')}</div>
+          </div>
         </div>
-        {meta && meta.models.length > 0 ? (
-          <Dropdown
-            className="set-dd"
-            value={config.model || meta.defaultModel}
-            ariaLabel={t('setAiModelId')}
-            options={meta.models.map((m) => ({ value: m, label: m }))}
-            onPick={(m) => updateConfig({ model: m })}
-          />
-        ) : (
-          <input
-            id="set-ai-model"
-            className="set-input"
-            type="text"
-            value={config.model}
-            placeholder="model-id"
-            spellCheck={false}
-            onChange={(e) => updateConfig({ model: e.target.value })}
-          />
-        )}
+        <input
+          id="set-ai-key"
+          className="set-input"
+          type="password"
+          value={config.apiKey}
+          placeholder="rk-..."
+          spellCheck={false}
+          autoComplete="off"
+          onChange={(e) => updateKey(e.target.value.trim())}
+        />
       </div>
-      {!isGenspark && (
-        <>
-          <div className="set-field">
-            <div className="set-field-text">
-              <div className="set-field-stack">
-                <label className="set-field-label" htmlFor="set-ai-key">
-                  {t('setAiApiKey')}
-                </label>
-                <div className="set-field-desc">{t('setAiKeyHint')}</div>
-              </div>
-            </div>
-            <input
-              id="set-ai-key"
-              className="set-input"
-              type="password"
-              value={config.apiKey}
-              placeholder={meta?.keyPlaceholder ?? 'API Key'}
-              spellCheck={false}
-              autoComplete="off"
-              onChange={(e) => updateConfig({ apiKey: e.target.value.trim() })}
-            />
-          </div>
-          <div className="set-field">
-            <div className="set-field-text">
-              <div className="set-field-stack">
-                <label className="set-field-label" htmlFor="set-ai-base-url">
-                  {t('setAiBaseUrl')}
-                </label>
-                {!meta?.needsBaseUrl && (
-                  <div className="set-field-desc">{t('setAiBaseUrlHint')}</div>
-                )}
-              </div>
-            </div>
-            <input
-              id="set-ai-base-url"
-              className="set-input"
-              type="text"
-              value={config.baseUrl ?? ''}
-              placeholder={meta?.needsBaseUrl ? 'https://…/v1' : meta?.defaultBaseUrl}
-              spellCheck={false}
-              onChange={(e) => updateConfig({ baseUrl: e.target.value.trim() })}
-            />
-          </div>
-        </>
-      )}
       <div className="set-field">
         <div className="set-field-text">
           <div className="set-field-stack">
@@ -358,26 +296,6 @@ function AiModelPane({ t }: { t: TFunc }) {
           value={maxTokensDraft ?? String(settings.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS)}
           onChange={(e) => setMaxTokensDraft(e.target.value)}
           onBlur={commitMaxTokens}
-        />
-      </div>
-      <div className="set-field">
-        <div className="set-field-text">
-          <div className="set-field-stack">
-            <div className="set-field-label">{t('setAiGskTools')}</div>
-            <div className="set-field-desc">{t('setAiGskToolsDesc')}</div>
-          </div>
-        </div>
-        {/* locked on with the genspark provider — chat runs through gsk anyway */}
-        <button
-          className="set-switch"
-          role="switch"
-          aria-checked={settings.gskToolsEnabled !== false}
-          aria-label={t('setAiGskTools')}
-          disabled={isGenspark}
-          onClick={() => {
-            setSettings({ ...settings, gskToolsEnabled: settings.gskToolsEnabled === false })
-            touch()
-          }}
         />
       </div>
       <div className="set-pane-footer">

@@ -1,9 +1,14 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.genoffice.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      // @genoffice/ui package lives at packages/genoffice-ui in this merged repo (dir renamed to coexist with @redrob/ui)
+      "@genoffice/ui": ["../../packages/genoffice-ui/src/index.ts"]
+    }
   },
   "include": [
     "src",

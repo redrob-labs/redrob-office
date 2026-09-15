@@ -1,43 +1,51 @@
-node_modules
-out/
+node_modules/
 dist/
-release/
+out/
+.turbo/
 *.log
 .DS_Store
-.refs/
+Thumbs.db
+coverage/
+*.tsbuildinfo
 .env
 .env.*
-electron-builder.env
-~$*
+!.env.example
+office/release/
+userData/
+# What the app's own file tools write when a dev run points the artifact folder
+# at the checkout. Documents a person made, not source.
+office/artifacts/
 
-# Local ad-hoc e2e driver scripts (not pushed); the folder and README are tracked, the scripts are not
-/scripts/drivers/driver.*.mjs
-/probe*.mjs
-/apps/shell/build/THIRD-PARTY-NOTICES.txt
-/example/
-/.task/
-/docs-archive/
+# Measurement and experiment artifacts. tmp/ is scratch for benchmark runs and
+# holds local paths and sample documents; it is never part of a release.
+tmp/
+bench-results/
+*.jsonl
+
+# Model weights. Downloaded to the user's app data at runtime, never committed.
+*.gguf
+*.bin
+*.onnx
+
+# Runtime binaries. llama.cpp backends are fetched per host at onboarding.
+*.exe
+*.dll
+*.dylib
+*.so
+*.zip
+*.tar.gz
+llama-server
+llama-server.exe
+
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.webm
+smoke-*-result.json
+secret-scan-report.json
+.vscode/*
+!.vscode/extensions.json
 .idea/
-.claude/
-
-# Local build artifacts dropped in the repo root
-/*.dmg
-/*.exe
-/*.zip
-/windows/
-
-# Playwright artifacts
-/test-results/
-
-.cursor/rules/git-remote.mdc
-__pycache__/
-/notes/
-/MEMORY.md
-
-# Local fidelity-run scratch space: production repro documents and pack caches.
-# Never committable — a stray `git add -A` would push user files public.
-/working_dir/
-
-# One-off verification tests kept while chasing a fix; promote to a real test
-# file (or delete) instead of committing them under this name.
-_scratch-*
+.cursor/*
+!.cursor/environment.json

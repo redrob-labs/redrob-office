@@ -1,0 +1,9 @@
+id: design/access-check
+version: 1
+outputKind: markdown
+slots:
+  - { id: screen, required: true, description: "Screen or flow name" }
+  - { id: keyboard, required: true, description: "Keyboard path notes" }
+  - { id: contrast, required: true, description: "Contrast / color notes" }
+  - { id: labels, required: true, description: "Labels / names / roles" }
+  - { id: risks, required: false, description: "Accessibility risks" }

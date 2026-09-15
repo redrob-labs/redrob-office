@@ -1,0 +1,4 @@
+지원자: 이준호
+email: junho.lee@example.com
+경력개월: 24
+skills: React, TypeScript, GraphQL

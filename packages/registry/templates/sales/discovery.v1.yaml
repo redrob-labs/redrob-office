@@ -1,0 +1,9 @@
+id: sales/discovery
+version: 1
+outputKind: markdown
+slots:
+  - { id: account, required: true, description: "Account / opportunity" }
+  - { id: attendees, required: false, description: "Who is on the call" }
+  - { id: goal, required: true, description: "Call goal" }
+  - { id: knownContext, required: false, description: "What you already know" }
+  - { id: openQuestions, required: true, description: "Questions to ask" }

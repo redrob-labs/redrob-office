@@ -1,0 +1,51 @@
+/**
+ * Alpha tokens, opacity steps on the foundation colors (Figma Foundation / Colors / Alpha).
+ * Uses color-mix; base color at N% on transparent (not on white).
+ *
+ * Brand and neutral only. The accent, positive, negative and warning steps went with the scales they
+ * were derived from, which had no caller and were not the brand's values; a status wash is
+ * `--success-soft` and its kin in `design-tokens-semantic.css`, which are drawn from the brand
+ * spectrum and carry a theme.
+ */
+
+:root {
+  /* Brand ← brand-500 */
+  --brand-alpha-4: color-mix(in srgb, var(--brand-500) 4%, transparent);
+  --brand-alpha-8: color-mix(in srgb, var(--brand-500) 8%, transparent);
+  --brand-alpha-12: color-mix(in srgb, var(--brand-500) 12%, transparent);
+  --brand-alpha-24: color-mix(in srgb, var(--brand-500) 24%, transparent);
+  --brand-alpha-40: color-mix(in srgb, var(--brand-500) 40%, transparent);
+  --brand-alpha-64: color-mix(in srgb, var(--brand-500) 64%, transparent);
+  --brand-alpha-80: color-mix(in srgb, var(--brand-500) 80%, transparent);
+  --brand-alpha-96: color-mix(in srgb, var(--brand-500) 96%, transparent);
+
+  /* Neutral ← neutral-800 */
+  --neutral-alpha-4: color-mix(in srgb, var(--neutral-800) 4%, transparent);
+  --neutral-alpha-8: color-mix(in srgb, var(--neutral-800) 8%, transparent);
+  --neutral-alpha-12: color-mix(in srgb, var(--neutral-800) 12%, transparent);
+  --neutral-alpha-24: color-mix(in srgb, var(--neutral-800) 24%, transparent);
+  --neutral-alpha-40: color-mix(in srgb, var(--neutral-800) 40%, transparent);
+  --neutral-alpha-64: color-mix(in srgb, var(--neutral-800) 64%, transparent);
+  --neutral-alpha-80: color-mix(in srgb, var(--neutral-800) 80%, transparent);
+  --neutral-alpha-96: color-mix(in srgb, var(--neutral-800) 96%, transparent);
+
+  /* Static white ← static-white */
+  --static-white-alpha-4: color-mix(in srgb, var(--static-white) 4%, transparent);
+  --static-white-alpha-8: color-mix(in srgb, var(--static-white) 8%, transparent);
+  --static-white-alpha-12: color-mix(in srgb, var(--static-white) 12%, transparent);
+  --static-white-alpha-24: color-mix(in srgb, var(--static-white) 24%, transparent);
+  --static-white-alpha-40: color-mix(in srgb, var(--static-white) 40%, transparent);
+  --static-white-alpha-64: color-mix(in srgb, var(--static-white) 64%, transparent);
+  --static-white-alpha-80: color-mix(in srgb, var(--static-white) 80%, transparent);
+  --static-white-alpha-96: color-mix(in srgb, var(--static-white) 96%, transparent);
+
+  /* Static black ← static-black */
+  --static-black-alpha-4: color-mix(in srgb, var(--static-black) 4%, transparent);
+  --static-black-alpha-8: color-mix(in srgb, var(--static-black) 8%, transparent);
+  --static-black-alpha-12: color-mix(in srgb, var(--static-black) 12%, transparent);
+  --static-black-alpha-24: color-mix(in srgb, var(--static-black) 24%, transparent);
+  --static-black-alpha-40: color-mix(in srgb, var(--static-black) 40%, transparent);
+  --static-black-alpha-64: color-mix(in srgb, var(--static-black) 64%, transparent);
+  --static-black-alpha-80: color-mix(in srgb, var(--static-black) 80%, transparent);
+  --static-black-alpha-96: color-mix(in srgb, var(--static-black) 96%, transparent);
+}

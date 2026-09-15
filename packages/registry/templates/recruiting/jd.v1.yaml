@@ -1,0 +1,9 @@
+# maxChars: English JD baselines (budget = maxChars*3+2). See jd-slots.ts rationale.
+id: recruiting/jd
+version: 1
+outputKind: markdown
+slots:
+  - { id: roleTitle, required: true, description: "Role title", maxChars: 80 }
+  - { id: responsibilities, required: true, description: "Primary responsibilities", maxChars: 700 }
+  - { id: qualifications, required: true, description: "Required qualifications", maxChars: 700 }
+  - { id: location, required: false, description: "Work location", maxChars: 100 }

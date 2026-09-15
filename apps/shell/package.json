@@ -1,13 +1,13 @@
 {
   "name": "@genoffice/shell",
-  "productName": "GenOffice",
+  "productName": "Redrob",
   "version": "0.8.0",
   "license": "Apache-2.0",
   "homepage": "https://github.com/genspark-ai/genoffice",
   "private": true,
-  "description": "Unified GenOffice shell: one app hosting the docs and sheets modules behind a home/launcher window",
+  "description": "Unified Redrob shell: one app hosting the docs and sheets modules behind a home/launcher window",
   "main": "out/main/index.js",
-  "desktopName": "genoffice.desktop",
+  "desktopName": "redrob.desktop",
   "scripts": {
     "dev": "electron-vite dev --watch",
     "build": "electron-vite build",
@@ -19,18 +19,20 @@
     "dist:linux": "electron-vite build && electron-builder --linux"
   },
   "devDependencies": {
-    "@genoffice/agent-core": "*",
-    "@genoffice/ai-provider": "*",
-    "@genoffice/ai-search": "*",
-    "@genoffice/docs": "*",
-    "@genoffice/docx-engine": "*",
-    "@genoffice/electron-utils": "*",
-    "@genoffice/i18n": "*",
-    "@genoffice/pptx-engine": "*",
-    "@genoffice/pptx-render": "*",
-    "@genoffice/sheets": "*",
-    "@genoffice/slides": "*",
-    "@genoffice/ui": "*",
+    "@genoffice/agent-core": "workspace:*",
+    "@genoffice/ai-provider": "workspace:*",
+    "@genoffice/ai-search": "workspace:*",
+    "@genoffice/docs": "workspace:*",
+    "@genoffice/docx-engine": "workspace:*",
+    "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/hangul": "workspace:*",
+    "@genoffice/i18n": "workspace:*",
+    "@genoffice/pptx-engine": "workspace:*",
+    "@genoffice/pptx-render": "workspace:*",
+    "@genoffice/project-store": "workspace:*",
+    "@genoffice/sheets": "workspace:*",
+    "@genoffice/slides": "workspace:*",
+    "@genoffice/ui": "workspace:*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
@@ -45,5 +47,9 @@
     "vite": "^7.3.1",
     "vitest": "^4.1.10"
   },
-  "author": "GenOffice"
+  "dependencies": {
+    "@embedpdf/pdfium": "^2.15.0",
+    "undici": "^6.28.0"
+  },
+  "author": "Redrob"
 }

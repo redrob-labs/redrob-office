@@ -5,7 +5,8 @@ import {
   presetPath,
   presetPolygon,
 } from '../../../packages/pptx-render/src/preset-geometry'
-import { SHAPE_GALLERY_GROUPS } from '../../../packages/ui/src/shape-gallery'
+// FEAT-002 renamed the GenOffice ui package dir to packages/genoffice-ui (package name still @genoffice/ui); update this deep-relative test import to match. Not a logic change.
+import { SHAPE_GALLERY_GROUPS } from '../../../packages/genoffice-ui/src/shape-gallery'
 import { ADDABLE_SHAPE_TYPES } from '../src/shared/shape-types'
 
 // The ribbon gallery (ExcelShell's SHEET_SHAPE_GROUPS) is the shared groups minus Lines

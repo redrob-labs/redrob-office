@@ -37,6 +37,11 @@ import {
   setActiveSlidesWebContents,
   slidesIsDirty,
 } from '../../../slides/src/main/slides-main'
+import {
+  createHangulView,
+  hangulIsDirty,
+  requestHangulClose,
+} from '../../../hangul/src/main/hangul-main'
 import type { TabKind, TabSummary } from '../shared/tabs-api'
 
 interface TabRecord {
@@ -60,7 +65,7 @@ const HOME_ID = 'home'
  */
 export class TabManager {
   private readonly tabs: TabRecord[] = [
-    { id: HOME_ID, kind: 'home', view: null, title: 'GenOffice' },
+    { id: HOME_ID, kind: 'home', view: null, title: 'Redrob' },
   ]
   private activeId: string = HOME_ID
   private nextId = 1
@@ -167,7 +172,7 @@ export class TabManager {
       id,
       kind: 'docs',
       view,
-      title: openPath ? basename(openPath) : this.untitled('docs', 'GenOffice Docs'),
+      title: openPath ? basename(openPath) : this.untitled('docs', 'Redrob Docs'),
       filePath: openPath,
     })
     this.activateTab(id)
@@ -244,6 +249,23 @@ export class TabManager {
       kind: 'markdown',
       view,
       title: openPath ? basename(openPath) : this.untitled('markdown', 'AI Markdown'),
+      filePath: openPath,
+    })
+    this.activateTab(id)
+    return id
+  }
+
+  openHangulTab(openPath?: string): string {
+    const view = createHangulView(openPath)
+    const id = `t${this.nextId++}`
+    this.shellWindow.contentView.addChildView(view)
+    view.setVisible(false)
+    this.trackHtmlFullScreen(id, view)
+    this.tabs.push({
+      id,
+      kind: 'hangul',
+      view,
+      title: openPath ? basename(openPath) : this.untitled('hangul', 'Hangul'),
       filePath: openPath,
     })
     this.activateTab(id)
@@ -334,6 +356,13 @@ export class TabManager {
       .map((t) => ({ id: t.id, webContents: t.view!.webContents }))
   }
 
+  /** hangul tabs whose renderer reports unsaved edits (shell-close guard) */
+  dirtyHangulTabs(): Array<{ id: string; webContents: WebContents }> {
+    return this.tabs
+      .filter((t) => t.kind === 'hangul' && t.view && hangulIsDirty(t.view.webContents.id))
+      .map((t) => ({ id: t.id, webContents: t.view!.webContents }))
+  }
+
   /** slides tabs whose main-process session has unsaved edits (shell-close guard) */
   dirtySlidesTabs(): Array<{ id: string; webContents: WebContents }> {
     return this.tabs
@@ -367,7 +396,9 @@ export class TabManager {
             ? requestMarkdownClose
             : tab.kind === 'slides' && slidesIsDirty(tab.view.webContents.id)
               ? requestSlidesClose
-              : null)
+              : tab.kind === 'hangul' && hangulIsDirty(tab.view.webContents.id)
+                ? requestHangulClose
+                : null)
     // docs dirty state lives in the renderer and needs an async query; skip the guard when clean (avoids a flash activation)
     if (!closeGuard && tab.kind === 'docs' && tab.view) {
       this.closingIds.add(id)
@@ -438,10 +469,22 @@ export class TabManager {
     return this.tabs.find((t) => t.kind === 'markdown' && t.filePath === path)?.id
   }
 
+  findHangulTabByPath(path: string): string | undefined {
+    return this.tabs.find((t) => t.kind === 'hangul' && t.filePath === path)?.id
+  }
+
   /** the active tab's markdown view, if the active tab is markdown (markdown menu target) */
   activeMarkdownTab(): { id: string; webContents: WebContents; filePath?: string } | undefined {
     const tab = this.tabs.find((t) => t.id === this.activeId)
     return tab?.kind === 'markdown' && tab.view
+      ? { id: tab.id, webContents: tab.view.webContents, filePath: tab.filePath }
+      : undefined
+  }
+
+  /** the active tab's hangul view, if the active tab is hangul (hangul menu target) */
+  activeHangulTab(): { id: string; webContents: WebContents; filePath?: string } | undefined {
+    const tab = this.tabs.find((t) => t.id === this.activeId)
+    return tab?.kind === 'hangul' && tab.view
       ? { id: tab.id, webContents: tab.view.webContents, filePath: tab.filePath }
       : undefined
   }

@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { IpcRendererEvent } from 'electron'
-import { AI_PROVIDERS, getProviderAdapter } from '@genoffice/ai-provider'
 import type { AiSettings } from '@genoffice/ai-provider'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 import type {
@@ -91,6 +90,9 @@ const homeApi: HomeApi = {
   },
   async newPdf(opts) {
     await ipcRenderer.invoke(HOME_CHANNELS.newPdf, opts)
+  },
+  async newHangul(opts) {
+    await ipcRenderer.invoke(HOME_CHANNELS.newHangul, opts)
   },
   async removeRecent(paths) {
     await ipcRenderer.invoke(HOME_CHANNELS.removeRecent, paths)
@@ -249,17 +251,19 @@ const homeApi: HomeApi = {
     await ipcRenderer.invoke('ai:set-settings', settings)
   },
   getAiProviders() {
-    return AI_PROVIDERS.map((meta) => {
-      let defaultBaseUrl = ''
-      // genspark routes by model and custom has no default — both stay ''
-      if (meta.id !== 'genspark' && !meta.needsBaseUrl) {
-        defaultBaseUrl = getProviderAdapter(meta.id).resolveEndpoint({
-          apiKey: '',
-          model: meta.defaultModel,
-        }).baseUrl
-      }
-      return { ...meta, defaultBaseUrl }
-    })
+    // One engine, no provider selection: the catalog is the single Redrob engine.
+    // The base URL and model are fixed by policy in the AI layer, so nothing here
+    // exposes a vendor choice or a configurable endpoint.
+    return [
+      {
+        id: 'genspark' as AiSettings['provider'],
+        label: 'Redrob',
+        models: [],
+        defaultModel: '',
+        keyPlaceholder: 'rk-...',
+        defaultBaseUrl: '',
+      },
+    ]
   },
   async testAiSettings(settings) {
     const result: unknown = await ipcRenderer.invoke('ai:chat', {

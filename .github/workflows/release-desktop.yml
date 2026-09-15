@@ -1,0 +1,117 @@
+name: Release signed desktop apps
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag matching office/package.json (for example v0.0.1)
+        required: true
+        type: string
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Sign Windows x64
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    env:
+      CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Require Windows signing certificate
+        shell: pwsh
+        run: |
+          if (-not $env:CSC_LINK) { throw "Missing WIN_CSC_LINK repository secret" }
+          if (-not $env:CSC_KEY_PASSWORD) { throw "Missing WIN_CSC_KEY_PASSWORD repository secret" }
+
+      - name: Build
+        run: pnpm build
+
+      - name: Sign and package
+        run: pnpm --filter @redrob/office exec electron-builder --config electron-builder.yml --win nsis --x64 --publish never
+
+      - name: Verify Authenticode signature
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem "office/release/*Setup*.exe" | Select-Object -First 1
+          if (-not $installer) { throw "Signed installer was not produced" }
+          $signature = Get-AuthenticodeSignature $installer.FullName
+          if (-not $signature.SignerCertificate) {
+            throw "Installer has no Authenticode signer certificate"
+          }
+          # Self-signed certs are not trusted on the runner, so Status is often
+          # UnknownError/NotTrusted rather than Valid. Reject only unsigned / hash failures.
+          $accepted = @("Valid", "UnknownError", "NotTrusted")
+          if ($accepted -notcontains $signature.Status.ToString()) {
+            throw "Invalid Authenticode signature: $($signature.Status) ($($signature.StatusMessage))"
+          }
+          Write-Host "Signed by: $($signature.SignerCertificate.Subject) status=$($signature.Status)"
+
+      - name: Upload signed Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-windows
+          path: |
+            office/release/*Setup*.exe
+            office/release/*.blockmap
+            office/release/latest.yml
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    name: Publish GitHub Release
+    needs: [windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches application version
+        run: |
+          VERSION="$(node -p "require('./office/package.json').version")"
+          test "$RELEASE_TAG" = "v$VERSION" || {
+            echo "Tag $RELEASE_TAG does not match office version $VERSION"
+            exit 1
+          }
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: signed-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish signed release and update metadata
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: release-assets/*

@@ -1,0 +1,4 @@
+Name: Mina Cho
+Email: mina.cho@example.com
+Phone: 010-2222-3333
+Skills: Java, Spring Boot, MySQL

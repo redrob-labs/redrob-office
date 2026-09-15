@@ -1,9 +1,9 @@
-# GenOffice Privacy
+# Redrob Privacy
 
 Last updated: August 26, 2026
 
-GenOffice opens, edits, and saves documents locally. Document editing does not
-upload files to GenOffice. AI features require a network connection and send
+Redrob opens, edits, and saves documents locally. Document editing does not
+upload files to Redrob. AI features require a network connection and send
 requests only when you use them.
 
 ## Usage analytics
@@ -43,7 +43,7 @@ user's physical location.
 
 The Google Analytics 4 payload also uses a random install UUID as `client_id`.
 The country code is sent through GA4's country-only `user_location` field; the
-app does not send a city or region. Neither identifier is a Genspark account or
+app does not send a city or region. Neither identifier is an account or
 email address.
 
 ## Network information
@@ -51,17 +51,17 @@ email address.
 Events are sent to Google Analytics 4 using the Measurement Protocol over
 HTTPS. As the HTTPS recipient, Google necessarily sees the connection's public
 IP address and transport metadata, and may use them for coarse geolocation and
-security or spam-abuse processing. GenOffice does not add an IP address to the
+security or spam-abuse processing. Redrob does not add an IP address to the
 event payload.
 
 ## Data not collected by analytics
 
-GenOffice analytics never sends:
+Redrob analytics never sends:
 
 - document content
 - file names
 - file paths
-- Genspark account identity
+- account identity
 - email addresses
 
 The analytics metadata is injected only into packaged official builds and is

@@ -395,9 +395,7 @@ export function AiPanel({
   onQueueFocus,
   onQueueConsume,
 }: AiPanelProps) {
-  const { t, lang } = useI18n()
-  // Panel chrome follows the UI language; message text follows its own content (dir=auto below)
-  const isRtl = lang === 'ar' || lang === 'he'
+  const { t } = useI18n()
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [chat, setChat] = useState<ChatEntry[]>([])
@@ -779,19 +777,11 @@ export function AiPanel({
 
   const loopRef = useRef<AgentLoop | null>(null)
   if (!loopRef.current) {
-    // The three slides generation steps (style/planning/per-page HTML) force the high-quality model (only with the anthropic provider;
-    // other providers keep the user setting, avoiding passing nonexistent model names). Chat/fine-tuning still uses the user's configured model.
-    const SLIDES_GEN_MODEL = 'claude-opus-4-7'
-    // Return on demand a settings copy with the generation model overridden (deep copy, doesn't pollute settingsRef).
-    const settingsForGen = (): AiSettings => {
-      const cur = settingsRef.current
-      if (cur.provider !== 'anthropic') return cur
-      const ap = cur.providers.anthropic
-      return {
-        ...cur,
-        providers: { ...cur.providers, anthropic: { ...ap, model: SLIDES_GEN_MODEL } },
-      }
-    }
+    // Generation runs on the single Redrob engine, which selects its own model.
+    // The upstream per-provider generation-model override is gone: there is no
+    // provider to special-case and no third-party model id to pin, so every step
+    // (style / planning / per-page HTML) uses the current settings as-is.
+    const settingsForGen = (): AiSettings => settingsRef.current
     // Send one LLM request, aggregating streaming deltas into complete text. Shared by in-tool per-page/planning.
     // - On timeout/user stop (signal abort) call aiStreamCancel to cancel the main-process stream, leaving no orphan requests.
     // - useGenModel=true uses SLIDES_GEN_MODEL first; on request errors (non-timeout) automatically falls back to the
@@ -906,13 +896,11 @@ export function AiPanel({
         signal,
         maxTokens,
       )
-      if (first.ok || !useGenModel || signal?.aborted) return first
-      // Only "request errors" fall back to the user's model for a retry; timeouts/empty output don't switch models (mostly network/output problems, switching won't help)
-      if (first.errKind) return first
-      const cur = settingsRef.current
-      if (cur.provider !== 'anthropic') return first // The gen-model override only applies with anthropic
-      if (cur.providers.anthropic?.model === SLIDES_GEN_MODEL) return first
-      return runLlmAttempt(cur, system, user, timeoutMs, signal, maxTokens)
+      // The single Redrob engine picks its own model, so generation and the
+      // "retry" both run the same settings; there is no second model to fall
+      // back onto. A failed attempt is returned as-is (a failure is a visible
+      // failure, not a silent swap).
+      return first
     }
 
     const access: DeckAccess = {
@@ -1975,7 +1963,6 @@ export function AiPanel({
       ref={asideRef}
       style={{ width: '100%' }}
       className={`ai-panel${dragOver ? ' ai-panel-dragover' : ''}${resizing ? ' ai-panel-resizing' : ''}`}
-      dir={isRtl ? 'rtl' : undefined}
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes('Files')) {
           e.preventDefault()
@@ -2034,11 +2021,7 @@ export function AiPanel({
                   <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
                 )}
                 {entry.tools && entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
-                {entry.text && (
-                  <div dir="auto">
-                    <Markdown text={entry.text} />
-                  </div>
-                )}
+                {entry.text && <Markdown text={entry.text} />}
               </div>
             ))}
             <div className="ai-history-sep">{t('aiHistorySep')}</div>
@@ -2106,11 +2089,9 @@ export function AiPanel({
                   />
                 </span>
               ) : entry.role === 'assistant' ? (
-                <div dir="auto">
-                  <Markdown text={entry.text} />
-                </div>
+                <Markdown text={entry.text} />
               ) : (
-                <span dir="auto">{entry.text}</span>
+                entry.text
               )}
               {entry.tools && entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
               {entry.error && (
@@ -2314,7 +2295,6 @@ export function AiPanel({
             <textarea
               ref={inputRef}
               value={input}
-              dir="auto"
               data-slides-ai-input="true"
               data-deck-undo-ready={!busy && !inputEditedSinceRunRef.current ? 'true' : 'false'}
               placeholder={t(deckEmpty ? 'aiInputPlaceholderGen' : 'aiInputPlaceholder')}

@@ -1,0 +1,39 @@
+{
+  "name": "@redrob/generate",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./edit": {
+      "types": "./dist/edit.d.ts",
+      "import": "./dist/edit.js"
+    },
+    "./rubric": {
+      "types": "./dist/rubric.d.ts",
+      "import": "./dist/rubric.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@redrob/registry": "workspace:*",
+    "docx": "^9.7.1",
+    "hwpx-js": "^0.1.2",
+    "kordoc": "^4",
+    "pptxgenjs": "^4.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,25 +1,158 @@
-GenOffice
-Copyright 2026 Mainfunc, Inc.
+Redrob Office
+Copyright 2026 Redrob
 
-This product includes software developed at Mainfunc, Inc.
+Built by Janghoon Lee (이장훈)
 
-Bundled third-party components are listed in THIRD-PARTY-NOTICES.txt, which
-tools/gen-third-party-notices.mjs generates at packaging time. It is not
-checked into this repository; in a release build it ships inside the
-application bundle (Contents/Resources on macOS, resources/ on Windows).
-Run `node tools/gen-third-party-notices.mjs` to produce it from a source
-checkout.
+This product includes software developed at Redrob, licensed under the Apache
+License, Version 2.0. See the LICENSE file for the full license text.
 
-Bundled fonts and their licenses are documented in
-apps/docs/src/renderer/fonts/README.md.
+--------------------------------------------------------------------------------
+Ported source code
+--------------------------------------------------------------------------------
+
+The office editor applications and their supporting packages in this repository
+are ported from GenOffice and remain under the Apache License, Version 2.0. The
+upstream copyright notice is preserved as required by Apache-2.0 section 4:
+
+  GenOffice
+  Copyright 2026 Mainfunc, Inc.
+
+  This product includes software developed at Mainfunc, Inc.
+
+  Bundled fonts and their licenses are documented in
+  apps/docs/src/renderer/fonts/README.md. Bundled third-party components are
+  listed in THIRD-PARTY-NOTICES.txt, which tools/gen-third-party-notices.mjs
+  generates at packaging time. It is not checked into this repository; in a
+  release build it ships inside the application bundle (Contents/Resources on
+  macOS, resources/ on Windows). Run `node tools/gen-third-party-notices.mjs`
+  to produce it from a source checkout.
+
+The Hangul (HWP/HWPX) editing capability is provided by rhwp, which is embedded
+in this repository and licensed under the MIT License. The GenOffice Hangul app
+(apps/hangul) embeds the rhwp-studio editor through the @rhwp/editor iframe SDK.
+Both are vendored here verbatim and served offline from a local origin (no CDN):
+
+  rhwp
+  Copyright (c) 2025-2026 Edward Kim
+  Licensed under the MIT License.
+  https://github.com/edwardkim/rhwp
+
+  Vendored components (each retains rhwp's MIT LICENSE alongside it):
+    * packages/rhwp-editor      — the @rhwp/editor iframe SDK (npm/editor)
+    * apps/hangul/resources/rhwp-studio
+                                — the rhwp-studio web build (dist), self-hosted
+                                  offline; built with RHWP_DISABLE_EXTERNAL_WEBFONTS=1
+                                  (see PORT-DESIGN.md for the exact build command)
 
 Unicode Character Database
 
-apps/pdf/src/shared/radicals.ts contains a generated mapping derived from
-Unicode Character Database 17.0.0, EquivalentUnifiedIdeograph.txt
-(2025-08-01):
-https://www.unicode.org/Public/17.0.0/ucd/EquivalentUnifiedIdeograph.txt
+  apps/pdf/src/shared/radicals.ts contains a generated mapping derived from
+  Unicode Character Database 17.0.0, EquivalentUnifiedIdeograph.txt
+  (2025-08-01):
+  https://www.unicode.org/Public/17.0.0/ucd/EquivalentUnifiedIdeograph.txt
 
-Copyright © 1991-2026 Unicode, Inc. This data is distributed under Unicode
-License v3. The complete copyright and permission notice is reproduced in
-LICENSE-UNICODE.txt.
+  Copyright © 1991-2026 Unicode, Inc. This data is distributed under Unicode
+  License v3. The complete copyright and permission notice is reproduced in
+  LICENSE-UNICODE.txt.
+
+--------------------------------------------------------------------------------
+Runtime components that are NOT bundled
+--------------------------------------------------------------------------------
+
+Redrob Office does not ship an inference runtime or model weights. Both are
+fetched by the user, from the upstream project, during onboarding:
+
+  * llama.cpp (llama-server) is downloaded from the pinned GitHub release at
+    https://github.com/ggml-org/llama.cpp/releases and extracted into the user's
+    application data directory.
+
+  * Qwen3.5 GGUF weights are downloaded from Hugging Face into the same location.
+
+This matters for redistribution. Because these artifacts are neither bundled in
+nor distributed with the installer, Redrob does not redistribute them, and the
+obligations that would attach to redistributing them do not transfer to a Redrob
+Office download. Users obtain them directly from the upstream distributors and
+are bound by those projects' licenses, reproduced in summary below.
+
+--------------------------------------------------------------------------------
+Third-party notices
+--------------------------------------------------------------------------------
+
+llama.cpp
+  Copyright (c) 2023-2026 The ggml authors
+  Licensed under the MIT License.
+  https://github.com/ggml-org/llama.cpp
+
+  Redrob Office pins release b10068 (commit 571d0d540) and launches the
+  llama-server binary from that release as a separate process. No llama.cpp
+  source or binary is included in this repository or in the installer.
+
+Qwen3.5
+  Copyright 2026 Alibaba Cloud
+  Licensed under the Apache License, Version 2.0.
+  https://huggingface.co/Qwen
+
+  GGUF conversions are obtained from the unsloth repositories on Hugging Face.
+  No weights are included in this repository or in the installer.
+
+whisper.cpp
+  Copyright (c) 2023-2026 Georgi Gerganov
+  Licensed under the MIT License.
+  https://github.com/ggml-org/whisper.cpp
+
+  Used for on-device speech recognition. Binaries and models are downloaded by
+  the user, not bundled.
+
+Qwen3 Embedding and Qwen3 Reranker
+  Copyright 2025 Alibaba Cloud
+  Licensed under the Apache License, Version 2.0.
+  Downloaded by the user from Hugging Face for retrieval and ranking.
+
+--------------------------------------------------------------------------------
+Bundled dependencies
+--------------------------------------------------------------------------------
+
+The installer bundles the application's JavaScript dependencies. The principal
+ones and their licenses:
+
+  Electron                     MIT
+  React, React DOM             MIT
+  Vite, electron-vite          MIT
+  TypeScript                   Apache-2.0
+  Tailwind CSS                 MIT
+  Zod                          MIT
+  pino                         MIT
+  ExcelJS                      MIT
+  JSZip                        MIT
+  marked                       MIT
+  DOMPurify                    Apache-2.0 OR MPL-2.0
+  TipTap / ProseMirror         MIT
+  docx-preview                 Apache-2.0
+  @rhwp/core                   MIT
+  systeminformation            MIT
+  koffi                        MIT
+  electron-updater             MIT
+
+Word, Excel, PowerPoint and Hangul (HWP/HWPX) documents are drawn and exported
+to PDF by the application itself using these libraries and Electron's built-in
+printer. No office suite is bundled or required.
+
+The complete dependency tree, with per-package license text, is reproducible
+from the lockfile in this repository.
+
+--------------------------------------------------------------------------------
+Fonts
+--------------------------------------------------------------------------------
+
+Pretendard
+  Copyright (c) 2021 Kil Hyung-jin
+  Licensed under the SIL Open Font License 1.1.
+  https://github.com/orioncactus/pretendard
+
+Nanum Gothic
+  Copyright (c) 2010 NHN Corporation
+  Licensed under the SIL Open Font License 1.1.
+  https://hangeul.naver.com
+
+  A Korean subset is embedded in the application so Hangul (HWP/HWPX) documents
+  render the same on every machine, whether or not a Korean font is installed.

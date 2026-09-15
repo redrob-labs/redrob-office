@@ -1,0 +1,829 @@
+@import "./styles/design-tokens.css";
+
+/*
+ * The neutral ramp, mirrored for dark.
+ *
+ * `--gray-*` is the Figma foundation scale and it is theme-independent, which is what the Tailwind
+ * utilities reading it need: a component writes `bg-gray-100 dark:bg-gray-800` and both ends have to
+ * mean what they say. Plain CSS in this file has no `dark:` variant to write, so the middle of the
+ * ramp is mirrored here and a rule that says `var(--gray-600)` reads as secondary text in either
+ * theme. Light is already the foundation value, so only dark is restated.
+ *
+ * A new rule should name a semantic role instead (`--muted-foreground`, `--border`), which carries
+ * its own theme and says what the colour is for. `color-scheme` is set with those roles, in
+ * `styles/design-tokens-semantic.css`.
+ */
+:root[data-theme="dark"],
+.dark {
+  --gray-200: var(--rr-gray-8);
+  --gray-300: var(--rr-gray-7);
+  --gray-400: var(--rr-gray-6);
+  --gray-500: var(--rr-gray-5);
+  --gray-600: var(--rr-gray-4);
+  --gray-700: var(--rr-gray-3);
+}
+
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+@font-face {
+  font-family: "Pretendard Variable";
+
+  src: url("/fonts/PretendardVariable.woff2") format("woff2");
+
+  font-weight: 45 920;
+
+  font-style: normal;
+
+  font-display: swap;
+}
+
+html {
+  font-size: 90%;
+}
+
+html[lang="ko"] {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+
+  font-family: var(--font-sans);
+
+  font-feature-settings: "ss05" on;
+
+  color: var(--foreground);
+
+  background: var(--background);
+
+  -webkit-font-smoothing: antialiased;
+
+  -moz-osx-font-smoothing: grayscale;
+
+  letter-spacing: -0.01em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Soft work-tool shell (Toss-like density), rem scale from html root (100%) */
+
+@layer components {
+  /*
+   * Buttons take the 8px system radius, like everything else.
+   *
+   * The fill is `primary`, which is Redrob Blue, and its ink is `primary-foreground`. It used to be
+   * brand-600 rather than brand-500, because white on the old brand-500 measured 3.68:1 and that is
+   * under AA at this size. Redrob Blue is 5.6:1 with white, so the step away is no longer needed and
+   * this is the same fill the shared Button carries.
+   */
+  .btn-primary {
+    @apply rounded bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-40;
+  }
+
+  .btn-secondary {
+    @apply rounded border-0 bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-accent-active disabled:opacity-40;
+  }
+
+  .surface {
+    @apply rounded border border-border bg-card;
+
+    /* Tinted with Gray 8 rather than pure black, so the edge reads as depth and not as dirt. */
+    box-shadow: var(--shadow-soft);
+  }
+
+  /*
+   * A full-height shell column, as opposed to a card.
+   *
+   * `.surface` gives a card a border on all four sides, which pushed a column's
+   * header down by that one top pixel, enough that its divider missed the line
+   * the sidebar's header sits on, and the seam across the window ran at two
+   * heights. A column touches the window edges, so it keeps only the side
+   * borders that separate it from its neighbours.
+   */
+  .pane {
+    @apply border-x border-border bg-card;
+  }
+
+  .nav-item {
+    @apply rounded px-3 py-2.5 text-left text-[0.9375rem] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .nav-item-active {
+    @apply rounded bg-accent px-3 py-2.5 text-left text-[0.9375rem] font-semibold text-accent-foreground;
+  }
+
+  .panel {
+    @apply flex w-full max-w-none flex-col gap-4;
+  }
+
+  .field-label {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  .field-input {
+    @apply mt-1.5 w-full rounded border-0 bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-disabled-foreground;
+  }
+
+  .field-hint {
+    @apply mt-1 text-xs text-subtle-foreground;
+  }
+
+  .select-input {
+    @apply appearance-none rounded border-0 bg-muted py-2.5 pl-3.5 pr-9 text-sm font-medium text-foreground;
+
+    /*
+     * Native arrow is hidden above, so the chevron is drawn as a background. A data URI cannot read
+     * a custom property, so the stroke is Gray 6 written out: the same step `--input` takes, which
+     * is the one a control's own boundary is drawn in.
+     */
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%237c8390' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+  }
+
+  .select-input:disabled {
+    @apply opacity-40;
+  }
+}
+
+/* Product tour, Toss-style spotlight coachmarks */
+@keyframes tour-arrow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes tour-pulse-ring {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.15;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes tour-orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -14px, 0) scale(1.08);
+  }
+}
+
+@keyframes tour-spark {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.7;
+  }
+}
+
+@keyframes tour-burst {
+  0% {
+    transform: scale(0.6) rotate(-8deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08) rotate(4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.tour-arrow-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: tour-arrow-draw 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/*
+ * The arrow's colour, set here rather than on the `stop` elements.
+ *
+ * A presentation attribute (`stop-color="..."`, `fill="..."`) is not a place a custom property can
+ * be read: Chromium substitutes `var()` in a declaration, not in an attribute, so the arrow would
+ * have come out with no colour at all. The gradient is one hue fading in, which is why both stops
+ * take the same value and only their opacity differs.
+ */
+.tour-arrow-stop {
+  stop-color: var(--primary);
+}
+
+.tour-arrow-head {
+  opacity: 0;
+  animation: tour-burst 0.35s ease-out 0.35s forwards;
+  fill: var(--primary);
+}
+
+.tour-pulse {
+  animation: tour-pulse-ring 1.8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.tour-orb-a {
+  animation: tour-orb-drift 7s ease-in-out infinite;
+}
+
+.tour-orb-b {
+  animation: tour-orb-drift 9s ease-in-out infinite reverse;
+}
+
+.tour-orb-c {
+  animation: tour-orb-drift 5.5s ease-in-out infinite;
+}
+
+.tour-spark {
+  animation: tour-spark 1.4s ease-in-out infinite;
+}
+
+.tour-finish-burst {
+  animation: tour-burst 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.markdown-body.chat-md {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.markdown-body.chat-md h1,
+.markdown-body.chat-md h2,
+.markdown-body.chat-md h3 {
+  margin-top: 0.75em;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  margin: 0.85em 0 0.35em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.markdown-body h1 {
+  font-size: 1.25rem;
+}
+
+.markdown-body h2 {
+  font-size: 1.1rem;
+}
+
+.markdown-body h3 {
+  font-size: 1rem;
+}
+
+.markdown-body h4 {
+  font-size: 0.9375rem;
+}
+
+.markdown-body h1:first-child,
+.markdown-body h2:first-child,
+.markdown-body h3:first-child,
+.markdown-body h4:first-child,
+.markdown-body p:first-child,
+.markdown-body ul:first-child,
+.markdown-body ol:first-child,
+.markdown-body table:first-child {
+  margin-top: 0;
+}
+
+.markdown-body p {
+  margin: 0.4em 0;
+}
+
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body .md-ul,
+.markdown-body .md-ol {
+  margin: 0.5em 0 !important;
+  padding-left: 1.75rem !important;
+}
+
+.markdown-body ul,
+.markdown-body .md-ul {
+  list-style: disc outside !important;
+}
+
+.markdown-body ol,
+.markdown-body .md-ol {
+  list-style: decimal outside !important;
+}
+
+.markdown-body ul ul,
+.markdown-body .md-ul .md-ul {
+  list-style-type: circle !important;
+}
+
+.markdown-body ul ul ul,
+.markdown-body .md-ul .md-ul .md-ul {
+  list-style-type: square !important;
+}
+
+.markdown-body ol ol,
+.markdown-body .md-ol .md-ol {
+  list-style-type: lower-alpha !important;
+}
+
+.markdown-body li,
+.markdown-body .md-li {
+  margin: 0.25em 0;
+  display: list-item !important;
+  list-style: inherit !important;
+}
+
+.markdown-body li > ul,
+.markdown-body li > ol,
+.markdown-body .md-li > .md-ul,
+.markdown-body .md-li > .md-ol {
+  margin: 0.15em 0 !important;
+}
+
+.markdown-body li > p {
+  margin: 0.15em 0;
+}
+
+.markdown-body li::marker,
+.markdown-body .md-li::marker {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.markdown-body hr {
+  margin: 1em 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.markdown-body strong {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.markdown-body em {
+  font-style: italic;
+}
+
+.markdown-body .md-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  margin: 0.75em 0;
+  overflow-x: auto;
+}
+
+.markdown-body table,
+.markdown-body .md-table {
+  width: 100%;
+  min-width: 16rem;
+  border-collapse: collapse !important;
+  font-size: 0.9375em;
+}
+
+.markdown-body thead {
+  background: var(--muted);
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border) !important;
+  padding: 0.5em 0.75em !important;
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdown-body th {
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  background: var(--muted);
+}
+
+/*
+ * Zebra striping, tied to the foreground so it darkens the surface on light and lightens it on dark.
+ * A fixed near-white only ever worked on one of the two.
+ */
+.markdown-body tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+
+/* A code block sits on `--muted`, which is the surface every `--code-*` value is measured against. */
+.markdown-body code {
+  border-radius: var(--radius-300);
+  background: var(--muted);
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+.markdown-body pre {
+  margin: 0.6em 0;
+  overflow: auto;
+  border-radius: var(--radius-300);
+  background: var(--muted);
+  padding: 0.75rem 1rem;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.markdown-body a {
+  color: var(--primary-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-body blockquote {
+  margin: 0.6em 0;
+  border-left: 3px solid var(--border);
+  padding-left: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-300);
+}
+
+.markdown-body input[type="checkbox"] {
+  margin-right: 0.4em;
+  vertical-align: middle;
+}
+
+/* Chat thinking status, a vertical roll between witty lines */
+@keyframes chat-thinking-roll {
+  0% {
+    transform: translate3d(0, 105%, 0);
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.chat-thinking-roll {
+  position: relative;
+  height: 1.35rem;
+  overflow: hidden;
+}
+
+.chat-thinking-roll-line {
+  position: absolute;
+  inset-inline: 0;
+  margin: 0;
+  animation: chat-thinking-roll 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-thinking-roll-line {
+    animation: none;
+  }
+}
+
+.chat-reasoning {
+  padding: 0.15rem 0.15rem 0.25rem;
+}
+
+.chat-reasoning-summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  user-select: none;
+}
+
+.chat-reasoning-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chat-reasoning-summary::before {
+  content: "▸ ";
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.chat-reasoning[open] > .chat-reasoning-summary::before {
+  transform: rotate(90deg);
+}
+
+.chat-reasoning-body {
+  margin: 0.4rem 0 0;
+  max-height: 12rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--gray-700);
+}
+
+/*
+ * Typing dots.
+ *
+ * A staff member spends the whole model call saying nothing, and a spinner in
+ * that gap reads as the app working rather than as a colleague about to speak.
+ * Three dots is the gesture every chat app already taught people to read.
+ */
+@keyframes floor-typing-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  30% {
+    transform: translateY(-0.25rem);
+    opacity: 1;
+  }
+}
+
+.floor-typing-dot {
+  animation: floor-typing-dot 1.2s ease-in-out infinite;
+}
+
+.floor-typing-dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.floor-typing-dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Still three dots, just still ones: the row must not go blank. */
+  .floor-typing-dot {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/*
+ * The composer is WYSIWYG, which only means anything if the marks are visible:
+ * Tailwind's reset strips bold from `<strong>` and monospace from `<code>`, so
+ * every element the editor can produce is given its look back here.
+ */
+.composer-shell .composer-editor {
+  min-height: 2.75rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  /* Its own inset, since the composer is the pane and has no container. */
+  padding: 0.5rem 1rem 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  outline: none;
+  /*
+   * A drag that resizes a panel turns selection off on <body> while it runs.
+   * Chromium refuses to place a caret inside a `user-select: none` subtree, so
+   * one lost pointerup used to leave the composer looking broken: the cursor
+   * would not land and nothing could be typed. Writing is always allowed here.
+   */
+  user-select: text;
+}
+
+.composer-editor p {
+  margin: 0;
+}
+
+.composer-editor p + p,
+.composer-editor > * + * {
+  margin-top: 0.5rem;
+}
+
+.composer-editor strong {
+  font-weight: 700;
+}
+
+.composer-editor em {
+  font-style: italic;
+}
+
+.composer-editor s {
+  text-decoration: line-through;
+}
+
+.composer-editor a {
+  color: var(--primary-ink);
+  text-decoration: underline;
+}
+
+.composer-editor code {
+  padding: 0.0625rem 0.25rem;
+  border-radius: var(--radius-300);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  /* What the editor holds inside `<code>` is a literal, and that is the role this token names. */
+  color: var(--code-literal);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.composer-editor pre {
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius-300);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+}
+
+.composer-editor pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.composer-editor blockquote {
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--border-strong);
+  color: var(--muted-foreground);
+}
+
+.composer-editor ul,
+.composer-editor ol {
+  padding-left: 1.5rem;
+}
+
+.composer-editor ul {
+  list-style: disc;
+}
+
+.composer-editor ol {
+  list-style: decimal;
+}
+
+.composer-editor li p {
+  margin: 0;
+}
+
+/* A named seat reads as one object, so it cannot be half-deleted by a backspace. */
+.composer-editor .composer-mention {
+  padding: 0.0625rem 0.3125rem;
+  border-radius: var(--radius-300);
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* A flow chip from the `/` palette: a saved skill, held as one object. */
+.composer-editor .composer-slash {
+  padding: 0.0625rem 0.3125rem;
+  border-radius: var(--radius-300);
+  background: var(--success-soft);
+  color: var(--success-ink);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.composer-editor .composer-slash::before {
+  content: "/";
+  opacity: 0.6;
+}
+
+/*
+ * A channel message is prose first and a document second: it inherits the row's
+ * type rather than opening a panel of its own, and its first line stays on the
+ * same line as an @mention.
+ */
+.markdown-body.floor-md {
+  display: contents;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.markdown-body.floor-md > p:first-child {
+  display: inline;
+}
+
+.markdown-body.floor-md > p {
+  margin: 0;
+}
+
+.markdown-body.floor-md > p + p,
+.markdown-body.floor-md > * + * {
+  margin-top: 0.5em;
+}
+
+.markdown-body.floor-md ul,
+.markdown-body.floor-md ol {
+  margin: 0.25em 0;
+  padding-left: 1.35em;
+}
+
+.markdown-body.floor-md pre {
+  margin: 0.35em 0;
+}
+
+/* The placeholder is drawn rather than typed, so it cannot be sent by mistake. */
+.composer-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--disabled-foreground);
+  pointer-events: none;
+}
+
+/*
+ * The composer and the transcript used to be repainted here, a slate palette at a time, because
+ * their light rules were hardcoded and had no other way to reach dark. Every one of those rules now
+ * names a role that re-points itself, so the overrides are gone rather than restated: one surface,
+ * `--muted`, one ink, `--foreground`, and one link, `--primary-ink`, in both themes.
+ *
+ * `.nav-item-active` keeps a rule because it needs the specificity, not a different colour.
+ */
+.dark .nav-item-active {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+
+
+/* First-run beta access gate */
+.beta-gate-atmosphere {
+  position: absolute;
+  inset: 0;
+  /*
+   * Two washes and a sheet, all three from tokens: the brand wash is the accent itself at 14%, the
+   * far corner is the page's own ink at 8%, and the sheet runs page to panel to surface. It follows
+   * the theme now, where the fixed near-whites it replaces stayed light under a dark one.
+   */
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 80%, color-mix(in srgb, var(--foreground) 8%, transparent), transparent 50%),
+    linear-gradient(165deg, var(--background) 0%, var(--background-secondary) 45%, var(--card) 100%);
+}
+
+.beta-gate-fade {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: beta-gate-in 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.beta-gate-fade-delay-1 { animation-delay: 60ms; }
+.beta-gate-fade-delay-2 { animation-delay: 120ms; }
+.beta-gate-fade-delay-3 { animation-delay: 180ms; }
+.beta-gate-fade-delay-4 { animation-delay: 240ms; }
+.beta-gate-fade-delay-5 { animation-delay: 300ms; }
+
+@keyframes beta-gate-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beta-gate-fade {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}

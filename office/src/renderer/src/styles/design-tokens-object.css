@@ -1,0 +1,76 @@
+/**
+ * Object Style, the Figma Foundation scales (Radius, Gap, Padding, Border width).
+ * Source vars use --foundation-*; theme maps to rounded-*, gap-*, p-*, border-* utilities.
+ */
+
+:root {
+  /* Radius */
+  --foundation-radius-50: 2px;
+  --foundation-radius-100: 4px;
+  --foundation-radius-200: 6px;
+  --foundation-radius-300: 8px;
+  --foundation-radius-400: 10px;
+  --foundation-radius-500: 12px;
+  --foundation-radius-600: 16px;
+  --foundation-radius-full: 9999px;
+
+  /* Gap */
+  --foundation-gap-50: 2px;
+  --foundation-gap-100: 4px;
+  --foundation-gap-200: 6px;
+  --foundation-gap-300: 8px;
+  --foundation-gap-400: 10px;
+  --foundation-gap-500: 12px;
+  --foundation-gap-600: 16px;
+  --foundation-gap-700: 24px;
+  --foundation-gap-800: 32px;
+  --foundation-gap-900: 40px;
+
+  /* Padding (700 and 800 are both 24px in Figma) */
+  --foundation-padding-50: 2px;
+  --foundation-padding-100: 4px;
+  --foundation-padding-200: 6px;
+  --foundation-padding-300: 8px;
+  --foundation-padding-400: 10px;
+  --foundation-padding-500: 12px;
+  --foundation-padding-600: 16px;
+  --foundation-padding-700: 24px;
+  --foundation-padding-800: 24px;
+  --foundation-padding-900: 40px;
+
+  /* Border width */
+  --foundation-border-50: 0.5px;
+  --foundation-border-100: 1px;
+
+  /* Figma aliases (plain CSS / var()) */
+  --radius-50: var(--foundation-radius-50);
+  --radius-100: var(--foundation-radius-100);
+  --radius-200: var(--foundation-radius-200);
+  --radius-300: var(--foundation-radius-300);
+  --radius-400: var(--foundation-radius-400);
+  --radius-500: var(--foundation-radius-500);
+  --radius-600: var(--foundation-radius-600);
+  --radius-full: var(--foundation-radius-full);
+  --gap-50: var(--foundation-gap-50);
+  --gap-100: var(--foundation-gap-100);
+  --gap-200: var(--foundation-gap-200);
+  --gap-300: var(--foundation-gap-300);
+  --gap-400: var(--foundation-gap-400);
+  --gap-500: var(--foundation-gap-500);
+  --gap-600: var(--foundation-gap-600);
+  --gap-700: var(--foundation-gap-700);
+  --gap-800: var(--foundation-gap-800);
+  --gap-900: var(--foundation-gap-900);
+  --padding-50: var(--foundation-padding-50);
+  --padding-100: var(--foundation-padding-100);
+  --padding-200: var(--foundation-padding-200);
+  --padding-300: var(--foundation-padding-300);
+  --padding-400: var(--foundation-padding-400);
+  --padding-500: var(--foundation-padding-500);
+  --padding-600: var(--foundation-padding-600);
+  --padding-700: var(--foundation-padding-700);
+  --padding-800: var(--foundation-padding-800);
+  --padding-900: var(--foundation-padding-900);
+  --border-50: var(--foundation-border-50);
+  --border-100: var(--foundation-border-100);
+}

@@ -1,62 +1,74 @@
 {
-  "name": "genoffice",
-  "version": "0.1.0",
+  "name": "redrob-office",
   "private": true,
-  "description": "AI-native office suite (docs, sheets, slides, pdf)",
+  "version": "0.0.5",
   "license": "Apache-2.0",
-  "engines": {
-    "node": ">=22.12.0",
-    "npm": ">=10"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/genspark-ai/genoffice.git"
-  },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "description": "On-device office suite: lookup, process, and review without leaving this PC",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "postinstall": "install-electron",
-    "format": "node tools/format-changed.mjs --write",
-    "format:check": "node tools/format-changed.mjs --check",
-    "check:theme-colors": "node tools/check-theme-colors.mjs",
-    "check:english-comments": "node tools/check-english-comments.mjs",
-    "lint": "eslint .",
-    "fixtures": "npm run fixtures -w @genoffice/docx-engine",
-    "test": "npm run test -w @genoffice/i18n && npm run test -w @genoffice/electron-utils && npm run test -w @genoffice/font-metrics && npm run test -w @genoffice/docx-engine && npm run test -w @genoffice/pdf2docx && npm run test -w @genoffice/file-parse && npm run test -w @genoffice/pptx-engine && npm run test -w @genoffice/pptx-render && npm run test -w @genoffice/ai-search && npm run test -w @genoffice/agent-core && npm run test -w @genoffice/ai-provider && npm run test -w @genoffice/project-store && npm run test -w @genoffice/docs && npm run test -w @genoffice/sheets && npm run test -w @genoffice/shell && npm run test -w @genoffice/slides && npm run test -w @genoffice/pdf && npm run test -w @genoffice/markdown",
-    "typecheck": "npm run typecheck -w @genoffice/i18n && npm run typecheck -w @genoffice/electron-utils && npm run typecheck -w @genoffice/font-metrics && npm run typecheck -w @genoffice/docx-engine && npm run typecheck -w @genoffice/pdf2docx && npm run typecheck -w @genoffice/file-parse && npm run typecheck -w @genoffice/pptx-engine && npm run typecheck -w @genoffice/pptx-render && npm run typecheck -w @genoffice/ai-search && npm run typecheck -w @genoffice/agent-core && npm run typecheck -w @genoffice/ai-provider && npm run typecheck -w @genoffice/project-store && npm run typecheck -w @genoffice/ui && npm run typecheck -w @genoffice/docs && npm run typecheck -w @genoffice/sheets && npm run typecheck -w @genoffice/shell && npm run typecheck -w @genoffice/slides && npm run typecheck -w @genoffice/pdf && npm run typecheck -w @genoffice/markdown",
-    "predev": "node tools/build-stale-preloads.mjs",
-    "dev": "concurrently -k -n docs,sheets,slides,pdf,markdown,shell -c blue,green,yellow,red,cyan,magenta \"npm run dev:renderer -w @genoffice/docs\" \"npm run dev:renderer -w @genoffice/sheets\" \"npm run dev:renderer -w @genoffice/slides\" \"npm run dev:renderer -w @genoffice/pdf\" \"npm run dev:renderer -w @genoffice/markdown\" \"DOCS_RENDERER_URL=http://localhost:5173 SHEETS_RENDERER_URL=http://localhost:5174 SLIDES_RENDERER_URL=http://localhost:5175 PDF_RENDERER_URL=http://localhost:5176 MARKDOWN_RENDERER_URL=http://localhost:5177 npm run dev -w @genoffice/shell\"",
-    "dev:docs": "npm run dev -w @genoffice/docs",
-    "build": "npm run build -w @genoffice/docs",
-    "build:all": "npm run build -w @genoffice/docs && npm run build -w @genoffice/sheets && npm run build -w @genoffice/slides && npm run build -w @genoffice/pdf && npm run build -w @genoffice/markdown && npm run build -w @genoffice/shell",
-    "shell": "npm run build:all && electron apps/shell",
-    "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "notices": "node tools/gen-third-party-notices.mjs",
-    "licenses": "node tools/check-licenses.mjs",
-    "dist:mac": "npm run notices && npm run build:all && npm run native:build:universal -w @genoffice/sheets && npm run dist:mac -w @genoffice/shell",
-    "dist:win": "npm run notices && npm run build:all && npm run dist:win -w @genoffice/shell",
-    "dist:linux": "npm run notices && npm run build:all && npm run dist:linux -w @genoffice/shell"
-  },
-  "dependencies": {
-    "ws": "^8.21.1"
-  },
-  "overrides": {
-    "nanoid@3": "^3.3.17",
-    "nanoid@5": "^5.1.16"
+    "build": "turbo run build",
+    "dev": "turbo run dev --filter=@genoffice/shell",
+    "dev:office": "turbo run dev --filter=@redrob/office",
+    "dev:web": "pnpm --filter @redrob/office dev:web",
+    "dev:cdp": "pnpm --filter @redrob/office dev:cdp",
+    "test": "turbo run test",
+    "office:bench:minimized": "pnpm --filter @redrob/office office:bench:minimized",
+    "audit:i18n": "node ./scripts/audit-i18n.mjs",
+    "audit:security": "node ./scripts/audit-security.mjs",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rimraf node_modules",
+    "download:models": "pnpm --filter @redrob/kernel build && node ./scripts/download-models.mjs",
+    "bench": "pnpm --filter @redrob/kernel bench",
+    "check-extract": "pnpm --filter @redrob/extract check-extract",
+    "rebuild:native": "pnpm --filter @redrob/office rebuild:native",
+    "dist": "pnpm build && pnpm --filter @genoffice/shell dist:linux",
+    "dist:office": "pnpm build && pnpm --filter @redrob/office dist",
+    "publish:test": "pnpm build && pnpm --filter @redrob/office publish:test"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.61.1",
-    "concurrently": "^9.2.4",
-    "eslint": "^10.8.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "globals": "^17.8.0",
-    "pixelmatch": "^7.2.0",
-    "playwright-core": "^1.61.1",
-    "pngjs": "^7.0.0",
-    "prettier": "^3.9.6",
-    "typescript-eslint": "^8.65.0"
+    "@types/node": "^22.10.2",
+    "harfbuzzjs": "^1.5.0",
+    "rimraf": "^6.0.1",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "neverBuiltDependencies": [
+      "better-sqlite3"
+    ],
+    "overrides": {
+      "prosemirror-view": "1.42.1",
+      "@types/react@^19": "19.2.17",
+      "@types/react-dom@^19": "19.2.3",
+      "@fluentui/react-icons": "2.0.333",
+      "react-konva": "19.2.5"
+    },
+    "packageExtensions": {
+      "@fluentui/react-icons": {
+        "peerDependencies": {
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        }
+      },
+      "react-konva": {
+        "peerDependencies": {
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        }
+      }
+    }
   }
 }

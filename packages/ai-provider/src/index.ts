@@ -13,9 +13,9 @@ export type {
 export {
   AI_PROVIDERS,
   DEFAULT_MAX_OUTPUT_TOKENS,
-  GENSPARK_LLM_BASE_URLS,
   MAX_MAX_OUTPUT_TOKENS,
   MIN_MAX_OUTPUT_TOKENS,
+  REDROB_ENGINE_ID,
   activeProvider,
   clampMaxOutputTokens,
   cloudToolsEnabled,
@@ -31,6 +31,16 @@ export type {
   ResolvedEndpoint,
 } from './registry'
 export { chatForProvider } from './chat'
+export {
+  REDROB_CONSOLE_API_BASE,
+  REDROB_ENGINE_MODEL,
+  REDROB_ENGINE_ROUTE,
+  hasDegradedSteering,
+  redrobEngineChat,
+  redrobEngineStream,
+  redrobEngineUnavailableMessage,
+} from './redrob-engine'
+export type { RedrobEngineAuth } from './redrob-engine'
 export { setRescueFetch } from './fetch'
 export { isAiNetworkError } from './network-error'
 export { isAiOverloadedError } from './overload-error'

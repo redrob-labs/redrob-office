@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { SHAPE_GALLERY_GROUPS } from '../../../packages/ui/src/shape-gallery'
+// Path adjusted for FEAT-002's directory rename: GenOffice's packages/ui was
+// copied to packages/genoffice-ui in redrob-office (package name stays
+// @genoffice/ui) so it can coexist with the existing @redrob/ui at packages/ui.
+import { SHAPE_GALLERY_GROUPS } from '../../../packages/genoffice-ui/src/shape-gallery'
 import { shapeBackgroundCss, shapePreviewPathD } from '../src/renderer/editor/shape-svg'
 
 // The docs gallery (ribbon-tabs' DOC_SHAPE_GROUPS) is the full shared set, Lines included

@@ -1,0 +1,9 @@
+id: legal/clause
+version: 1
+outputKind: markdown
+slots:
+  - { id: clauseType, required: true, description: "Clause type (e.g. indemnification, termination)" }
+  - { id: parties, required: true, description: "Parties and roles" }
+  - { id: intent, required: true, description: "What the clause should achieve" }
+  - { id: mustInclude, required: false, description: "Must-include terms" }
+  - { id: mustAvoid, required: false, description: "Terms to avoid" }

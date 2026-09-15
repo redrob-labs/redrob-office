@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
-  "description": "Multi-provider LLM streaming + one-shot chat client (Claude/Gemini/DeepSeek/OpenAI/custom), shared by AI Docs and future apps (Excel / PPT)",
+  "description": "Redrob-backed AI layer. Keeps the @genoffice/ai-provider TypeScript surface the ported editor apps import, but routes ALL chat/stream turns to the single Redrob Console engine (fixed base https://console.redrob.ai/api/backend/v1, model redrob-ai / redrob/auto). No provider selection, no BYOK, no configurable inference server URL, no third-party engine names in the routing path. On engine unavailability it surfaces the Redrob honest-failure notice; there is one engine, so a failure is a visible failure, not a silent swap.",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -14,7 +14,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@genoffice/agent-core": "*"
+    "@genoffice/agent-core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

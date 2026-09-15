@@ -561,7 +561,6 @@ export function AiPanel({
       ref={asideRef}
       className={`copilot${resizing ? ' ai-panel-resizing' : ''}`}
       style={{ width: '100%' }}
-      dir={lang === 'ar' || lang === 'he' ? 'rtl' : undefined}
     >
       <div
         className="ai-panel-resizer"
@@ -633,7 +632,7 @@ export function AiPanel({
           if (entry.role === 'user') {
             return (
               <div key={i} className="ai-msg ai-msg-user">
-                <span dir="auto">{entry.text}</span>
+                {entry.text}
                 {entry.undelivered && (
                   <div className="ai-msg-undelivered">
                     {t('aiUndelivered')}
@@ -665,11 +664,7 @@ export function AiPanel({
                   <AiTypingIndicator label={hasTools ? t('aiWorking') : t('aiThinking')} />
                 </span>
               ) : (
-                entry.text && (
-                  <div dir="auto">
-                    <Markdown text={entry.text} nav={docNav} />
-                  </div>
-                )
+                entry.text && <Markdown text={entry.text} nav={docNav} />
               )}
               {hasTools && <ToolChipList tools={entry.tools!} />}
               {showToolbar && (

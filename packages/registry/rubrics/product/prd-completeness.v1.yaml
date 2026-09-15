@@ -1,0 +1,7 @@
+id: product/prd-completeness
+version: 1
+axes:
+  - { id: completeness, label: PRD completeness, range: [1, 5], guidance: "Score goals, users, states, metrics, and constraints." }
+rules:
+  - { id: required-sections, kind: deterministic, severity: warn, implementation: requiredSections }
+  - { id: missing-state, kind: model, severity: info, prompt: "Identify missing empty, loading, error, and unauthorised states." }
