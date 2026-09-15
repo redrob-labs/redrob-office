@@ -49,11 +49,15 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 
 - `apps/shell/electron-builder.cjs` is the only product packaging config.
 - `v*` must match `apps/shell/package.json`.
-- `.github/workflows/release-desktop.yml` signs Windows and publishes the exact signed installer to
-  both GitHub Releases and `office/<version>/`, then moves `office/latest/` only after public checksum
-  verification.
-- `.github/workflows/release-office-cdn.yml` builds unsigned Linux AppImage/deb/rpm and follows the
-  same immutable-version-then-latest contract.
+- `.github/workflows/release-desktop.yml` signs Windows (and notarises macOS when enabled) and
+  attaches the exact signed installers to the GitHub Release for the tag, together with `latest.yml`
+  and `latest-mac.yml`.
+- `.github/workflows/release-linux.yml` builds the unsigned Linux AppImage/deb/rpm, writes a
+  `.sha256` beside each, and attaches them plus `latest-linux.yml` to the same release. It builds the
+  Redrob Code sidecar first, because `beforePack` refuses to package without it.
+- There is no CDN. Downloads and the updater feed are the same release assets. The feed target is
+  baked in from `GENOFFICE_UPDATE_REPO` (`owner/repo`); unset means no publish config and no
+  in-app auto-update, which is what a fork or a local build gets.
 - `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` are organization secrets. A self-signed certificate has an
   Authenticode signer but may report `UnknownError`/`NotTrusted` and still trigger SmartScreen.
 - CDN credentials are PutObject-only. Never rely on S3 listing, HeadObject, or server-side copy.

@@ -27,12 +27,13 @@ Console 전송 계층을 사용합니다. 다른 벤더 키를 쓰거나 임의�
 
 | 시스템 | 파일 |
 | --- | --- |
-| Windows x64 | `https://cdn.redrob.ai/office/latest/redrob-office-x64-setup.exe` |
-| Linux AppImage | `https://cdn.redrob.ai/office/latest/redrob-office-x64.AppImage` |
-| Linux deb | `https://cdn.redrob.ai/office/latest/redrob-office-x64.deb` |
-| Linux rpm | `https://cdn.redrob.ai/office/latest/redrob-office-x64.rpm` |
+| Windows x64 | [`Redrob-Setup-<version>.exe`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux AppImage | [`Redrob-<version>.AppImage`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux deb | [`redrob_<version>_amd64.deb`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux rpm | [`redrob-<version>.x86_64.rpm`](https://github.com/redrob-labs/redrob-office/releases/latest) |
 
-모든 파일에는 `.sha256`이 함께 게시됩니다. macOS 빌드는 없습니다.
+Linux 패키지에는 릴리즈에 `.sha256`이 함께 올라갑니다. macOS 빌드는 없습니다. 앱의 자동
+업데이트도 같은 릴리즈를 읽습니다.
 
 ## Redrob 연결
 
@@ -78,18 +79,19 @@ pnpm dist
 
 ## 릴리즈
 
-`v*` 태그를 밀면 같은 태그에서 두 워크플로가 함께 돕니다. `release-desktop.yml`은
-Windows 설치본을 서명·패키징해 GitHub Release에 게시하고 그 **서명된 같은 바이트**를 CDN에
-올립니다. `release-office-cdn.yml`은 서명 없는 Linux 패키지(AppImage/deb/rpm)를 빌드해
-올립니다. 태그는 `apps/shell/package.json`의 버전과 같아야 합니다(`v0.8.3` ↔ `0.8.3`).
+`v*` 태그를 밀면 같은 태그에서 두 워크플로가 돌고, 둘 다 같은 GitHub Release에 자산을
+붙입니다. `release-desktop.yml`은 Windows 설치본을 서명해 붙이고(macOS 빌드를 켜면 공증까지),
+`release-linux.yml`은 서명 없는 Linux 패키지(AppImage/deb/rpm)를 체크섬과 함께 붙입니다.
+태그는 `apps/shell/package.json`의 버전과 같아야 합니다(`v0.8.3` ↔ `0.8.3`).
 
-업로드 계약 — 불변 버전 경로, `latest/` 승격 전 체크섬 검증, CDN 자격 증명이 없는 포크가
-빌드만 하고 업로드하지 않는 이유 — 은 [docs/RELEASE.md](./docs/RELEASE.md)에 있습니다.
+릴리즈가 업데이트 피드 역할도 합니다. `latest.yml`과 `latest-linux.yml`이 설치본과 함께
+올라가고, 앱은 electron-updater의 GitHub 제공자로 그것을 읽습니다. 포크 빌드가 어떻게
+동작하는지까지 [docs/RELEASE.md](./docs/RELEASE.md)에 있습니다.
 
 ## 문서
 
 - [docs/UPSTREAM.md](./docs/UPSTREAM.md) — 이 포크가 무엇을 이식했는지, 상류 변경을 가져오는 방법
-- [docs/RELEASE.md](./docs/RELEASE.md) — 릴리즈와 CDN 배포 계약
+- [docs/RELEASE.md](./docs/RELEASE.md) — 릴리즈를 빌드·서명·게시하는 방법
 - [docs/console-api.md](./docs/console-api.md) — Redrob Console 추론 API 계약
 - [docs/branding-cleanup.md](./docs/branding-cleanup.md) — 브랜딩 규칙과 의도적인 내부 예외 목록
 - [AGENTS.md](./AGENTS.md) — 개발·검증 환경과 동작 노트

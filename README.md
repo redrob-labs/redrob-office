@@ -27,12 +27,13 @@ Download a build for your system:
 
 | System | File |
 | --- | --- |
-| Windows x64 | `https://cdn.redrob.ai/office/latest/redrob-office-x64-setup.exe` |
-| Linux AppImage | `https://cdn.redrob.ai/office/latest/redrob-office-x64.AppImage` |
-| Linux deb | `https://cdn.redrob.ai/office/latest/redrob-office-x64.deb` |
-| Linux rpm | `https://cdn.redrob.ai/office/latest/redrob-office-x64.rpm` |
+| Windows x64 | [`Redrob-Setup-<version>.exe`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux AppImage | [`Redrob-<version>.AppImage`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux deb | [`redrob_<version>_amd64.deb`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux rpm | [`redrob-<version>.x86_64.rpm`](https://github.com/redrob-labs/redrob-office/releases/latest) |
 
-Every file has a published `.sha256` beside it. There is no macOS build.
+Every Linux package has a `.sha256` beside it on the release. There is no macOS
+build. The app updates itself from these same releases.
 
 ## Connect Redrob
 
@@ -78,20 +79,21 @@ surface, and renaming them would rewrite every import for no user-visible gain.
 
 ## Releases
 
-Pushing a `v*` tag runs two workflows from the same tag: `release-desktop.yml`
-signs and publishes the Windows installer to a GitHub Release and uploads those
-same signed bytes to the CDN, and `release-office-cdn.yml` builds the unsigned
-Linux packages and uploads them. The tag must match the version in
-`apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`).
+Pushing a `v*` tag runs two workflows from the same tag, both attaching to the same
+GitHub Release: `release-desktop.yml` signs and attaches the Windows installer (and
+notarises macOS when that build is enabled), and `release-linux.yml` builds the
+unsigned Linux packages and attaches them with their checksums. The tag must match
+the version in `apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`).
 
-The upload contract — immutable version paths, checksum verification before
-`latest/` moves, and why a fork with no CDN credentials builds but never
-uploads — is in [docs/RELEASE.md](./docs/RELEASE.md).
+The release is also the update feed: `latest.yml` and `latest-linux.yml` ride along
+with the installers, and the app reads them through electron-updater's GitHub
+provider. Details, including what a fork build does instead, are in
+[docs/RELEASE.md](./docs/RELEASE.md).
 
 ## Documentation
 
 - [docs/UPSTREAM.md](./docs/UPSTREAM.md) — what this fork was ported from, and how upstream work is taken
-- [docs/RELEASE.md](./docs/RELEASE.md) — the release and CDN publishing contract
+- [docs/RELEASE.md](./docs/RELEASE.md) — how a release is built, signed and attached
 - [docs/console-api.md](./docs/console-api.md) — the Redrob Console inference API contract
 - [docs/branding-cleanup.md](./docs/branding-cleanup.md) — brand rules and the deliberate internal exceptions
 - [AGENTS.md](./AGENTS.md) — development and verification environment notes

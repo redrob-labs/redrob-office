@@ -59,7 +59,7 @@ pnpm check:licenses             # 의존성 라이선스 허용목록
 | --- | --- | --- |
 | `CI` (Linux: typecheck, build, test, 포크 경계, 라이선스) | 풀 리퀘스트, `main` 푸시 | 필수 |
 | `CI` (Windows + macOS 매트릭스) | 주간 스케줄, 수동 실행 | 풀 리퀘스트에서는 안 돎 |
-| `release-desktop.yml`, `release-office-cdn.yml` | `v*` 태그, 수동 실행 | 릴리즈 전용 |
+| `release-desktop.yml`, `release-linux.yml` | `v*` 태그, 수동 실행 | 릴리즈 전용 |
 
 네이티브 매트릭스는 비용이 커서 풀 리퀘스트에서는 돌지 않습니다. 플랫폼에 특정한 변경이면
 PR에 그렇게 적고 매트릭스를 수동으로 실행하세요.
