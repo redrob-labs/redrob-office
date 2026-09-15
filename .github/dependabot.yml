@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Let a release settle before we take it: a same-day npm publish that gets
+    # unpublished or patched hours later should not become a pull request here.
+    cooldown:
+      default-days: 3
+    groups:
+      electron:
+        patterns: ["electron", "electron-*", "@electron/*"]
+      types:
+        patterns: ["@types/*"]

@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in Redrob Office does not work
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong, in one or two sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps, starting from a fresh launch. Name the editor (Docs, Sheets, Slides, PDF, Markdown, Hangul).
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version and system
+      description: The version from Settings, and your OS. Windows and Linux packages are built by different workflows, so this matters.
+      placeholder: "0.8.3, Windows 11 x64"
+    validations:
+      required: true
+
+  - type: textarea
+    id: document
+    attributes:
+      label: Document
+      description: If a specific file triggers it, describe it (format, size, where it came from). Do not attach anything confidential.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Screenshots, log output, whether it happens every time.

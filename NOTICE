@@ -1,10 +1,12 @@
 Redrob Office
-Copyright 2026 Redrob
+Copyright 2026 Janghoon Lee (Redrob)
 
 Built by Janghoon Lee (이장훈)
 
-This product includes software developed at Redrob, licensed under the Apache
-License, Version 2.0. See the LICENSE file for the full license text.
+This product is licensed under the Apache License, Version 2.0. See the LICENSE
+file for the full license text. It includes software developed at Redrob and
+software ported from GenOffice, developed at Mainfunc, Inc.; the sections below
+name what came from where. See docs/UPSTREAM.md for how upstream work is taken.
 
 --------------------------------------------------------------------------------
 Ported source code
@@ -42,7 +44,9 @@ Both are vendored here verbatim and served offline from a local origin (no CDN):
     * apps/hangul/resources/rhwp-studio
                                 — the rhwp-studio web build (dist), self-hosted
                                   offline; built with RHWP_DISABLE_EXTERNAL_WEBFONTS=1
-                                  (see PORT-DESIGN.md for the exact build command)
+                                  (the build command is not recorded in this
+                                  repository; PORT-DESIGN.md, which held it, was
+                                  never checked in)
 
 Unicode Character Database
 

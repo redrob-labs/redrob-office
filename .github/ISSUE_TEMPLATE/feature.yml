@@ -1,0 +1,54 @@
+name: Feature request
+description: Something Redrob Office should do and does not
+title: "[Feature]: "
+labels: [feature]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What it should do, in one or two sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you are trying to get done, and where the app stops you. Describe the task, not the solution.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface
+      options:
+        - Docs
+        - Sheets
+        - Slides
+        - PDF
+        - Markdown
+        - Hangul
+        - Shell / Home
+        - AI panel (any editor)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: today
+    attributes:
+      label: What you do today instead
+      description: The workaround, including leaving the app for another tool.
+
+  - type: textarea
+    id: testable
+    attributes:
+      label: How we would know it works
+      description: What would have to be true for this to be finished.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else

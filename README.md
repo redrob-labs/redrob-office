@@ -1,28 +1,53 @@
 # Redrob Office
 
-Redrob Office는 Docs, Sheets, Slides, PDF, Markdown, Hangul 편집기를 한 Electron 창에서
-호스팅하는 데스크톱 오피스 스위트입니다. 기본 제품과 릴리즈 대상은 `@genoffice/shell`
-(`apps/shell`) 하나입니다.
+**English** · [한국어](./README.ko.md)
 
-기존 채용·로컬 추론 제품은 메인 소스에서 제거했습니다. 보존본은
-`legacy-office-v0.0.0` 태그와 `cursor/legacy-office-v0-0-0-8171` 브랜치에만 있으며,
-새 기능이나 릴리즈 대상으로 사용하지 않습니다.
+Redrob Office is a desktop office suite that hosts Docs, Sheets, Slides, PDF,
+Markdown and Hangul editors in one Electron window, with an AI panel in each
+editor that edits the open document rather than describing how to edit it. It runs
+on Windows and Linux, is a port of [GenOffice](https://github.com/genspark-ai/genoffice)
+under the Apache License 2.0, and ships in English and Korean.
 
-## 기능
+## What it does
 
-- Docs: DOCX 작성·서식·검토, AI 패널을 통한 초안 작성과 문서 편집
-- Sheets: XLSX 편집과 AI 도구
-- Slides: PPTX 편집과 AI 도구
-- PDF: 읽기·변환·AI 도구
-- Markdown·Hangul 편집기
-- 하나의 Home 화면과 프로젝트 저장소에서 모든 편집기를 실행
+- **Docs** — write, format and review `.docx`, with an AI panel that drafts and edits in place.
+- **Sheets** — edit `.xlsx`, with AI tools over the grid.
+- **Slides** — edit `.pptx`, with AI tools over shapes and layouts.
+- **PDF** — read, convert, and run AI tools over the document.
+- **Markdown and Hangul** — a Markdown editor, and `.hwp`/`.hwpx` editing through the embedded rhwp editor.
+- **One Home screen** — every editor opens from a single shell and a shared project store.
 
-AI 편집은 `@genoffice/agent-core`의 도구 실행 루프와 `@genoffice/ai-provider`의 고정
-Redrob Console 경로를 사용합니다. 다른 벤더 키나 임의 서버 주소는 제품 옵션이 아닙니다.
+AI editing runs through the tool loop in `packages/agent-core` and the fixed Redrob
+Console transport in `packages/ai-provider`. Bringing your own vendor key or
+pointing the app at an arbitrary server is deliberately not an option.
 
-## 개발
+## Install
 
-Node 22, pnpm 9.15.0, Electron, Turborepo를 사용합니다.
+Download a build for your system:
+
+| System | File |
+| --- | --- |
+| Windows x64 | `https://cdn.redrob.ai/office/latest/redrob-office-x64-setup.exe` |
+| Linux AppImage | `https://cdn.redrob.ai/office/latest/redrob-office-x64.AppImage` |
+| Linux deb | `https://cdn.redrob.ai/office/latest/redrob-office-x64.deb` |
+| Linux rpm | `https://cdn.redrob.ai/office/latest/redrob-office-x64.rpm` |
+
+Every file has a published `.sha256` beside it. There is no macOS build.
+
+## Connect Redrob
+
+The AI panels need a workspace key issued by [Redrob Console](https://console.redrob.ai).
+Create one under **API keys** in Console, then paste it into **Settings → AI** in
+the app. A key from anywhere else is rejected, and an empty key produces a plain
+failure notice rather than a silent no-op.
+
+Console's one-click **Connect Redrob** device flow — where the app shows a short
+code and you approve it in Console instead of copying a key — is not wired into
+this app yet. Redrob Code and Redrob Cowork use it today; Office does not.
+
+## Local development
+
+Node 22, pnpm 9.15.0, Electron and Turborepo.
 
 ```bash
 pnpm install
@@ -33,51 +58,71 @@ pnpm build
 pnpm dist
 ```
 
-`pnpm install --ignore-scripts`로 설치했다면 `pnpm ensure:electron`을 실행합니다. GUI가 필요
-없는 typecheck/test 환경에서는 `REDROB_SKIP_ELECTRON_ENSURE=1`로 Electron 다운로드를
-명시적으로 건너뛸 수 있습니다.
+If you installed with `pnpm install --ignore-scripts`, run `pnpm ensure:electron`.
+On a headless machine that only needs typecheck and tests, set
+`REDROB_SKIP_ELECTRON_ENSURE=1` to skip the Electron download explicitly.
 
-### 구성
+## Repository layout
 
-| 위치 | 역할 |
+| Path | Role |
 | --- | --- |
-| `apps/shell` | 통합 Redrob Office 셸과 Home |
-| `apps/{docs,sheets,slides,pdf,markdown,hangul}` | 각 문서 편집기와 AI 패널 |
-| `packages/agent-core` | 편집 도구를 실행하는 공용 agent loop |
-| `packages/ai-provider` | 고정 Redrob Console AI 전송 계층 |
-| `packages/{docx-engine,pptx-engine,pptx-render,rhwp-editor}` | 문서 포맷 엔진 |
-| `packages/{genoffice-ui,i18n,electron-utils,project-store}` | 스위트 공용 UI·런타임 |
+| `apps/shell` | The Redrob Office shell and Home screen |
+| `apps/{docs,sheets,slides,pdf,markdown,hangul}` | Each editor and its AI panel |
+| `packages/agent-core` | The shared agent loop that runs editing tools |
+| `packages/ai-provider` | The fixed Redrob Console transport |
+| `packages/{docx-engine,pptx-engine,pptx-render,rhwp-editor}` | Document format engines |
+| `packages/{genoffice-ui,i18n,electron-utils,project-store}` | Shared UI and runtime |
 
-### 릴리즈
+Package names are still `@genoffice/*`. They are import paths, not product
+surface, and renaming them would rewrite every import for no user-visible gain.
 
-`v*` 태그를 밀면 두 워크플로가 같은 태그에서 함께 돕니다.
+## Releases
 
-- **Windows 릴리즈** — `.github/workflows/release-desktop.yml`가 Redrob Office 스위트 셸(`@genoffice/shell`)의 Windows 설치본을 서명·패키징해 GitHub Release에 게시하고, 같은 워크플로의 CDN 잡이 **서명 잡이 만든 그 바이트**(다시 빌드하면 서명이 없으므로 아티팩트를 그대로 씁니다)를 CDN에도 올립니다. Linux와 같은 두 단계 계약을 따르며, GitHub Release는 CDN 잡을 기다리지 않으므로 CDN 장애가 업데이터 피드를 막지 않습니다.
-- **Linux CDN 배포** — `.github/workflows/release-office-cdn.yml`가 서명 없는 Linux 패키지(AppImage/deb/rpm)를 빌드해 CDN에 올립니다. `rpm`(rpmbuild)과 안정 Rust 툴체인을 설치하고 pnpm 9.15 / Node 24로 빌드한 뒤, 각 산출물의 `sha256` 사이드카를 만들어 조직 변수/시크릿 `REDROB_CDN_BUCKET`·`REDROB_CDN_ACCESS_KEY_ID`·`REDROB_CDN_SECRET_ACCESS_KEY`로 업로드합니다. 배포는 두 단계로, 정해진 순서로만 진행됩니다.
-  1. **불변 버전 경로** `s3://<bucket>/office/<version>/`에 세 산출물과 `.sha256`을 올립니다. 이 객체는 다시 덮어쓰지 않으므로 `Cache-Control: public, max-age=31536000, immutable`로 캐시합니다. 올린 뒤 모든 공개 버전 URL을 HTTP GET으로 받아 로컬 `sha256`과 일치하는지 검증합니다.
-  2. 버전 검증이 전부 통과한 **뒤에만** 같은 로컬 파일을 `office/latest/`에 다시 업로드해 승격합니다. CDN 자격 증명은 PutObject 전용(Head/Get/List 불가)이라 `s3://.../office/<version>/`에서 `s3://.../office/latest/`로의 서버 측 복사(`aws s3 cp s3:// s3://`)는 원본 HeadObject에서 403으로 실패합니다. 그래서 방금 공개 검증까지 마친 것과 같은 로컬 바이트를 버전 없는 이름으로(`cdn-latest/`) 그대로 업로드하며, 바이트 동일성은 승격 뒤 `latest` URL과 체크섬을 다시 검증해 보장합니다. `.sha256` 사이드카는 복사하지 않고 이름별로 다시 만들어, 어느 이름을 받았든 `sha256sum -c`가 그대로 통합니다. `latest`는 포인터가 바뀌면 즉시 최신본을 받아야 하므로 `Cache-Control: no-cache, max-age=0, must-revalidate`로 매번 재검증합니다.
+Pushing a `v*` tag runs two workflows from the same tag: `release-desktop.yml`
+signs and publishes the Windows installer to a GitHub Release and uploads those
+same signed bytes to the CDN, and `release-office-cdn.yml` builds the unsigned
+Linux packages and uploads them. The tag must match the version in
+`apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`).
 
-공개 URL은 다음과 같습니다(버전 `<version>` 예: `0.8.2`). 버전 경로는 파일 이름에 버전을 박아 내려받은 파일이 스스로를 식별하게 하고, `latest/`는 버전 없는 이름을 씁니다. `latest/`에 버전이 들어가면 다음 릴리즈가 나온 순간 그 URL은 최신이 아닌 빌드를 최신이라고 주장하게 되고, 그 주소를 링크한 Console 제품 페이지가 낡은 빌드를 계속 내주게 됩니다.
+The upload contract — immutable version paths, checksum verification before
+`latest/` moves, and why a fork with no CDN credentials builds but never
+uploads — is in [docs/RELEASE.md](./docs/RELEASE.md).
 
-```
-https://cdn.redrob.ai/office/<version>/Redrob-Setup-<version>.exe        (+ .sha256)
-https://cdn.redrob.ai/office/<version>/Redrob-<version>.AppImage        (+ .sha256)
-https://cdn.redrob.ai/office/<version>/redrob_<version>_amd64.deb        (+ .sha256)
-https://cdn.redrob.ai/office/<version>/redrob-<version>.x86_64.rpm       (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64-setup.exe          (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64.AppImage           (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64.deb                (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64.rpm                (+ .sha256)
-```
+## Documentation
 
-태그는 `apps/shell/package.json`의 버전과 같아야 합니다(`v0.8.2` ↔ `0.8.2`). `office/latest/`는 **성공한 실제 `v*` 태그 푸시에서만** 이동합니다. 프리뷰 실행(`workflow_dispatch`)은 버전 경로를 검사용으로 올릴 수 있으나 `latest`는 건드리지 않고, CDN 자격 증명이 없는 포크나 미설정 저장소에서는 패키지 빌드만 실행되고 업로드는 전혀 없으며 성공을 거짓으로 보고하지 않습니다. 버전 검증이 하나라도 실패하면 승격 단계에 도달하지 않으므로 `latest`는 부분 실패로 절대 이동하지 않습니다. 업로드되는 파일은 `electron-builder.cjs`가 정한 정확한 산출물(`Redrob-<version>.AppImage`, `redrob_<version>_amd64.deb`, `redrob-<version>.x86_64.rpm`)과 그 `.sha256`, 그리고 `latest/`용 버전 없는 사본뿐이고, blockmap이나 `latest*.yml`, 언팩 트리는 올리지 않습니다.
+- [docs/UPSTREAM.md](./docs/UPSTREAM.md) — what this fork was ported from, and how upstream work is taken
+- [docs/RELEASE.md](./docs/RELEASE.md) — the release and CDN publishing contract
+- [docs/console-api.md](./docs/console-api.md) — the Redrob Console inference API contract
+- [docs/branding-cleanup.md](./docs/branding-cleanup.md) — brand rules and the deliberate internal exceptions
+- [AGENTS.md](./AGENTS.md) — development and verification environment notes
 
-## 문서
+## Contributing
 
-- [docs/console-api.md](./docs/console-api.md): Redrob Console 추론 API 계약
-- [docs/branding-cleanup.md](./docs/branding-cleanup.md): Redrob 브랜딩 규칙과 내부 예외(폰트·패키지·직렬화 키 등) 목록
-- [AGENTS.md](./AGENTS.md): 개발·검증 환경과 동작 노트
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming, commit convention, the
+checks to run before opening a pull request, and the two fork rules that CI
+enforces.
 
-## 라이선스
+## Upstream
 
-Apache-2.0. 자세한 내용은 [LICENSE](./LICENSE)와 [NOTICE](./NOTICE)를 참고하세요.
+Redrob Office is a port, not a git fork: it shares no commit ancestry with
+upstream, so upstream work is taken file by file. The commit this tree was
+measured against, the method used to measure it, and the sync procedure are all in
+[docs/UPSTREAM.md](./docs/UPSTREAM.md); the machine-readable record is
+[upstream-base.json](./upstream-base.json).
+
+## License and attribution
+
+Apache-2.0. The office editor applications and their supporting packages are
+ported from [GenOffice](https://github.com/genspark-ai/genoffice) by Mainfunc,
+Inc., and remain under the same licence. Upstream's copyright notice is retained
+in [NOTICE](./NOTICE) as Apache-2.0 section 4 requires; changes made in this port
+are copyright Janghoon Lee (Redrob) and contributors, under the same terms.
+`pnpm check:upstream-boundary` fails the build if that notice is ever removed.
+
+The Hangul editing capability is provided by [rhwp](https://github.com/edwardkim/rhwp)
+(MIT), vendored and served offline. Bundled fonts and third-party components are
+listed in [NOTICE](./NOTICE); the full third-party notice file is generated at
+packaging time and ships inside the application bundle.
+
+The licence covers the software, not the brand: the Redrob name and logos are not
+licensed under it.

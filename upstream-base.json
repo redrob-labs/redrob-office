@@ -1,0 +1,60 @@
+{
+  "$comment": [
+    "Machine-readable record of what this fork was taken from, and of the boundary",
+    "scripts/check-upstream-boundary.mjs enforces. Update `lastSyncedUpstream` every",
+    "time scripts/upstream-sync.mjs lands upstream work; leave `base` alone - it is a",
+    "measurement of the import, not a moving pointer."
+  ],
+  "upstream": {
+    "project": "GenOffice",
+    "remoteName": "upstream",
+    "remote": "https://github.com/genspark-ai/genoffice.git",
+    "defaultBranch": "main",
+    "license": "Apache-2.0",
+    "copyrightHolder": "Mainfunc, Inc."
+  },
+  "fork": {
+    "license": "Apache-2.0",
+    "copyrightHolder": "Janghoon Lee (Redrob)",
+    "model": "port",
+    "modelNote": [
+      "This repository does not share commit ancestry with upstream: the office",
+      "applications were ported in, not merged, so `git merge-base` against upstream",
+      "resolves to nothing. `base` below is therefore measured, not recorded by git,",
+      "and upstream work is taken file-by-file rather than by three-way merge."
+    ]
+  },
+  "base": {
+    "commit": "99dfbc1fdfb8d83961d78799e36459da7c9fc99f",
+    "date": "2026-09-06",
+    "subject": "feat(ai-panels): RTL-aware chrome and auto-direction messages in slides/sheets/pdf/markdown (part of #13) (#203)",
+    "measuredBy": "blob-hash set intersection between this tree and every upstream first-parent commit; the peak is the base. Path-keyed comparison is useless here because the port renamed directories, and a name-only diff is dominated by the brand sweep.",
+    "sharedBlobs": 1780,
+    "treeBlobs": 2242,
+    "tiedWith": [
+      "567ad370133c7b25ed44a89483a1057c2b7c6327",
+      "360ce0625eaf748368e5535984b073f6fb2487b5"
+    ],
+    "tieBreak": "newest of the tied commits in upstream first-parent order, since the port landed 2026-09-06"
+  },
+  "importCommit": {
+    "commit": "476e7598",
+    "subject": "Merge PR #34: Port GenOffice wholesale into Redrob + rhwp Hangul editing + Redrob AI engine"
+  },
+  "doc": "docs/UPSTREAM.md",
+  "lastSyncedUpstream": null,
+  "excludedPrefixes": [],
+  "excludedReason": "Upstream ships no separately-licensed directory (no ee/, no enterprise tree), so nothing is excluded. The list stays here so a future upstream split has one place to be recorded.",
+  "attribution": [
+    {
+      "path": "NOTICE",
+      "mustContain": ["GenOffice", "Mainfunc, Inc.", "Janghoon Lee (Redrob)"],
+      "why": "Apache-2.0 section 4(d) requires upstream's NOTICE content to travel with every distribution."
+    },
+    {
+      "path": "LICENSE",
+      "mustContain": ["Apache License", "Version 2.0"],
+      "why": "The fork stays under the same licence as upstream."
+    }
+  ]
+}

@@ -14,6 +14,9 @@
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rimraf node_modules",
+    "check:upstream-boundary": "node scripts/check-upstream-boundary.mjs",
+    "check:licenses": "node tools/check-licenses.mjs",
+    "upstream:report": "node scripts/upstream-sync.mjs report",
     "dist": "pnpm build && pnpm --filter @genoffice/shell dist:linux"
   },
   "devDependencies": {
