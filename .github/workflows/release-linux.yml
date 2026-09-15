@@ -1,0 +1,161 @@
+name: Release Linux packages
+
+# The unsigned Linux packages for a tag: AppImage, deb and rpm, attached to the same
+# GitHub Release the signed Windows and macOS installers go to (release-desktop.yml).
+# The two workflows share the tag and write disjoint filenames, so they may run
+# concurrently.
+#
+# There is no CDN. Downloads and the in-app updater feed are both the Release, so
+# latest-linux.yml is attached alongside the packages: without it an AppImage installs
+# and then never updates. A .sha256 sidecar travels with each package, because a
+# Release asset has no published checksum of its own.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and attach (e.g. v0.8.3)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: linux-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  linux:
+    name: Package and attach Linux artifacts
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      # Bakes the updater feed target into the app. A fork that runs this workflow
+      # updates from its own releases, not from ours.
+      GENOFFICE_UPDATE_REPO: ${{ github.repository }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      # The shell packages a native Redrob Code binary, and electron-builder's
+      # beforePack refuses to package without it (assertRedrobCodeBinaryPresent), so
+      # the sidecar is built from its own repository before packaging.
+      - name: Check out the Redrob Code sidecar source
+        uses: actions/checkout@v4
+        with:
+          repository: redrob-labs/redrob-code
+          ref: ${{ vars.REDROB_CODE_REF || 'main' }}
+          path: redrob-code
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Build the native Redrob Code sidecar
+        working-directory: redrob-code
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          bun run --cwd packages/redrob build --single
+          test -x packages/redrob/dist/redrob-linux-x64/bin/redrob
+          mkdir -p ../apps/shell/build
+          cp packages/redrob/dist/redrob-linux-x64/bin/redrob ../apps/shell/build/redrob-code
+          chmod 755 ../apps/shell/build/redrob-code
+
+      - name: Verify the tag matches the application version
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./apps/shell/package.json').version")"
+          test "$RELEASE_TAG" = "v$VERSION" || {
+            echo "Tag $RELEASE_TAG does not match Redrob Office (apps/shell) version $VERSION"
+            exit 1
+          }
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      # rpm needs rpmbuild on the runner; electron-builder does not vendor it.
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends rpm
+
+      # The sheets xlsx sidecar is a Rust crate and the shell package step expects its
+      # release binary to exist. Pinned to the stable toolchain.
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the suite (all editor modules + shell)
+        run: pnpm build
+
+      # Generates apps/shell/build/THIRD-PARTY-NOTICES.txt; beforePack aborts the
+      # package if it is missing, so this must run before electron-builder.
+      - name: Generate third-party notices
+        run: pnpm --filter @genoffice/shell run notices
+
+      - name: Package Linux artifacts (AppImage, deb, rpm)
+        run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --linux AppImage deb rpm --publish never
+
+      # The filenames come straight from electron-builder.cjs (linux.artifactName /
+      # deb.artifactName / rpm.artifactName). Staged explicitly so nothing else in
+      # the release directory is attached by accident.
+      - name: Stage artifacts and compute sha256 sidecars
+        run: |
+          set -euo pipefail
+          RELEASE_DIR=apps/shell/release
+          OUT=release-assets
+          mkdir -p "$OUT"
+          stage() {
+            test -f "$RELEASE_DIR/$1" || { echo "Expected artifact missing: $RELEASE_DIR/$1"; exit 1; }
+            cp "$RELEASE_DIR/$1" "$OUT/$1"
+            ( cd "$OUT" && sha256sum "$1" > "$1.sha256" )
+          }
+          stage "Redrob-${APP_VERSION}.AppImage"
+          stage "redrob_${APP_VERSION}_amd64.deb"
+          stage "redrob-${APP_VERSION}.x86_64.rpm"
+          # The updater feed. Absent when no publish config was written (a fork build
+          # with GENOFFICE_UPDATE_REPO unset), which is not an error.
+          if [ -f "$RELEASE_DIR/latest-linux.yml" ]; then
+            cp "$RELEASE_DIR/latest-linux.yml" "$OUT/latest-linux.yml"
+          else
+            echo "::warning::latest-linux.yml was not produced; this build will not feed the updater"
+          fi
+          ls -la "$OUT"
+
+      - name: Upload build artifacts (always, for inspection)
+        uses: actions/upload-artifact@v4
+        with:
+          name: office-linux-${{ env.APP_VERSION }}
+          path: release-assets/*
+          if-no-files-found: error
+          compression-level: 0
+
+      # --clobber so a re-run replaces an asset instead of failing on a name clash,
+      # which is what makes a workflow_dispatch repair of one platform safe.
+      - name: Attach to the GitHub Release
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 || {
+            echo "::notice::Release $RELEASE_TAG does not exist yet; creating it."
+            gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --generate-notes
+          }
+          gh release upload "$RELEASE_TAG" release-assets/* --clobber
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name'

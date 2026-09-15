@@ -1,73 +1,67 @@
-# Releases and CDN publishing
+# Releases
 
-Pushing a `v*` tag runs two workflows from the same tag. The tag must equal the
-version in `apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`).
+Everything ships through GitHub Releases: the files a person downloads and the feed
+the app updates from are the same assets on the same release. There is no CDN.
 
-## Windows — `.github/workflows/release-desktop.yml`
+Pushing a `v*` tag runs two workflows against the same tag. Both refuse to run if the
+tag does not equal the version in `apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`), so a
+mistyped tag fails before anything is built.
 
-Signs and packages the Windows installer for the suite shell (`@genoffice/shell`),
-publishes it to a GitHub Release, and then uploads **the bytes the signing job
-produced** to the CDN. It uploads the artifact rather than rebuilding, because a
-rebuild would produce an unsigned file. The GitHub Release does not wait for the
-CDN job, so a CDN outage cannot block the updater feed.
+## Windows and macOS — `.github/workflows/release-desktop.yml`
 
-## Linux — `.github/workflows/release-office-cdn.yml`
+Signs the Windows installer, notarises the macOS build when that job is enabled, and
+attaches every signed artifact to the release for the tag, along with `latest.yml` and
+`latest-mac.yml`.
 
-Builds the unsigned Linux packages (AppImage, deb, rpm) and uploads them. It
-installs `rpmbuild` and a stable Rust toolchain, builds with pnpm 9.15 on Node 24,
-writes a `sha256` sidecar for every artifact, and uploads with the org variables
-and secrets `REDROB_CDN_BUCKET`, `REDROB_CDN_ACCESS_KEY_ID` and
-`REDROB_CDN_SECRET_ACCESS_KEY`.
+The signed bytes are attached, never rebuilt: a rebuild produces a different,
+unsigned file. The signing jobs upload their output as workflow artifacts and the
+release job downloads those and attaches them.
 
-Publishing is two stages, in this order only:
+## Linux — `.github/workflows/release-linux.yml`
 
-1. **Immutable version path.** The three artifacts and their `.sha256` files go to
-   `s3://<bucket>/office/<version>/`. These objects are never overwritten, so they
-   are cached with `Cache-Control: public, max-age=31536000, immutable`. After the
-   upload, every public version URL is fetched over HTTP and checked against the
-   local `sha256`.
-2. **Promotion to `latest/`.** Only after every version check passes, the same
-   local files are uploaded again under versionless names to `office/latest/`.
+Builds the unsigned AppImage, deb and rpm, writes a `.sha256` beside each one, and
+attaches them plus `latest-linux.yml` to the same release. It installs `rpmbuild`
+first, because electron-builder does not vendor it.
 
-The second stage re-uploads rather than copying because the CDN credentials are
-PutObject-only — no Head, Get or List — so a server-side copy
-(`aws s3 cp s3:// s3://`) fails with 403 on the source HeadObject. Byte identity is
-therefore guaranteed the other way round: the same local bytes that just passed
-public verification are uploaded again, and the `latest` URLs and checksums are
-verified once more after promotion. The `.sha256` sidecars are regenerated per
-name rather than copied, so `sha256sum -c` passes whichever name you downloaded.
-`latest` is cached with `Cache-Control: no-cache, max-age=0, must-revalidate`,
-because a moved pointer must serve the new build immediately.
+`gh release upload --clobber` is used, so re-running the workflow replaces an asset
+instead of failing on a name clash. That is what makes a `workflow_dispatch` repair of
+one platform safe while the other platform's assets stay untouched.
 
-## Published URLs
+## The update feed
 
+`latest.yml`, `latest-mac.yml` and `latest-linux.yml` **are** the feed. The app reads
+them through electron-updater's GitHub provider, so a release missing them installs
+correctly and then never updates — which is why both workflows attach them explicitly
+rather than relying on electron-builder's own publish step.
+
+The provider is written into the app at build time from `GENOFFICE_UPDATE_REPO`
+(`owner/repo`), which the release workflows set to `${{ github.repository }}`:
+
+- On this repository, builds update from this repository's releases.
+- On a fork that runs the same workflows, builds update from **that fork's** releases,
+  not from ours. A fork's users should not be moved onto our builds.
+- With the variable unset — plain local packaging, a PR smoke build —
+  `apps/shell/electron-builder.cjs` writes no publish config at all, electron-builder
+  bakes no `app-update.yml`, and in-app auto-update stays disabled.
+
+Only published releases feed the updater (`releaseType: 'release'`), so a draft or a
+prerelease cannot reach people who installed a stable build.
+
+## Checksums
+
+Linux packages carry a `.sha256` sidecar because a release asset has no checksum of
+its own. Verify with:
+
+```bash
+sha256sum -c redrob_0.8.3_amd64.deb.sha256
 ```
-https://cdn.redrob.ai/office/<version>/Redrob-Setup-<version>.exe        (+ .sha256)
-https://cdn.redrob.ai/office/<version>/Redrob-<version>.AppImage         (+ .sha256)
-https://cdn.redrob.ai/office/<version>/redrob_<version>_amd64.deb        (+ .sha256)
-https://cdn.redrob.ai/office/<version>/redrob-<version>.x86_64.rpm       (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64-setup.exe          (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64.AppImage           (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64.deb                (+ .sha256)
-https://cdn.redrob.ai/office/latest/redrob-office-x64.rpm                (+ .sha256)
-```
 
-Version paths put the version in the file name so a downloaded file identifies
-itself. `latest/` uses versionless names deliberately: a versioned name under
-`latest/` would claim to be current the moment the next release ships, and the
-Console product page that links it would keep handing out a stale build.
+Windows installers are Authenticode-signed; the signature is the integrity check
+there, and the release also carries the `.blockmap` the differential updater uses.
 
-## Rules the workflows keep
+## Releases before this change
 
-- `office/latest/` moves **only** on a successful real `v*` tag push. A preview run
-  (`workflow_dispatch`) may upload a version path for inspection but never touches
-  `latest`.
-- A fork or an unconfigured repository with no CDN credentials builds the packages
-  and uploads nothing. It does not report success falsely.
-- If any version check fails, the promotion stage is never reached, so `latest`
-  cannot move on a partial failure.
-- The only files uploaded are the exact artifacts `electron-builder.cjs` produces
-  (`Redrob-<version>.AppImage`, `redrob_<version>_amd64.deb`,
-  `redrob-<version>.x86_64.rpm`), their `.sha256` sidecars, and the versionless
-  copies for `latest/`. Blockmaps, `latest*.yml` and unpacked trees are not
-  uploaded.
+Versions up to `v0.8.3` were published while the CDN was the download host, and those
+releases live in the private predecessor repository (`redrob-office-old`). This
+repository's release history starts fresh; the first tag cut here is the first release
+carrying its own assets.

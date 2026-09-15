@@ -62,7 +62,7 @@ If you touched anything user-visible, add the string to both locales in
 | --- | --- | --- |
 | `CI` (Linux: typecheck, build, test, fork boundary, licences) | pull request, push to `main` | required |
 | `CI` (Windows + macOS matrix) | weekly schedule, manual dispatch | not on pull requests |
-| `release-desktop.yml`, `release-office-cdn.yml` | `v*` tag, manual dispatch | release only |
+| `release-desktop.yml`, `release-linux.yml` | `v*` tag, manual dispatch | release only |
 
 The native matrix is expensive, so a pull request does not run it. If your change
 is platform-specific, say so in the pull request and dispatch the matrix manually.

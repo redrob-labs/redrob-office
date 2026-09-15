@@ -3,11 +3,11 @@
  * auto-update feed URL can be injected at build time instead of living in
  * the repo).
  *
- * GENOFFICE_UPDATE_URL — public base URL of the update channel (the generic
- * provider prefix that serves latest.yml / latest-mac.yml). Required for
- * release builds; CI provides it as a repository secret. For local release
- * builds put it in apps/shell/electron-builder.env (gitignored) — the
- * electron-builder CLI loads that file automatically.
+ * GENOFFICE_UPDATE_REPO — "owner/repo" whose GitHub Releases carry both the
+ * downloads and the auto-update feed. Required for release builds; the release
+ * workflows pass `${{ github.repository }}`. For local release builds put it in
+ * apps/shell/electron-builder.env (gitignored) — the electron-builder CLI loads that
+ * file automatically.
  *
  * When the variable is unset (forks, PR smoke builds, plain local packaging)
  * the publish config is omitted: electron-builder then bakes no
@@ -57,7 +57,26 @@ function normalizeHttpsBaseUrl(name, value) {
   }
 }
 
-const updateUrl = process.env.GENOFFICE_UPDATE_URL
+/**
+ * GENOFFICE_UPDATE_REPO — "owner/repo" whose GitHub Releases carry the update feed.
+ * Downloads and auto-update both come from Releases now; the CDN is gone. Release
+ * jobs pass `${{ github.repository }}`, so a fork that runs them updates from its own
+ * releases rather than ours.
+ *
+ * When the variable is unset — plain local packaging, a PR smoke build — no publish
+ * config is written, electron-builder bakes no app-update.yml, and in-app auto-update
+ * stays disabled. That is the same property the CDN feed URL used to carry.
+ */
+function githubPublishTarget(value) {
+  if (!value || !value.trim()) return null
+  const [owner, repo, ...rest] = value.trim().split('/')
+  if (!owner || !repo || rest.length > 0) {
+    throw new Error('GENOFFICE_UPDATE_REPO must be "owner/repo"')
+  }
+  return { owner, repo }
+}
+
+const updateRepo = githubPublishTarget(process.env.GENOFFICE_UPDATE_REPO)
 const ga4MeasurementId = process.env.GENOFFICE_GA4_MEASUREMENT_ID
 const ga4ApiSecret = process.env.GENOFFICE_GA4_API_SECRET
 const fontCdnUrl = normalizeHttpsBaseUrl(
@@ -667,11 +686,15 @@ if (winSignMode) {
   }
 }
 
-if (updateUrl) {
+if (updateRepo) {
   config.publish = [
     {
-      provider: 'generic',
-      url: updateUrl.replace(/\/+$/, ''),
+      provider: 'github',
+      owner: updateRepo.owner,
+      repo: updateRepo.repo,
+      // Only published releases feed the updater: a draft or prerelease must not
+      // reach people who installed a stable build.
+      releaseType: 'release',
       channel: 'latest',
     },
   ]
