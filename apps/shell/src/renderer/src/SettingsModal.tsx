@@ -183,6 +183,10 @@ function AiModelPane({ t }: { t: TFunc }) {
   const [testResult, setTestResult] = useState<{ ok: boolean; error?: string } | null>(null)
   /** free-typed value of the output-cap field; committed (and clamped) on blur */
   const [maxTokensDraft, setMaxTokensDraft] = useState<string | null>(null)
+  /** live Connect Redrob attempt: the code to approve, and the attempt id to cancel */
+  const [attempt, setAttempt] = useState<{ id: string; userCode: string; uri: string } | null>(null)
+  /** what to tell the person about the last (or running) connect */
+  const [connectNote, setConnectNote] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -249,6 +253,45 @@ function AiModelPane({ t }: { t: TFunc }) {
       .finally(() => setTesting(false))
   }
 
+  /**
+   * Connect Redrob. The main process holds the device code and writes the key it
+   * receives, so this only shows the code to approve and reports how it ended. On
+   * success the settings are re-read rather than patched locally, because the file
+   * the main process wrote is the truth and an unsaved local edit is not.
+   */
+  const connect = () => {
+    setConnectNote(t('setAiConnectWaiting'))
+    setTestResult(null)
+    void (async () => {
+      let started: { id: string; userCode: string; uri: string } | null = null
+      try {
+        const opened = await window.aiOffice.startRedrobConnect()
+        started = { id: opened.id, userCode: opened.userCode, uri: opened.verificationUriComplete }
+        setAttempt(started)
+        setConnectNote(t('setAiConnectCode', { code: opened.userCode }))
+
+        const result = await window.aiOffice.awaitRedrobConnect(opened.id)
+        if (result.status === 'connected') {
+          const stored = await window.aiOffice.getAiSettings?.()
+          if (stored) setSettings({ ...stored, provider: REDROB_ENGINE_SLOT })
+          setDirty(false)
+          setConnectNote(t('setAiConnectDone'))
+        } else {
+          setConnectNote(t('setAiConnectFailed', { reason: result.status }))
+        }
+      } catch (error) {
+        setConnectNote(
+          t('setAiConnectFailed', {
+            reason: error instanceof Error ? error.message : String(error),
+          }),
+        )
+      } finally {
+        if (started) void window.aiOffice.cancelRedrobConnect(started.id)
+        setAttempt(null)
+      }
+    })()
+  }
+
   return (
     <>
       <h3 className="set-pane-title">{t('setSecAiModel')}</h3>
@@ -264,6 +307,27 @@ function AiModelPane({ t }: { t: TFunc }) {
             <div className="set-field-desc">{t('setAiRedrobNote')}</div>
           </div>
         </div>
+      </div>
+      <div className="set-field">
+        <div className="set-field-text">
+          <div className="set-field-stack">
+            <div className="set-field-label">{t('setAiConnect')}</div>
+            <div className="set-field-desc">
+              {connectNote ?? t('setAiConnectDesc')}
+              {attempt ? (
+                <>
+                  {' '}
+                  <a href={attempt.uri} target="_blank" rel="noreferrer">
+                    {attempt.uri}
+                  </a>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <button className="set-btn" type="button" onClick={connect} disabled={attempt !== null}>
+          {t('setAiConnect')}
+        </button>
       </div>
       <div className="set-field">
         <div className="set-field-text">
