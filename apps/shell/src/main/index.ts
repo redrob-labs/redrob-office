@@ -57,6 +57,7 @@ import {
   windowMenuTemplate,
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
+import { registerRedrobConnectIpc } from './redrob-connect'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -4398,6 +4399,7 @@ registerAiIpc()
 registerProjectIpc()
 registerDocsIpc()
 registerHomeIpc()
+registerRedrobConnectIpc()
 registerTabsIpc()
 registerDroppedFilesIpc()
 

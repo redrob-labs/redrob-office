@@ -30,6 +30,19 @@ export type {
   ProviderCapabilities,
   ResolvedEndpoint,
 } from './registry'
+export type {
+  DeviceAuthorization,
+  DeviceConnectDeps,
+  DeviceConnectOutcome,
+  DeviceKey,
+  DeviceProduct,
+} from './device-connect'
+export {
+  formatUserCode,
+  pollDeviceToken,
+  runDeviceConnect,
+  startDeviceAuthorization,
+} from './device-connect'
 export { chatForProvider } from './chat'
 export {
   REDROB_CONSOLE_API_BASE,

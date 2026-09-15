@@ -14,6 +14,8 @@ import type {
   ProjectSummaryEntry,
   TimelineEntryItem,
   UiLanguage,
+  RedrobConnectAttempt,
+  RedrobConnectResult,
 } from '../shared/home-api'
 import { HOME_CHANNELS, PROJECT_CHANNELS } from '../shared/home-api'
 import type { TabsApi, TabSummary } from '../shared/tabs-api'
@@ -264,6 +266,15 @@ const homeApi: HomeApi = {
         defaultBaseUrl: '',
       },
     ]
+  },
+  async startRedrobConnect() {
+    return (await ipcRenderer.invoke('redrob:connect-start')) as RedrobConnectAttempt
+  },
+  async awaitRedrobConnect(id) {
+    return (await ipcRenderer.invoke('redrob:connect-await', id)) as RedrobConnectResult
+  },
+  async cancelRedrobConnect(id) {
+    await ipcRenderer.invoke('redrob:connect-cancel', id)
   },
   async testAiSettings(settings) {
     const result: unknown = await ipcRenderer.invoke('ai:chat', {

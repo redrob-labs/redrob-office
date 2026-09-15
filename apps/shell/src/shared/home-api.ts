@@ -163,7 +163,36 @@ export interface HomeApi {
   getAiProviders(): AiCatalogEntry[]
   /** one-shot round trip against the given (possibly unsaved) settings — the settings-UI connection test */
   testAiSettings(settings: AiSettings): Promise<AiChatResponse>
+  /**
+   * Start a Connect Redrob attempt: Console issues a short code the person approves in
+   * a browser. Returns what may be shown; the device code stays in the main process.
+   */
+  startRedrobConnect(): Promise<RedrobConnectAttempt>
+  /**
+   * Wait for that attempt to resolve. On success the workspace key is written to the
+   * AI settings by the main process and is deliberately NOT returned here.
+   */
+  awaitRedrobConnect(id: string): Promise<RedrobConnectResult>
+  /** Abandon an attempt (dialog closed); the loop stops before its next poll. */
+  cancelRedrobConnect(id: string): Promise<void>
 }
+
+export interface RedrobConnectAttempt {
+  id: string
+  userCode: string
+  verificationUri: string
+  verificationUriComplete: string
+  /** seconds the code stays valid */
+  expiresIn: number
+}
+
+export type RedrobConnectResult =
+  | { status: 'connected'; accountName?: string; apiKeyName?: string }
+  | { status: 'denied' }
+  | { status: 'expired' }
+  | { status: 'cancelled' }
+  | { status: 'unreachable' }
+  | { status: 'failed'; code: string }
 
 export interface AiCatalogEntry extends AiProviderMeta {
   /** default endpoint for fixed-endpoint providers ('' = model-dependent or user-supplied) */
