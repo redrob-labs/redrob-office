@@ -1,5 +1,6 @@
 import { AI_PROVIDERS } from './providers'
-import { REDROB_CONSOLE_API_BASE } from './redrob-engine'
+import { engineCapabilities } from './console-capabilities'
+import { REDROB_CONSOLE_API_BASE, REDROB_ENGINE_MODEL, REDROB_ENGINE_ROUTE } from './redrob-engine'
 import type { AiProviderConfig, AiProviderId, AiProviderMeta } from './types'
 
 // Redrob Office runs on ONE engine (see redrob-office/AGENTS.md). This module
@@ -61,8 +62,14 @@ export function modelHasFixedSampling(model: string): boolean {
  * Model ids that reject image input even under a vision-capable slot. Kept as a
  * verbatim model-id heuristic the ported editors import (apps/slides slide-qc.ts
  * gates screenshots on it); it names no vendor endpoint.
+ *
+ * The pinned engine route is answered by the Console instead of by this regex: it
+ * publishes `imageInput` for the model this app actually sends, and a guess here
+ * could only ever contradict it. The regex still answers for any OTHER id an
+ * editor passes, so ported callers keep their upstream behaviour.
  */
 export function modelLacksVision(model: string): boolean {
+  if (model === REDROB_ENGINE_MODEL || model === REDROB_ENGINE_ROUTE) return !engineCapabilities().vision
   return /(^|\/)deep-?seek-v4-(?:pro(?:$|-)|flash(?!-vision))/.test(model)
 }
 
@@ -80,10 +87,18 @@ function redrobEndpoint(): ResolvedEndpoint {
 }
 
 /**
- * Per-id capability metadata, preserved so the ported editors read the same
- * `capabilities.vision` values they did upstream. `vision: false` matches the
- * upstream text-only slots (glm/qwen/minimax/mistral); every `resolveEndpoint`
- * returns the fixed Redrob base, so no adapter holds a vendor URL.
+ * Per-id capability metadata.
+ *
+ * `vision` is no longer read out of this table for the running engine: every adapter
+ * resolves to the one pinned Console route, so the honest answer is the one the
+ * Console publishes for that route (`imageInput`), and this table is the fallback
+ * for when the catalogue has not been read yet or could not be reached. It is a
+ * getter rather than a value so a refresh is picked up without the editors -- which
+ * read `capabilities.vision` as a plain property -- changing at all.
+ *
+ * The table itself is preserved because it still records what the upstream fork
+ * declared per slot (`vision: false` for the text-only glm/qwen/minimax/mistral
+ * ones), and dropping it would lose that history for no gain.
  */
 const VISION_BY_ID: Record<AiProviderId, boolean> = {
   genspark: true,
@@ -103,9 +118,17 @@ const VISION_BY_ID: Record<AiProviderId, boolean> = {
 }
 
 function adapterFor(id: AiProviderId): ProviderAdapter {
+  const declared = VISION_BY_ID[id] ?? true
   return {
     meta: metaOf(id),
-    capabilities: { auth: 'api-key', vision: VISION_BY_ID[id] ?? true },
+    capabilities: {
+      auth: 'api-key',
+      // The published value wins; `declared` is what applies until the catalogue is
+      // read, and if it never is.
+      get vision(): boolean {
+        return engineCapabilities().vision && declared
+      },
+    },
     resolveEndpoint: redrobEndpoint,
   }
 }
