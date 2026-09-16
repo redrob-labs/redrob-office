@@ -24,6 +24,15 @@ export {
   resolveAiSettings,
 } from './providers'
 export { AI_PROVIDER_ADAPTERS, getProviderAdapter, modelLacksVision } from './registry'
+export {
+  ENGINE_CAPABILITIES_TTL_MS,
+  FALLBACK_ENGINE_CAPABILITIES,
+  engineCapabilities,
+  loadEngineCapabilities,
+  resetEngineCapabilitiesCache,
+  selectEngineCapabilities,
+} from './console-capabilities'
+export type { EngineCapabilities } from './console-capabilities'
 export type {
   AiProtocol,
   ProviderAdapter,
