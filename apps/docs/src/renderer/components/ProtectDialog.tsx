@@ -55,6 +55,7 @@ export function ProtectDialog({
   removePersonalInfo,
   onCancel,
   onApply,
+  spinCount,
 }: {
   /** an open password is desired for the next save */
   encrypted: boolean
@@ -63,6 +64,17 @@ export function ProtectDialog({
   removePersonalInfo: boolean
   onCancel: () => void
   onApply: (result: ProtectDialogResult) => void
+  /**
+   * SHA-512 iterations for a modify password. Word's own default is 100000 and that is what ships.
+   *
+   * Overridable because the cost is real and sequential: 100000 iterations of `crypto.subtle.digest`
+   * take about nine seconds under jsdom, and a test that hashes and then verifies pays it twice. The
+   * dialog test that exercised this path measured 18.0s against a 20s timeout, so it passed on a quiet
+   * machine and failed on a busy CI runner, in whichever shard happened to be unlucky. Every other test
+   * in that file already passes 1000 directly to the hashing helper; this prop is how the one that goes
+   * through the component can do the same.
+   */
+  spinCount?: number
 }) {
   const { t } = useI18n()
   const hadModifyPwd = !!writeProtection?.hash
@@ -111,7 +123,7 @@ export function ProtectDialog({
             ? writeProtection?.recommended
               ? { recommended: true }
               : null
-            : { ...recommended, ...(await hashProtectionPassword(modifyPwd)) }
+            : { ...recommended, ...(await hashProtectionPassword(modifyPwd, spinCount)) }
       }
 
       if (protectionChanged) {
