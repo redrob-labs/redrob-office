@@ -31,6 +31,17 @@ review, because no script can tell a truthful pin from a stale one.
 - Release tags are cut from `main` as `v<major>.<minor>.<patch>`, matching the
   version in `apps/shell/package.json`.
 
+`.github/workflows/gitflow.yml` now checks the two bullets above, because a rule
+nothing checks is only a preference: branches have already appeared under a `kiro/`
+prefix that no document here defines. The `branch name follows the convention` job
+fails any pull request whose head branch does not start with `feat`, `fix`, `chore`,
+`docs`, `test`, `refactor`, `perf` or `sync`, and lets `develop` and `main` through
+because a promotion or back-merge branch is not named after a type. The
+`main is contained in develop` job runs after `main` moves and fails while `main`
+holds commits `develop` does not, which is the missed back-merge that left a sibling
+repository's default branch unable to install for a month. This list is the
+explanation; `ALLOWED_TYPES` in that workflow is the gate, so change both together.
+
 ## Commits
 
 Conventional prefixes, imperative mood, lower-case subject, scope when it helps:

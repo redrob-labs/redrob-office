@@ -11,6 +11,18 @@ The retired recruiting application is not on `main`. Its source archive is the
 `legacy-office-v0.0.0` tag / `cursor/legacy-office-v0-0-0-8171` branch. Do not restore it, its
 `@redrob/*` packages, root scripts, or release paths into the suite.
 
+### Branch enforcement
+
+`.github/workflows/gitflow.yml` checks the branch rules `CONTRIBUTING.md` writes down, because a
+rule nothing checks is only a preference and `kiro/` branches this repository never defined already
+exist. `branch name follows the convention` runs on every pull request and fails a head branch whose
+prefix is not `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf` or `sync`, so a tool or
+agent name is rejected: a branch name says what the change is, not what made it. `develop` and
+`main` pass, since a promotion or back-merge branch is not named after a type. `main is contained in
+develop` runs on pushes to `main` and fails while `main` holds commits `develop` does not, so a
+skipped back-merge reports itself instead of surfacing a month later as a default branch that cannot
+install. Neither job is a required check, so today they inform rather than block.
+
 ### Setup and tests
 
 - `pnpm install` runs `scripts/ensure-electron.mjs` and prepares each app's Electron binary.
