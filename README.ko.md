@@ -10,12 +10,12 @@
 
 ## 기능
 
-- **Docs** — `.docx` 작성·서식·검토, AI 패널이 초안을 쓰고 문서를 직접 수정합니다.
-- **Sheets** — `.xlsx` 편집과 시트 대상 AI 도구.
-- **Slides** — `.pptx` 편집과 도형·레이아웃 대상 AI 도구.
-- **PDF** — 읽기·변환과 문서 대상 AI 도구.
-- **Markdown·Hangul** — Markdown 편집기, 그리고 내장 rhwp 편집기로 `.hwp`/`.hwpx` 편집.
-- **하나의 Home 화면** — 모든 편집기를 단일 셸과 공용 프로젝트 저장소에서 실행합니다.
+- **Docs**: `.docx` 작성·서식·검토, AI 패널이 초안을 쓰고 문서를 직접 수정합니다.
+- **Sheets**: `.xlsx` 편집과 시트 대상 AI 도구.
+- **Slides**: `.pptx` 편집과 도형·레이아웃 대상 AI 도구.
+- **PDF**: 읽기·변환과 문서 대상 AI 도구.
+- **Markdown·Hangul**: Markdown 편집기, 그리고 내장 rhwp 편집기로 `.hwp`/`.hwpx` 편집.
+- **하나의 Home 화면**: 모든 편집기를 단일 셸과 공용 프로젝트 저장소에서 실행합니다.
 
 AI 편집은 `packages/agent-core`의 도구 실행 루프와 `packages/ai-provider`의 고정 Redrob
 Console 전송 계층을 사용합니다. 다른 벤더 키를 쓰거나 임의의 서버 주소를 지정하는 것은
@@ -90,11 +90,11 @@ pnpm dist
 
 ## 문서
 
-- [docs/UPSTREAM.md](./docs/UPSTREAM.md) — 이 포크가 무엇을 이식했는지, 상류 변경을 가져오는 방법
-- [docs/RELEASE.md](./docs/RELEASE.md) — 릴리즈를 빌드·서명·게시하는 방법
-- [docs/console-api.md](./docs/console-api.md) — Redrob Console 추론 API 계약
-- [docs/branding-cleanup.md](./docs/branding-cleanup.md) — 브랜딩 규칙과 의도적인 내부 예외 목록
-- [AGENTS.md](./AGENTS.md) — 개발·검증 환경과 동작 노트
+- [docs/UPSTREAM.md](./docs/UPSTREAM.md): 이 포크가 무엇을 이식했는지, 상류 변경을 가져오는 방법
+- [docs/RELEASE.md](./docs/RELEASE.md): 릴리즈를 빌드·서명·게시하는 방법
+- [docs/console-api.md](./docs/console-api.md): Redrob Console 추론 API 계약
+- [docs/branding-cleanup.md](./docs/branding-cleanup.md): 브랜딩 규칙과 의도적인 내부 예외 목록
+- [AGENTS.md](./AGENTS.md): 개발·검증 환경과 동작 노트
 
 ## 기여하기
 
