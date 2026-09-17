@@ -2,20 +2,19 @@
 
 **English** · [한국어](./README.ko.md)
 
-Redrob Office is a desktop office suite that hosts Docs, Sheets, Slides, PDF,
-Markdown and Hangul editors in one Electron window, with an AI panel in each
-editor that edits the open document rather than describing how to edit it. It runs
-on Windows and Linux, is a port of [GenOffice](https://github.com/genspark-ai/genoffice)
+Redrob Office is a desktop office suite with Docs, Sheets, Slides, PDF, Markdown and Hangul editors in one window.
+Every editor carries an AI panel that edits the open document rather than describing how to edit it.
+It runs on Windows and Linux, is a port of [GenOffice](https://github.com/genspark-ai/genoffice)
 under the Apache License 2.0, and ships in English and Korean.
 
 ## What it does
 
-- **Docs** — write, format and review `.docx`, with an AI panel that drafts and edits in place.
-- **Sheets** — edit `.xlsx`, with AI tools over the grid.
-- **Slides** — edit `.pptx`, with AI tools over shapes and layouts.
-- **PDF** — read, convert, and run AI tools over the document.
-- **Markdown and Hangul** — a Markdown editor, and `.hwp`/`.hwpx` editing through the embedded rhwp editor.
-- **One Home screen** — every editor opens from a single shell and a shared project store.
+- **Docs**: write, format and review `.docx`, with an AI panel that drafts and edits in place.
+- **Sheets**: edit `.xlsx`, with AI tools over the grid.
+- **Slides**: edit `.pptx`, with AI tools over shapes and layouts.
+- **PDF**: read, convert, and run AI tools over the document.
+- **Markdown and Hangul**: a Markdown editor, and `.hwp`/`.hwpx` editing through the embedded rhwp editor.
+- **One Home screen**: every editor opens from a single shell and a shared project store.
 
 AI editing runs through the tool loop in `packages/agent-core` and the fixed Redrob
 Console transport in `packages/ai-provider`. Bringing your own vendor key or
@@ -42,8 +41,8 @@ Create one under **API keys** in Console, then paste it into **Settings → AI**
 the app. A key from anywhere else is rejected, and an empty key produces a plain
 failure notice rather than a silent no-op.
 
-Console's one-click **Connect Redrob** device flow — where the app shows a short
-code and you approve it in Console instead of copying a key — is not wired into
+Console's one-click **Connect Redrob** device flow (where the app shows a short
+code and you approve it in Console instead of copying a key) is not wired into
 this app yet. Redrob Code and Redrob Cowork use it today; Office does not.
 
 ## Local development
@@ -92,11 +91,11 @@ provider. Details, including what a fork build does instead, are in
 
 ## Documentation
 
-- [docs/UPSTREAM.md](./docs/UPSTREAM.md) — what this fork was ported from, and how upstream work is taken
-- [docs/RELEASE.md](./docs/RELEASE.md) — how a release is built, signed and attached
-- [docs/console-api.md](./docs/console-api.md) — the Redrob Console inference API contract
-- [docs/branding-cleanup.md](./docs/branding-cleanup.md) — brand rules and the deliberate internal exceptions
-- [AGENTS.md](./AGENTS.md) — development and verification environment notes
+- [docs/UPSTREAM.md](./docs/UPSTREAM.md): what this fork was ported from, and how upstream work is taken
+- [docs/RELEASE.md](./docs/RELEASE.md): how a release is built, signed and attached
+- [docs/console-api.md](./docs/console-api.md): the Redrob Console inference API contract
+- [docs/branding-cleanup.md](./docs/branding-cleanup.md): brand rules and the deliberate internal exceptions
+- [AGENTS.md](./AGENTS.md): development and verification environment notes
 
 ## Contributing
 
