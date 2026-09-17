@@ -103,7 +103,10 @@ describe('ProtectDialog', () => {
   })
 
   it('setting a modify password produces verifiable writeProtection credentials', async () => {
-    const d = await mount({})
+    // 1000 iterations rather than the shipped 100000, like every other test in this file. What is under
+    // test is that the dialog produces credentials its own verifier accepts, not the cost of the KDF,
+    // and at the default this single test took 18.0s of a 20s budget and failed whenever CI was busy.
+    const d = await mount({ spinCount: 1000 })
     const [, , modify, modifyConfirm] = d.passwordInputs()
     await d.setValue(modify, 'to-modify')
     await d.setValue(modifyConfirm, 'to-modify')
