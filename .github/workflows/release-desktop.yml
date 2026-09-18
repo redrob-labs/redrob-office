@@ -123,7 +123,7 @@ jobs:
               throw "$artifact has no Authenticode signer certificate"
             }
             if ($accepted -notcontains $signature.Status.ToString()) {
-              throw "Invalid Authenticode signature for $artifact: $($signature.Status) ($($signature.StatusMessage))"
+              throw "Invalid Authenticode signature for ${artifact}: $($signature.Status) ($($signature.StatusMessage))"
             }
             Write-Host "$artifact signed by: $($signature.SignerCertificate.Subject) status=$($signature.Status)"
           }
@@ -232,11 +232,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          app="apps/shell/release/mac-arm64/Redrob Office.app"
-          test -d "$app"
+          # Resolved by glob rather than named. This was hardcoded to "Redrob Office.app" and the
+          # build produces "redrob.app", so `test -d` failed instantly with no output and the whole
+          # step looked like a signature failure when signing and notarization had both succeeded.
+          # A glob does not go stale the next time the product name moves.
+          shopt -s nullglob
+          apps=(apps/shell/release/mac-arm64/*.app)
+          if [ "${#apps[@]}" -ne 1 ]; then
+            echo "expected exactly one .app in apps/shell/release/mac-arm64, found ${#apps[@]}:" >&2
+            printf '  %s\n' "${apps[@]}" >&2
+            exit 1
+          fi
+          app="${apps[0]}"
+          echo "verifying $app"
           codesign --verify --deep --strict --verbose=2 "$app"
           codesign --verify --strict --verbose=2 "$app/Contents/Resources/native/redrob-code"
-          shopt -s nullglob
           dmgs=(apps/shell/release/*.dmg)
           zips=(apps/shell/release/*.zip)
           test "${#dmgs[@]}" -gt 0
