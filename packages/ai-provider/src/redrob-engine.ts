@@ -250,6 +250,14 @@ export async function redrobEngineStream(
         `Redrob engine request failed: HTTP ${response.status}${detail ? ` ${detail.slice(0, 240)}` : ''}`,
       )
     }
+    // The response headers ARE the connection proving itself alive, so hand the
+    // rest of the wait to the idle budget here. Without this the 60s connect
+    // timeout keeps running until the first SSE line is parsed, so it gates
+    // time-to-first-token rather than time-to-headers -- and the gateway
+    // legitimately thinks for minutes before the first token on a long-context
+    // or reasoning request. That killed real generations at exactly 60s, while
+    // the console had already answered and was still billing them.
+    watchdog.touch()
     // A gateway can answer a stream request with a plain JSON body (e.g. a
     // credits notice). Surface it rather than dissolving it into an empty turn.
     const jsonBody = await jsonBodyInsteadOfSse(response)
