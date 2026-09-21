@@ -4,8 +4,18 @@ Everything ships through GitHub Releases: the files a person downloads and the f
 the app updates from are the same assets on the same release. There is no CDN.
 
 Pushing a `v*` tag runs two workflows against the same tag. Both refuse to run if the
-tag does not equal the version in `apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`), so a
-mistyped tag fails before anything is built.
+tag is not contained in `main`, and both refuse if the tag does not equal the version
+in `apps/shell/package.json` **at that tag** (`v0.8.3` ↔ `0.8.3`), so a mistyped tag,
+or a tag that only exists on `develop`, fails before anything is built.
+
+A release is therefore cut by promoting `develop` into `main` and tagging `main` — not
+by dispatching a workflow from a working branch. v0.8.3 was published that way by
+mistake: the desktop workflow used a bare checkout, so it built `develop` and attached
+the result under a version `main` had never seen.
+
+The promotion pull request is an ordinary working branch and takes an ordinary type
+prefix (`chore/release-0.8.4`). There is no `release` branch type in this repository;
+the tag, not the branch name, is what makes a release.
 
 ## Windows and macOS — `.github/workflows/release-desktop.yml`
 
