@@ -677,7 +677,7 @@ export function AiPanel({
             persistMessage('assistant', finalText, runToolsRef.current)
           }
         },
-        onError: (error) => {
+        onError: (error, code) => {
           setChat((prev) => {
             const next = [...prev]
             const last = next.at(-1)
@@ -692,22 +692,23 @@ export function AiPanel({
             }
             return next
           })
-          // Signed-out failures get an inline sign-in button; detected via
-          // gsk status rather than matching the localized error text
-          void window.desktop
-            .aiGskStatus()
-            .then((status) => {
-              if (status.loggedIn) return
-              setChat((prev) => {
-                const next = [...prev]
-                const last = next.at(-1)
-                if (last?.role === 'assistant' && last.error) {
-                  next[next.length - 1] = { ...last, loginRequired: true }
-                }
-                return next
-              })
+          // Only an authentication failure gets the inline sign-in button. It used
+          // to be decided by aiGskStatus(), which knows only the OAuth session --
+          // so an API-key workspace is permanently "signed out" there and EVERY
+          // failure (timeout, credits, tool loop) grew a button that fixed
+          // nothing and hid the real cause. errorCode comes from the status the
+          // console actually returned; the message text is localized and is not
+          // a contract.
+          if (code === 'auth') {
+            setChat((prev) => {
+              const next = [...prev]
+              const last = next.at(-1)
+              if (last?.role === 'assistant' && last.error) {
+                next[next.length - 1] = { ...last, loginRequired: true }
+              }
+              return next
             })
-            .catch(() => {})
+          }
           setBusy(false)
         },
       },

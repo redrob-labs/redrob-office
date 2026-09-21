@@ -114,7 +114,30 @@ describe('createIpcTransport', () => {
   it('maps a timeout error code to the localized timeout message', () => {
     const { cb, emit } = setup()
     emit({ type: 'error', error: 'AI request timed out: no data received', errorCode: 'timeout' })
-    expect(cb.onError).toHaveBeenCalledWith('timed out')
+    expect(cb.onError).toHaveBeenCalledWith('timed out', 'timeout')
+  })
+
+  // 'auth' has no localized override: the console's own message is the useful
+  // text. What matters is that the CODE reaches the UI, because that -- not the
+  // translated message, and not an OAuth session check -- is what decides whether
+  // a failed turn offers an inline sign-in button.
+  it('passes an auth error code through with the carried text', () => {
+    const { cb, emit } = setup()
+    emit({
+      type: 'error',
+      error: 'Redrob engine request failed: HTTP 401 invalid_api_key',
+      errorCode: 'auth',
+    })
+    expect(cb.onError).toHaveBeenCalledWith(
+      'Redrob engine request failed: HTTP 401 invalid_api_key',
+      'auth',
+    )
+  })
+
+  it('reports an uncoded failure with no code, so nothing reads it as signed-out', () => {
+    const { cb, emit } = setup()
+    emit({ type: 'error', error: 'tool loop exceeded' })
+    expect(cb.onError).toHaveBeenCalledWith('tool loop exceeded')
   })
 
   it('maps a credits error code to the localized credits message', () => {
@@ -124,7 +147,7 @@ describe('createIpcTransport', () => {
       error: 'Your Genspark credits have been exhausted.',
       errorCode: 'credits',
     })
-    expect(cb.onError).toHaveBeenCalledWith('credits used up')
+    expect(cb.onError).toHaveBeenCalledWith('credits used up', 'credits')
   })
 
   it('maps a network error code to the localized network message', () => {
@@ -134,7 +157,7 @@ describe('createIpcTransport', () => {
       error: 'Claude fetch failed: fetch failed cause=ECONNRESET',
       errorCode: 'network',
     })
-    expect(cb.onError).toHaveBeenCalledWith('network problem')
+    expect(cb.onError).toHaveBeenCalledWith('network problem', 'network')
   })
 
   it('a network error code without networkErrorText falls back to the carried text', () => {
@@ -144,7 +167,7 @@ describe('createIpcTransport', () => {
       error: 'Claude fetch failed: fetch failed cause=ECONNRESET',
       errorCode: 'network',
     })
-    expect(cb.onError).toHaveBeenCalledWith('Claude fetch failed: fetch failed cause=ECONNRESET')
+    expect(cb.onError).toHaveBeenCalledWith('Claude fetch failed: fetch failed cause=ECONNRESET', 'network')
   })
 
   it('a credits error code without creditsErrorText falls back to the carried text', () => {
@@ -154,7 +177,7 @@ describe('createIpcTransport', () => {
       error: 'Your Genspark credits have been exhausted.',
       errorCode: 'credits',
     })
-    expect(cb.onError).toHaveBeenCalledWith('Your Genspark credits have been exhausted.')
+    expect(cb.onError).toHaveBeenCalledWith('Your Genspark credits have been exhausted.', 'credits')
   })
 
   it('maps an overloaded error code to the localized busy message', () => {
@@ -164,7 +187,7 @@ describe('createIpcTransport', () => {
       error: 'HTTP 429: {"error":{"type":"engine_overloaded_error"}}',
       errorCode: 'overloaded',
     })
-    expect(cb.onError).toHaveBeenCalledWith('service busy')
+    expect(cb.onError).toHaveBeenCalledWith('service busy', 'overloaded')
   })
 
   it('an overloaded error code without overloadedErrorText falls back to the carried text', () => {
@@ -174,7 +197,7 @@ describe('createIpcTransport', () => {
       error: 'HTTP 429: engine overloaded',
       errorCode: 'overloaded',
     })
-    expect(cb.onError).toHaveBeenCalledWith('HTTP 429: engine overloaded')
+    expect(cb.onError).toHaveBeenCalledWith('HTTP 429: engine overloaded', 'overloaded')
   })
 
   it('fails the run after prolonged silence; pings re-arm the watchdog', () => {
