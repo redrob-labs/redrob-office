@@ -28,8 +28,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Same gate as release-desktop.yml: a release is cut from main, so a tag that
+  # only exists on develop must not produce packages under that version number.
+  guard:
+    name: Tag is on main
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require the tag to exist and be contained in main
+        run: |
+          git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null || {
+            echo "::error::tag $RELEASE_TAG does not exist. Cut the tag on main first."
+            exit 1
+          }
+          TAG_SHA="$(git rev-list -n1 "refs/tags/$RELEASE_TAG")"
+          if ! git merge-base --is-ancestor "$TAG_SHA" origin/main; then
+            echo "::error::tag $RELEASE_TAG ($TAG_SHA) is not contained in main. Promote develop to main, then tag."
+            exit 1
+          fi
+          echo "$RELEASE_TAG -> $TAG_SHA, contained in main"
+
   linux:
     name: Package and attach Linux artifacts
+    needs: guard
     runs-on: ubuntu-latest
     env:
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}

@@ -1,4 +1,5 @@
 import type { AgentMessage, AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
+import { AiAuthError } from './auth-error'
 import { aiFetch } from './fetch'
 import {
   AiCreditsError,
@@ -222,7 +223,7 @@ export async function redrobEngineStream(
   cb: StreamCallbacks,
 ): Promise<void> {
   if (!auth.apiKey.trim()) {
-    throw new RedrobEngineError(redrobEngineUnavailableMessage('no Redrob Console key'))
+    throw new AiAuthError(redrobEngineUnavailableMessage('no Redrob Console key'))
   }
   const watchdog = createStreamWatchdog(cb.signal)
   await watchdog.guard(async () => {
@@ -246,10 +247,22 @@ export async function redrobEngineStream(
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
       throwIfCreditsNotice(detail)
-      throw new RedrobEngineError(
-        `Redrob engine request failed: HTTP ${response.status}${detail ? ` ${detail.slice(0, 240)}` : ''}`,
-      )
+      const text = `Redrob engine request failed: HTTP ${response.status}${detail ? ` ${detail.slice(0, 240)}` : ''}`
+      // 401/403 is the only failure a sign-in button can fix; everything else
+      // must surface its own cause instead of being dressed up as signed-out.
+      if (response.status === 401 || response.status === 403) {
+        throw new AiAuthError(text, response.status)
+      }
+      throw new RedrobEngineError(text)
     }
+    // The response headers ARE the connection proving itself alive, so hand the
+    // rest of the wait to the idle budget here. Without this the 60s connect
+    // timeout keeps running until the first SSE line is parsed, so it gates
+    // time-to-first-token rather than time-to-headers -- and the gateway
+    // legitimately thinks for minutes before the first token on a long-context
+    // or reasoning request. That killed real generations at exactly 60s, while
+    // the console had already answered and was still billing them.
+    watchdog.touch()
     // A gateway can answer a stream request with a plain JSON body (e.g. a
     // credits notice). Surface it rather than dissolving it into an empty turn.
     const jsonBody = await jsonBodyInsteadOfSse(response)

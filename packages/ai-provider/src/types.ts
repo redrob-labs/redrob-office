@@ -96,8 +96,13 @@ export interface AiStreamChunk {
   /** complete parsed tool call (emitted once its arguments finish streaming) */
   toolCall?: AgentToolCall
   error?: string
-  /** machine-readable error cause ('timeout', exhausted 'credits', 'network' connectivity failure, 'overloaded' capacity/rate limit); lets the renderer localize the message */
-  errorCode?: 'timeout' | 'credits' | 'network' | 'overloaded'
+  /**
+   * Machine-readable error cause ('timeout', exhausted 'credits', 'network'
+   * connectivity failure, 'overloaded' capacity/rate limit, 'auth' rejected
+   * credentials); lets the renderer localize the message. 'auth' is the only
+   * cause an inline sign-in button can fix, so it is what gates that button.
+   */
+  errorCode?: 'timeout' | 'credits' | 'network' | 'overloaded' | 'auth'
   /** normalized stop reason carried on 'done' ('max_tokens' = output cut off by the token limit) */
   stopReason?: string
 }

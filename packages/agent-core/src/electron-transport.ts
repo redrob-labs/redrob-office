@@ -1,4 +1,5 @@
 import type {
+  AgentErrorCode,
   AgentStreamRequest,
   AgentToolCall,
   AgentToolDef,
@@ -19,8 +20,12 @@ export interface IpcStreamChunk {
   text?: string
   toolCall?: AgentToolCall
   error?: string
-  /** machine-readable error cause; maps to the localized timeout/credits/network/overloaded message */
-  errorCode?: 'timeout' | 'credits' | 'network' | 'overloaded'
+  /**
+   * Machine-readable error cause. 'timeout' | 'credits' | 'network' |
+   * 'overloaded' map to a localized message; 'auth' is the ONLY code that means
+   * signing in could help, and it is what gates the inline sign-in button.
+   */
+  errorCode?: AgentErrorCode
   /** normalized stop reason on 'done' ('max_tokens' = cut off by the token limit) */
   stopReason?: string
 }
@@ -110,7 +115,7 @@ export function createIpcTransport<S>(options: IpcTransportOptions<S>): AgentTra
           cb.onDone()
         } else {
           settle()
-          cb.onError(
+          const text =
             chunk.errorCode === 'timeout'
               ? timeoutText()
               : chunk.errorCode === 'credits'
@@ -119,8 +124,11 @@ export function createIpcTransport<S>(options: IpcTransportOptions<S>): AgentTra
                   ? (options.networkErrorText?.() ?? chunk.error ?? options.unknownErrorText())
                   : chunk.errorCode === 'overloaded'
                     ? (options.overloadedErrorText?.() ?? chunk.error ?? options.unknownErrorText())
-                    : (chunk.error ?? options.unknownErrorText()),
-          )
+                    : (chunk.error ?? options.unknownErrorText())
+          // Only pass the code when there is one: a trailing explicit `undefined`
+          // is an observable difference to a caller that inspects arguments.
+          if (chunk.errorCode) cb.onError(text, chunk.errorCode)
+          else cb.onError(text)
         }
       })
       armSilence()

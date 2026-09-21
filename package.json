@@ -1,7 +1,7 @@
 {
   "name": "redrob-office",
   "private": true,
-  "version": "0.8.3",
+  "version": "0.8.4",
   "license": "Apache-2.0",
   "description": "On-device office suite: lookup, process, and review without leaving this PC",
   "packageManager": "pnpm@9.15.0",
