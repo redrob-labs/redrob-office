@@ -73,6 +73,51 @@ jobs:
           New-Item -ItemType Directory -Force "../apps/shell/build" | Out-Null
           Copy-Item $source "../apps/shell/build/redrob-code.exe"
 
+      # electron-builder signs the app's own executables and the NSIS installer,
+      # but NOT extraResources -- the sidecar is copied in verbatim. Sign it here,
+      # before packaging, with the same certificate, so the bytes a user runs from
+      # resources/native are signed and the verification step below can see it.
+      - name: Sign the Redrob Code sidecar
+        shell: pwsh
+        run: |
+          $sidecar = "apps/shell/build/redrob-code.exe"
+          if (-not (Test-Path $sidecar)) { throw "Redrob Code sidecar is missing before signing: $sidecar" }
+          if (-not $env:CSC_LINK) { throw "Missing WIN_CSC_LINK secret" }
+          if (-not $env:CSC_KEY_PASSWORD) { throw "Missing WIN_CSC_KEY_PASSWORD secret" }
+
+          # CSC_LINK is either base64 PKCS#12 content (how the org secret is stored)
+          # or a path to a .p12/.pfx already on disk. A remote URL is not supported
+          # here: fail loudly rather than package an unsigned sidecar.
+          if ($env:CSC_LINK -match '^https?://') { throw "CSC_LINK is a URL; this job needs base64 or a local .p12 path" }
+          if (Test-Path -LiteralPath $env:CSC_LINK) {
+            $pfx = (Resolve-Path -LiteralPath $env:CSC_LINK).Path
+          } else {
+            $pfx = Join-Path $env:RUNNER_TEMP "redrob-office-signing.p12"
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:CSC_LINK))
+          }
+
+          $signtool = Get-ChildItem "C:/Program Files (x86)/Windows Kits/10/bin/*/x64/signtool.exe" |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw "signtool.exe was not found in the Windows 10 SDK" }
+
+          # A timestamp needs the timestamp authority to answer. Retry, then sign
+          # without one rather than lose a whole build to a transient network fault.
+          $signed = $false
+          foreach ($attempt in 1..3) {
+            & $signtool.FullName sign /f $pfx /p $env:CSC_KEY_PASSWORD /fd sha256 /tr http://timestamp.digicert.com /td sha256 $sidecar
+            if ($LASTEXITCODE -eq 0) { $signed = $true; break }
+            Write-Host "timestamped signing attempt $attempt failed (exit $LASTEXITCODE)"
+            Start-Sleep -Seconds 10
+          }
+          if (-not $signed) {
+            & $signtool.FullName sign /f $pfx /p $env:CSC_KEY_PASSWORD /fd sha256 $sidecar
+            if ($LASTEXITCODE -ne 0) { throw "signtool could not sign the Redrob Code sidecar (exit $LASTEXITCODE)" }
+          }
+
+          $signature = Get-AuthenticodeSignature $sidecar
+          if (-not $signature.SignerCertificate) { throw "sidecar still has no Authenticode signer certificate after signing" }
+          Write-Host "$sidecar signed by: $($signature.SignerCertificate.Subject) status=$($signature.Status)"
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.0
