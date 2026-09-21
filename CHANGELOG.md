@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.8.4
+
+Fixes two AI-panel failures that a user hit on a real machine, and makes the
+release pipeline publish the code it says it is publishing.
+
+- **A slow first token no longer dies at 60 seconds.** The stream watchdog arms a
+  60s connect budget and swaps to a 180s idle budget on the first byte, but it
+  only switched once an SSE line had been parsed — so the connect budget was
+  gating time-to-first-token, not time-to-headers. A long-context or reasoning
+  request legitimately goes silent for minutes before the first token, so the
+  client aborted generations the Console had already accepted and was billing.
+  The swap now happens as soon as the response headers arrive.
+- **The "Sign in to Redrob" button only appears when signing in would help.** It
+  was decided by an OAuth-session check, which reports a workspace authenticated
+  with an API key as permanently signed out — so every failure grew a sign-in
+  button that fixed nothing and hid the real cause, including the timeout above.
+  Rejected credentials now travel as their own error code, and only that code
+  shows the button. Affects Slides, Docs and Sheets.
+- **Windows releases can publish again.** The bundled Redrob Code sidecar is an
+  `extraResources` entry, which electron-builder does not sign, so the signature
+  verification step failed on every attempt. The sidecar is now signed with the
+  same certificate before packaging — which also matters on machines where Smart
+  App Control judges each executable on its own.
+- **A release is built from its tag, and only from a tag that is on `main`.** The
+  desktop workflow used a bare checkout, so it built whatever ref the dispatch
+  started on: v0.8.3's installers were built from `develop` and published under a
+  version number `main` had never seen, and nothing failed.
+
 ## 0.8.3
 
 Resigns the Windows installer with the org-level Authenticode certificate.

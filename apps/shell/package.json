@@ -1,7 +1,7 @@
 {
   "name": "@genoffice/shell",
   "productName": "Redrob Office",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "license": "Apache-2.0",
   "homepage": "https://github.com/redrob-labs/redrob-office",
   "private": true,
