@@ -54,3 +54,6 @@ secret-scan-report.json
 .idea/
 .cursor/*
 !.cursor/environment.json
+
+# Agent scratch/task state. Not part of the product and not reviewed.
+.agents/
