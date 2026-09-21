@@ -29,8 +29,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # A release is cut from main. The build jobs below check out the TAG, not the
+  # ref a dispatch was started on, so this job is what stops a tag that only
+  # exists on develop from shipping under a version number main has never seen.
+  #
+  # This is not a style rule. v0.8.3 was dispatched with --ref develop while the
+  # tag pointed at a commit on main: the build jobs did a bare checkout, so the
+  # installers were built from develop and published as 0.8.3. The version and
+  # the bytes disagreed and nothing failed.
+  guard:
+    name: Tag is on main
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require the tag to exist and be contained in main
+        run: |
+          git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null || {
+            echo "::error::tag $RELEASE_TAG does not exist. Cut the tag on main first."
+            exit 1
+          }
+          TAG_SHA="$(git rev-list -n1 "refs/tags/$RELEASE_TAG")"
+          if ! git merge-base --is-ancestor "$TAG_SHA" origin/main; then
+            echo "::error::tag $RELEASE_TAG ($TAG_SHA) is not contained in main. Promote develop to main, then tag."
+            exit 1
+          fi
+          echo "$RELEASE_TAG -> $TAG_SHA, contained in main"
+
+      - name: Require the tag to carry the version it claims
+        run: |
+          git checkout -q "refs/tags/$RELEASE_TAG"
+          VERSION="$(node -p "require('./apps/shell/package.json').version")"
+          test "$RELEASE_TAG" = "v$VERSION" || {
+            echo "::error::tag $RELEASE_TAG does not match apps/shell version $VERSION at that tag"
+            exit 1
+          }
+
   windows:
     name: Sign Windows x64 (Redrob Office)
+    needs: guard
     runs-on: windows-latest
     permissions:
       contents: read
@@ -50,6 +94,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Build the TAG, never the ref a dispatch was started on. A bare
+          # checkout here is what let develop's bytes ship as v0.8.3.
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Check out the Redrob Code sidecar source
         uses: actions/checkout@v4
@@ -186,6 +234,7 @@ jobs:
 
   macos:
     name: Sign and notarize macOS arm64 (Redrob Office)
+    needs: guard
     runs-on: macos-14
     permissions:
       contents: read
@@ -198,6 +247,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Build the TAG, never the ref a dispatch was started on. A bare
+          # checkout here is what let develop's bytes ship as v0.8.3.
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Check out the Redrob Code sidecar source
         uses: actions/checkout@v4
@@ -323,6 +376,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Build the TAG, never the ref a dispatch was started on. A bare
+          # checkout here is what let develop's bytes ship as v0.8.3.
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Verify tag matches application version
         run: |
