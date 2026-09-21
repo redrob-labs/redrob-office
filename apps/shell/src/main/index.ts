@@ -3478,6 +3478,13 @@ function registerTabsIpc(): void {
         icon: menuIcons().pdf,
         click: () => void newPdfTab(),
       },
+      // No icon: there is no assets/menu-hwp.png yet. The label was missing
+      // entirely, which is the part that made Redrob Hangul unreachable from
+      // every menu even though newHangulTab() and menuNewHangul both existed.
+      {
+        label: tm('menuNewHangul'),
+        click: () => newHangulTab(),
+      },
       { type: 'separator' },
       { label: tm('menuOpen'), click: () => void openFileViaDialog() },
     ])
@@ -3522,6 +3529,7 @@ function buildHomeMenu(): void {
         { label: tm('menuNewSlide'), click: () => newSlideTab() },
         { label: tm('menuNewMarkdown'), click: () => newMarkdownTab() },
         { label: tm('menuNewPdf'), click: () => void newPdfTab() },
+        { label: tm('menuNewHangul'), click: () => newHangulTab() },
         { type: 'separator' },
         {
           label: tm('menuOpen'),
@@ -4311,6 +4319,7 @@ function installDockMenu(): void {
       { label: tm('menuNewSlide'), click: () => newSlideTab() },
       { label: tm('menuNewMarkdown'), click: () => newMarkdownTab() },
       { label: tm('menuNewPdf'), click: () => void newPdfTab() },
+      { label: tm('menuNewHangul'), click: () => newHangulTab() },
     ]),
   )
 }
