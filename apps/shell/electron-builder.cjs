@@ -656,16 +656,20 @@ const config = {
 // individually (Smart App Control, WDAC/AppLocker, AV heuristics) block
 // unsigned child processes — the unsigned xlsx-sidecar.exe died with
 // "spawn UNKNOWN" on such machines even though the installer itself was
-// signed. When CI exports GENOFFICE_WIN_SIGN_MODE ("test" = alpha
-// self-signed PFX, "production" = DigiCert KeyLocker — the two modes of
-// scripts/win-sign.cjs, whose env-var contract applies here too), every
-// binary electron-builder signs for win (GenOffice.exe, the NSIS
-// uninstaller, the installer, and .exe extraResources such as redrob-code.exe)
-// goes through that script. electron-builder 26 applies its extra-file
-// transformer to static PE resources before packaging, so every shipped helper
-// receives the same certificate. Unset (local / fork builds) keeps the old
-// behavior: electron-builder has no signing config and packages everything
-// unsigned.
+// signed.
+//
+// NOTE: scripts/win-sign.cjs is NOT in this tree — it was not carried over from
+// upstream, so GENOFFICE_WIN_SIGN_MODE is unset everywhere and this branch never
+// runs. Leaving it unset means electron-builder uses the plain CSC_LINK path,
+// which signs GenOffice.exe, the NSIS uninstaller and the installer, but NOT
+// .exe extraResources such as redrob-code.exe. release-desktop.yml therefore
+// signs the sidecar with signtool before packaging. Do not set this variable
+// until the script exists: electron-builder would spawn a missing file.
+//
+// The original contract, for whoever ports the script: "test" = alpha
+// self-signed PFX, "production" = DigiCert KeyLocker, and electron-builder 26
+// applies the transformer to static PE resources before packaging, so every
+// shipped helper would then receive the same certificate through one hook.
 const winSignMode = process.env.GENOFFICE_WIN_SIGN_MODE
 if (winSignMode) {
   if (winSignMode !== 'test' && winSignMode !== 'production') {
