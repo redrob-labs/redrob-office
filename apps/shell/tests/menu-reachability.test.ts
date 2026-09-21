@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const mainSource = readFileSync(join(__dirname, '../src/main/index.ts'), 'utf8')
+const homeSource = readFileSync(join(__dirname, '../src/renderer/src/Home.tsx'), 'utf8')
 
 /** Each creatable kind: its menu label key and the function that opens it. */
 const KINDS = [
@@ -55,6 +56,43 @@ describe('menu reachability', () => {
     for (const { label } of KINDS) {
       expect(mainSource.split(`${label}:`).length - 1).toBe(localeCount)
     }
+  })
+
+  it('every kind the open dialog accepts is advertised on the open-local card', () => {
+    // OPEN_LOCAL_EXTENSIONS carries a comment telling you to keep it in step with
+    // OPEN_DIALOG_EXTENSIONS. It had drifted: the dialog accepted .hwp/.hwpx and
+    // the card did not say so, which reads to a user as "not supported".
+    //
+    // Aliases are deliberately NOT listed on the card: it already ellipsizes at
+    // every window width, so a second spelling of a format costs width and tells
+    // the user nothing. Each one is named here so that an extension nobody
+    // advertises still fails this test instead of hiding behind the exemption.
+    const ALIAS_OF: Record<string, string> = {
+      markdown: 'md',
+      hwpx: 'hwp',
+      doc: 'docx',
+      ppt: 'pptx',
+    }
+    const advertised = /const OPEN_LOCAL_EXTENSIONS =\s*\n?\s*'([^']+)'/.exec(homeSource)?.[1]
+    expect(advertised).toBeTruthy()
+    const dialog = /const OPEN_DIALOG_EXTENSIONS = \[([^\]]+)\]/.exec(mainSource)?.[1]
+    expect(dialog).toBeTruthy()
+    const accepted = dialog!.match(/'([a-z]+)'/g)!.map((quoted) => quoted.slice(1, -1))
+    expect(accepted).toContain('hwp')
+    for (const ext of accepted) {
+      const shown = ALIAS_OF[ext] ?? ext
+      expect(advertised, `.${ext} is accepted by the dialog but not advertised`).toContain(`.${shown}`)
+    }
+  })
+
+  it('Hangul has its icon wired in both surfaces', () => {
+    // The tray menu gives every sibling an icon, so an entry without one reads as
+    // broken rather than plain; and without a FILE_ICONS entry a .hwp in the
+    // recent list falls back to the grey lettered badge.
+    expect(mainSource).toContain('hwp: loadMenuIcon(')
+    expect(mainSource).toContain('icon: menuIcons().hwp')
+    expect(homeSource).toContain('hwp: iconHwp')
+    expect(homeSource).toContain('hwpx: iconHwp')
   })
 
   it('the New list has no kind the shell cannot open', () => {
