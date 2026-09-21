@@ -1,4 +1,5 @@
 export type {
+  AgentErrorCode,
   AgentImage,
   AgentMessage,
   AgentStreamCallbacks,

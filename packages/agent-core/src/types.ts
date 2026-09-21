@@ -107,8 +107,20 @@ export interface AgentStreamCallbacks {
   /** normalized stop reason of the turn ('max_tokens' = cut off by the token limit); transports may omit this */
   onStopReason?(reason: string): void
   onDone(): void
-  onError(error: string): void
+  /**
+   * `code` is the machine-readable cause when the transport knows it. The UI must
+   * branch on this rather than on `error`, which is localized into 19 locales and
+   * is not a contract.
+   */
+  onError(error: string, code?: AgentErrorCode): void
 }
+
+/**
+ * Machine-readable failure cause for one turn. 'auth' is the only value that
+ * means signing in could help, so it is what gates an inline sign-in button; any
+ * other cause must show its own message instead.
+ */
+export type AgentErrorCode = 'timeout' | 'credits' | 'network' | 'overloaded' | 'auth'
 
 export interface AgentStreamHandle {
   /** abort the in-flight turn; the transport must still emit onDone afterwards */

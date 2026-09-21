@@ -19,6 +19,7 @@ import { join } from 'node:path'
 import {
   AiCreditsError,
   AiTimeoutError,
+  isAiAuthError,
   isAiNetworkError,
   isAiOverloadedError,
   defaultAiSettings,
@@ -204,11 +205,13 @@ export function registerAiIpc(): void {
             ? { errorCode: 'timeout' as const }
             : err instanceof AiCreditsError
               ? { errorCode: 'credits' as const }
-              : isAiNetworkError(err)
-                ? { errorCode: 'network' as const }
-                : isAiOverloadedError(err)
-                  ? { errorCode: 'overloaded' as const }
-                  : {}),
+              : isAiAuthError(err)
+                ? { errorCode: 'auth' as const }
+                : isAiNetworkError(err)
+                  ? { errorCode: 'network' as const }
+                  : isAiOverloadedError(err)
+                    ? { errorCode: 'overloaded' as const }
+                    : {}),
         })
       }
     } finally {
