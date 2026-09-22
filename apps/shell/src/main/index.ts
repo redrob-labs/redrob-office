@@ -38,6 +38,8 @@ import menuPdfIcon1x from './assets/menu-pdf.png?asset'
 import menuPdfIcon2x from './assets/menu-pdf@2x.png?asset'
 import menuMdIcon1x from './assets/menu-md.png?asset'
 import menuMdIcon2x from './assets/menu-md@2x.png?asset'
+import menuHwpIcon1x from './assets/menu-hwp.png?asset'
+import menuHwpIcon2x from './assets/menu-hwp@2x.png?asset'
 import menuHomeIcon1x from './assets/menu-home.png?asset'
 import menuHomeIcon2x from './assets/menu-home@2x.png?asset'
 import { createI18n, isLang, normalizeLang, setUiLang, type Lang } from '@genoffice/i18n'
@@ -3379,6 +3381,7 @@ interface MenuIconSet {
   pptx: NativeImage
   pdf: NativeImage
   md: NativeImage
+  hwp: NativeImage
   home: NativeImage
 }
 let menuIconCache: MenuIconSet | null = null
@@ -3389,6 +3392,7 @@ function menuIcons(): MenuIconSet {
     pptx: loadMenuIcon(menuPptxIcon1x, menuPptxIcon2x),
     pdf: loadMenuIcon(menuPdfIcon1x, menuPdfIcon2x),
     md: loadMenuIcon(menuMdIcon1x, menuMdIcon2x),
+    hwp: loadMenuIcon(menuHwpIcon1x, menuHwpIcon2x),
     home: loadMenuIcon(menuHomeIcon1x, menuHomeIcon2x),
   }
   return menuIconCache
@@ -3478,6 +3482,11 @@ function registerTabsIpc(): void {
         icon: menuIcons().pdf,
         click: () => void newPdfTab(),
       },
+      {
+        label: tm('menuNewHangul'),
+        icon: menuIcons().hwp,
+        click: () => newHangulTab(),
+      },
       { type: 'separator' },
       { label: tm('menuOpen'), click: () => void openFileViaDialog() },
     ])
@@ -3522,6 +3531,7 @@ function buildHomeMenu(): void {
         { label: tm('menuNewSlide'), click: () => newSlideTab() },
         { label: tm('menuNewMarkdown'), click: () => newMarkdownTab() },
         { label: tm('menuNewPdf'), click: () => void newPdfTab() },
+        { label: tm('menuNewHangul'), click: () => newHangulTab() },
         { type: 'separator' },
         {
           label: tm('menuOpen'),
@@ -4311,6 +4321,7 @@ function installDockMenu(): void {
       { label: tm('menuNewSlide'), click: () => newSlideTab() },
       { label: tm('menuNewMarkdown'), click: () => newMarkdownTab() },
       { label: tm('menuNewPdf'), click: () => void newPdfTab() },
+      { label: tm('menuNewHangul'), click: () => newHangulTab() },
     ]),
   )
 }
