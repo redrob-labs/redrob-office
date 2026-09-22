@@ -77,3 +77,13 @@ export {
   createStreamWatchdog,
 } from './watchdog'
 export type { StreamWatchdog } from './watchdog'
+export {
+  EngineIntegrationClient,
+  EngineIntegrationError,
+  toEngineIntegration,
+} from './engine-integration'
+export type {
+  EngineIntegration,
+  EngineTarget,
+  IntegrationMethod,
+} from './engine-integration'
