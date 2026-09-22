@@ -60,9 +60,22 @@ install. Neither job is a required check, so today they inform rather than block
 - `apps/pdf`: PDF editor/conversion and AI tools.
 - `apps/markdown`, `apps/hangul`: additional editors.
 - `packages/agent-core`: shared ReAct loop, tool execution, history and compaction.
-- `packages/ai-provider`: one Redrob engine route. Do not add provider selection, vendor BYOK, or an
-  arbitrary inference URL. The fixed Console API is `https://console.redrob.ai/api/backend/v1`, wire
-  model `auto` / route `redrob/auto`. Settings may leave `model` empty; the engine always wires `auto`.
+- `packages/ai-provider`: the route to the Redrob engine. BYOK and provider selection are ALLOWED as
+  of 2026-09-22 — a user may connect their own Anthropic, OpenAI, Gemini, Copilot or OpenRouter
+  access, because that is the only path those vendors permit a third-party app (see redrob-code
+  `docs/PROVIDER-AUTH.md`). This reverses the earlier "one engine, no BYOK" rule, so an older
+  instruction forbidding it is now wrong.
+  Two constraints survive that reversal and are not style preferences:
+  - **Office never holds a provider key.** Credentials live in the engine's own store and the engine
+    makes the call; Office names a model and gets an answer. A product that holds no key cannot leak
+    one. This also ends the five-separate-credential-stores problem that makes a user log in again in
+    every Redrob app.
+  - **No caller-supplied inference URL, ever.** `resolveEndpoint` must keep ignoring a configured
+    base URL. Honouring one would forward the engine's credential to whatever host the caller named,
+    and the engine's own config layer admits a new openai-compatible provider only at a local
+    address. A local model is selected by its `provider/model` id, never by URL.
+  The default route stays `redrob/auto` against `https://console.redrob.ai/api/backend/v1`; settings
+  may leave `model` empty and the engine wires `auto`.
 - `packages/ai-search`: Redrob-hosted search/image helpers.
 - `packages/genoffice-ui`, `packages/i18n`, `packages/electron-utils`, `packages/project-store`:
   shared UI/runtime infrastructure.

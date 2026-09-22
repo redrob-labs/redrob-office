@@ -1,13 +1,18 @@
 // Contract: NO third-party vendor host / base-URL string is present or reachable
 // in the exported adapter / endpoint surface of @genoffice/ai-provider.
 //
-// Redrob Office runs on ONE engine (redrob-office/AGENTS.md): no BYOK, no
-// provider selection, no configurable inference server URL, and no vendor base
-// URL in the code paths. GenOffice shipped a full per-vendor endpoint catalog
-// (api.anthropic.com, api.openai.com, openrouter.ai, ...); this test locks that
-// the adapters have been collapsed to the single Redrob engine, so a vendor host
-// reintroduced into resolveEndpoint (or the registry/providers source) is caught
-// here rather than shipping silently.
+// This assertion OUTLIVED the policy that first motivated it. Office used to be
+// "one engine, no BYOK"; as of 2026-09-22 BYOK and provider selection are allowed
+// (redrob-office/AGENTS.md, redrob-code docs/PROVIDER-AUTH.md). What did NOT
+// change is where a vendor lives: the engine holds the credential and makes the
+// call, and Office names a model. So Office still must contain no vendor host and
+// no vendor key — a vendor base URL appearing here means Office started talking to
+// a vendor directly, which is exactly the shape that leaks a key.
+//
+// GenOffice shipped a full per-vendor endpoint catalog (api.anthropic.com,
+// api.openai.com, openrouter.ai, ...); this test locks that the adapters stay
+// collapsed, so a vendor host reintroduced into resolveEndpoint (or the
+// registry/providers source) is caught here rather than shipping silently.
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'

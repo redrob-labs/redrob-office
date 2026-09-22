@@ -1,10 +1,18 @@
-// Contract: the AI layer targets ONLY the single Redrob Console engine.
+// Contract: the AI layer targets ONLY the Redrob engine, and never a URL a caller
+// chose.
 //
-// Redrob Office has one engine (redrob-office/AGENTS.md): no BYOK, no provider
-// selection, no configurable inference server URL, and no third-party engine
-// name in the routing path. These tests lock that the chat/stream entry points
-// always call the fixed Redrob base with the fixed model, regardless of the
-// `provider` argument the ported editor apps pass in.
+// The "no BYOK" half of the original rule is gone — as of 2026-09-22 a user may
+// connect their own Anthropic/OpenAI/Gemini/Copilot/OpenRouter access
+// (redrob-office/AGENTS.md, redrob-code docs/PROVIDER-AUTH.md). BYOK happens in
+// the ENGINE, though, not here: the engine holds the credential and picks the
+// provider, and Office names a model.
+//
+// So what these tests lock is the surviving half, which is a security property
+// rather than a product policy: `resolveEndpoint` must keep ignoring a configured
+// base URL. Honouring one would send the engine's credential to whatever host the
+// caller named, and the engine's config layer admits a new openai-compatible
+// provider only at a local address. A local model is selected by its
+// `provider/model` id, never by URL.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   REDROB_CONSOLE_API_BASE,
