@@ -65,6 +65,17 @@ export type EngineSpawnOptions = {
   timeoutMs?: number
   /** Extra environment for the child, merged UNDER the minted credentials. */
   env?: Record<string, string | undefined>
+  /**
+   * How long teardown waits after SIGTERM before escalating, and after SIGKILL
+   * before giving up. Default 1000/500ms.
+   *
+   * Configurable because the default is a real cost in two places, not just in
+   * tests: app shutdown blocks on it, and a suite that starts several engines pays
+   * it per engine. The engine exits on SIGTERM in well under a second, so a test
+   * that waits the full second is buying nothing and adding load to a CI runner
+   * that is already running every other package in parallel.
+   */
+  shutdownMs?: { term?: number; kill?: number }
 }
 
 function secret(): string {
@@ -105,7 +116,12 @@ function isAddressInUse(error: unknown): boolean {
 }
 
 /** SIGTERM, wait, SIGKILL, wait. Idempotent via a cached promise. */
-function makeClose(child: ChildProcess): { close: () => Promise<void>; isAlive: () => boolean } {
+function makeClose(
+  child: ChildProcess,
+  shutdown: { term?: number; kill?: number } = {},
+): { close: () => Promise<void>; isAlive: () => boolean } {
+  const termMs = shutdown.term ?? 1000
+  const killMs = shutdown.kill ?? 500
   let exited = false
   let pending: Promise<void> | null = null
   child.once('close', () => {
@@ -121,10 +137,15 @@ function makeClose(child: ChildProcess): { close: () => Promise<void>; isAlive: 
       if (pending) return pending
       pending = (async () => {
         child.kill('SIGTERM')
-        await wait(1000)
+        // Poll instead of sleeping the whole budget: the engine normally exits in
+        // milliseconds, and waiting the full second regardless makes shutdown feel
+        // hung and slows any suite that starts more than one engine.
+        const deadline = Date.now() + termMs
+        while (!exited && Date.now() < deadline) await wait(25)
         if (exited) return
         child.kill('SIGKILL')
-        await wait(500)
+        const hardDeadline = Date.now() + killMs
+        while (!exited && Date.now() < hardDeadline) await wait(25)
       })()
       return pending
     },
@@ -155,7 +176,7 @@ async function startOnce(options: EngineSpawnOptions, hostname: string, port: nu
     },
   )
 
-  const lifecycle = makeClose(child)
+  const lifecycle = makeClose(child, options.shutdownMs)
 
   let baseUrl: string
   try {

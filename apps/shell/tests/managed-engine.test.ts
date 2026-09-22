@@ -12,6 +12,12 @@ import { join } from 'node:path'
 
 import { ENGINE_READY_PREFIX, startEngine } from '../src/main/managed-engine'
 
+// The production default waits up to 1s after SIGTERM. The fake engine exits at once,
+// and paying a full second per test added ~9s of process load to a CI runner that runs
+// every other package in parallel -- which is exactly how a neighbouring CPU-heavy
+// suite gets tipped over its own timeout.
+const SHORT_SHUTDOWN = { term: 200, kill: 100 }
+
 describe('startEngine', () => {
   let dir: string
   const started: Array<{ close: () => Promise<void> }> = []
@@ -51,6 +57,7 @@ setInterval(() => {}, 1000)
       binary: writeFakeEngine(readyEngine),
       cwd: dir,
       env: { FAKE_ENGINE_REPORT: report },
+      shutdownMs: SHORT_SHUTDOWN,
     })
     started.push(engine)
 
@@ -66,9 +73,9 @@ setInterval(() => {}, 1000)
     const reportB = join(dir, 'b.json')
     const binary = writeFakeEngine(readyEngine)
 
-    const first = await startEngine({ binary, cwd: dir, env: { FAKE_ENGINE_REPORT: reportA } })
+    const first = await startEngine({ binary, cwd: dir, env: { FAKE_ENGINE_REPORT: reportA }, shutdownMs: SHORT_SHUTDOWN })
     started.push(first)
-    const second = await startEngine({ binary, cwd: dir, env: { FAKE_ENGINE_REPORT: reportB } })
+    const second = await startEngine({ binary, cwd: dir, env: { FAKE_ENGINE_REPORT: reportB }, shutdownMs: SHORT_SHUTDOWN })
     started.push(second)
 
     const a = JSON.parse(await import('node:fs').then((fs) => fs.readFileSync(reportA, 'utf8')))
@@ -88,6 +95,7 @@ setInterval(() => {}, 1000)
       binary: writeFakeEngine(readyEngine),
       cwd: dir,
       env: { FAKE_ENGINE_REPORT: report },
+      shutdownMs: SHORT_SHUTDOWN,
     })
     started.push(engine)
 
@@ -144,6 +152,7 @@ setInterval(() => {}, 1000)
       binary: writeFakeEngine(readyEngine),
       cwd: dir,
       env: { FAKE_ENGINE_REPORT: report },
+      shutdownMs: SHORT_SHUTDOWN,
     })
 
     await engine.close()
