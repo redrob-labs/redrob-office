@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.8.5
+
+Makes Redrob Hangul reachable. It shipped in 0.8.4 as a working editor that no
+menu offered.
+
+- **Redrob Hangul appears in all three New menus.** The tray/context menu, File >
+  New in the application menu, and the macOS dock menu. `newHangulTab()` and the
+  `menuNewHangul` label existed in every locale all along — the menu entries were
+  never added, so `tm('menuNewHangul')` had zero call sites while its sibling
+  `tm('menuNewPdf')` had three. Only the Home screen quick card offered it, which
+  is why the feature looked present.
+- **`.hwp` has its own icon.** The tray entry had none while its five siblings
+  each did, and `FILE_ICONS` had no `hwp` entry, so a .hwp in the Home cards and
+  the recent list drew the grey lettered fallback badge. The glyph is the jamo ㅎ
+  in teal, drawn as geometry so it renders identically on a machine with no
+  Korean font.
+- **The open-local card advertises `.hwp`.** The open dialog has accepted .hwp
+  and .hwpx since the format was added; the card did not say so, which reads as
+  "not supported".
+
+A test now asserts that every document kind the shell can create is reachable
+from all three menus and has its icon wired, rather than checking Hangul alone —
+nothing failed while this was broken, because one surface had it.
+
+Also brings AGENTS.md up to the tree: the branch model (`develop` is the base,
+`main` is released state, tags are cut from `main`, and the back-merge is not
+optional) and the fact that `pnpm build`/`typecheck`/`test` all fail at the Rust
+sidecar on a host without `cargo`.
+
 ## 0.8.4
 
 Fixes two AI-panel failures that a user hit on a real machine, and makes the
