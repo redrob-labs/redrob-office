@@ -60,6 +60,7 @@ import {
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
 import { registerRedrobConnectIpc } from './redrob-connect'
+import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -4411,6 +4412,7 @@ registerProjectIpc()
 registerDocsIpc()
 registerHomeIpc()
 registerRedrobConnectIpc()
+registerEngineIpc()
 registerTabsIpc()
 registerDroppedFilesIpc()
 
@@ -4517,4 +4519,8 @@ app.on('before-quit', () => {
   stopSheetsSidecar()
   // Stop the offline rhwp-studio loopback server
   void teardownHangul()
+  // Stop the managed engine. An engine left alive holds its port and outlives the app,
+  // so the next launch hits EADDRINUSE and the user sees a broken install rather than a
+  // stale process.
+  void teardownEngine()
 })
