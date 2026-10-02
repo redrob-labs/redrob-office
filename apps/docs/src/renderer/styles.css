@@ -323,12 +323,12 @@ html.genoffice-popover-open .ribbon-tabs {
   bottom: -2px;
   height: 2px;
   border-radius: 1px;
-  background: var(--ink-brand);
+  background: var(--action-primary);
 }
 
 .ribbon-tab-file {
-  color: var(--docs-on-accent);
-  background: var(--ink-brand);
+  color: var(--ink-on-brand);
+  background: var(--action-primary);
   border-radius: var(--radius-sm);
   padding: 6px 16px;
   margin-right: 6px;
