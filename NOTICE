@@ -48,6 +48,30 @@ Both are vendored here verbatim and served offline from a local origin (no CDN):
                                   repository; PORT-DESIGN.md, which held it, was
                                   never checked in)
 
+Redrob design system
+
+  The application chrome is built on the Redrob Group Design System 2026, as
+  published in the @redrob-labs/ui npm package (pinned at 1.0.2) and consumed
+  through packages/genoffice-ui:
+
+  @redrob-labs/ui
+  Copyright (c) 2026 Janghoon Lee (Redrob) and contributors
+  Licensed under the MIT License.
+  https://github.com/redrob-labs/redrob-ui
+
+  The package ships these font faces in dist/fonts/. Each is licensed under the
+  SIL Open Font License 1.1; the copyright lines are the ones embedded in each
+  font file's name table:
+
+    * Pretendard            Copyright (c) 2023 Kil Hyung-jin
+    * Redrob Rake Display   Copyright (c) 2023 Kil Hyung-jin
+                            (a renamed derivative build)
+    * Redrob Rake Display KR, Wanted Sans
+                            Copyright (c) 2024 Wanted Lab, Inc.
+    * Nanum Myeongjo        Copyright (c) 2010 NHN Corporation
+    * Newsreader            Copyright 2020 The Newsreader Project Authors
+    * Noto Sans Devanagari  Copyright 2022 The Noto Project Authors
+
 Unicode Character Database
 
   apps/pdf/src/shared/radicals.ts contains a generated mapping derived from

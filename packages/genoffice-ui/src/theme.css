@@ -1,0 +1,11 @@
+/* The Redrob design system, as every Office renderer loads it.
+ *
+ * Apps import this one file instead of reaching into @redrob-labs/ui, so the
+ * pinned kit version and the import order live in one place. tokens.css first
+ * (custom properties for both themes), then styles.css (the rr-* class blocks
+ * and @font-face rules, which reference the kit's fonts relatively).
+ *
+ * The kit never paints html/body; product surfaces also import
+ * @genoffice/ui/preflight.css for that. */
+@import '@redrob-labs/ui/tokens.css';
+@import '@redrob-labs/ui/styles.css';

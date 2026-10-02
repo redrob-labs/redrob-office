@@ -1,0 +1,5 @@
+/* The kit's page-level rules (html/body background and ink, color-scheme so
+ * scrollbars and native <select> popups follow the theme, the Korean font stack
+ * under :lang(ko), reduced motion). Import only on a surface the app owns end to
+ * end; a view embedded in someone else's page skips it. */
+@import '@redrob-labs/ui/preflight.css';
