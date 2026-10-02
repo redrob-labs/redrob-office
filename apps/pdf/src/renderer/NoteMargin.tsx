@@ -215,12 +215,16 @@ function NoteCard({
                   }}
                 />
                 <div className="pdf-note-draft-actions">
-                  <button type="button" className="pdf-modal-btn" onClick={onEditCancel}>
+                  <button
+                    type="button"
+                    className="rr-btn rr-btn--secondary rr-btn--sm pdf-modal-btn"
+                    onClick={onEditCancel}
+                  >
                     {t('cancel')}
                   </button>
                   <button
                     type="button"
-                    className="pdf-modal-btn primary"
+                    className="rr-btn rr-btn--primary rr-btn--sm pdf-modal-btn"
                     disabled={!editingText.trim()}
                     onClick={() => onEditSubmit(item)}
                   >
@@ -251,7 +255,7 @@ function NoteCard({
           />
           <button
             type="button"
-            className="pdf-modal-btn primary pdf-note-reply-send"
+            className="rr-btn rr-btn--primary rr-btn--sm pdf-modal-btn pdf-note-reply-send"
             disabled={!text.trim()}
             onClick={submit}
           >
@@ -318,12 +322,16 @@ function NoteDraftCard({
           }}
         />
         <div className="pdf-note-draft-actions">
-          <button type="button" className="pdf-modal-btn" onClick={onCancel}>
+          <button
+            type="button"
+            className="rr-btn rr-btn--secondary rr-btn--sm pdf-modal-btn"
+            onClick={onCancel}
+          >
             {t('cancel')}
           </button>
           <button
             type="button"
-            className="pdf-modal-btn primary"
+            className="rr-btn rr-btn--primary rr-btn--sm pdf-modal-btn"
             disabled={!text.trim()}
             onClick={submit}
           >

@@ -408,13 +408,13 @@ export function SignatureDialog({
         </label>
         <div className="pdf-modal-actions">
           {mode === 'draw' && (
-            <button className="pdf-modal-btn" onClick={clear}>
+            <button className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn" onClick={clear}>
               {t('signClear')}
             </button>
           )}
           {mode === 'image' && imgCanvas && (
             <button
-              className="pdf-modal-btn"
+              className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn"
               onClick={() => {
                 setImgCanvas(null)
                 setBw(false)
@@ -424,10 +424,14 @@ export function SignatureDialog({
             </button>
           )}
           <span style={{ flex: 1 }} />
-          <button className="pdf-modal-btn" onClick={onCancel}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn" onClick={onCancel}>
             {t('cancel')}
           </button>
-          <button className="pdf-modal-btn primary" disabled={!canConfirm} onClick={confirm}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
+            disabled={!canConfirm}
+            onClick={confirm}
+          >
             {t('signPlace')}
           </button>
         </div>
