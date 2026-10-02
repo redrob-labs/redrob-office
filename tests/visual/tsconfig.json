@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.genoffice.base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["playwright.config.ts", "src", "specs"]
+}

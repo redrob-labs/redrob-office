@@ -57,3 +57,8 @@ secret-scan-report.json
 
 # Agent scratch/task state. Not part of the product and not reviewed.
 .agents/
+# Visual suite: only Linux baselines are committed (see tests/visual/playwright.config.ts).
+tests/visual/__screenshots__/*
+!tests/visual/__screenshots__/linux/
+tests/visual/test-results/
+tests/visual/playwright-report/
