@@ -133,6 +133,43 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
   fast when either is unset. A self-signed certificate has an
   Authenticode signer but may report `UnknownError`/`NotTrusted` and still trigger SmartScreen.
 
+### Design system
+
+The suite's chrome is the Redrob design system, `@redrob-labs/ui` (pinned exactly, from
+`https://github.com/redrob-labs/redrob-ui`). Known gaps between the kit and what Office needs are in
+`docs/redrob-ui-gaps.md`.
+
+- The kit is a dependency of `@genoffice/ui` only. Apps import its components, `theme.css` and
+  icons through `@genoffice/ui`, never from `@redrob-labs/ui` directly. Office-only controls
+  (`Toolbar`, `DocTabs`, `Dialog`, `ColorPicker`, `Dropdown`, ScreenTips) are composed from kit parts
+  in `@genoffice/ui`, not in an app.
+- Every editor's AI panel is built from the agent parts in `packages/genoffice-ui/src/Agent.tsx`
+  (`AgentPanelHeader`, `AgentEmpty`, `AgentMessage`, `AgentSteps`, `AgentWorking`, `AgentFailure`,
+  `AgentUndelivered`, `AgentComposer`) with the shared extras in `agent.css`. A failed run renders as
+  a non-dismissible danger alert, and sign-in is offered only for an authentication failure.
+- Ribbon bands are wrapped in `Toolbar`, so they get one tab stop, arrow-key roving and
+  `aria-pressed` toggles.
+- Tokens: chrome reads the kit's names (`--surface-*`, `--ink-*`, `--border-*`, `--action-*`,
+  `--status-*`, `--radius-*`, `--font-sans`). `packages/genoffice-ui/src/tokens.css` holds only
+  Office extension tokens, which are values the kit has no semantic token for, picked per theme from
+  its ramps. Never add an alias of a kit token there. The theme is always written to
+  `<html data-theme>` by `applyUiTheme`, so renderer CSS never uses `@media (prefers-color-scheme)`.
+  Document content (paper, cells, exports, chart palettes) never reads chrome tokens. There is one
+  brand palette and no per-app accent. `pnpm check:ui-tokens` (`scripts/check-ui-tokens.mjs`,
+  run in the build job) fails on a retired legacy token, a colour-scheme media query in renderer
+  CSS, or a direct kit import outside `@genoffice/ui`.
+- Third-party canvases get scoped override layers rather than forks. Univer uses
+  `redrobUniverTheme()` (`apps/sheets/src/renderer/univer-theme.ts`). Hangul's built rhwp-studio is
+  served under `/host/` on the studio's own loopback server, so the host page and the studio iframe
+  are same-origin. `apps/hangul/src/renderer/studio-theme.ts` relies on that to inject kit token
+  values into the studio.
+- Visual regression lives in `tests/visual` and compares the shell's surfaces against committed
+  Linux baselines in `tests/visual/__screenshots__/linux/`. The `visual (ubuntu-latest)` job is not a
+  required check. When a change is meant to move pixels, the job fails and uploads a fresh render as
+  the `visual-baselines` artifact. Review it, then commit only the baselines whose specs failed,
+  from a signed commit by a person, not a bot. `VISUAL_LOCAL=1` renders locally into a
+  platform-named folder that must not be committed.
+
 ### Code style and safety
 
 - Follow existing TypeScript style and package boundaries; do not duplicate document engines in apps.

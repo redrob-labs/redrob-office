@@ -280,7 +280,7 @@ export function ChartKindThumb({ kind, width = 96 }: { kind: ChartKind; width?: 
       />,
     )
     if (kind === 'doughnut')
-      els.push(<circle key="ph" cx={cx} cy={cy} r={r * 0.5} fill="var(--surface, #fff)" />)
+      els.push(<circle key="ph" cx={cx} cy={cy} r={r * 0.5} fill="var(--surface-base, #fff)" />)
   }
 
   return (

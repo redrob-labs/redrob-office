@@ -1,24 +1,18 @@
-/* Legacy chrome token names, bridged onto the Redrob design system.
+/* Office extension tokens, on top of the Redrob design system.
  *
- * The apps' stylesheets still speak GenOffice's vocabulary (--surface, --text-*,
- * --hover, --accent, the AI panel's --color-*). Until each app migrates to the
- * kit's own names, every one of those names is defined here as an alias of a
- * kit token, so the whole suite renders in the kit's palette at once. This file
- * is deleted by the legacy cleanup once nothing reads these names.
+ * Chrome reads the kit's own token names (--surface-*, --ink-*, --border-*,
+ * --action-*, --status-*, --radius-*). This file holds only the few values the
+ * kit has no semantic token for: Office chrome needs them, and they are picked
+ * from the kit's ramps per theme.
  *
  * Rules:
  *   - Load after @genoffice/ui/theme.css (the kit's tokens) and before any app
  *     stylesheet.
  *   - Never declare a name the kit declares. Doing so would restyle the kit's
- *     own components. Two names collided and were renamed at every use site:
- *     the legacy --border-strong (a light divider) is now --border-control, and
- *     the legacy --text-body-lg / --text-small / --text-caption font sizes are
- *     now --fs-body-lg / --fs-small / --fs-caption. The kit's --border-subtle,
- *     --border-strong, --text-body-lg and --text-caption now mean what the kit
- *     says.
- *   - Most aliases point at kit semantic tokens, which switch with
- *     [data-theme] themselves. Values the kit has no semantic token for are
- *     picked from its ramps, per theme, in the two blocks below.
+ *     own components.
+ *   - Never add an alias of a kit token. Read the kit name instead;
+ *     scripts/check-ui-tokens.mjs fails CI on the retired legacy names.
+ *   - No colour literals: every value comes from a kit ramp.
  *   - The rendered theme is always written to <html data-theme> by
  *     applyUiTheme (theme.ts), "system" included, so no prefers-color-scheme
  *     copy is needed.
@@ -26,79 +20,15 @@
  *     live here and never reference these tokens. */
 
 :root {
-  /* surfaces */
-  --surface: var(--surface-base);
-  --surface-subtle: var(--surface-raised);
-  --chrome-bg: var(--surface-base);
-  --canvas: var(--surface-sunken);
-  --bg-content: var(--surface-raised);
-
-  /* borders (--border-subtle and --border-strong are the kit's) */
-  --border: var(--border-subtle);
-
-  /* ink */
-  --text: var(--ink-primary);
-  --text-primary: var(--ink-primary);
-  --text-secondary: var(--ink-secondary);
-  --text-dim: var(--ink-secondary);
-  --text-tertiary: var(--ink-muted);
-  --text-muted: var(--ink-muted);
-
-  /* interaction fills */
-  --hover: var(--surface-sunken);
-  --bg-hover: var(--surface-sunken);
-  --bg-hover-subtle: var(--surface-sunken);
-
-  /* status */
-  --danger: var(--status-danger);
-  --success: var(--status-success);
-
-  /* overlay and elevation */
-  --color-bg-overlay: var(--overlay-scrim);
-  --shadow-modal-strong: var(--shadow-lg);
-  --shadow-menu: var(--shadow-md);
-  --shadow-btn-hover: var(--shadow-sm);
-
-  /* one brand accent for every editor (replaces Word blue, Excel green,
-   * PowerPoint orange and the shell's blue) */
-  --accent: var(--action-primary);
-  --accent-dark: var(--action-primary-hover);
-  --accent-hover: var(--action-primary-hover);
-  --accent-soft: var(--surface-brand-subtle);
-
-  /* AI panel */
-  --color-btn-primary: var(--action-primary);
-  --color-btn-primary-hover: var(--action-primary-hover);
-  --color-btn-primary-text: var(--ink-on-brand);
-  --color-ai-action: var(--action-primary);
-  --color-ai-action-hover: var(--action-primary-hover);
-  --color-ai-action-text: var(--ink-on-brand);
-  --color-brand-secondary: var(--ink-brand);
-  --color-text-primary: var(--ink-primary);
-  --color-text-secondary: var(--ink-secondary);
-  --color-text-tertiary: var(--ink-muted);
-  --color-bg-page: var(--surface-base);
-  --color-bg-subtle: var(--surface-sunken);
-  --color-border-default: var(--border-subtle);
-  --color-border-brand: var(--focus-ring);
-  --color-error: var(--status-danger);
-
   /* type: the kit's sans for all chrome, with the per-language CJK stack the
    * apps define as --ui-cjk ahead of the system face, so Han glyphs keep the
    * regional font they had */
-  --gs-font-sans: var(--font-sans);
-  --font-chrome: Pretendard, 'Wanted Sans', var(--ui-cjk, system-ui), system-ui, -apple-system,
-    'Segoe UI', sans-serif;
+  --font-chrome:
+    Pretendard, 'Wanted Sans', var(--ui-cjk, system-ui), system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
   --fs-body-lg: 17px;
   --fs-small: 13px;
   --fs-caption: 11px;
-
-  /* geometry */
-  --radius-6: var(--radius-sm);
-  --radius-8: var(--radius-md);
-  --radius-12: var(--radius-lg);
-  --radius-16: var(--radius-xl);
-  --radius-30: var(--radius-full);
   --transition-fast: var(--duration-fast) var(--easing-standard);
 
   /* picked from the kit's ramps: light */

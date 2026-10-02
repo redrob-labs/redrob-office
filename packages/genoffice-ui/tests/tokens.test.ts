@@ -35,13 +35,13 @@ function cssFiles(dir: string): string[] {
   return out
 }
 
-describe('legacy token bridge (src/tokens.css)', () => {
+describe('Office extension tokens (src/tokens.css)', () => {
   it('declares no name the kit declares, so kit components keep their values', () => {
     const clashes = [...declared(bridge)].filter((n) => kitNames.has(n))
     expect(clashes).toEqual([])
   })
 
-  it('resolves every alias to a kit token or to another bridge alias', () => {
+  it('resolves every value to a kit token or to another extension token', () => {
     const own = declared(bridge)
     const unresolved = [...referenced(bridge)].filter(
       (n) => !kitNames.has(n) && !own.has(n) && !APP_PROVIDED.has(n),
@@ -53,36 +53,22 @@ describe('legacy token bridge (src/tokens.css)', () => {
     expect(stripComments(bridge)).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i)
   })
 
-  it('keeps every legacy chrome name the apps read', () => {
+  it('defines every extension token the apps read', () => {
     const own = declared(bridge)
-    for (const name of [
-      '--surface',
-      '--surface-subtle',
-      '--chrome-bg',
-      '--canvas',
-      '--border',
-      '--border-control',
-      '--text',
-      '--text-primary',
-      '--text-secondary',
-      '--text-muted',
-      '--hover',
-      '--active-bg',
-      '--danger',
-      '--success',
-      '--accent',
-      '--accent-dark',
-      '--accent-soft',
-      '--color-btn-primary',
-      '--color-ai-action',
-      '--color-text-primary',
-      '--color-bg-page',
-      '--gs-font-sans',
-      '--font-chrome',
-      '--fs-caption',
-    ]) {
+    for (const name of ['--border-control', '--active-bg', '--font-chrome', '--fs-caption']) {
       expect(own.has(name), name).toBe(true)
     }
+  })
+
+  it('is not a bridge: no value is a bare alias of a single kit token', () => {
+    // a ramp pick (--gray-4) is a value choice; an alias of a semantic token
+    // (--ink-primary) is a second name for it and belongs at the use site
+    const semantic =
+      /^var\(--(surface|ink|border|action|status|overlay|shadow|radius|font|focus)-[a-z0-9-]+\)$/
+    const aliases = [...stripComments(bridge).matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)]
+      .filter((m) => semantic.test(m[2].trim()))
+      .map((m) => m[1])
+    expect(aliases).toEqual([])
   })
 })
 

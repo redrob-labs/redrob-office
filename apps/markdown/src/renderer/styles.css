@@ -4,7 +4,7 @@
  * --color-*) come from @genoffice/ui/tokens.css; nothing here may shadow those
  * names. */
 :root {
-  --word-blue: var(--accent);
+  --word-blue: var(--action-primary);
 
   --md-link: var(--ink-brand);
   --md-code-bg: var(--surface-raised);
@@ -14,10 +14,10 @@
   --md-ai-anchor-bg: var(--surface-ai);
   --md-ai-anchor-line: var(--border-ai);
   --md-on-accent: var(--ink-on-brand);
-  --md-selection: color-mix(in srgb, var(--accent) 12%, transparent);
-  --md-text-selection: color-mix(in srgb, var(--accent) 32%, transparent);
+  --md-selection: color-mix(in srgb, var(--action-primary) 12%, transparent);
+  --md-text-selection: color-mix(in srgb, var(--action-primary) 32%, transparent);
   --md-focus: var(--focus-ring);
-  --md-node-outline: color-mix(in srgb, var(--accent) 60%, transparent);
+  --md-node-outline: color-mix(in srgb, var(--action-primary) 60%, transparent);
   --md-focus-ring: color-mix(in srgb, var(--ink-primary) 20%, transparent);
   --md-focus-ring-blue: color-mix(in srgb, var(--focus-ring) 30%, transparent);
   --md-error: var(--status-danger);
@@ -65,8 +65,8 @@ body {
   /* same UI stack as the docs/slides chrome ('Segoe UI' first + per-language
      CJK token) so shared toolbar controls measure identically across apps */
   font-family: var(--font-chrome);
-  color: var(--text);
-  background: var(--surface-subtle);
+  color: var(--ink-primary);
+  background: var(--surface-raised);
   /* grayscale AA like the docs/sheets/slides/pdf chrome — macOS subpixel
      rendering paints the same weight visibly heavier */
   -webkit-font-smoothing: antialiased;
@@ -88,7 +88,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 14px;
 }
 
@@ -96,7 +96,7 @@ button {
   flex: 1;
   overflow-y: auto;
   /* same canvas backdrop as the slides workspace; the doc page stays white */
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 
 .doc-page {
@@ -104,7 +104,7 @@ button {
   min-height: 100%;
   margin: 0 auto;
   padding: 40px 72px 120px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--md-page-shadow);
 }
 
@@ -115,9 +115,9 @@ button {
   gap: 12px;
   padding: 4px 12px;
   font-size: 12px;
-  color: var(--text-muted);
-  border-top: 1px solid var(--border);
-  background: var(--surface);
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   user-select: none;
 }
 
@@ -132,7 +132,7 @@ button {
 }
 
 .status-failed {
-  color: var(--danger);
+  color: var(--status-danger);
 }
 
 /* ---- editor content ---- */
@@ -162,7 +162,7 @@ button {
 .doc-editor h1 {
   font-size: 2em;
   padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .doc-editor h2 {
@@ -195,7 +195,7 @@ button {
   margin: 0.8em 0;
   padding: 0.1em 1em;
   border-left: 3px solid var(--border-control);
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 .doc-editor code {
@@ -208,7 +208,7 @@ button {
 
 .doc-editor pre {
   background: var(--md-code-bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 12px 16px;
   overflow-x: auto;
@@ -224,7 +224,7 @@ button {
 
 .doc-editor hr {
   border: none;
-  border-top: 2px solid var(--border);
+  border-top: 2px solid var(--border-subtle);
   margin: 1.6em 0;
 }
 
@@ -274,10 +274,10 @@ button {
 .ribbon {
   flex: 0 0 auto;
   /* white chrome + shared toolbar ink, same as the docs ribbon */
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   user-select: none;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 /* slim quick-access row above the toolbar (save / undo / redo / autosave),
@@ -426,8 +426,8 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .md-drag-handle-legacy:hover {
-  background: var(--hover);
-  color: var(--text-muted);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
 }
 
 /* ---- task list ---- */
@@ -467,7 +467,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .doc-editor ul[data-type='taskList'] li[data-checked='true'] > div {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   text-decoration: line-through;
 }
 
@@ -495,9 +495,9 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .fm-panel {
   margin-bottom: 20px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--bg-content);
+  background: var(--surface-raised);
   overflow: hidden;
 }
 
@@ -507,7 +507,7 @@ html.genoffice-popover-open .ribbon-tabs {
   font-weight: 600;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .fm-textarea {
@@ -520,7 +520,7 @@ html.genoffice-popover-open .ribbon-tabs {
   font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--text);
+  color: var(--ink-primary);
   outline: none;
 }
 
@@ -753,9 +753,9 @@ html.genoffice-popover-open .ribbon-tabs {
   padding: 0 12px;
   height: 24px;
   font-size: 11.5px;
-  color: var(--text-dim);
-  background: var(--surface-subtle);
-  border-top: 1px solid var(--border);
+  color: var(--ink-secondary);
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .status-left {
@@ -796,7 +796,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .zoom-slider {
   width: 110px;
-  accent-color: var(--text-muted);
+  accent-color: var(--ink-muted);
   height: 3px;
 }
 

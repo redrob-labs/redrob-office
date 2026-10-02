@@ -12,11 +12,11 @@
   box-sizing: border-box;
   width: 260px;
   padding: 10px 12px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 8px;
-  box-shadow: var(--shadow-modal-strong);
-  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink-primary);
   text-align: left;
   cursor: default;
 }
@@ -29,26 +29,26 @@
   padding: 0;
   border: 1px solid var(--border-control);
   border-radius: 0;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 12.5px;
   font-family: inherit;
   cursor: pointer;
 }
 
 .gcp-palette.gcp-palette .gcp-auto:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* Selected (color unset / no fill applied): the per-app accent tint, matching
    the shared dropdown's selected option (each app's --accent-soft) */
 .gcp-palette.gcp-palette .gcp-auto.selected {
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 
 .gcp-section-title {
   margin: 12px 0 6px;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12.5px;
   font-weight: 500;
 }
@@ -77,7 +77,7 @@
   width: 20px;
   height: 20px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink-primary) 18%, transparent);
   border-radius: 0;
   cursor: pointer;
 }
@@ -86,7 +86,7 @@
 .gcp-palette.gcp-palette .gcp-swatch.selected {
   position: relative;
   z-index: 1;
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -98,17 +98,17 @@
   margin: 12px -12px -10px;
   padding: 9px 14px;
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   border-radius: 0 0 8px 8px;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12.5px;
   font-weight: 400;
   cursor: pointer;
 }
 
 .gcp-palette.gcp-palette .gcp-more:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .gcp-palette.gcp-palette .gcp-more-icon,

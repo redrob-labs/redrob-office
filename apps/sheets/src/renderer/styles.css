@@ -4,16 +4,15 @@
  * shadow those names. --excel-green* are the chrome accent's old names and
  * follow the brand. */
 :root {
-  --excel-green: var(--accent);
-  --excel-green-dark: var(--accent-dark);
-  --excel-green-soft: var(--accent-soft);
+  --excel-green: var(--action-primary);
+  --excel-green-dark: var(--action-primary-hover);
+  --excel-green-soft: var(--surface-brand-subtle);
 
   --surface-hover: var(--surface-sunken);
   --ribbon-hover: var(--surface-sunken);
   --ribbon-active: var(--surface-brand-subtle);
   --focus: color-mix(in srgb, var(--focus-ring) 24%, transparent);
   --radius-4: var(--radius-sm);
-  --radius-6: var(--radius-sm);
   --radius-small: var(--radius-sm);
   --radius-medium: var(--radius-md);
   --shadow-panel: var(--shadow-md);
@@ -24,7 +23,7 @@
   --sheets-ai-error: var(--status-danger);
   --sheets-ai-error-border: color-mix(in srgb, var(--status-danger) 45%, transparent);
   --sheets-ai-error-bg: color-mix(in srgb, var(--status-danger) 8%, transparent);
-  --sheets-notice-border: color-mix(in srgb, var(--accent) 25%, transparent);
+  --sheets-notice-border: color-mix(in srgb, var(--action-primary) 25%, transparent);
   --sheets-statusbar-bg: var(--surface-raised);
   --sheets-statusbar-border: var(--border-subtle);
   --sheets-statusbar-hover: var(--surface-sunken);
@@ -88,8 +87,8 @@
   /* Same stack as docs/slides — an Inter fallback here made ribbon labels
      render in a different face than the other apps on machines with Inter */
   font-family: var(--font-chrome);
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
   font-synthesis: none;
 }
 
@@ -263,7 +262,7 @@ textarea:disabled {
   /* header / body (AI panel + sheet column, status bar inside the sheet column) */
   grid-template-rows: auto minmax(0, 1fr);
   height: 100vh;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* Excel's formula-bar row: Name Box (plus its Go To arrow) for now. */
@@ -272,16 +271,16 @@ textarea:disabled {
   align-items: stretch;
   gap: 0;
   padding: 3px 8px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
 }
 
 .name-box {
   width: 120px;
   padding: 2px 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small) 0 0 var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12px;
 }
 
@@ -296,11 +295,11 @@ textarea:disabled {
 
 .name-box-goto {
   padding: 0 5px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-left: 0;
   border-radius: 0 var(--radius-small) var(--radius-small) 0;
-  background: var(--surface);
-  color: var(--text-muted);
+  background: var(--surface-base);
+  color: var(--ink-muted);
   font-size: 10px;
 }
 
@@ -311,12 +310,12 @@ textarea:disabled {
   padding: 0;
   overflow-y: auto;
   list-style: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
 }
 
 .goto-name-list li + li {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .goto-name-list button {
@@ -337,7 +336,7 @@ textarea:disabled {
 }
 
 .goto-name-list button span {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .excel-header {
@@ -345,7 +344,7 @@ textarea:disabled {
   z-index: 10;
   /* same divider weight as the docs/slides ribbons: their --border-control, no drop shadow */
   border-bottom: 1px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .ribbon-tabs {
@@ -353,11 +352,11 @@ textarea:disabled {
   align-items: center;
   gap: 2px;
   /* tab-row text ink matches the ribbon band below */
-  color: var(--text-primary);
+  color: var(--ink-primary);
   /* same tab-row metrics as PowerPoint's ribbon (slides app): 5px top inset, no
      bottom padding, no divider line — the row blends into the band below */
   padding: 5px 10px 0;
-  background: var(--surface);
+  background: var(--surface-base);
   /* the tab row doubles as the frameless-window drag region */
   -webkit-app-region: drag;
   user-select: none;
@@ -422,7 +421,7 @@ html.genoffice-popover-open .ribbon-tabs {
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--ink-primary);
   background: none;
   cursor: pointer;
 }
@@ -438,7 +437,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .ribbon-tabs .qa-btn:disabled {
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   /* neutralize the global button:disabled opacity so the glyph reads exactly
      the shared quick-access gray of the docs and slides buttons */
   opacity: 1;
@@ -464,7 +463,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .workbook-status {
   max-width: min(360px, 30vw);
   overflow: hidden;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -472,7 +471,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 /* Hovering a tab tints the label, it doesn't paint a box */
 .ribbon-tabs > button:not(.qa-btn):hover {
-  color: var(--accent-dark);
+  color: var(--action-primary-hover);
 }
 
 .ribbon-tabs > button:not(.qa-btn).active {
@@ -489,7 +488,7 @@ html.genoffice-popover-open .ribbon-tabs {
   left: 13px;
   height: 2.5px;
   border-radius: 1px;
-  background: var(--accent);
+  background: var(--action-primary);
   content: '';
 }
 
@@ -508,7 +507,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 2px;
   /* ribbon text ink, a touch off the app's --text — same shade
      as the .inline-tools glyphs */
-  color: var(--text-primary);
+  color: var(--ink-primary);
   /* band metrics shared with the slides ribbon */
   height: 80px;
   /* Groups must never shrink below content (they would paint over each
@@ -524,7 +523,7 @@ html.genoffice-popover-open .ribbon-tabs {
      padding, keeping the 80px band and the content area unchanged; Chromium
      paints a thumb only while the row actually overflows. */
   padding: 6px 12px 1px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .ribbon::-webkit-scrollbar {
@@ -560,7 +559,7 @@ html.genoffice-popover-open .ribbon-tabs {
   right: 0;
   bottom: 2px;
   width: 1px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 /* The AI group leads the band in every app: 4px side padding like the
@@ -693,7 +692,7 @@ html.genoffice-popover-open .ribbon-tabs {
   place-items: center;
   width: 28px;
   height: 28px;
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 
 .ribbon-tool.ai-entry .ai-feature-icon svg {
@@ -737,7 +736,7 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 20px;
   place-items: center;
   /* ribbon glyphs share the toolbar ink (was Excel green) */
-  color: var(--text-primary);
+  color: var(--ink-primary);
   font-size: 15px;
   font-weight: 600;
 }
@@ -780,7 +779,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .ribbon-tool.reserved .tool-symbol {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .ribbon-tool strong,
@@ -797,7 +796,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .ribbon-tool small {
   margin-top: 2px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 9px;
 }
 
@@ -838,7 +837,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 3px;
   /* inline glyphs, letterforms and trigger labels share one ink color,
      a touch off the app's --text */
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 /* Two stacked control rows inside one group.
@@ -895,7 +894,7 @@ html.genoffice-popover-open .ribbon-tabs {
   border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 0 7px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 13px;
 }
 
@@ -926,7 +925,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .select-like.font-name,
 .select-like.font-size {
   border: 1px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .number-format {
@@ -1052,7 +1051,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .chev {
   flex-shrink: 0;
   margin-left: 3px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   vertical-align: -1px;
 }
 
@@ -1072,7 +1071,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .styles-stack {
   display: grid;
   gap: 1px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 .styles-row {
@@ -1284,7 +1283,7 @@ html.genoffice-popover-open .ribbon-tabs {
   max-height: 320px;
   overflow-y: auto;
   padding: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 8px;
   box-shadow: var(--sheets-shadow-drop);
@@ -1302,7 +1301,7 @@ html.genoffice-popover-open .ribbon-tabs {
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
   white-space: nowrap;
 }
 
@@ -1331,7 +1330,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .shape-gallery-title {
   padding: 6px 6px 2px;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .shape-gallery-grid {
@@ -1345,7 +1344,7 @@ html.genoffice-popover-open .ribbon-tabs {
   justify-content: center;
   width: auto;
   padding: 5px 0;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 /* Insert tab's small chart-type buttons, arranged as an icon cluster. */
@@ -1411,7 +1410,7 @@ html.genoffice-popover-open .ribbon-tabs {
   padding: 1px 6px;
   border-radius: var(--radius-small);
   background: transparent;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 11px;
   text-align: left;
 }
@@ -1427,8 +1426,8 @@ button.check-item:hover {
   place-items: center;
   border: 1px solid var(--border-control);
   border-radius: 2px;
-  background: var(--surface);
-  color: var(--text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 9px;
   font-style: normal;
 }
@@ -1471,7 +1470,7 @@ button.check-item:hover {
   padding: 0 12px;
   height: 24px;
   font-size: 11.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   background: var(--sheets-statusbar-bg);
   border-top: 1px solid var(--sheets-statusbar-border);
 }
@@ -1531,7 +1530,7 @@ button.check-item:hover {
 .spreadsheet {
   min-width: 0;
   min-height: 0;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .copilot {
@@ -1581,12 +1580,12 @@ button.check-item:hover {
   padding: 12px 2px;
   border: none;
   background: none;
-  color: var(--text-primary);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
 .expand-copilot:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .expand-copilot span {
@@ -1618,13 +1617,13 @@ button.check-item:hover {
   flex-direction: column;
   gap: 2px;
   padding: 6px 14px 8px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .copilot-file {
   margin: 0;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1633,7 +1632,7 @@ button.check-item:hover {
 
 .copilot-file strong {
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 textarea {
@@ -1642,13 +1641,13 @@ textarea {
   border: 1px solid var(--border-control);
   border-radius: var(--radius-medium);
   padding: 10px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
   line-height: 1.4;
 }
 
 textarea:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .primary-action,
@@ -1659,19 +1658,19 @@ textarea:focus {
 }
 
 .primary-action {
-  border: 1px solid var(--accent);
+  border: 1px solid var(--action-primary);
   color: var(--sheets-on-accent);
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 .primary-action:hover {
-  background: var(--accent-dark);
+  background: var(--action-primary-hover);
 }
 
 .secondary {
   border: 1px solid var(--border-control);
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .secondary:hover {
@@ -1682,10 +1681,10 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-medium);
   padding: 12px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-card);
 }
 
@@ -1702,7 +1701,7 @@ textarea:focus {
 }
 
 .change span {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   overflow-wrap: anywhere;
 }
 
@@ -1747,10 +1746,10 @@ textarea:focus {
   z-index: 3;
   width: 26px;
   height: 26px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   background: var(--sheets-float-btn-bg);
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 13px;
 }
 
@@ -1779,7 +1778,7 @@ textarea:focus {
   border: 1px solid var(--border-control);
   border-radius: var(--radius-medium);
   padding: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--shadow-panel);
   font-size: 11px;
 }
@@ -1789,7 +1788,7 @@ textarea:focus {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 8px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .chart-editor input[type='text'],
@@ -1807,7 +1806,7 @@ textarea:focus {
   width: 34px;
   height: 22px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   background: none;
 }
@@ -1818,7 +1817,7 @@ textarea:focus {
 }
 
 .chart-editor-series-name {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 10px;
 }
 
@@ -1832,7 +1831,7 @@ textarea:focus {
 }
 
 .chart-editor-error {
-  color: var(--danger);
+  color: var(--status-danger);
   font-size: 10px;
   max-width: 210px;
 }
@@ -1847,8 +1846,8 @@ textarea:focus {
   gap: 6px;
   margin: -2px -10px -10px;
   padding: 8px 10px 10px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-base);
 }
 
 .chart-editor-actions button {
@@ -1860,13 +1859,13 @@ textarea:focus {
 
 .chart-editor-cancel {
   border: 1px solid var(--border-control);
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 .chart-editor-apply {
-  border: 1px solid var(--accent);
-  background: var(--accent);
+  border: 1px solid var(--action-primary);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
@@ -2058,10 +2057,10 @@ textarea:focus {
   width: 20px;
   height: 20px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
-  color: var(--text-muted);
+  background: var(--surface-base);
+  color: var(--ink-muted);
   font-size: 11px;
   line-height: 1;
   box-shadow: var(--sheets-shadow-menu);
@@ -2074,7 +2073,7 @@ textarea:focus {
 
 .shape-delete-button:hover {
   color: var(--sheets-content-danger);
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* Body-level clone shown while moving a visual: escapes the float
@@ -2138,8 +2137,8 @@ textarea:focus {
   padding: 0;
   border: 1px solid var(--border-control);
   border-radius: 0;
-  background: var(--surface-subtle);
-  color: var(--text-muted);
+  background: var(--surface-raised);
+  color: var(--ink-muted);
   cursor: default;
   appearance: none;
 }
@@ -2155,8 +2154,8 @@ textarea:focus {
 
 .data-validation-dropdown-button:hover {
   border-color: var(--border-hover);
-  background: var(--hover);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .data-validation-dropdown-button svg {
@@ -2224,7 +2223,7 @@ textarea:focus {
   padding: 0;
   max-height: 180px;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
 }
 
@@ -2233,7 +2232,7 @@ textarea:focus {
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .allow-edit-list li:last-child {
@@ -2248,7 +2247,7 @@ textarea:focus {
 .allow-edit-ref {
   flex: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .dialog-actions-inline {
@@ -2263,7 +2262,7 @@ textarea:focus {
   justify-content: center;
   font-size: 28px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   opacity: 0.55;
   pointer-events: none;
   user-select: none;
@@ -2330,7 +2329,7 @@ textarea:focus {
   padding: 4px;
   border: 1px solid var(--border-control);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-menu);
 }
 
@@ -2362,7 +2361,7 @@ textarea:focus {
   padding: 12px;
   border: 1px solid var(--border-control);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-pane);
   font-size: 12px;
   gap: 10px;
@@ -2392,7 +2391,7 @@ textarea:focus {
 
 .chart-format-pane .pane-section > strong {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 .chart-format-pane label {
@@ -2440,7 +2439,7 @@ textarea:focus {
   margin-bottom: 2px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   white-space: nowrap;
 }
 
@@ -2451,17 +2450,17 @@ textarea:focus {
   border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   font-size: 12px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .select-data-row input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .select-data-row input::placeholder {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   opacity: 0.7;
 }
 
@@ -2476,17 +2475,17 @@ textarea:focus {
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   border-radius: var(--radius-small);
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .select-data-row button:hover:not(:disabled) {
   background: var(--surface-hover);
   border-color: var(--border-control);
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .select-data-actions {
@@ -2736,7 +2735,7 @@ textarea:focus {
   border: 1px solid var(--border-control);
   border-radius: 16px;
   padding: 14px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--shadow-modal);
 }
 
@@ -2748,7 +2747,7 @@ textarea:focus {
 .dialog-tabs {
   display: flex;
   gap: 2px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .dialog-tabs button {
@@ -2761,7 +2760,7 @@ textarea:focus {
 .dialog-tabs button.active {
   color: var(--ink-brand);
   font-weight: 600;
-  box-shadow: inset 0 -2px 0 var(--accent);
+  box-shadow: inset 0 -2px 0 var(--action-primary);
 }
 
 .dialog-body {
@@ -2777,7 +2776,7 @@ textarea:focus {
 .dialog-grid label {
   display: grid;
   gap: 4px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
@@ -2792,8 +2791,8 @@ textarea:focus {
   border-radius: var(--radius-small);
   padding: 0 6px;
   font-size: 12px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .dialog-grid .dialog-check {
@@ -2850,8 +2849,8 @@ textarea:focus {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  color: var(--accent-dark);
-  background: var(--accent-soft);
+  color: var(--action-primary-hover);
+  background: var(--surface-brand-subtle);
 }
 
 .recovery-icon svg {
@@ -2862,7 +2861,7 @@ textarea:focus {
 .recovery-body {
   margin: 0;
   overflow-wrap: anywhere;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -2873,10 +2872,10 @@ textarea:focus {
   justify-content: space-between;
   gap: 10px;
   min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-8);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   padding: 8px 10px;
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
   font-size: 12px;
 }
 
@@ -2884,7 +2883,7 @@ textarea:focus {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--text);
+  color: var(--ink-primary);
   font-weight: 600;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -2892,7 +2891,7 @@ textarea:focus {
 
 .recovery-file-time {
   flex: none;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
@@ -2919,7 +2918,7 @@ textarea:focus {
   background: transparent;
   border-radius: var(--radius-small);
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2931,7 +2930,7 @@ textarea:focus {
 }
 
 .numfmt-cats button.active {
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
@@ -2945,7 +2944,7 @@ textarea:focus {
 .numfmt-field {
   display: grid;
   gap: 4px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
@@ -2956,8 +2955,8 @@ textarea:focus {
   border-radius: var(--radius-small);
   padding: 0 6px;
   font-size: 12px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .numfmt-row {
@@ -2971,16 +2970,16 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .numfmt-sample output {
   min-height: 24px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   padding: 4px 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3001,7 +3000,7 @@ textarea:focus {
   padding: 3px 8px;
   background: transparent;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   text-align: start;
   white-space: nowrap;
 }
@@ -3011,18 +3010,18 @@ textarea:focus {
 }
 
 .numfmt-list button.red {
-  color: var(--danger);
+  color: var(--status-danger);
 }
 
 .numfmt-list button.active {
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
 .numfmt-note {
   margin: 0;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .dialog-actions {
@@ -3041,10 +3040,10 @@ textarea:focus {
   /* .primary-action/.secondary set min-height: 34px globally; the DS sm size wins here */
   min-height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: var(--color-bg-page);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -3053,8 +3052,8 @@ textarea:focus {
 
 .dialog-actions button:hover:not(:disabled),
 .select-data-actions button:hover:not(:disabled) {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .dialog-actions button:active:not(:disabled),
@@ -3078,17 +3077,17 @@ textarea:focus {
 .dialog-actions button.primary,
 .dialog-actions .primary-action,
 .select-data-actions button.primary {
-  border-color: var(--color-btn-primary);
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary);
+  background: var(--action-primary);
+  color: var(--ink-on-brand);
 }
 
 .dialog-actions button.primary:hover:not(:disabled),
 .dialog-actions .primary-action:hover:not(:disabled),
 .select-data-actions button.primary:hover:not(:disabled) {
-  border-color: var(--color-btn-primary-hover);
-  background: var(--color-btn-primary-hover);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary-hover);
+  background: var(--action-primary-hover);
+  color: var(--ink-on-brand);
 }
 
 .dialog-actions button {
@@ -3171,7 +3170,7 @@ textarea:focus {
   flex-direction: column;
   max-height: 240px;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
 }
 
@@ -3181,14 +3180,14 @@ textarea:focus {
   gap: 8px;
   padding: 5px 8px;
   border: none;
-  border-bottom: 1px solid var(--surface-subtle);
-  background: var(--surface);
+  border-bottom: 1px solid var(--surface-raised);
+  background: var(--surface-base);
   text-align: left;
   font-size: 12px;
 }
 
 .fn-row span {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3199,7 +3198,7 @@ textarea:focus {
 }
 
 .fn-row.active {
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 
 .fn-syntax code {
@@ -3225,9 +3224,9 @@ textarea:focus {
 
 .symbol-grid button {
   height: 30px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 16px;
   line-height: 1;
 }
@@ -3256,9 +3255,9 @@ textarea:focus {
   flex-direction: column;
   gap: 4px;
   padding: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 11px;
 }
 
@@ -3299,9 +3298,9 @@ textarea:focus {
 .icons-toolbar input {
   flex: 1;
   padding: 5px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12px;
 }
 
@@ -3313,12 +3312,12 @@ textarea:focus {
 .icons-colors button {
   width: 18px;
   height: 18px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 50%;
 }
 
 .icons-colors button.active {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -3362,7 +3361,7 @@ textarea:focus {
   min-height: 52px;
   padding: 4px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   background: none;
   font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', serif;
@@ -3378,9 +3377,9 @@ textarea:focus {
   width: 100%;
   margin-top: 10px;
   padding: 5px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-family: ui-monospace, monospace;
   font-size: 12px;
 }
@@ -3391,13 +3390,13 @@ textarea:focus {
   min-height: 90px;
   margin-top: 10px;
   overflow: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
 }
 
 .equation-error {
   padding: 0 12px;
-  color: var(--danger);
+  color: var(--status-danger);
   font-size: 12px;
 }
 
@@ -3419,9 +3418,9 @@ textarea:focus {
   flex-direction: column;
   gap: 4px;
   padding: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   text-align: left;
   font-size: 11px;
 }
@@ -3434,11 +3433,11 @@ textarea:focus {
 .recommended-charts-grid svg {
   width: 100%;
   height: auto;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .recommended-charts-grid span {
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* Insert/Edit Link dialog */
@@ -3449,7 +3448,7 @@ textarea:focus {
   display: grid;
   gap: 6px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 .link-dialog .dialog-body input {
   padding: 6px 8px;
@@ -3466,7 +3465,7 @@ textarea:focus {
 .format-cells-dialog .dialog-note {
   margin: 0 0 8px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 .format-cells-dialog .dialog-note {
   grid-column: 1 / -1;
@@ -3484,7 +3483,7 @@ textarea:focus {
 .name-manager-table td {
   text-align: left;
   padding: 4px 6px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3494,10 +3493,10 @@ textarea:focus {
   cursor: pointer;
 }
 .name-manager-table tbody tr.selected {
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 .name-manager-empty {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 .dialog-error {
   color: var(--sheets-error);
@@ -3527,7 +3526,7 @@ textarea:focus {
   padding: 0;
 }
 .styles-row.as-button:hover {
-  color: var(--accent-dark);
+  color: var(--action-primary-hover);
 }
 
 /* AI settings modal (ported from apps/docs' SettingsModal, excel-green themed) */
@@ -3545,7 +3544,7 @@ textarea:focus {
 
 .modal {
   width: 440px;
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 16px;
   padding: 22px 24px;
   box-shadow: var(--shadow-modal);
@@ -3559,7 +3558,7 @@ textarea:focus {
 .modal label {
   display: block;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   margin-bottom: 12px;
 }
 
@@ -3574,12 +3573,12 @@ textarea:focus {
   padding: 0 10px;
   font-size: 13px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .modal input:focus,
 .modal select:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .modal-actions {
@@ -3594,20 +3593,20 @@ textarea:focus {
   padding: 0 16px;
   border: none;
   border-radius: 12px;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
   font-size: 13px;
   cursor: pointer;
 }
 
 .btn-primary:hover {
-  background: var(--accent-dark);
+  background: var(--action-primary-hover);
 }
 
 .btn-ghost {
   border: none;
   background: none;
-  color: var(--accent);
+  color: var(--action-primary);
   font-size: 13px;
   cursor: pointer;
   padding: 4px 8px;
@@ -3630,7 +3629,7 @@ textarea:focus {
   align-items: center;
   gap: 5px;
   border: 1px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 999px;
   padding: 5px 13px;
   font-size: 12.5px;
@@ -3639,12 +3638,12 @@ textarea:focus {
 }
 
 .provider-tab:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .provider-tab-active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  border-color: var(--action-primary);
+  background: var(--surface-brand-subtle);
   color: var(--ink-brand);
   font-weight: 600;
 }
@@ -3653,7 +3652,7 @@ textarea:focus {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 /* ---- AI chat panel shell (conversation parts are @genoffice/ui Agent*) ---- */
@@ -3703,7 +3702,7 @@ textarea:focus {
   display: inline;
   border: none;
   padding: 0;
-  color: var(--accent-dark);
+  color: var(--action-primary-hover);
   background: none;
   font-size: inherit;
   text-decoration: underline;
@@ -3724,14 +3723,14 @@ textarea:focus {
   padding: 6px 14px;
   border: 1px solid var(--border-control);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12.5px;
   cursor: pointer;
 }
 
 .slicer-picker-field:hover {
-  border-color: var(--accent);
-  color: var(--accent-dark);
+  border-color: var(--action-primary);
+  color: var(--action-primary-hover);
 }
 
 /* Slicer overlay stack on the right side of the worksheet */
@@ -3751,7 +3750,7 @@ textarea:focus {
   width: 190px;
   border: 1px solid var(--border-control);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-slicer);
   overflow: hidden;
 }
@@ -3761,7 +3760,7 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   padding: 6px 8px 6px 10px;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
   font-size: 12.5px;
   font-weight: 600;
@@ -3820,13 +3819,13 @@ textarea:focus {
 }
 
 .slicer-member.selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--action-primary);
+  border-color: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
 .slicer-member:hover:not(.selected) {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .timeline-range {
@@ -3857,13 +3856,13 @@ textarea:focus {
 }
 
 .timeline-month.selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--action-primary);
+  border-color: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
 .timeline-month:hover:not(.selected) {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 /* ── Univer override layer ──
@@ -3938,7 +3937,7 @@ textarea:focus {
 .rb-drop-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 4px 2px 3px;
 }
 
@@ -3955,7 +3954,7 @@ textarea:focus {
   border: 1px solid transparent;
   border-radius: 4px;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -3964,7 +3963,7 @@ textarea:focus {
 }
 
 .menu-select-drop.rb-shape-gallery .rb-shape-cell:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   background: var(--ribbon-hover);
 }
 
@@ -3985,7 +3984,7 @@ textarea:focus {
   flex-direction: column;
   border: 1px solid var(--border-control);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-slicer);
   overflow: hidden;
   z-index: 60;
@@ -3996,7 +3995,7 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   padding: 6px 8px 6px 10px;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
   font-size: 12.5px;
   font-weight: 600;
@@ -4027,7 +4026,7 @@ textarea:focus {
   margin: 0;
   padding: 14px 12px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .watch-table {
@@ -4041,7 +4040,7 @@ textarea:focus {
 .watch-table td {
   padding: 4px 8px;
   text-align: left;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   max-width: 130px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4049,7 +4048,7 @@ textarea:focus {
 }
 
 .watch-table th {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-weight: 500;
 }
 
@@ -4059,21 +4058,21 @@ textarea:focus {
 
 .watch-gone td {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .watch-remove {
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   cursor: pointer;
   border-radius: 4px;
   padding: 2px 4px;
 }
 
 .watch-remove:hover {
-  background: var(--hover);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 /* View > Formula Bar toggle: an app-level setting (not in the file), hiding
