@@ -19,6 +19,7 @@ import {
   THEME_COLORS,
   THEME_COLOR_SHADES,
   STANDARD_COLORS,
+  Toolbar,
 } from '@genoffice/ui'
 import { getRecentColors, pushRecentColor } from '../recent-colors'
 import { ICON_COLORS } from '../insert-presets'
@@ -664,6 +665,7 @@ function TableToggleBtn({
   return (
     <button
       className={`rb-icon ${on ? 'active' : ''}`}
+      aria-pressed={!!on}
       disabled={disabled}
       data-tip={t(on ? 'ribbonToggleOffTip' : 'ribbonToggleOnTip', { name: label })}
       onClick={() => (on ? offClick() : onClick())}
@@ -825,7 +827,8 @@ function ShapeFillMenu({
   currentFill: string | null | undefined
   onPickFill: (fill: string | GradientFillSpec) => void
   onPickImage:
-    ((mode: 'stretch' | 'tile', source?: { base64: string; ext: string }) => void) | undefined
+    | ((mode: 'stretch' | 'tile', source?: { base64: string; ext: string }) => void)
+    | undefined
   /** "More Gradients…": opens the format pane's gradient editor */
   onMoreGradient: (() => void) | undefined
   onClose: () => void
@@ -1460,6 +1463,7 @@ export function Ribbon({
     <div className="rb-drop-wrap">
       <button
         className={`rb-big ${insertDrop === key ? 'active' : ''}`}
+        aria-pressed={!!(insertDrop === key)}
         disabled={disabled}
         data-tip={title}
         onMouseDown={(e) => {
@@ -1842,7 +1846,7 @@ export function Ribbon({
         <span className="ribbon-tabs-spacer" />
       </div>
 
-      <div className="ribbon-body" ref={bodyRef}>
+      <Toolbar label={t(TAB_LABEL[tab])} className="ribbon-body" rootRef={bodyRef}>
         {tab === 'home' ? (
           <RibbonHomeTab rb={tabCtx} />
         ) : tab === 'insert' ? (
@@ -1919,6 +1923,7 @@ export function Ribbon({
                 <Group label={t('ribbonGroupDrawTools')}>
                   <button
                     className={`rb-big ${inkTool === 'select' ? 'active' : ''}`}
+                    aria-pressed={!!(inkTool === 'select')}
                     disabled={!hasDoc}
                     data-tip={t('ribbonSelectTip')}
                     onClick={() => {
@@ -1933,6 +1938,7 @@ export function Ribbon({
                   </button>
                   <button
                     className={`rb-big ${inkTool === 'eraser' ? 'active' : ''}`}
+                    aria-pressed={!!(inkTool === 'eraser')}
                     disabled={!hasDoc}
                     data-tip={t('ribbonEraserTip')}
                     onClick={() => {
@@ -2062,6 +2068,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${slideSizeOpen ? 'active' : ''}`}
+                  aria-expanded={!!slideSizeOpen}
                   disabled={!hasDoc}
                   onMouseDown={(e) => {
                     e.stopPropagation()
@@ -2107,6 +2114,7 @@ export function Ribbon({
                 <button
                   key={tr.kind}
                   className={`rb-big ${transition === tr.kind ? 'active' : ''}`}
+                  aria-pressed={!!(transition === tr.kind)}
                   disabled={!hasDoc}
                   onClick={() => onTransition(tr.kind, false)}
                   data-tip={
@@ -2183,6 +2191,7 @@ export function Ribbon({
                 <button
                   key={a.kind}
                   className={`rb-big ${selectedAnimEffect === a.kind ? 'active' : ''}`}
+                  aria-pressed={!!(selectedAnimEffect === a.kind)}
                   disabled={!hasDoc || !hasSelection}
                   onClick={() => onApplyAnimation(a.kind)}
                   onMouseEnter={() => {
@@ -2272,6 +2281,7 @@ export function Ribbon({
               )}
               <button
                 className={`rb-big ${animPaneOpen ? 'active' : ''}`}
+                aria-expanded={!!animPaneOpen}
                 disabled={!hasDoc}
                 onClick={onToggleAnimPane}
                 data-tip={t('ribbonAnimPaneTip')}
@@ -2283,6 +2293,7 @@ export function Ribbon({
               </button>
               <button
                 className={`rb-big ${animByParagraph ? 'active' : ''}`}
+                aria-pressed={!!animByParagraph}
                 disabled={!hasDoc}
                 onClick={onToggleAnimByParagraph}
                 data-tip={t('ribbonAnimByParaTip')}
@@ -2418,6 +2429,7 @@ export function Ribbon({
               <DisabledBig icon={<IconSetupShow size={BIG} />} label={t('ribbonSetUpShow')} />
               <button
                 className={`rb-big ${currentHidden ? 'active' : ''}`}
+                aria-pressed={!!currentHidden}
                 disabled={!hasDoc}
                 onClick={onToggleHidden}
                 data-tip={currentHidden ? t('ribbonUnhideSlideTip') : t('ribbonHideSlideTip')}
@@ -2462,6 +2474,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${translateOpen ? 'active' : ''}`}
+                  aria-expanded={!!translateOpen}
                   disabled={!hasDoc}
                   data-tip={`${t('ribbonTranslateTip')} — ${t('ribbonAiCreditNote')}`}
                   onMouseDown={(e) => {
@@ -2512,6 +2525,7 @@ export function Ribbon({
               </button>
               <button
                 className={`rb-big ${commentsOpen ? 'active' : ''}`}
+                aria-expanded={!!commentsOpen}
                 disabled={!hasDoc}
                 onClick={onToggleComments}
                 data-tip={t('ribbonCommentsPaneTip')}
@@ -2560,6 +2574,7 @@ export function Ribbon({
                 <button
                   key={mode}
                   className={`rb-big ${viewMode === mode ? 'active' : ''}`}
+                  aria-pressed={!!(viewMode === mode)}
                   disabled={!hasDoc}
                   onClick={() => onViewMode(mode)}
                   data-tip={title}
@@ -2789,6 +2804,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${chartDrop === 'elements' ? 'active' : ''}`}
+                  aria-pressed={!!(chartDrop === 'elements')}
                   disabled={!onEditChart}
                   data-tip={t('ribbonAddChartElementTip')}
                   onMouseDown={(e) => {
@@ -2870,6 +2886,7 @@ export function Ribbon({
                         <button
                           key={pos}
                           className={`rb-icon ${(contextChartStyle?.legendPos ?? 'b') === pos ? 'active' : ''}`}
+                          aria-pressed={!!((contextChartStyle?.legendPos ?? 'b') === pos)}
                           onClick={() => onEditChart?.({ legendPos: pos })}
                         >
                           {label}
@@ -2880,6 +2897,7 @@ export function Ribbon({
                     <div className="rb-row">
                       <button
                         className={`rb-icon ${contextChartStyle?.dataLabels ? 'active' : ''}`}
+                        aria-pressed={!!contextChartStyle?.dataLabels}
                         onClick={() =>
                           onEditChart?.({ dataLabels: !contextChartStyle?.dataLabels })
                         }
@@ -2888,6 +2906,7 @@ export function Ribbon({
                       </button>
                       <button
                         className={`rb-icon ${contextChartStyle?.gridlines ? 'active' : ''}`}
+                        aria-pressed={!!contextChartStyle?.gridlines}
                         onClick={() => onEditChart?.({ gridlines: !contextChartStyle?.gridlines })}
                       >
                         {t('ribbonGridlines')}
@@ -2902,6 +2921,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${chartDrop === 'colors' ? 'active' : ''}`}
+                  aria-pressed={!!(chartDrop === 'colors')}
                   disabled={!onEditChart}
                   data-tip={t('ribbonChangeColorsTip')}
                   onMouseDown={(e) => {
@@ -3039,6 +3059,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${transparencyOpen ? 'active' : ''}`}
+                  aria-expanded={!!transparencyOpen}
                   disabled={!onPictureOpacity || contextElementType !== 'picture'}
                   onMouseDown={(e) => {
                     e.stopPropagation()
@@ -3078,6 +3099,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${pictureBorderOpen ? 'active' : ''}`}
+                  aria-expanded={!!pictureBorderOpen}
                   disabled={!onPictureStroke}
                   onMouseDown={(e) => {
                     e.stopPropagation()
@@ -3144,6 +3166,7 @@ export function Ribbon({
             <Group label={t('ribbonGroupSize')}>
               <button
                 className={`rb-big ${cropActive ? 'active' : ''}`}
+                aria-pressed={!!cropActive}
                 data-tip={t('ribbonCropTip')}
                 disabled={!onPictureCrop || contextElementType !== 'picture'}
                 onClick={onPictureCrop}
@@ -3163,6 +3186,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${changeShapeOpen ? 'active' : ''}`}
+                  aria-expanded={!!changeShapeOpen}
                   disabled={!onChangeShape}
                   data-tip={t('ribbonChangeShape')}
                   onMouseDown={(e) => {
@@ -3194,6 +3218,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${shapeStyleOpen ? 'active' : ''}`}
+                  aria-expanded={!!shapeStyleOpen}
                   disabled={!onShapeStyle}
                   data-tip={t('ribbonShapeStyleTip')}
                   onMouseDown={(e) => {
@@ -3238,6 +3263,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${shapeFillOpen ? 'active' : ''}`}
+                  aria-expanded={!!shapeFillOpen}
                   disabled={!onShapeFill}
                   data-tip={t('paneFormatFill')}
                   onMouseDown={(e) => {
@@ -3270,6 +3296,7 @@ export function Ribbon({
               <div className="rb-drop-wrap">
                 <button
                   className={`rb-big ${pictureBorderOpen ? 'active' : ''}`}
+                  aria-expanded={!!pictureBorderOpen}
                   disabled={!onPictureStroke}
                   onMouseDown={(e) => {
                     e.stopPropagation()
@@ -3365,7 +3392,7 @@ export function Ribbon({
             </Group>
           </>
         ) : null}
-      </div>
+      </Toolbar>
     </div>
   )
 }

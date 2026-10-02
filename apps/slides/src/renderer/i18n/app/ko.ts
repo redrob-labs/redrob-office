@@ -1,6 +1,8 @@
 import type { zh } from './zh'
 
 export const ko = {
+  appSlideRail: '슬라이드',
+  appSlideLabel: '슬라이드 {n}',
   appPhPromptTitle: '제목을 추가하려면 클릭',
   appPhPromptSubtitle: '부제목을 추가하려면 클릭',
   appPhPromptBody: '텍스트를 추가하려면 클릭',

@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const hi = {
+  aiYou: 'आप',
+  aiFailedTitle: 'सहायक पूरा नहीं कर सका',
+  aiStepRunning: 'चल रहा है',
+  aiStepDone: 'पूरा हुआ',
+  aiStepFailed: 'विफल',
+  aiStartersLabel: 'सुझाए गए प्रश्न',
   aiInputPlaceholderGen: 'बनाने के लिए प्रस्तुति बताएँ, या कुछ भी पूछें',
   aiEmptyGenTitle: 'AI से अपनी प्रस्तुति बनवाएँ',
   aiEmptyGenBody1: 'विषय, अवसर और अनुमानित पेज संख्या बताएँ;',

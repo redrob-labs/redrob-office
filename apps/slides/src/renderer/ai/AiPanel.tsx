@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 import {
   AgentLoop,
   composeSkills,
@@ -37,12 +37,21 @@ import {
   settingsSupportVision,
 } from './slide-qc'
 import { useI18n, t as tGlobal, aiLangDirective, type TFunc } from '../i18n/locale'
-import { Markdown } from '@genoffice/ui'
+import {
+  AgentComposer,
+  AgentEmpty,
+  AgentFailure,
+  AgentMessage,
+  AgentPanelHeader,
+  AgentSteps,
+  AgentWorking,
+  Alert,
+  Button,
+  Icon,
+  IconButton,
+  Markdown,
+} from '@genoffice/ui'
 import { GensparkMark } from '../components/icons'
-import sendEnterOn from '../assets/send-enter-on.png'
-import sendEnterOff from '../assets/send-enter-off.png'
-import sendStop from '../assets/send-stop.png'
-import attachIcon from '../assets/attach-icon.png'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
 import fileExcelIcon from '../assets/file-excel.png'
@@ -52,7 +61,6 @@ import fileVideoIcon from '../assets/file-video.png'
 import fileVoiceIcon from '../assets/file-voice.png'
 import fileDocumentIcon from '../assets/file-document.png'
 import fileGeneralIcon from '../assets/file-general.png'
-import { IconNewChat, IconSidebarCollapseLeft } from '../components/icons'
 
 interface ToolActivity {
   name: string
@@ -309,49 +317,6 @@ interface AiPanelProps {
   onQueueFocus?: (key: string) => void
   /** Drop the items a submission finished with (successful and unrunnable alike) */
   onQueueConsume?: (keys: string[]) => void
-}
-
-/** Some locales already end the label with an ellipsis — normalize to exactly one. */
-function withEllipsis(label: string): string {
-  return `${label.replace(/(?:…|\.{3})+$/u, '')}…`
-}
-
-/** Two-phase waiting→thinking indicator (mirrors AiTypingIndicator in packages/ui):
- *  grow/shrink blue dots first, then after ~1.2s only the shimmering "Thinking…" text — never both at once. */
-function AiTypingIndicator({ label }: { readonly label: string }) {
-  const [elapsed, setElapsed] = useState(0)
-  const [showLabel, setShowLabel] = useState(false)
-
-  useEffect(() => {
-    const phase = setTimeout(() => setShowLabel(true), 1200)
-    const timer = setInterval(() => setElapsed((s) => s + 1), 1000)
-    return () => {
-      clearTimeout(phase)
-      clearInterval(timer)
-    }
-  }, [])
-
-  return (
-    <span className="ai-typing" role="status" aria-label={label}>
-      {showLabel ? (
-        <span className="ai-typing-label">
-          {withEllipsis(label)}
-          {elapsed >= 3 && (
-            <span className="ai-typing-elapsed" aria-hidden>{` · ${elapsed}s`}</span>
-          )}
-        </span>
-      ) : (
-        <span className="ai-typing-dots" aria-hidden>
-          <span className="ai-typing-dot-slot">
-            <span className="ai-typing-dot-grow" />
-          </span>
-          <span className="ai-typing-dot-slot">
-            <span className="ai-typing-dot-shrink" />
-          </span>
-        </span>
-      )}
-    </span>
-  )
 }
 
 /** Resizable panel width: always opens at the default (drag-resize lasts for
@@ -1945,6 +1910,35 @@ export function AiPanel({
     resizer.setPointerCapture(e.pointerId)
   }
 
+  // Undo routing (undo-routing.ts) reads these off the composer field: Ctrl+Z in
+  // an untouched field after a run undoes the deck, not the text.
+  useLayoutEffect(() => {
+    const ta = inputRef.current
+    if (!ta) return
+    ta.setAttribute('data-slides-ai-input', 'true')
+    ta.setAttribute(
+      'data-deck-undo-ready',
+      !busy && !inputEditedSinceRunRef.current ? 'true' : 'false',
+    )
+  })
+
+  const stepStrings = (n: number) => ({
+    worked: t('aiWorkedSteps', { n }),
+    working: t('aiGroupWorking'),
+    running: t('aiStepRunning'),
+    done: t('aiStepDone'),
+    failed: t('aiStepFailed'),
+  })
+  /** rich tool detail (image grids, link lists) inside the kit action body */
+  const toolDetail = (tool: ToolActivity) => {
+    const hasDisplayData = !!(
+      tool.display?.items?.length ||
+      (tool.display?.kind === 'text' && tool.display.text)
+    )
+    if (tool.running || (!tool.output && !hasDisplayData)) return null
+    return <ToolOutputPanel name={tool.name} output={tool.output ?? ''} display={tool.display} />
+  }
+
   // collapsed: rail only — after all hooks, so the instance and its state survive
   if (!open) {
     return (
@@ -1983,76 +1977,65 @@ export function AiPanel({
         aria-orientation="vertical"
         aria-label="Redrob AI"
       />
-      <div className="ai-panel-header">
-        <span className="ai-panel-title">
-          <GensparkMark size={22} />
-          {t('aiPanelTitle')}
-        </span>
-        <div className="ai-panel-header-actions">
-          {chat.length > 0 && (
-            <button
-              className="ai-header-btn"
-              onClick={newChat}
-              data-tip={t('aiNewChat')}
-              aria-label={t('aiNewChat')}
-            >
-              <IconNewChat size={15} />
-            </button>
-          )}
-          {onCollapse && (
-            <button
-              className="ai-header-btn"
-              onClick={onCollapse}
-              data-tip={t('aiCollapsePanel')}
-              aria-label={t('aiCollapsePanel')}
-            >
-              <IconSidebarCollapseLeft size={15} />
-            </button>
-          )}
-        </div>
-      </div>
+      <AgentPanelHeader
+        title={t('aiPanelTitle')}
+        actions={[
+          chat.length > 0 && {
+            label: t('aiNewChat'),
+            icon: <Icon name="edit" size={16} />,
+            onClick: newChat,
+          },
+          !!onCollapse && {
+            label: t('aiCollapsePanel'),
+            icon: <Icon name="sidebar" size={16} />,
+            onClick: onCollapse,
+          },
+        ]}
+      />
 
       <div ref={logRef} className="ai-chat" onScroll={onLogScroll}>
         {/* Past conversation (read-only transcript, not fed to the model), displayed continuously with the current turn */}
         {historicChat.length > 0 && (
           <>
             {historicChat.map((entry, i) => (
-              <div key={`h${i}`} className={`ai-msg ai-msg-${entry.role} ai-msg-historic`}>
-                {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
-                  <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
-                )}
-                {entry.tools && entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
-                {entry.text && <Markdown text={entry.text} />}
+              <div key={`h${i}`} className="ai-msg-historic">
+                <AgentMessage
+                  role={entry.role}
+                  author={entry.role === 'user' ? t('aiYou') : t('aiPanelTitle')}
+                >
+                  {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
+                    <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
+                  )}
+                  {entry.tools && entry.tools.length > 0 && (
+                    <AgentSteps
+                      steps={entry.tools}
+                      strings={stepStrings(entry.tools.length)}
+                      renderDetail={toolDetail}
+                    />
+                  )}
+                  {entry.text && <Markdown text={entry.text} />}
+                </AgentMessage>
               </div>
             ))}
-            <div className="ai-history-sep">{t('aiHistorySep')}</div>
+            <div className="ai-history-sep" role="separator">
+              {t('aiHistorySep')}
+            </div>
           </>
         )}
         {chat.length === 0 && historicChat.length === 0 && (
-          <div className="ai-chat-empty">
-            <div className="ai-chat-empty-title">
-              {t(deckEmpty ? 'aiEmptyGenTitle' : 'aiEmptyTitle')}
-            </div>
-            <div className="ai-chat-empty-body">
-              {t(deckEmpty ? 'aiEmptyGenBody1' : 'aiEmptyBody1')}
-              <br />
-              {t(deckEmpty ? 'aiEmptyGenBody2' : 'aiEmptyBody2')}
-            </div>
-            <div className="ai-starter-list">
-              {starterPrompts(t, deckEmpty ?? false).map((p) => (
-                <button
-                  key={p}
-                  className="ai-starter"
-                  onClick={() => {
-                    setInput(p)
-                    inputRef.current?.focus()
-                  }}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-          </div>
+          <AgentEmpty
+            title={t(deckEmpty ? 'aiEmptyGenTitle' : 'aiEmptyTitle')}
+            description={`${t(deckEmpty ? 'aiEmptyGenBody1' : 'aiEmptyBody1')} ${t(
+              deckEmpty ? 'aiEmptyGenBody2' : 'aiEmptyBody2',
+            )}`}
+            prompts={starterPrompts(t, deckEmpty ?? false)}
+            promptsLabel={t('aiStartersLabel')}
+            // starters fill the field rather than sending: they usually want a qualifier
+            onPick={(p) => {
+              setInput(p)
+              inputRef.current?.focus()
+            }}
+          />
         )}
         {chat.map((entry, i) => {
           if (
@@ -2075,106 +2058,76 @@ export function AiPanel({
             turnEnded &&
             // edits-only turns have no text but still carry the rollback point
             (!!(entry.text || entry.error) || entry.snapshotId != null)
+          const toolbar = showToolbar ? (
+            <div className="ai-msg-toolbar">
+              {entry.text && (
+                <IconButton
+                  size="sm"
+                  label={t('aiCopyReply')}
+                  onClick={() => copyMessage(entry.text, i)}
+                >
+                  <Icon name={copiedIdx === i ? 'check' : 'copy'} size={14} />
+                </IconButton>
+              )}
+              {isLast && !busy && lastInstructionRef.current && (
+                <IconButton size="sm" label={t('aiRegenerate')} onClick={retry}>
+                  <Icon name="refresh" size={14} />
+                </IconButton>
+              )}
+              {entry.snapshotId != null && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ai-rollback-btn"
+                  disabled={busy}
+                  iconLeft={<Icon name="restore" size={14} />}
+                  onClick={() => void rollback(entry.snapshotId!)}
+                >
+                  {t('aiRollback')}
+                </Button>
+              )}
+            </div>
+          ) : undefined
           return (
-            <div
+            <AgentMessage
               key={i}
-              className={`ai-msg ai-msg-${entry.role}${entry.role === 'assistant' && entry.streaming ? ' ai-msg-streaming' : ''}`}
+              role={entry.role}
+              author={entry.role === 'user' ? t('aiYou') : t('aiPanelTitle')}
+              streaming={entry.role === 'assistant' && !!entry.streaming && !!entry.text}
+              footer={toolbar}
             >
               {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
                 <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
               )}
               {entry.role === 'assistant' && !entry.text && entry.streaming ? (
-                <span className="ai-typing-row">
-                  <AiTypingIndicator
-                    label={entry.tools?.length ? t('aiContinuing') : t('aiThinking')}
-                  />
-                </span>
+                <AgentWorking label={entry.tools?.length ? t('aiContinuing') : t('aiThinking')} />
               ) : entry.role === 'assistant' ? (
-                <Markdown text={entry.text} />
+                entry.text && <Markdown text={entry.text} />
               ) : (
                 entry.text
               )}
-              {entry.tools && entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
-              {entry.error && (
-                <div className="ai-msg-error">{t('aiMsgError', { error: entry.error })}</div>
+              {entry.tools && entry.tools.length > 0 && (
+                <AgentSteps
+                  steps={entry.tools}
+                  strings={stepStrings(entry.tools.length)}
+                  renderDetail={toolDetail}
+                />
               )}
-              {entry.loginRequired && (
-                <button className="ai-login-btn" onClick={() => void window.slidesApi.aiGskLogin()}>
-                  {t('aiGskLoginBtn')}
-                </button>
+              {entry.error && (
+                // fail-closed: the engine's own message, and sign-in only when auth is the cause
+                <AgentFailure
+                  title={t('aiFailedTitle')}
+                  message={entry.error}
+                  action={
+                    entry.loginRequired ? (
+                      <Button size="sm" onClick={() => void window.slidesApi.aiGskLogin()}>
+                        {t('aiGskLoginBtn')}
+                      </Button>
+                    ) : undefined
+                  }
+                />
               )}
               {entry.deckProgress && <DeckProgressCard progress={entry.deckProgress} />}
-              {showToolbar && (
-                <div className="ai-msg-toolbar">
-                  {entry.text && (
-                    <button
-                      className="ai-msg-tool-btn"
-                      onClick={() => copyMessage(entry.text, i)}
-                      aria-label={t('aiCopyReply')}
-                      data-tip={t('aiCopyReply')}
-                    >
-                      {copiedIdx === i ? (
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                          <path
-                            d="M14.6113 5.34253C16.0608 5.3428 17.2363 6.518 17.2363 7.96753V15.5066C17.2361 16.956 16.0607 18.1313 14.6113 18.1316H7.07227C5.62267 18.1316 4.44751 16.9561 4.44727 15.5066V7.96753C4.44732 6.51783 5.62255 5.34253 7.07227 5.34253H14.6113ZM7.07227 6.59253C6.31291 6.59253 5.69732 7.20819 5.69727 7.96753V15.5066C5.69751 16.2658 6.31302 16.8816 7.07227 16.8816H14.6113C15.3703 16.8813 15.9861 16.2656 15.9863 15.5066V7.96753C15.9863 7.20835 15.3705 6.5928 14.6113 6.59253H7.07227ZM10.0176 2.8689C10.3626 2.86905 10.6426 3.14882 10.6426 3.4939C10.6425 3.83888 10.3626 4.11874 10.0176 4.1189H4.59961C3.84022 4.1189 3.22461 4.73451 3.22461 5.4939V11.324C3.22433 11.6689 2.94461 11.949 2.59961 11.949C2.25461 11.949 1.97489 11.6689 1.97461 11.324V5.4939C1.97461 4.04415 3.14987 2.8689 4.59961 2.8689H10.0176Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  )}
-                  {isLast && !busy && lastInstructionRef.current && (
-                    <button
-                      className="ai-msg-tool-btn"
-                      onClick={retry}
-                      aria-label={t('aiRegenerate')}
-                      data-tip={t('aiRegenerate')}
-                    >
-                      {/* 24-canvas glyph at 18px (near-full-bleed paths, sized for optical
-                          parity with the copy icon): stroke 1.5 paints 1.125px (1:16) */}
-                      <svg
-                        style={{ width: 18, height: 18 }}
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
-                      >
-                        <path d="M3.68881 9.85339C4.1791 8.0054 5.28205 6.30704 6.9459 5.09101C10.8046 2.27085 16.2188 3.11279 19.0389 6.97147C19.7242 7.90904 20.1932 8.93842 20.4553 10.0001" />
-                        <path d="M2.00452 8.46411L2.87229 10.7059C2.96814 10.9535 3.24658 11.0765 3.4942 10.9807L5.73594 10.1129" />
-                        <path d="M20.3308 14.4908C19.8405 16.3388 18.7376 18.0372 17.0738 19.2532C13.215 22.0734 7.80083 21.2314 4.98071 17.3728C4.22167 16.3342 3.72792 15.183 3.48686 13.9999" />
-                        <path d="M22.0151 15.8801L21.1474 13.6384C21.0515 13.3908 20.7731 13.2677 20.5255 13.3636L18.2837 14.2314" />
-                      </svg>
-                    </button>
-                  )}
-                  {entry.snapshotId != null && (
-                    <>
-                      {/* hairline between reply actions (icons) and the document action (icon+label);
-                          CSS shows it only when an icon button actually precedes it */}
-                      <span className="ai-rollback-sep" aria-hidden />
-                      <RollbackButton
-                        disabled={busy}
-                        onClick={() => void rollback(entry.snapshotId!)}
-                      />
-                    </>
-                  )}
-                </div>
-              )}
               {clarifyAnswers
                 .filter((c) => c.afterIdx === i)
                 .map((c, k) => (
@@ -2187,7 +2140,7 @@ export function AiPanel({
                     ))}
                   </div>
                 ))}
-            </div>
+            </AgentMessage>
           )
         })}
         {activeClarify && (
@@ -2232,125 +2185,83 @@ export function AiPanel({
               onSend={() => void sendEditQueue()}
             />
           )}
-          {attachNotice && <div className="ai-attach-notice">{attachNotice}</div>}
-          <div className="ai-input-box">
-            {attachments.length > 0 && (
-              <div className="ai-attachments" onScroll={onAttachmentsScroll}>
-                {attachments.map((a) =>
-                  ATTACHMENT_IMAGE_EXTS.has(a.ext) ? (
-                    <span key={a.path} className="ai-attachment-thumb" data-tip={a.path}>
-                      {attachmentPreviews[a.path] ? (
-                        <img src={attachmentPreviews[a.path]} alt={a.name} />
-                      ) : (
-                        <span className="ai-attachment-thumb-pending" aria-hidden>
-                          <img src={fileImageIcon} alt="" />
-                        </span>
-                      )}
-                      <button
-                        className="ai-attachment-thumb-remove"
-                        onClick={() => removeAttachment(a.path)}
-                        data-tip={t('aiRemoveAttachment')}
-                        aria-label={t('aiRemoveAttachment')}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden>
-                          <path
-                            d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                            fill="currentColor"
-                            stroke="currentColor"
-                            strokeWidth="0.25"
-                          />
-                        </svg>
-                      </button>
-                    </span>
-                  ) : (
-                    <span key={a.path} className="ai-attachment-card" data-tip={a.path}>
-                      <span className="ai-attachment-card-icon">
-                        <AttachmentCardIcon ext={a.ext} />
+          {attachNotice && (
+            <Alert tone="info" className="ai-attach-notice">
+              {attachNotice}
+            </Alert>
+          )}
+          <AgentComposer
+            value={input}
+            busy={busy}
+            placeholder={t(deckEmpty ? 'aiInputPlaceholderGen' : 'aiInputPlaceholder')}
+            label={t(deckEmpty ? 'aiInputPlaceholderGen' : 'aiInputPlaceholder')}
+            sendLabel={t('aiSend')}
+            stopLabel={t('aiStop')}
+            textareaRef={inputRef}
+            context={
+              attachments.length > 0 && (
+                <div className="ai-attachments" onScroll={onAttachmentsScroll}>
+                  {attachments.map((a) =>
+                    ATTACHMENT_IMAGE_EXTS.has(a.ext) ? (
+                      <span key={a.path} className="ai-attachment-thumb" data-tip={a.path}>
+                        {attachmentPreviews[a.path] ? (
+                          <img src={attachmentPreviews[a.path]} alt={a.name} />
+                        ) : (
+                          <span className="ai-attachment-thumb-pending" aria-hidden>
+                            <img src={fileImageIcon} alt="" />
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="ai-attachment-thumb-remove"
+                          onClick={() => removeAttachment(a.path)}
+                          data-tip={t('aiRemoveAttachment')}
+                          aria-label={t('aiRemoveAttachment')}
+                        >
+                          <Icon name="close" size={12} />
+                        </button>
                       </span>
-                      <span className="ai-attachment-card-meta">
-                        <span className="ai-attachment-card-name">{truncateCardName(a.name)}</span>
-                        <span className="ai-attachment-card-size">
-                          {formatAttachmentSize(a.sizeBytes)}
+                    ) : (
+                      <span key={a.path} className="ai-attachment-card" data-tip={a.path}>
+                        <span className="ai-attachment-card-icon">
+                          <AttachmentCardIcon ext={a.ext} />
                         </span>
+                        <span className="ai-attachment-card-meta">
+                          <span className="ai-attachment-card-name">
+                            {truncateCardName(a.name)}
+                          </span>
+                          <span className="ai-attachment-card-size">
+                            {formatAttachmentSize(a.sizeBytes)}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          className="ai-attachment-thumb-remove"
+                          onClick={() => removeAttachment(a.path)}
+                          data-tip={t('aiRemoveAttachment')}
+                          aria-label={t('aiRemoveAttachment')}
+                        >
+                          <Icon name="close" size={12} />
+                        </button>
                       </span>
-                      <button
-                        className="ai-attachment-thumb-remove"
-                        onClick={() => removeAttachment(a.path)}
-                        data-tip={t('aiRemoveAttachment')}
-                        aria-label={t('aiRemoveAttachment')}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden>
-                          <path
-                            d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                            fill="currentColor"
-                            stroke="currentColor"
-                            strokeWidth="0.25"
-                          />
-                        </svg>
-                      </button>
-                    </span>
-                  ),
-                )}
-              </div>
-            )}
-            <textarea
-              ref={inputRef}
-              value={input}
-              data-slides-ai-input="true"
-              data-deck-undo-ready={!busy && !inputEditedSinceRunRef.current ? 'true' : 'false'}
-              placeholder={t(deckEmpty ? 'aiInputPlaceholderGen' : 'aiInputPlaceholder')}
-              onChange={(e) => {
-                inputEditedSinceRunRef.current = true
-                setInput(e.target.value)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                  e.preventDefault()
-                  run()
-                } else if (e.key === 'Escape' && busy) {
-                  e.preventDefault()
-                  cancel()
-                }
-              }}
-              onPaste={(e) => {
-                const files = Array.from(e.clipboardData.files)
-                if (files.length === 0) return
-                e.preventDefault()
-                void onPasteFiles(files)
-              }}
-              rows={1}
-            />
-            <div className="ai-input-footer">
-              <button
-                className="ai-attach-btn"
-                onClick={pickAttachments}
-                data-tip={t('aiAttachTitle')}
-                aria-label={t('aiAttachTitle')}
-              >
-                <img src={attachIcon} alt="" aria-hidden />
-              </button>
-              {busy ? (
-                <button
-                  className="ai-send-btn ai-stop-btn"
-                  onClick={cancel}
-                  data-tip={t('aiStopGeneration')}
-                  aria-label={t('aiStop')}
-                >
-                  <img src={sendStop} alt="" aria-hidden />
-                </button>
-              ) : (
-                <button
-                  className="ai-send-btn"
-                  onClick={run}
-                  disabled={!input.trim()}
-                  data-tip={t('aiSend')}
-                  aria-label={t('aiSend')}
-                >
-                  <img src={input.trim() ? sendEnterOn : sendEnterOff} alt="" aria-hidden />
-                </button>
-              )}
-            </div>
-          </div>
+                    ),
+                  )}
+                </div>
+              )
+            }
+            leading={
+              <IconButton size="sm" label={t('aiAttachTitle')} onClick={pickAttachments}>
+                <Icon name="attachment" size={16} />
+              </IconButton>
+            }
+            onChange={(next) => {
+              inputEditedSinceRunRef.current = true
+              setInput(next)
+            }}
+            onSend={run}
+            onStop={cancel}
+            onPasteFiles={(files) => void onPasteFiles(files)}
+          />
         </div>
       )}
     </aside>
@@ -2494,171 +2405,6 @@ function ImageThumb({ url, title }: { url: string; title?: string }) {
     >
       <img src={url} alt={title ?? ''} loading="lazy" onError={() => setHidden(true)} />
     </button>
-  )
-}
-
-/** Step-row status icons (timeline glyphs: 14px in a 20px slot, 1.6 stroke) */
-function StepIcon({ status }: { status: 'running' | 'done' | 'error' }) {
-  if (status === 'running') {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M6.5 3.5h11M6.5 20.5h11M8 3.5v3.2c0 2.6 4 4.2 4 5.3 0 1.1 4 2.7 4 5.3v3.2M16 3.5v3.2c0 2.6-4 4.2-4 5.3 0 1.1-4 2.7-4 5.3v3.2" />
-      </svg>
-    )
-  }
-  if (status === 'error') {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <circle cx="12" cy="12" r="9" />
-        <path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6" />
-      </svg>
-    )
-  }
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="14"
-      height="14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="m8.5 12.4 2.4 2.4 4.6-5" />
-    </svg>
-  )
-}
-
-/** Quiet roll-back action in the message toolbar: restores the deck to before the run's edits */
-function RollbackButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
-  const { t: tr } = useI18n()
-  return (
-    <button type="button" className="ai-rollback-btn" disabled={disabled} onClick={onClick}>
-      {/* 24-canvas glyph at 18px (optical parity with the toolbar icons): stroke 1.5 paints 1.125px (1:16) */}
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M5.91026 4L2.5 7.14791L5.91026 10.8205" />
-        <path d="M3.96154 7.41028H15.1636C18.5169 7.41028 21.3646 10.1484 21.4953 13.5C21.6334 17.0416 18.707 20.0769 15.1636 20.0769H6.88384" />
-      </svg>
-      {tr('aiRollback')}
-    </button>
-  )
-}
-
-/** Tool activity group: a single quiet summary row
- *  that auto-opens while tools run, auto-collapses into "Worked · N steps" when they finish,
- *  and a manual toggle that always wins. Rows inside are step rows with 1px connectors. */
-function ToolChipList({ tools }: { tools: ToolActivity[] }) {
-  const { t: tr } = useI18n()
-  const [expanded, setExpanded] = useState<Set<number>>(new Set())
-  const [userOpen, setUserOpen] = useState<boolean | null>(null)
-
-  const toggle = useCallback((j: number) => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(j)) next.delete(j)
-      else next.add(j)
-      return next
-    })
-  }, [])
-
-  const anyRunning = tools.some((tool) => tool.running)
-  const open = userOpen ?? anyRunning
-  const label = anyRunning ? tr('aiGroupWorking') : tr('aiWorkedSteps', { n: tools.length })
-
-  return (
-    <div className="ai-work-group">
-      <button
-        type="button"
-        className={`ai-work-group-summary${anyRunning ? ' running' : ''}`}
-        aria-expanded={open}
-        onClick={() => setUserOpen(!open)}
-      >
-        {anyRunning && !open && <span className="ai-tool-chip-spinner" aria-hidden />}
-        <span className="ai-work-group-label">{label}</span>
-        <span className={`ai-tool-chip-caret${open ? ' open' : ''}`} aria-hidden>
-          ›
-        </span>
-      </button>
-      <div className={`ai-work-group-body${open ? ' open' : ''}`}>
-        <div className="ai-work-group-body-inner">
-          {tools.map((tool, j) => {
-            const hasDisplayData = !!(
-              tool.display?.items?.length ||
-              (tool.display?.kind === 'text' && tool.display.text)
-            )
-            const hasOutput = !tool.running && (!!tool.output || hasDisplayData)
-            const isOpen = expanded.has(j)
-            const stepStatus = tool.running ? 'running' : tool.isError ? 'error' : 'done'
-            return (
-              <div key={j} className="ai-step-row">
-                <span className={`ai-step-icon ${stepStatus}`} aria-hidden>
-                  <StepIcon status={stepStatus} />
-                </span>
-                <div className="ai-step-content">
-                  {hasOutput ? (
-                    <button
-                      type="button"
-                      className="ai-step-title clickable"
-                      data-tip={tool.name}
-                      aria-expanded={isOpen}
-                      onClick={() => toggle(j)}
-                    >
-                      {tool.summary}
-                    </button>
-                  ) : (
-                    <span className="ai-step-title" data-tip={tool.name}>
-                      {tool.summary}
-                    </span>
-                  )}
-                  {hasOutput && isOpen && (
-                    <div className="ai-step-detail">
-                      <ToolOutputPanel
-                        name={tool.name}
-                        output={tool.output ?? ''}
-                        display={tool.display}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>
   )
 }
 

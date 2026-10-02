@@ -1,5 +1,11 @@
 /** ai strings, zh: defines the key set every other locale shard must match. */
 export const zh = {
+  aiYou: '你',
+  aiFailedTitle: '助手未能完成',
+  aiStepRunning: '运行中',
+  aiStepDone: '完成',
+  aiStepFailed: '失败',
+  aiStartersLabel: '建议的提问',
   aiInputPlaceholderGen: '描述要生成的演示文稿,或直接提问',
   aiEmptyGenTitle: '让 AI 为你生成演示文稿',
   aiEmptyGenBody1: '描述主题、场合和大致页数,',

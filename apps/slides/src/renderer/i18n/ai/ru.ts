@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ru = {
+  aiYou: 'Вы',
+  aiFailedTitle: 'Ассистенту не удалось завершить',
+  aiStepRunning: 'Выполняется',
+  aiStepDone: 'Готово',
+  aiStepFailed: 'Ошибка',
+  aiStartersLabel: 'Предлагаемые вопросы',
   aiInputPlaceholderGen: 'Опишите презентацию для создания или задайте вопрос',
   aiEmptyGenTitle: 'Пусть ИИ создаст вашу презентацию',
   aiEmptyGenBody1: 'Опишите тему, аудиторию и примерное число страниц;',

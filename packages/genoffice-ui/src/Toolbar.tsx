@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react'
+import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode, RefObject } from 'react'
 
 /**
  * What a toolbar's arrow keys move between: every enabled control inside it.
@@ -16,6 +16,8 @@ export interface ToolbarProps {
   /** Names the toolbar for assistive technology. */
   label: string
   className?: string
+  /** The toolbar element, for callers that measure or scroll it. */
+  rootRef?: RefObject<HTMLDivElement | null>
   children?: ReactNode
 }
 
@@ -27,8 +29,9 @@ export interface ToolbarProps {
  * skipping disabled ones. Controls keep their own tabindex management simple:
  * the toolbar sets tabindex -1 on every control but the current one.
  */
-export function Toolbar({ label, className, children }: ToolbarProps): ReactElement {
-  const ref = useRef<HTMLDivElement>(null)
+export function Toolbar({ label, className, rootRef, children }: ToolbarProps): ReactElement {
+  const innerRef = useRef<HTMLDivElement>(null)
+  const ref = rootRef ?? innerRef
   const current = useRef<HTMLElement | null>(null)
   const controls = (): HTMLElement[] =>
     Array.from(ref.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []).filter(

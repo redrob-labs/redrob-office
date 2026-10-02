@@ -444,6 +444,7 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
           <div className="rb-drop-wrap">
             <button
               className={`rb-small ${layoutPickOpen ? 'active' : ''}`}
+              aria-expanded={!!layoutPickOpen}
               disabled={!hasDoc}
               onMouseDown={(e) => {
                 e.stopPropagation()
@@ -874,6 +875,7 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
         <div className="rb-drop-wrap">
           <button
             className={`rb-big ${paraOpen ? 'active' : ''}`}
+            aria-expanded={!!paraOpen}
             disabled={!hasDoc}
             data-tip={t('ribbonGroupParagraph')}
             data-keep-edit=""
@@ -1082,6 +1084,7 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
                     <button
                       key={align}
                       className={`rb-icon ${curAlign === align ? 'active' : ''}`}
+                      aria-pressed={!!(curAlign === align)}
                       disabled={!editing && !hasSelection}
                       data-tip={label}
                       aria-label={label}
@@ -1103,6 +1106,7 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
                     <button
                       key={rtl ? 'rtl' : 'ltr'}
                       className={`rb-icon ${curRtl === rtl ? 'active' : ''}`}
+                      aria-pressed={!!(curRtl === rtl)}
                       disabled={!editing && !hasSelection}
                       data-tip={label}
                       aria-label={label}
@@ -1118,6 +1122,7 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
                   <div className="rb-drop-wrap">
                     <button
                       className={`rb-icon ${lineSpacingOpen ? 'active' : ''}`}
+                      aria-expanded={!!lineSpacingOpen}
                       disabled={!hasSelection}
                       data-tip={t('ribbonLineSpacing')}
                       aria-label={t('ribbonLineSpacing')}
@@ -1197,6 +1202,7 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
       <Group label={t('ribbonGroupPanes')}>
         <button
           className={`rb-big ${formatOpen ? 'active' : ''}`}
+          aria-expanded={!!formatOpen}
           disabled={!hasDoc}
           onClick={onToggleFormat}
           data-tip={t('ribbonFormatPaneTip')}
@@ -1212,6 +1218,7 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
         <div className="rb-drop-wrap">
           <button
             className={`rb-big ${arrangeOpen ? 'active' : ''}`}
+            aria-expanded={!!arrangeOpen}
             disabled={!hasSelection || !onArrange}
             data-tip={
               hasSelection

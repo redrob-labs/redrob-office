@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const nl = {
+  aiYou: 'Jij',
+  aiFailedTitle: 'De assistent kon het niet afmaken',
+  aiStepRunning: 'Bezig',
+  aiStepDone: 'Klaar',
+  aiStepFailed: 'Mislukt',
+  aiStartersLabel: 'Voorgestelde vragen',
   aiInputPlaceholderGen: 'Beschrijf de presentatie om te genereren, of stel een vraag',
   aiEmptyGenTitle: 'Laat AI je presentatie genereren',
   aiEmptyGenBody1: 'Beschrijf het onderwerp, de gelegenheid en het aantal pagina’s;',

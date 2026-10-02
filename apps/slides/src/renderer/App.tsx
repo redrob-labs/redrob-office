@@ -226,7 +226,7 @@ function collectBodyBulletChars(
     out.add('')
     return
   }
-  for (let i = 0; i < text.lines.length;) {
+  for (let i = 0; i < text.lines.length; ) {
     let j = i + 1
     while (j < text.lines.length && !text.lines[j]!.paraStart) j++
     const bullet = text.lines
@@ -3319,7 +3319,35 @@ export function App() {
                 ) : (
                   showThumbs && (
                     <>
-                      <div className="slide-list" ref={thumbsListRef} style={{ width: thumbsW }}>
+                      <div
+                        className="slide-list"
+                        ref={thumbsListRef}
+                        style={{ width: thumbsW }}
+                        role="listbox"
+                        aria-label={t('appSlideRail')}
+                        aria-orientation="vertical"
+                        onKeyDown={(e) => {
+                          // the rail is one Tab stop: arrows / Home / End move between slides
+                          const target = e.target as HTMLElement
+                          if (!target.matches('.thumb[role="option"]')) return
+                          let next = -1
+                          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = current + 1
+                          else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = current - 1
+                          else if (e.key === 'Home') next = 0
+                          else if (e.key === 'End') next = slides.length - 1
+                          if (next < 0 || next >= slides.length) return
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setCurrent(next)
+                          setSelectedIds([])
+                          setEditing(null)
+                          requestAnimationFrame(() =>
+                            thumbsListRef.current
+                              ?.querySelectorAll<HTMLElement>('.thumb[role="option"]')
+                              [next]?.focus(),
+                          )
+                        }}
+                      >
                         {(() => {
                           // width = sidebar minus horizontal padding (20) and .thumb border (4)
                           const thumbW = Math.max(60, thumbsW - 24)
@@ -3327,6 +3355,10 @@ export function App() {
                             <div
                               key={i}
                               className={`thumb ${i === current ? 'active' : ''} ${s.hidden ? 'thumb-hidden' : ''}${thumbDragCls(i)}`}
+                              role="option"
+                              aria-selected={i === current}
+                              aria-label={t('appSlideLabel', { n: i + 1 })}
+                              tabIndex={i === current ? 0 : -1}
                               data-tip={s.hidden ? t('appThumbHiddenTitle') : undefined}
                               {...thumbDragProps(i)}
                               onClick={() => {
@@ -3344,7 +3376,9 @@ export function App() {
                               }}
                             >
                               <SlideThumb slide={s} images={images} width={thumbW} />
-                              <span className="thumb-num">{i + 1}</span>
+                              <span className="thumb-num" aria-hidden="true">
+                                {i + 1}
+                              </span>
                               {pasteFloater?.index === i && (
                                 <PasteOptionsFloater
                                   mode={pasteFloater.mode}

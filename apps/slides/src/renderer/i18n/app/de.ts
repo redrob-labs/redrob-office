@@ -1,6 +1,8 @@
 import type { zh } from './zh'
 
 export const de = {
+  appSlideRail: 'Folien',
+  appSlideLabel: 'Folie {n}',
   appPhPromptTitle: 'Titel durch Klicken hinzufügen',
   appPhPromptSubtitle: 'Untertitel durch Klicken hinzufügen',
   appPhPromptBody: 'Text durch Klicken hinzufügen',

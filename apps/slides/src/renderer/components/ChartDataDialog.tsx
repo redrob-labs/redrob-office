@@ -159,10 +159,10 @@ export function ChartDataDialog({ init, onConfirm, onClose }: Props) {
           </table>
         </div>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('paneCancel')}
           </button>
-          <button className="btn-primary" onClick={confirm}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={confirm}>
             {t('paneOk')}
           </button>
         </div>

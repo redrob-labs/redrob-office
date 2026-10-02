@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ms = {
+  aiYou: 'Anda',
+  aiFailedTitle: 'Pembantu tidak dapat menyelesaikan',
+  aiStepRunning: 'Sedang berjalan',
+  aiStepDone: 'Selesai',
+  aiStepFailed: 'Gagal',
+  aiStartersLabel: 'Soalan dicadangkan',
   aiInputPlaceholderGen: 'Terangkan pembentangan untuk dijana, atau tanya apa sahaja',
   aiEmptyGenTitle: 'Biarkan AI menjana pembentangan anda',
   aiEmptyGenBody1: 'Terangkan topik, majlis dan anggaran bilangan halaman;',

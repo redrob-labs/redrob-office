@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ar = {
+  aiYou: 'أنت',
+  aiFailedTitle: 'تعذّر على المساعد الإكمال',
+  aiStepRunning: 'قيد التشغيل',
+  aiStepDone: 'تم',
+  aiStepFailed: 'فشل',
+  aiStartersLabel: 'أسئلة مقترحة',
   aiInputPlaceholderGen: 'صف العرض المطلوب إنشاؤه أو اطرح أي سؤال',
   aiEmptyGenTitle: 'دع الذكاء الاصطناعي ينشئ عرضك التقديمي',
   aiEmptyGenBody1: 'صف الموضوع والمناسبة وعدد الصفحات التقريبي؛',

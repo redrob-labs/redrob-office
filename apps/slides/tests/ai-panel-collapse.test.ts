@@ -88,19 +88,19 @@ describe('AiPanel collapse (slides)', () => {
   it('keeps the draft input across a collapse/expand cycle', () => {
     const { container, root, cleanup } = mount(createElement(AiPanel, panelProps()))
 
-    const textarea = container.querySelector<HTMLTextAreaElement>('.ai-input-box textarea')
+    const textarea = container.querySelector<HTMLTextAreaElement>('.go-agent-composer textarea')
     expect(textarea).not.toBeNull()
     typeInto(textarea!, 'unsent draft')
     expect(textarea!.value).toBe('unsent draft')
 
     // collapse: only the rail is rendered, but the component stays mounted
     act(() => root.render(createElement(AiPanel, panelProps({ open: false }))))
-    expect(container.querySelector('.ai-input-box textarea')).toBeNull()
+    expect(container.querySelector('.go-agent-composer textarea')).toBeNull()
     expect(container.querySelector('.ai-rail')).not.toBeNull()
 
     // expand: the draft is still there
     act(() => root.render(createElement(AiPanel, panelProps({ open: true }))))
-    const restored = container.querySelector<HTMLTextAreaElement>('.ai-input-box textarea')
+    const restored = container.querySelector<HTMLTextAreaElement>('.go-agent-composer textarea')
     expect(restored).not.toBeNull()
     expect(restored!.value).toBe('unsent draft')
 

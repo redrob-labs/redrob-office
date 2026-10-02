@@ -81,13 +81,13 @@ export function ContextMenu({ x, y, items, onClose }: Props) {
   return (
     <div
       ref={ref}
-      className="ctx-menu"
+      className="ctx-menu rr-menu__list"
       style={{ left: pos.x, top: pos.y }}
       onContextMenu={(e) => e.preventDefault()}
     >
       {items.map((item, i) =>
         item === null ? (
-          <div key={i} className="ctx-sep" />
+          <div key={i} className="ctx-sep rr-menu__sep" role="separator" />
         ) : item.swatches ? (
           <div key={i} className="ctx-swatches">
             <span className="ctx-swatches-label">{item.label}</span>
@@ -96,7 +96,8 @@ export function ContextMenu({ x, y, items, onClose }: Props) {
         ) : (
           <button
             key={i}
-            className={`ctx-item ${item.danger ? 'danger' : ''}`}
+            type="button"
+            className={`ctx-item rr-menu__item${item.danger ? ' rr-menu__item--danger' : ''}`}
             disabled={item.disabled}
             onClick={() => {
               onClose()
@@ -104,7 +105,9 @@ export function ContextMenu({ x, y, items, onClose }: Props) {
             }}
           >
             <span>{item.label}</span>
-            {item.hint && <span className="ctx-hint">{platformShortcuts(item.hint)}</span>}
+            {item.hint && (
+              <span className="ctx-hint rr-menu__shortcut">{platformShortcuts(item.hint)}</span>
+            )}
           </button>
         ),
       )}
