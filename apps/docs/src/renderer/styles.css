@@ -4,13 +4,15 @@
  * tokens come from @genoffice/ui/tokens.css; nothing here may shadow those
  * names. --word-blue is the chrome accent's old name and follows the brand. */
 :root {
-  --word-blue: var(--accent);
-  --word-blue-dark: var(--accent-dark);
+  --word-blue: var(--action-primary);
+  --word-blue-dark: var(--action-primary-hover);
   --word-heading: #2f5496;
   --docs-heading-3: #1f3864;
 
   /* chrome */
-  --docs-accent-ghost: color-mix(in srgb, var(--accent) 10%, transparent);
+  /* the canvas band behind the pages; .workspace-dark overrides it */
+  --docs-canvas: var(--surface-sunken);
+  --docs-accent-ghost: color-mix(in srgb, var(--action-primary) 10%, transparent);
   --docs-copilot-bg-a: var(--surface-ai);
   --docs-copilot-bg-b: var(--surface-brand-subtle);
   --docs-swatch-outline: color-mix(in srgb, var(--ink-primary) 15%, transparent);
@@ -186,8 +188,8 @@ body,
 
 body {
   font-family: var(--font-chrome);
-  color: var(--text);
-  background: var(--chrome-bg);
+  color: var(--ink-primary);
+  background: var(--surface-base);
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   /* The document itself never scrolls: a too-wide ribbon (or any other
@@ -216,7 +218,7 @@ button {
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .qa-btn svg {
@@ -229,7 +231,7 @@ button {
 }
 
 .qa-btn:disabled {
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   cursor: default;
 }
 
@@ -237,11 +239,11 @@ button {
 
 .ribbon {
   flex-shrink: 0;
-  background: var(--chrome-bg);
+  background: var(--surface-base);
   border-bottom: 1px solid var(--border-control);
   user-select: none;
   /* shared toolbar ink (glyphs, letterforms, labels) — same as sheets/slides */
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .ribbon-tabs {
@@ -280,7 +282,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .ribbon-file {
   max-width: 30%;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -370,13 +372,13 @@ html.genoffice-popover-open .ribbon-tabs {
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   background: linear-gradient(135deg, var(--docs-copilot-bg-a), var(--docs-copilot-bg-b));
   border-radius: 14px;
   padding: 4px 14px;
   font-size: 12.5px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .copilot-btn:hover,
@@ -469,7 +471,7 @@ html.genoffice-popover-open .ribbon-tabs {
   /* the overflowing ribbon row squeezes shrinkable items first — without
      this the 1px separators collapse to 0 and vanish (slides ribbon parity) */
   flex-shrink: 0;
-  background: var(--border);
+  background: var(--border-subtle);
   /* 2px matches the groups' vertical padding, so the line spans exactly the
      tallest group content (the clipboard stack / two-row font block) instead
      of stopping short of it — same inset across all three apps */
@@ -478,7 +480,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .ribbon-placeholder {
   align-self: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12.5px;
   padding: 0 14px;
 }
@@ -498,7 +500,7 @@ html.genoffice-popover-open .ribbon-tabs {
   /* no tab wrapping: wrapping in narrow windows makes the ribbon taller, causing height jumps when switching tabs */
   white-space: nowrap;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .rb-big-icon {
@@ -507,7 +509,7 @@ html.genoffice-popover-open .ribbon-tabs {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 /* hover/open paint only the icon row — the label below
@@ -529,7 +531,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .rb-big-icon .rb-caret-svg {
   display: block;
   margin-left: 3px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .rb-big-icon-colored {
@@ -583,7 +585,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 /* The Genspark AI entry keeps a black label even while the panel is open. */
 .rb-big.ai-entry.active {
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 /* The AI entry buttons read as one piece: hover/press tint the whole button
@@ -625,7 +627,7 @@ html.genoffice-popover-open .ribbon-tabs {
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .rb-small svg {
@@ -633,7 +635,7 @@ html.genoffice-popover-open .ribbon-tabs {
   /* 14px glyphs, matching the slides/sheets clipboard stacks */
   width: 14px;
   height: 14px;
-  color: var(--text-primary);
+  color: var(--ink-primary);
   /* CSS resizes these below their attr size — re-pin the painted stroke
      (1.43 units × 14/16 ≈ 1.25px) */
   stroke-width: 1.43;
@@ -670,10 +672,10 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 28px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12px;
   padding: 0 4px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .rb-select:disabled {
@@ -710,7 +712,7 @@ html.genoffice-popover-open .ribbon-tabs {
   border: 1px solid var(--border-control);
   border-left: none;
   border-radius: 0 3px 3px 0;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .rb-caret.rb-combo-caret:hover:not(:disabled) {
@@ -732,7 +734,7 @@ html.genoffice-popover-open .ribbon-tabs {
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
   padding: 0 4px;
   /* flex-center the content: buttons whose svg is followed by an inline caret
      (line spacing / shading / borders) otherwise sit on baseline math and land
@@ -763,7 +765,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .rb-mini-sep {
   width: 1px;
   height: 20px;
-  background: var(--border);
+  background: var(--border-subtle);
   margin: 0 5px;
 }
 
@@ -798,7 +800,7 @@ html.genoffice-popover-open .ribbon-tabs {
   background: none;
   border-radius: 0 3px 3px 0;
   font-size: 8px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
   padding: 0;
 }
@@ -846,7 +848,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .rb-caret-inline {
   font-size: 8px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-left: 2px;
 }
 
@@ -907,7 +909,7 @@ html.genoffice-popover-open .ribbon-tabs {
   display: grid;
   grid-template-columns: repeat(6, 20px);
   gap: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   padding: 8px;
@@ -924,7 +926,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .color-swatch:hover {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -939,7 +941,7 @@ html.genoffice-popover-open .ribbon-tabs {
   font-size: 12.5px;
   text-align: left;
   white-space: nowrap;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -972,7 +974,7 @@ html.genoffice-popover-open .ribbon-tabs {
   box-sizing: border-box;
   width: 20px;
   height: 20px;
-  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink-primary) 18%, transparent);
   border-radius: 0;
 }
 
@@ -980,7 +982,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .color-highlight-swatch.selected {
   position: relative;
   z-index: 1;
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -1011,20 +1013,20 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .color-section-title {
   margin: 12px 0 6px;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12.5px;
   font-weight: 500;
 }
 
 .color-none {
   grid-column: 1 / -1;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12px;
   padding: 4px 0;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .color-none:hover {
@@ -1051,7 +1053,7 @@ html.genoffice-popover-open .ribbon-tabs {
   place-items: center;
   width: 28px;
   height: 28px;
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 
 .ai-feature-icon svg {
@@ -1070,7 +1072,7 @@ html.genoffice-popover-open .ribbon-tabs {
   position-visibility: anchors-visible;
   z-index: 60;
   min-width: 92px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1087,11 +1089,11 @@ html.genoffice-popover-open .ribbon-tabs {
   font-size: 13px;
   border-radius: 4px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .spacing-menu button:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .spacing-menu button.active {
@@ -1116,11 +1118,11 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .rb-font-size-menu button.active {
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .rb-font-size-menu button.active:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-font-size-menu button.active::before {
@@ -1146,11 +1148,11 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .rb-font-family-menu button.active {
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .rb-font-family-menu button.active:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-font-family-menu button.active::before {
@@ -1163,8 +1165,8 @@ html.genoffice-popover-open .ribbon-tabs {
 .rb-menu-group-label {
   padding: 8px 16px 3px;
   font-size: 11px;
-  color: var(--text-secondary);
-  border-top: 1px solid var(--border);
+  color: var(--ink-secondary);
+  border-top: 1px solid var(--border-subtle);
   margin-top: 4px;
   cursor: default;
 }
@@ -1184,7 +1186,7 @@ html.genoffice-popover-open .ribbon-tabs {
   grid-template-columns: repeat(4, 104px);
   gap: 8px;
   padding: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1206,7 +1208,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .cover-card:hover {
   border-color: var(--word-blue);
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .cover-thumb-page {
@@ -1231,7 +1233,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .cover-card-name {
   font-size: 11px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .table-picker {
@@ -1242,7 +1244,7 @@ html.genoffice-popover-open .ribbon-tabs {
   position-try-fallbacks: flip-inline;
   position-visibility: anchors-visible;
   z-index: 60;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1251,7 +1253,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .table-picker-title {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 6px;
   text-align: center;
   white-space: nowrap;
@@ -1270,17 +1272,17 @@ html.genoffice-popover-open .ribbon-tabs {
   margin-top: 8px;
   padding: 5px 6px;
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   border-radius: 0 0 4px 4px;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12px;
   text-align: left;
   cursor: pointer;
 }
 
 .table-picker-custom:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* Word-style table move handle at the hovered table's top-left corner */
@@ -1310,14 +1312,14 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 16px;
   border: 1px solid var(--border-control);
   border-radius: 2px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
   padding: 0;
 }
 
 .table-cell.hot {
   /* blue-tinted like an in-document selection, not the gray toolbar plate */
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
   border-color: var(--word-blue);
 }
 
@@ -1334,7 +1336,7 @@ html.genoffice-popover-open .ribbon-tabs {
   display: grid;
   grid-template-columns: repeat(10, 28px);
   gap: 2px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1349,7 +1351,7 @@ html.genoffice-popover-open .ribbon-tabs {
   border-radius: 3px;
   font-size: 15px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .symbol-cell:hover {
@@ -1369,7 +1371,7 @@ html.genoffice-popover-open .ribbon-tabs {
   width: 312px;
   max-height: 420px;
   overflow-y: auto;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1379,7 +1381,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .shape-group-title {
   padding: 6px 4px 2px;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .shape-grid {
@@ -1396,7 +1398,7 @@ html.genoffice-popover-open .ribbon-tabs {
   background: none;
   border-radius: 4px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .shape-cell:hover {
@@ -1417,7 +1419,7 @@ html.genoffice-popover-open .ribbon-tabs {
   display: grid;
   grid-template-columns: repeat(4, 44px);
   gap: 5px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1427,9 +1429,9 @@ html.genoffice-popover-open .ribbon-tabs {
 .wordart-cell {
   width: 44px;
   height: 44px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 26px;
   font-family: Georgia, serif;
   cursor: pointer;
@@ -1439,7 +1441,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .wordart-cell:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 /* ---- Drop cap dropdown menu ---- */
@@ -1455,7 +1457,7 @@ html.genoffice-popover-open .ribbon-tabs {
   display: flex;
   flex-direction: row;
   gap: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1474,20 +1476,20 @@ html.genoffice-popover-open .ribbon-tabs {
   background: none;
   cursor: pointer;
   font-size: 11px;
-  color: var(--text);
+  color: var(--ink-primary);
   min-width: 56px;
 }
 
 .dropcap-option:hover {
   background: var(--active-bg);
-  border-color: var(--border);
+  border-color: var(--border-subtle);
 }
 
 .dropcap-preview {
   font-size: 28px;
   font-weight: bold;
   line-height: 1;
-  color: var(--text);
+  color: var(--ink-primary);
   min-height: 32px;
   display: flex;
   align-items: center;
@@ -1507,7 +1509,7 @@ html.genoffice-popover-open .ribbon-tabs {
   width: 300px;
   max-height: 420px;
   overflow-y: auto;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1525,7 +1527,7 @@ html.genoffice-popover-open .ribbon-tabs {
   border-radius: 4px;
   padding: 8px 6px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .equation-gallery-item:hover {
@@ -1534,7 +1536,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .equation-gallery-name {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   align-self: flex-start;
 }
 
@@ -1554,7 +1556,7 @@ html.genoffice-popover-open .ribbon-tabs {
   text-align: left;
   font-size: 12px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .equation-gallery-custom:hover {
@@ -1581,13 +1583,13 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .equation-preview-hint {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-family: system-ui, sans-serif;
 }
 
 .equation-preview-error {
   font-size: 12px;
-  color: var(--danger);
+  color: var(--status-danger);
   font-family: system-ui, sans-serif;
 }
 
@@ -1597,7 +1599,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 6px;
   margin-top: 8px;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   user-select: none;
 }
 
@@ -1612,7 +1614,7 @@ html.genoffice-popover-open .ribbon-tabs {
   position-visibility: anchors-visible;
   z-index: 60;
   min-width: 200px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1630,17 +1632,17 @@ html.genoffice-popover-open .ribbon-tabs {
   padding: 7px 12px;
   border-radius: 4px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 13px;
 }
 
 .layout-menu button span {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .layout-menu button:not(:disabled):hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .layout-menu button:disabled {
@@ -1759,7 +1761,7 @@ th.cell-rev-del {
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  background: var(--text-dim);
+  background: var(--ink-secondary);
 }
 
 .pos-cell.ph-left {
@@ -1803,13 +1805,13 @@ th.cell-rev-del {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .layout-num > span:first-child {
   width: 44px;
   text-align: right;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .layout-num input {
@@ -1826,7 +1828,7 @@ th.cell-rev-del {
 }
 
 .layout-unit {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 11px;
 }
 
@@ -1840,7 +1842,7 @@ th.cell-rev-del {
 
 .stats-table td {
   padding: 7px 4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .stats-table td:last-child {
@@ -1855,7 +1857,7 @@ th.cell-rev-del {
 }
 
 .color-swatch.selected {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -1893,16 +1895,16 @@ th.cell-rev-del {
   width: 17px;
   height: 62px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--text-dim);
+  background: var(--surface-base);
+  color: var(--ink-secondary);
   cursor: pointer;
 }
 
 .style-gallery-more:hover {
   border-color: var(--border-control);
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .style-gallery-menu {
@@ -1919,7 +1921,7 @@ th.cell-rev-del {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
   gap: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -1935,9 +1937,9 @@ th.cell-rev-del {
   flex: 0 0 auto;
   width: 74px;
   height: 62px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
 }
 
@@ -1947,7 +1949,7 @@ th.cell-rev-del {
 
 .style-card:hover:not(:disabled) {
   border-color: var(--border-control);
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .style-card.active {
@@ -1962,7 +1964,7 @@ th.cell-rev-del {
 
 .style-card-label {
   font-size: 10.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .style-card-preview {
@@ -1970,7 +1972,7 @@ th.cell-rev-del {
 }
 
 .style-card-preview.style-normal {
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .style-card-preview.style-h1 {
@@ -1995,7 +1997,7 @@ th.cell-rev-del {
   display: flex;
   flex: 1;
   min-height: 0;
-  background: var(--canvas);
+  background: var(--docs-canvas);
 }
 
 .editor-scroll {
@@ -2387,10 +2389,10 @@ th.cell-rev-del {
 .hf-variant-chips button {
   font-size: 10px;
   padding: 1px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--surface);
-  color: var(--text-dim);
+  background: var(--surface-base);
+  color: var(--ink-secondary);
   cursor: pointer;
 }
 
@@ -2423,8 +2425,8 @@ th.cell-rev-del {
 .nav-pane {
   width: 232px;
   flex: none;
-  border-right: 1px solid var(--border);
-  background: var(--surface);
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2434,8 +2436,8 @@ th.cell-rev-del {
   padding: 10px 14px 8px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
+  color: var(--ink-primary);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .nav-pane-list {
@@ -2451,7 +2453,7 @@ th.cell-rev-del {
   background: none;
   padding: 4px 14px;
   font-size: 12.5px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -2459,8 +2461,8 @@ th.cell-rev-del {
 }
 
 .nav-item:hover {
-  background: var(--hover);
-  color: var(--accent);
+  background: var(--surface-sunken);
+  color: var(--action-primary);
 }
 
 .nav-l2 {
@@ -2479,7 +2481,7 @@ th.cell-rev-del {
 .nav-empty {
   padding: 12px 14px;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* tracked changes: insertions underlined, deletions struck through (Word revisions) */
@@ -2596,19 +2598,19 @@ th.cell-rev-del {
 .compare-meta {
   padding: 8px 12px;
   font-size: 12px;
-  color: var(--text-dim);
-  border-bottom: 1px solid var(--border);
+  color: var(--ink-secondary);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .compare-same {
   text-align: center;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 4px 0;
 }
 
 .compare-card {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   padding: 7px 9px;
   margin: 4px 8px;
@@ -2638,7 +2640,7 @@ th.cell-rev-del {
 
 /* comment composer (new comment) */
 .comment-compose {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -2654,8 +2656,8 @@ th.cell-rev-del {
   padding: 6px 8px;
   font-size: 13px;
   font-family: inherit;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 .comment-compose-actions {
@@ -2666,17 +2668,17 @@ th.cell-rev-del {
 
 .comment-compose-actions button {
   border: 1px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 5px;
   padding: 4px 12px;
   font-size: 12px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .comment-compose-actions button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--action-primary);
+  border-color: var(--action-primary);
   color: var(--docs-on-accent);
 }
 
@@ -2684,7 +2686,7 @@ th.cell-rev-del {
   margin-left: auto;
   border: none;
   background: none;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -2695,8 +2697,8 @@ th.cell-rev-del {
 }
 
 .comment-card-del:hover {
-  background: var(--hover);
-  color: var(--danger);
+  background: var(--surface-sunken);
+  color: var(--status-danger);
 }
 
 /* comments: in-text highlight + right-side pane */
@@ -2738,8 +2740,8 @@ th.cell-rev-del {
 .comments-pane {
   width: 264px;
   flex: none;
-  border-left: 1px solid var(--border);
-  background: var(--surface);
+  border-left: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2750,7 +2752,7 @@ th.cell-rev-del {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px 8px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .comments-pane-title {
@@ -2759,7 +2761,7 @@ th.cell-rev-del {
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .comments-pane-close {
@@ -2767,13 +2769,13 @@ th.cell-rev-del {
   background: none;
   cursor: pointer;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   border-radius: 3px;
   padding: 2px 6px;
 }
 
 .comments-pane-close:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .comments-pane-list {
@@ -2788,13 +2790,13 @@ th.cell-rev-del {
   display: block;
   width: 100%;
   text-align: left;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   padding: 8px 10px;
   cursor: pointer;
   font-size: 12.5px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .comment-card:hover {
@@ -2839,12 +2841,12 @@ th.cell-rev-del {
   margin-left: auto;
   flex: none;
   font-size: 10.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .comment-anchor {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   border-left: 2px solid var(--docs-comment-accent);
   padding-left: 6px;
   margin-bottom: 4px;
@@ -2861,7 +2863,7 @@ th.cell-rev-del {
 .comments-empty {
   padding: 12px 14px;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* horizontal ruler */
@@ -2919,7 +2921,7 @@ th.cell-rev-del {
   height: 10px;
   font-size: 8px;
   font-weight: bold;
-  color: var(--accent);
+  color: var(--action-primary);
   cursor: move;
   transform: translateX(-50%);
   text-align: center;
@@ -2929,7 +2931,7 @@ th.cell-rev-del {
 }
 
 .ruler-tab:hover {
-  color: var(--accent-dark);
+  color: var(--action-primary-hover);
   background: var(--docs-accent-ghost);
 }
 
@@ -2970,8 +2972,8 @@ th.cell-rev-del {
   position-try-fallbacks: flip-inline;
   position-visibility: anchors-visible;
   z-index: 30;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 10px;
@@ -2980,7 +2982,7 @@ th.cell-rev-del {
 
 .hf-menu-title {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 6px;
 }
 
@@ -2988,11 +2990,11 @@ th.cell-rev-del {
   width: 100%;
   box-sizing: border-box;
   padding: 5px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   font-size: 12.5px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 .hf-menu-actions {
@@ -3006,9 +3008,9 @@ th.cell-rev-del {
   padding: 4px 12px;
   font-size: 12px;
   border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -3043,9 +3045,9 @@ th.cell-rev-del {
 }
 
 /* "dark canvas" view toggle: one variable override, orthogonal to the global
-   theme — every canvas-band rule below reads var(--canvas) */
+   theme — every canvas-band rule below reads var(--docs-canvas) */
 .workspace-dark {
-  --canvas: #3d3d3d;
+  --docs-canvas: #3d3d3d;
 }
 
 /* visual page-break indicator (w:pageBreakBefore) */
@@ -3063,7 +3065,7 @@ th.cell-rev-del {
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   background: var(--page-bg, var(--docs-paper));
   padding: 0 8px;
 }
@@ -3086,7 +3088,7 @@ th.cell-rev-del {
   bottom: var(--gap-mt, 96px);
   left: 0;
   right: 0;
-  background: var(--canvas);
+  background: var(--docs-canvas);
   box-shadow: var(--docs-gap-inset);
 }
 
@@ -3137,7 +3139,7 @@ th.cell-rev-del {
   background: linear-gradient(
     to bottom,
     var(--page-bg, var(--docs-paper)) 0 var(--gap-mb, 96px),
-    var(--canvas) var(--gap-mb, 96px) calc(var(--gap-mb, 96px) + 28px),
+    var(--docs-canvas) var(--gap-mb, 96px) calc(var(--gap-mb, 96px) + 28px),
     var(--page-bg, var(--docs-paper)) calc(var(--gap-mb, 96px) + 28px) 100%
   );
 }
@@ -3329,8 +3331,8 @@ th.cell-rev-del {
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--surface-base);
+  border-bottom: 1px solid var(--border-subtle);
   -webkit-app-region: no-drag;
 }
 
@@ -3339,18 +3341,18 @@ th.cell-rev-del {
 }
 
 .pv-count {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .pv-hint {
   margin-left: auto;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .pv-close {
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   border-radius: 4px;
   padding: 4px 14px;
   cursor: pointer;
@@ -3967,7 +3969,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   border: 1px solid transparent;
   border-radius: 3px;
   background: transparent;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 11px;
   white-space: nowrap;
   cursor: pointer;
@@ -3995,8 +3997,8 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .table-tool-group button:hover:not(:disabled) {
-  border-color: var(--border);
-  background: var(--hover);
+  border-color: var(--border-subtle);
+  background: var(--surface-sunken);
 }
 
 .table-tool-group button:disabled {
@@ -4005,7 +4007,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .table-tool-group button.danger {
-  color: var(--danger);
+  color: var(--status-danger);
 }
 
 .table-tool-delete {
@@ -4072,12 +4074,12 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   height: 13px;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .table-option-toggle.active .table-option-check {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--action-primary);
+  background: var(--action-primary);
 }
 
 .table-option-toggle.active .table-option-check::after {
@@ -4108,14 +4110,14 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   min-height: 52px;
   padding: 5px 7px;
   gap: 6px;
-  border-color: var(--border);
-  background: var(--surface);
+  border-color: var(--border-subtle);
+  background: var(--surface-base);
 }
 
 .table-command-button:hover:not(:disabled),
 .table-command-button.active {
   border-color: var(--border-control);
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .table-command-copy {
@@ -4137,7 +4139,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .table-command-copy > small {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 10px;
 }
 
@@ -4158,7 +4160,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .layout-menu.table-autofit-menu button > span {
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12px;
 }
 
@@ -4171,7 +4173,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .table-autofit-menu button.active .table-menu-state {
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 .table-tool-advanced {
@@ -4216,7 +4218,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected-textboxes:hover {
-  border-color: var(--border);
+  border-color: var(--border-subtle);
 }
 
 /* inline shapes (WordArt) follow their paragraph's justification like Word */
@@ -4491,7 +4493,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 
 .doc-protected-sectbreak:hover .doc-sectbreak-label,
 .ProseMirror-focused .doc-protected-sectbreak.ProseMirror-selectednode .doc-sectbreak-label {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* decorative rule drawings (heading underlines, dividers): a plain line */
@@ -4576,7 +4578,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-toc-line:hover .doc-toc-title {
-  color: var(--accent);
+  color: var(--action-primary);
   text-decoration: underline;
 }
 
@@ -4623,7 +4625,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   font-size: 10px;
   user-select: none;
 }
@@ -4851,18 +4853,18 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 .doc-protected-label {
   display: inline-block;
   font-size: 11px;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border-subtle);
   border-radius: 3px;
   padding: 1px 8px;
   margin-right: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-family: 'Segoe UI', var(--ui-cjk), sans-serif;
 }
 
 .doc-protected-preview {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: text;
   user-select: text;
   -webkit-user-select: text;
@@ -4956,7 +4958,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected-diagram:hover {
-  border-color: var(--border);
+  border-color: var(--border-subtle);
 }
 
 /* srcRect crop windows carry the declared extent inline; the float wrap's
@@ -4987,7 +4989,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected[data-doc-protected='image']:hover {
-  border-color: var(--border);
+  border-color: var(--border-subtle);
 }
 
 .ProseMirror-focused .doc-protected[data-doc-protected='image'].ProseMirror-selectednode {
@@ -5010,13 +5012,13 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 
 /* find option toggles (match case / whole word) */
 .find-opt {
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   border-radius: 3px;
   font-size: 11px;
   padding: 2px 6px;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .find-opt.on {
@@ -5038,7 +5040,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 
 .chart-data-grid th,
 .chart-data-grid td {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   padding: 0;
 }
 
@@ -5081,7 +5083,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .modal-error {
-  color: var(--danger);
+  color: var(--status-danger);
   font-size: 12px;
   margin-bottom: 6px;
 }
@@ -5095,13 +5097,13 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 .bookmark-list {
   max-height: 260px;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
 }
 
 .bookmark-empty {
   padding: 14px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 13px;
 }
 
@@ -5110,7 +5112,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   align-items: center;
   gap: 8px;
   padding: 5px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .bookmark-row:last-child {
@@ -5128,7 +5130,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 
 .bookmark-preview {
   flex: 1;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
@@ -5139,7 +5141,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 15px;
 }
 
@@ -5269,7 +5271,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   height: 22px;
   align-items: center;
   justify-content: center;
-  color: var(--text);
+  color: var(--ink-primary);
   font: 16px/1 sans-serif;
   pointer-events: none;
   user-select: none;
@@ -5314,13 +5316,13 @@ body.docs-crop-active
   min-height: 100%;
   padding: 9vh 24px 40px;
   text-align: center;
-  background: var(--surface);
+  background: var(--surface-base);
   font-family: 'Segoe UI', var(--ui-cjk), sans-serif;
 }
 
 .editor-scroll:has(> .start-screen) {
   padding: 0;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* Starting up (while the pending-open check runs): lightweight placeholder, don't flash the start screen */
@@ -5328,7 +5330,7 @@ body.docs-crop-active
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 13px;
 }
 
@@ -5345,7 +5347,7 @@ body.docs-crop-active
 
 .recent-title {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 8px;
   font-weight: 600;
 }
@@ -5360,9 +5362,9 @@ body.docs-crop-active
   margin-bottom: 3px;
   border: none;
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -5444,7 +5446,7 @@ body.docs-crop-active
   height: 24px;
   font-size: 11.5px;
   /* neutral chrome, unified with slides/sheets — no app-brand tint */
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   background: var(--docs-statusbar-bg);
   border-top: 1px solid var(--docs-statusbar-border);
 }
@@ -5531,7 +5533,7 @@ body.docs-crop-active
 
 .modal {
   width: 440px;
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 16px;
   padding: 22px 24px;
   box-shadow: var(--docs-shadow-modal);
@@ -5545,7 +5547,7 @@ body.docs-crop-active
 .modal label {
   display: block;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 12px;
 }
 
@@ -5575,7 +5577,7 @@ body.docs-crop-active
   padding: 0 6px;
   font-size: 13px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* Genspark DS modal footer buttons: secondary = bg-subtle, primary = black (#232425) */
@@ -5585,10 +5587,10 @@ body.docs-crop-active
   justify-content: center;
   height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: var(--color-bg-page);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -5596,8 +5598,8 @@ body.docs-crop-active
 }
 
 .modal-actions button:not(.rr-btn):hover:not(:disabled) {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .modal-actions button:not(.rr-btn):active:not(:disabled) {
@@ -5616,15 +5618,15 @@ body.docs-crop-active
 }
 
 .modal-actions button:not(.rr-btn).primary {
-  border-color: var(--color-btn-primary);
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary);
+  background: var(--action-primary);
+  color: var(--ink-on-brand);
 }
 
 .modal-actions button:not(.rr-btn).primary:hover:not(:disabled) {
-  border-color: var(--color-btn-primary-hover);
-  background: var(--color-btn-primary-hover);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary-hover);
+  background: var(--action-primary-hover);
+  color: var(--ink-on-brand);
 }
 
 /* ---- keyboard shortcuts sheet ---- */
@@ -5668,7 +5670,7 @@ body.docs-crop-active
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .modal-shortcuts .sc-row {
@@ -5677,7 +5679,7 @@ body.docs-crop-active
   justify-content: space-between;
   gap: 16px;
   padding: 5px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   font-size: 13px;
 }
 
@@ -5689,8 +5691,8 @@ body.docs-crop-active
   flex: none;
   font-family: inherit;
   font-size: 12px;
-  color: var(--text-dim);
-  background: var(--hover);
+  color: var(--ink-secondary);
+  background: var(--surface-sunken);
   border-radius: 6px;
   padding: 2px 8px;
   white-space: nowrap;
@@ -5700,7 +5702,7 @@ body.docs-crop-active
   margin: 24px 0;
   text-align: center;
   font-size: 13px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .modal-actions {
@@ -5727,7 +5729,7 @@ body.docs-crop-active
 .gs-form .modal-desc {
   font-size: 13px;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   margin: 0 0 20px;
 }
 
@@ -5735,14 +5737,14 @@ body.docs-crop-active
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
   margin-bottom: 16px;
 }
 
 /* the "(optional)" suffix stays lighter than the label itself */
 .gs-form .fld-opt {
   font-weight: 400;
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
 }
 
 .gs-form .fld input {
@@ -5750,12 +5752,12 @@ body.docs-crop-active
   width: 100%;
   margin-top: 0;
   height: 38px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 0 12px;
   font-size: 13px;
-  background: var(--surface);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   outline: none;
   transition:
     border-color var(--transition-fast),
@@ -5772,7 +5774,7 @@ body.docs-crop-active
 }
 
 .gs-form .fld input.invalid {
-  border-color: var(--color-error);
+  border-color: var(--status-danger);
 }
 
 .gs-form .fld input.invalid:focus {
@@ -5803,7 +5805,7 @@ body.docs-crop-active
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--color-error);
+  color: var(--status-danger);
   margin: 6px 0 0;
 }
 
@@ -5814,7 +5816,7 @@ body.docs-crop-active
 .gs-form .fld-hint {
   font-size: 12px;
   line-height: 1.6;
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
   margin: -8px 0 16px;
 }
 
@@ -5839,7 +5841,7 @@ body.docs-crop-active
   padding: 0 6px;
   font-size: 13px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .modal select:focus {
@@ -5899,10 +5901,10 @@ body.docs-crop-active
 .protect-dialog .protect-section-title {
   margin: 24px 0 14px;
   padding-top: 16px;
-  border-top: 1px solid var(--color-border-default);
+  border-top: 1px solid var(--border-subtle);
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
 }
 
 .protect-dialog .modal-desc + .protect-section-title {
@@ -5920,7 +5922,7 @@ body.docs-crop-active
   gap: 8px;
   margin-bottom: 10px;
   font-size: 13px;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -5938,7 +5940,7 @@ body.docs-crop-active
   width: 18px;
   height: 18px;
   border: 1.5px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
   position: relative;
   transition:
     border-color var(--transition-fast),
@@ -5951,8 +5953,8 @@ body.docs-crop-active
 }
 
 .protect-dialog .protect-check input[type='checkbox']:checked + .ctl {
-  border-color: var(--color-btn-primary);
-  background: var(--color-btn-primary);
+  border-color: var(--action-primary);
+  background: var(--action-primary);
 }
 
 .protect-dialog .protect-check input[type='checkbox']:checked + .ctl::after {
@@ -5962,7 +5964,7 @@ body.docs-crop-active
   top: 1.5px;
   width: 4px;
   height: 8px;
-  border: solid var(--color-btn-primary-text);
+  border: solid var(--ink-on-brand);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -5972,8 +5974,8 @@ body.docs-crop-active
 }
 
 .protect-dialog .protect-check input[type='radio']:checked + .ctl {
-  border-color: var(--color-btn-primary);
-  box-shadow: inset 0 0 0 4.5px var(--color-btn-primary);
+  border-color: var(--action-primary);
+  box-shadow: inset 0 0 0 4.5px var(--action-primary);
 }
 
 .protect-dialog .protect-check input:focus-visible + .ctl {
@@ -5983,7 +5985,7 @@ body.docs-crop-active
 .protect-dialog .protect-check input[type='radio']:checked:focus-visible + .ctl {
   /* the checked dot and the focus ring are both box-shadows: they must be combined */
   box-shadow:
-    inset 0 0 0 4.5px var(--color-btn-primary),
+    inset 0 0 0 4.5px var(--action-primary),
     0 0 0 3px var(--docs-focus-ring);
 }
 
@@ -5992,7 +5994,7 @@ body.docs-crop-active
 }
 
 .protect-dialog label.protect-check:has(> input:disabled) {
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
   cursor: default;
 }
 
@@ -6055,7 +6057,7 @@ body.docs-crop-active
   border: none;
   border-radius: 8px;
   background: none;
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
   cursor: pointer;
   transition:
     color var(--transition-fast),
@@ -6063,8 +6065,8 @@ body.docs-crop-active
 }
 
 .pwd-eye:hover:not(:disabled) {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .pwd-eye:focus-visible {
@@ -6101,9 +6103,9 @@ body.docs-crop-active
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--hover);
+  background: var(--surface-sunken);
   overflow: hidden;
 }
 
@@ -6127,25 +6129,25 @@ body.docs-crop-active
   justify-content: center;
   gap: 12px;
   padding: 7px 10px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .print-preview-nav button {
   width: 26px;
   height: 24px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
 }
 
 .print-preview-nav button:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .print-preview-nav button:disabled {
@@ -6158,7 +6160,7 @@ body.docs-crop-active
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 13px;
 }
 
@@ -6174,14 +6176,14 @@ body.docs-crop-active
 .print-options fieldset {
   margin: 0;
   padding: 8px 10px 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
 }
 
 .print-options legend {
   padding: 0 4px;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .print-options .print-radio {
@@ -6190,7 +6192,7 @@ body.docs-crop-active
   gap: 7px;
   margin: 0 0 7px;
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -6199,7 +6201,7 @@ body.docs-crop-active
   width: auto;
   height: auto;
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--action-primary);
 }
 
 .print-options .print-range-input {
@@ -6212,11 +6214,11 @@ body.docs-crop-active
   padding: 0 6px;
   font-size: 12px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .print-options .print-range-input:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .print-options .print-range-input:disabled {
@@ -6224,14 +6226,14 @@ body.docs-crop-active
 }
 
 .print-options .print-range-input.invalid {
-  border-color: var(--danger);
+  border-color: var(--status-danger);
 }
 
 .print-page-count {
   margin-top: auto;
   padding: 2px 2px 0;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* provider tabs in AI settings */
@@ -6248,7 +6250,7 @@ body.docs-crop-active
   align-items: center;
   gap: 5px;
   border: 1px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 999px;
   padding: 5px 13px;
   font-size: 12.5px;
@@ -6262,7 +6264,7 @@ body.docs-crop-active
 
 .provider-tab-active {
   border-color: var(--word-blue);
-  background: color-mix(in srgb, var(--word-blue) 10%, var(--surface));
+  background: color-mix(in srgb, var(--word-blue) 10%, var(--surface-base));
   color: var(--word-blue);
   font-weight: 600;
 }
@@ -6311,7 +6313,7 @@ body.docs-crop-active
    * drag regions hit-test by rectangle regardless of z-order and would
    * swallow every click (notably the × close button) */
   -webkit-app-region: no-drag;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
@@ -6348,7 +6350,7 @@ body.docs-crop-active
 .find-count {
   min-width: 44px;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   text-align: center;
 }
 
@@ -6361,11 +6363,11 @@ body.docs-crop-active
   cursor: pointer;
   font-size: 15px;
   line-height: 1;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .find-btn:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .find-btn:disabled {
@@ -6382,14 +6384,14 @@ body.docs-crop-active
   padding: 0 10px;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
   font-size: 12px;
   white-space: nowrap;
 }
 
 .find-action:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .find-action:disabled {
@@ -6455,7 +6457,7 @@ body.docs-crop-active
 
 .autosave-text {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   white-space: nowrap;
 }
 
@@ -6726,15 +6728,15 @@ body.docs-crop-active
   padding: 0 14px;
   border: 1px solid var(--border-control);
   border-radius: 15px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--docs-shadow-chip);
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
 .read-exit:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* ---- Web Layout: document fills the window width, no page chrome ---- */
@@ -6829,7 +6831,7 @@ body.docs-crop-active
   display: flex;
   flex-direction: column;
   border-top: 3px solid var(--border-control);
-  background: var(--canvas);
+  background: var(--docs-canvas);
 }
 
 .split-pane-bar {
@@ -6838,9 +6840,9 @@ body.docs-crop-active
   justify-content: space-between;
   padding: 3px 12px;
   font-size: 11.5px;
-  color: var(--text-dim);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  color: var(--ink-secondary);
+  background: var(--surface-base);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .split-pane-close {
@@ -6849,7 +6851,7 @@ body.docs-crop-active
   cursor: pointer;
   font-size: 15px;
   line-height: 1;
-  color: var(--text);
+  color: var(--ink-primary);
   padding: 0 4px;
 }
 
@@ -6973,8 +6975,8 @@ ruby.doc-ruby rt {
   font-size: 11px;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--text-dim);
+  background: var(--surface-base);
+  color: var(--ink-secondary);
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.12s;
@@ -6990,7 +6992,7 @@ ruby.doc-ruby rt {
 
 .doc-formula-edit:hover {
   background: var(--active-bg);
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .page-notes {
@@ -7173,7 +7175,7 @@ ruby.doc-ruby rt {
 .font-preview {
   margin: 4px 0 14px;
   padding: 14px 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   text-align: center;
   overflow: hidden;
@@ -7192,7 +7194,7 @@ ruby.doc-ruby rt {
 }
 
 .para-unit {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12px;
 }
 
@@ -7265,7 +7267,7 @@ ruby.doc-ruby rt {
 }
 
 .ink-swatch.active {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -7288,12 +7290,12 @@ ruby.doc-ruby rt {
 }
 
 .ink-width:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .ink-width.active {
-  border-color: var(--accent);
-  background: var(--hover);
+  border-color: var(--action-primary);
+  background: var(--surface-sunken);
 }
 
 .ink-width-dot {
@@ -7319,7 +7321,7 @@ ruby.doc-ruby rt {
 
 .pgnum-hint {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin: 6px 0 0;
 }
 
@@ -7335,7 +7337,7 @@ ruby.doc-ruby rt {
   width: 28px;
   height: 22px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 3px;
 }
 
@@ -7356,7 +7358,7 @@ ruby.doc-ruby rt {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .table-size-inputs input {
@@ -7366,7 +7368,7 @@ ruby.doc-ruby rt {
 }
 
 .table-tool-button.active {
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 
 /* run-level format revision (w:rPrChange): amber underline hint */
@@ -7469,14 +7471,14 @@ tr > .page-gap-cut {
   box-sizing: border-box;
   pointer-events: auto;
   cursor: pointer;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-left: 3px solid var(--docs-paper-comment-line);
   border-radius: 4px;
   padding: 5px 8px;
   font-size: 10px;
   line-height: 1.35;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .comment-bubble-author {
@@ -7491,7 +7493,7 @@ tr > .page-gap-cut {
 .comment-bubble-reply {
   margin-top: 4px;
   padding-top: 3px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* revision balloons (Deleted:/Formatted:) share the bubble frame, keyed by revision ink */
@@ -7549,9 +7551,9 @@ tr > .page-gap-cut {
 /* doubled class strength: .layout-menu button (0,1,1) sets border: none and
    would erase the card frame (bit the old gallery too) */
 .list-gallery .list-gallery-card {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   padding: 6px 8px;
   font-size: 13px;
   cursor: pointer;
@@ -7560,7 +7562,7 @@ tr > .page-gap-cut {
 }
 
 .list-gallery .list-gallery-card:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 /* Word-style bullet/numbering library: header row, a "None" card, bordered
@@ -7574,7 +7576,7 @@ tr > .page-gap-cut {
   grid-column: 1 / -1;
   padding: 2px 2px 0;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .list-gallery-word .list-gallery-card {
@@ -7585,9 +7587,9 @@ tr > .page-gap-cut {
 }
 
 .list-gallery-word .list-gallery-card.selected {
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
-  background: var(--hover);
+  border-color: var(--action-primary);
+  box-shadow: inset 0 0 0 1px var(--action-primary);
+  background: var(--surface-sunken);
 }
 
 .list-gallery-none {
@@ -7612,7 +7614,7 @@ tr > .page-gap-cut {
   gap: 5px;
   font-size: 10px;
   line-height: 1;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .list-gallery-preview-prefix {
@@ -7625,7 +7627,7 @@ tr > .page-gap-cut {
   flex: 1;
   height: 2px;
   border-radius: 1px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 .list-gallery-multi {
@@ -7638,13 +7640,13 @@ tr > .page-gap-cut {
   flex-direction: column;
   gap: 2px;
   font-size: 10px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .list-gallery .list-gallery-define {
   grid-column: 1 / -1;
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   background: none;
   padding: 6px 8px;
   font-size: 12px;
@@ -7653,7 +7655,7 @@ tr > .page-gap-cut {
 }
 
 .list-gallery .list-gallery-define:hover {
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 /* Define New Multilevel List dialog */
@@ -7672,7 +7674,7 @@ tr > .page-gap-cut {
 
 .list-define-head {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 4px 0;
 }
 
@@ -7727,7 +7729,7 @@ tr > .page-gap-cut {
   background: transparent;
   cursor: pointer;
   font-size: 10px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .table-style-card span:last-child {
@@ -7738,14 +7740,14 @@ tr > .page-gap-cut {
 }
 
 .table-style-card:hover {
-  border-color: var(--border);
-  background: var(--hover);
+  border-color: var(--border-subtle);
+  background: var(--surface-sunken);
 }
 
 .table-style-card.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--text);
+  border-color: var(--action-primary);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-primary);
 }
 
 .table-style-card-grid {
@@ -7754,14 +7756,14 @@ tr > .page-gap-cut {
   height: 24px;
   border: 1px solid var(--docs-tstyle-border);
   border-top: 5px solid var(--docs-tstyle-header);
-  background: repeating-linear-gradient(var(--surface) 0 4px, var(--docs-tstyle-row) 4px 8px);
+  background: repeating-linear-gradient(var(--surface-base) 0 4px, var(--docs-tstyle-row) 4px 8px);
   border-radius: 3px;
   box-shadow: var(--docs-shadow-chip);
 }
 
 .table-style-card-grid.plain {
   border-top: 1px solid var(--docs-tstyle-border);
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .table-properties-dialog {
@@ -7785,8 +7787,8 @@ tr > .page-gap-cut {
   align-items: center;
   justify-content: center;
   border-radius: 11px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--surface-brand-subtle);
+  color: var(--action-primary);
 }
 
 .table-properties-header .modal-desc {
@@ -7796,16 +7798,16 @@ tr > .page-gap-cut {
 .table-properties-card {
   margin-top: 10px;
   padding: 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .table-properties-dialog h3 {
   margin: 0 0 12px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .table-properties-segments {
@@ -7814,7 +7816,7 @@ tr > .page-gap-cut {
   gap: 3px;
   padding: 3px;
   border-radius: 9px;
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .table-properties-segment {
@@ -7837,7 +7839,7 @@ tr > .page-gap-cut {
   justify-content: center;
   border: 1px solid transparent;
   border-radius: 7px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12px;
   text-align: center;
   transition:
@@ -7847,10 +7849,10 @@ tr > .page-gap-cut {
 }
 
 .table-properties-segment input:checked + span {
-  border-color: var(--border);
-  background: var(--surface);
+  border-color: var(--border-subtle);
+  background: var(--surface-base);
   box-shadow: var(--docs-shadow-chip);
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .table-properties-segment input:focus-visible + span {
@@ -7869,7 +7871,7 @@ tr > .page-gap-cut {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12px;
 }
 
@@ -7884,10 +7886,10 @@ tr > .page-gap-cut {
   width: 70px;
   height: 30px;
   padding: 0 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   outline: none;
 }
 
@@ -7896,7 +7898,7 @@ tr > .page-gap-cut {
 }
 
 .table-properties-grid input:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   box-shadow: 0 0 0 3px var(--docs-focus-ring);
 }
 
@@ -7916,22 +7918,22 @@ tr > .page-gap-cut {
   box-sizing: border-box;
   width: 132px;
   height: 96px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .table-margin-preview-cell {
   position: absolute;
   inset: 24px 30px;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--action-primary);
   border-radius: 4px;
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 
 .table-margin-value {
   position: absolute;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 10px;
   line-height: 1;
 }
@@ -7980,7 +7982,7 @@ tr > .page-gap-cut {
 
 /* comment threads: replies and resolution */
 .comment-thread {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 6px;
   margin-bottom: 6px;
 }
@@ -8002,13 +8004,13 @@ tr > .page-gap-cut {
   border: none;
   background: none;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
   text-align: left;
 }
 
 .comments-resolved-toggle:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .comments-resolved-caret {
@@ -8031,8 +8033,8 @@ tr > .page-gap-cut {
 .comment-reply {
   margin: 4px 8px 4px 26px;
   padding: 6px 8px;
-  border-left: 2px solid var(--border);
-  background: var(--surface);
+  border-left: 2px solid var(--border-subtle);
+  background: var(--surface-base);
   border-radius: 4px;
   font-size: 12px;
 }
@@ -8046,11 +8048,11 @@ tr > .page-gap-cut {
 .comment-thread-actions > button {
   font-size: 11px;
   padding: 2px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .comment-reply-compose {
@@ -8170,7 +8172,7 @@ tr > .page-gap-cut {
 .rb-drop-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 4px 2px 3px;
 }
 
@@ -8195,7 +8197,7 @@ tr > .page-gap-cut {
   background: none;
   font-size: 15px;
   line-height: 1;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -8204,8 +8206,8 @@ tr > .page-gap-cut {
 }
 
 .rb-shape-cell:hover {
-  border-color: var(--accent);
-  background: var(--hover);
+  border-color: var(--action-primary);
+  background: var(--surface-sunken);
 }
 
 /* Gallery variant keeps .shape-palette's anchored-card chrome but stacks grouped grids */

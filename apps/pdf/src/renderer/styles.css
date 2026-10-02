@@ -95,8 +95,8 @@ body,
 body {
   font-family: var(--font-chrome);
   font-size: 13px;
-  color: var(--text);
-  background: var(--chrome-bg);
+  color: var(--ink-primary);
+  background: var(--surface-base);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -116,7 +116,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 14px;
 }
 
@@ -304,8 +304,8 @@ button {
   display: flex;
   gap: 2px;
   padding: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-shadow: var(--pdf-shadow-popup);
   transform: translateX(-50%);
@@ -325,13 +325,13 @@ button {
 }
 
 .pdf-sel-popup button:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* Word-style toggle state: the selection already carries this markup; clicking removes it */
 .pdf-sel-popup button.is-active {
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--surface-brand-subtle);
+  box-shadow: inset 0 0 0 1px var(--action-primary);
 }
 
 .sel-swatch {
@@ -402,8 +402,8 @@ button {
   align-items: center;
   gap: 2px;
   padding: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-shadow: var(--pdf-shadow-popup);
   transform: translateX(-50%);
@@ -419,7 +419,7 @@ button {
   padding: 5px 10px;
   border-radius: 5px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -430,7 +430,7 @@ button {
 }
 
 .pdf-del-popup button:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .pdf-del-popup .pdf-del-popup-danger:hover {
@@ -442,7 +442,7 @@ button {
   align-self: stretch;
   width: 1px;
   margin: 3px 2px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 /* Transparency presets fold-out under the image selection popup */
@@ -454,8 +454,8 @@ button {
   display: flex;
   gap: 2px;
   padding: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-shadow: var(--pdf-shadow-popup);
 }
@@ -623,7 +623,7 @@ button {
   display: flex;
   flex: 1;
   min-height: 0;
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 
 .pdf-thumbs {
@@ -726,7 +726,7 @@ button {
   flex: 1;
   overflow: auto;
   padding: 0 24px;
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 
 /* One row: one page in single-page mode, two side by side in two-page mode.
@@ -824,7 +824,7 @@ button {
   padding: 5px 8px;
   font-size: 12.5px;
   line-height: 1.35;
-  color: var(--text);
+  color: var(--ink-primary);
   border-radius: 4px;
   cursor: pointer;
   overflow: hidden;
@@ -833,7 +833,7 @@ button {
 }
 
 .pdf-outline-item:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* ── Encrypted document password ── */
@@ -1098,8 +1098,8 @@ button {
   align-items: center;
   gap: 4px;
   padding: 5px 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-shadow: var(--pdf-shadow-popup);
 }
@@ -1111,20 +1111,20 @@ button {
   border-radius: 4px;
   padding: 0 8px;
   font-size: 13px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 .pdf-search-input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .pdf-search-count {
   min-width: 52px;
   text-align: center;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   white-space: nowrap;
 }
 
@@ -1223,8 +1223,8 @@ button {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   /* Top stripe carries the annotation color (inline, document data like the pin) */
   border-top-width: 3px;
   border-radius: 8px;
@@ -1241,7 +1241,7 @@ button {
 
 .pdf-note-card-active {
   cursor: default;
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   box-shadow: var(--pdf-shadow-popup);
 }
 
@@ -1255,13 +1255,13 @@ button {
 .pdf-note-card-title {
   flex: 1;
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .pdf-note-card-close {
   border: none;
   background: none;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 16px;
   line-height: 1;
   padding: 2px 7px;
@@ -1271,8 +1271,8 @@ button {
 }
 
 .pdf-note-card-close:hover {
-  background: var(--hover);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .pdf-note-card-head .pdf-note-author {
@@ -1308,18 +1308,18 @@ button {
 .pdf-note-draft-box textarea,
 .pdf-note-edit-box textarea {
   resize: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   padding: 5px 8px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font: inherit;
 }
 
 .pdf-note-draft-box textarea:focus,
 .pdf-note-edit-box textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .pdf-note-draft-actions {
@@ -1338,7 +1338,7 @@ button {
 
 .pdf-note-comment-reply {
   margin-left: 16px;
-  border-left: 2px solid var(--border);
+  border-left: 2px solid var(--border-subtle);
 }
 
 .pdf-note-comment-head {
@@ -1349,7 +1349,7 @@ button {
 
 .pdf-note-author {
   font-weight: 600;
-  color: var(--accent);
+  color: var(--action-primary);
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1358,7 +1358,7 @@ button {
 
 .pdf-note-time {
   flex: 1;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
@@ -1384,7 +1384,7 @@ button {
   align-self: center;
   border: none;
   background: none;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   line-height: 1;
   padding: 3px 5px;
   border-radius: 4px;
@@ -1392,18 +1392,18 @@ button {
 }
 
 .pdf-note-comment-del:hover {
-  background: var(--hover);
-  color: var(--danger);
+  background: var(--surface-sunken);
+  color: var(--status-danger);
 }
 
 .pdf-note-comment-edit:hover {
-  background: var(--hover);
-  color: var(--accent);
+  background: var(--surface-sunken);
+  color: var(--action-primary);
 }
 
 .pdf-note-comment-body {
   margin-top: 2px;
-  color: var(--text);
+  color: var(--ink-primary);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -1413,23 +1413,23 @@ button {
   align-items: flex-end;
   gap: 6px;
   padding: 8px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .pdf-note-reply-box textarea {
   flex: 1;
   resize: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   padding: 5px 8px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font: inherit;
 }
 
 .pdf-note-reply-box textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .pdf-note-reply-send {
@@ -1663,9 +1663,9 @@ button {
   align-items: center;
   margin-bottom: 5px;
   padding: 5px 7px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--pdf-shadow-pin);
   white-space: nowrap;
 }
@@ -1673,10 +1673,10 @@ button {
 .pdf-textedit-sizenum {
   width: 48px;
   padding: 2px 4px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 12px;
 }
 
@@ -1688,7 +1688,7 @@ button {
 .pdf-textedit-fontsel .gs-dd-btn {
   height: 22px;
   padding: 0 4px;
-  border-color: var(--border);
+  border-color: var(--border-subtle);
   border-radius: 4px;
 }
 
@@ -1696,10 +1696,10 @@ button {
   width: 22px;
   height: 22px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -1712,13 +1712,13 @@ button {
 }
 
 .pdf-textedit-toggle:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .pdf-textedit-toggle.active {
   background: var(--pdf-textedit-hover-bg);
   border-color: var(--pdf-textedit-ring);
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 /* Trash button at the end of the style bar: deletes the whole run */
@@ -1732,7 +1732,7 @@ button {
   height: 13px;
 }
 .pdf-textedit-trash:hover {
-  color: var(--danger);
+  color: var(--status-danger);
 }
 
 .pdf-text-color-wrap {
@@ -1745,16 +1745,16 @@ button {
   height: 24px;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
 }
 
 .pdf-textedit-swatch {
   width: 16px;
   height: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 50%;
   padding: 0;
   cursor: pointer;
@@ -1778,8 +1778,8 @@ button {
 
 .pdf-color-trigger-compact:hover,
 .pdf-color-trigger-compact.active {
-  border-color: var(--accent);
-  background: var(--hover);
+  border-color: var(--action-primary);
+  background: var(--surface-sunken);
 }
 
 .pdf-color-trigger-compact > span {
@@ -1888,7 +1888,7 @@ button {
   z-index: 5;
   width: 10px;
   height: 10px;
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--action-primary);
   border-radius: 50%;
   background: var(--pdf-paper);
   touch-action: none;
@@ -1918,13 +1918,13 @@ button {
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .pdf-field > span:first-child {
   flex-shrink: 0;
   min-width: 74px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .pdf-field .pdf-modal-input {
@@ -1948,13 +1948,13 @@ button {
 
 .pdf-field input[type='range'] {
   flex: 1;
-  accent-color: var(--accent);
+  accent-color: var(--action-primary);
 }
 
 .pdf-field em {
   font-style: normal;
   font-size: 11.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   min-width: 40px;
   text-align: right;
 }
@@ -1987,8 +1987,8 @@ button {
   padding: 0 8px;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -2054,13 +2054,13 @@ button {
 
 .pdf-prop-row > span {
   min-width: 74px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   flex-shrink: 0;
 }
 
 .pdf-prop-row > em {
   font-style: normal;
-  color: var(--text);
+  color: var(--ink-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2084,7 +2084,7 @@ button {
   top: -5px;
   height: 3px;
   border-radius: 2px;
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 /* ── Signature dialog ── */
@@ -2099,15 +2099,15 @@ button {
   padding: 0 14px;
   border: 1px solid var(--border-control);
   border-radius: 5px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 12.5px;
   cursor: pointer;
 }
 
 .pdf-sign-tab.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--action-primary);
+  border-color: var(--action-primary);
   color: var(--pdf-on-accent);
 }
 
@@ -2121,7 +2121,7 @@ button {
 
 .pdf-sign-hint {
   font-size: 11.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .pdf-sign-fontgrid {
@@ -2147,8 +2147,8 @@ button {
 }
 
 .pdf-sign-fontcard.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1.5px var(--accent) inset;
+  border-color: var(--action-primary);
+  box-shadow: 0 0 0 1.5px var(--action-primary) inset;
 }
 
 .pdf-sign-imgbox {
@@ -2168,14 +2168,14 @@ button {
 .pdf-sign-imgbox-empty {
   flex-direction: column;
   gap: 6px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12.5px;
 }
 
 .pdf-sign-imgplus {
   font-size: 26px;
   line-height: 1;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .pdf-sign-img {
@@ -2189,13 +2189,13 @@ button {
   align-items: center;
   gap: 6px;
   font-size: 12.5px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   user-select: none;
 }
 
 .pdf-sign-bw.disabled {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: default;
 }
 
@@ -2203,7 +2203,7 @@ button {
 
 .pdf-sign-saved-label {
   font-size: 11.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .pdf-sign-saved {
@@ -2234,8 +2234,8 @@ button {
 }
 
 .pdf-sign-saved-pick:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent) inset;
+  border-color: var(--action-primary);
+  box-shadow: 0 0 0 1px var(--action-primary) inset;
 }
 
 .pdf-sign-saved-pick img,
@@ -2257,8 +2257,8 @@ button {
   padding: 0;
   border: 1px solid var(--border-control);
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--text-dim);
+  background: var(--surface-base);
+  color: var(--ink-secondary);
   font-size: 12px;
   line-height: 1;
   cursor: pointer;
@@ -2269,13 +2269,13 @@ button {
 }
 
 .pdf-sign-saved-del:hover {
-  color: var(--text);
-  border-color: var(--text-dim);
+  color: var(--ink-primary);
+  border-color: var(--ink-secondary);
 }
 
 .pdf-draw-handle {
   fill: var(--pdf-paper);
-  stroke: var(--accent);
+  stroke: var(--action-primary);
   stroke-width: 1.5;
 }
 
@@ -2396,14 +2396,14 @@ button {
   font-size: 13px;
   font-family: inherit;
   line-height: 1.5;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   resize: vertical;
 }
 
 .pdf-modal-textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 /* ── Link annotation hit areas ── */
@@ -2589,7 +2589,7 @@ button {
   width: 1px;
   align-self: stretch;
   margin: 3px 2px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 .pdf-sel-popup button.pdf-sel-ask {
@@ -2598,7 +2598,7 @@ button {
   padding: 0 9px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-ai-action);
+  color: var(--action-primary);
 }
 
 .ai-ask-pop {

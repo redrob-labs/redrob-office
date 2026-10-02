@@ -101,7 +101,12 @@ function ChartPreview({
               <path key={index} d={slice.d} fill={slice.color} />
             ))}
             {kind === 'doughnut' && (
-              <circle cx={W / 2} cy={H / 2} r={(H / 2 - PAD) * 0.55} fill="var(--surface, #fff)" />
+              <circle
+                cx={W / 2}
+                cy={H / 2}
+                r={(H / 2 - PAD) * 0.55}
+                fill="var(--surface-base, #fff)"
+              />
             )}
           </>
         )
@@ -190,7 +195,7 @@ function ChartPreview({
             <polygon
               points={Array.from({ length: count }, (_, index) => vertex(1, index)).join(' ')}
               fill="none"
-              stroke="var(--border, #ccc)"
+              stroke="var(--border-subtle, #ccc)"
             />
             {series.map((entry, seriesIndex) => (
               <polygon
@@ -259,7 +264,7 @@ function ChartPreview({
   }
   return (
     <svg viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
-      <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="var(--border, #ccc)" />
+      <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="var(--border-subtle, #ccc)" />
       {content()}
     </svg>
   )

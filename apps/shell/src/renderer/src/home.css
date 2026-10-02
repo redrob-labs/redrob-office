@@ -36,8 +36,8 @@
 body {
   margin: 0;
   font-family: var(--font-chrome);
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 /* macOS vibrancy (body.vib set at bootstrap): the window background stays
@@ -48,7 +48,7 @@ body.vib {
 }
 
 body.vib .home {
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* ---- two-pane frame (below the 40px tab bar) ---- */
@@ -64,7 +64,7 @@ body.vib .home {
   flex-shrink: 0;
   width: 232px;
   padding: 18px 12px 16px;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-subtle);
   overflow-y: auto;
 }
 
@@ -114,23 +114,23 @@ body.vib .home {
   background: none;
   font: inherit;
   font-size: 14px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   text-align: left;
 }
 
 .nav-item:hover {
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
 }
 
 .nav-item.active {
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
   font-weight: 600;
 }
 
 .nav-item svg {
   flex-shrink: 0;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .nav-label {
@@ -142,7 +142,7 @@ body.vib .home {
   min-width: 22px;
   text-align: center;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -172,7 +172,7 @@ body.vib .home {
 }
 
 .account-btn:hover {
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
 }
 
 .account-avatar {
@@ -184,7 +184,7 @@ body.vib .home {
   height: 28px;
   border-radius: 50%;
   background: var(--avatar-bg);
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 14px;
   font-weight: 700;
 }
@@ -195,7 +195,7 @@ body.vib .home {
 }
 
 .account-avatar.waiting {
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 .account-spinner {
@@ -219,7 +219,7 @@ body.vib .home {
 .account-chevron {
   flex-shrink: 0;
   margin-left: auto;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .account-name {
@@ -232,7 +232,7 @@ body.vib .home {
 
 .account-sub {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -254,7 +254,7 @@ body.vib .home {
   padding: 4px;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--shadow-md);
   z-index: 30;
 }
@@ -267,7 +267,7 @@ body.vib .home {
 }
 
 .login-hint button:hover {
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
 }
 
 .login-hint-open {
@@ -277,7 +277,7 @@ body.vib .home {
   font-size: 12.5px;
   line-height: 17px;
   padding: 4px 6px;
-  color: var(--accent);
+  color: var(--action-primary);
   text-align: start;
 }
 
@@ -291,15 +291,15 @@ body.vib .home {
   height: 25px;
   padding: 0;
   border-radius: 7px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .login-hint-copy:hover {
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .login-hint-copy.copied {
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 /* ---- main content ---- */
@@ -309,7 +309,7 @@ body.vib .home {
   min-width: 0;
   padding: 28px 36px 40px;
   overflow-y: auto;
-  background: var(--bg-content);
+  background: var(--surface-raised);
 }
 
 .section-head {
@@ -323,7 +323,7 @@ body.vib .home {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
 }
 
 .home-hero {
@@ -336,13 +336,13 @@ body.vib .home {
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.3;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .hero-ask {
   display: block;
   margin-top: 0;
-  color: var(--text-primary);
+  color: var(--ink-primary);
   font-weight: 500;
 }
 
@@ -363,9 +363,9 @@ body.vib .home {
   align-items: flex-start;
   gap: 14px;
   padding: 18px 18px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: var(--surface);
+  background: var(--surface-base);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -428,7 +428,7 @@ body.vib .home {
   width: 100%;
   overflow: hidden;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -439,9 +439,9 @@ body.vib .home {
   height: 30px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .ai-chip {
@@ -450,7 +450,7 @@ body.vib .home {
   padding: 1px 6px;
   border-radius: 4px;
   background: var(--badge-bg);
-  color: var(--accent);
+  color: var(--action-primary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -494,7 +494,7 @@ body.vib .home {
   align-items: center;
   justify-content: space-between;
   padding: 10px 0 14px;
-  background: var(--bg-content);
+  background: var(--surface-raised);
 }
 
 /* "RECENT · N files" on one baseline */
@@ -512,7 +512,7 @@ body.vib .home {
 .file-count {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
 }
 
 /* segmented control: gray track, active segment = white card */
@@ -538,18 +538,18 @@ body.vib .home {
   /* same size as the toolbar's heading text ("Recent · N files") so the two
      sit on one optical line — a 13px/14px mix reads as misaligned */
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .cloud-seg button:hover {
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .cloud-seg button.active {
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-weight: 600;
   box-shadow: var(--shadow-pill);
 }
@@ -560,7 +560,7 @@ body.vib .home {
 }
 
 .empty {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 14px;
 }
 
@@ -574,8 +574,8 @@ body.vib .home {
 .load-more-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid var(--border);
-  border-top-color: var(--text-muted);
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--ink-muted);
   border-radius: 50%;
   animation: load-more-spin 0.8s linear infinite;
 }
@@ -597,26 +597,26 @@ body.vib .home {
 /* matches .selection-action's text (14px, body text color) */
 .selection-count {
   font-size: 14px;
-  color: var(--text);
+  color: var(--ink-primary);
   margin-right: 4px;
 }
 
 .selection-action {
   padding: 5px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
 }
 
 .selection-action:hover {
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
 }
 
 .selection-action.danger {
-  color: var(--danger);
+  color: var(--status-danger);
   border-color: var(--danger-border);
 }
 
@@ -628,9 +628,9 @@ body.vib .home {
 
 /* no overflow clipping: row menus must be able to escape the card */
 .recent-table {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .recent-columns,
@@ -649,7 +649,7 @@ body.vib .home {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* header label starts at the icon column so it lines up with the file badges */
@@ -684,16 +684,16 @@ body.vib .home {
 }
 
 .recent-row:hover .recent-item {
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
 }
 
 /* checked rows keep the same gray as the sidebar's active item */
 .recent-row:has(.row-check:checked) .recent-item {
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
 }
 
 .recent-item:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: -2px;
 }
 
@@ -709,13 +709,13 @@ body.vib .home {
   appearance: none;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
 }
 
 .col-check input:checked {
-  border-color: var(--accent);
-  background: var(--accent)
+  border-color: var(--action-primary);
+  background: var(--action-primary)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     center / 10px 10px no-repeat;
 }
@@ -771,17 +771,17 @@ body.vib .home {
 .rename-input {
   min-width: 0;
   padding: 3px 7px;
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--action-primary);
   border-radius: 6px;
   font: inherit;
   font-size: 14px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .recent-path {
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -789,13 +789,13 @@ body.vib .home {
 
 .recent-time {
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   white-space: nowrap;
 }
 
 .recent-size {
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   white-space: nowrap;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -867,7 +867,7 @@ body.vib .home {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .proj-add-btn {
@@ -888,12 +888,12 @@ body.vib .home {
 .proj-rename-input {
   width: 100%;
   padding: 4px 8px;
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--action-primary);
   border-radius: 6px;
   font: inherit;
   font-size: 14px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .proj-rename-input.inline {
@@ -918,7 +918,7 @@ body.vib .home {
 }
 
 .proj-item.active {
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
 }
 
 .proj-item-main {
@@ -934,12 +934,12 @@ body.vib .home {
 }
 
 .proj-item-main:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: -2px;
 }
 
 .proj-item:hover .proj-item-main {
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
 }
 
 .proj-item.active .proj-item-main {
@@ -948,7 +948,7 @@ body.vib .home {
 
 .proj-item-icon {
   flex-shrink: 0;
-  color: var(--text-primary);
+  color: var(--ink-primary);
   display: flex;
   align-items: center;
 }
@@ -957,7 +957,7 @@ body.vib .home {
   flex: 1;
   min-width: 0;
   font-size: 14px;
-  color: var(--text);
+  color: var(--ink-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -978,7 +978,7 @@ body.vib .home {
   min-width: 22px;
   text-align: center;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1105,7 +1105,7 @@ body.vib .home {
 
 .empty-hint {
   font-size: inherit;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* ── Cloud (Genspark web) projects ── */
@@ -1127,7 +1127,7 @@ body.vib .home {
   position: sticky;
   top: 0;
   z-index: 3;
-  background: var(--bg-content);
+  background: var(--surface-raised);
   padding-bottom: 12px;
 }
 
@@ -1138,7 +1138,7 @@ body.vib .home {
   left: -36px;
   right: -36px;
   height: 40px;
-  background: var(--bg-content);
+  background: var(--surface-raised);
 }
 
 .cloud-hero-top {
@@ -1156,13 +1156,13 @@ body.vib .home {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .cloud-subtitle {
   margin: 8px 0 0;
   font-size: 14px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .cloud-sort-menu {
@@ -1198,14 +1198,14 @@ body.vib .home {
   gap: 9px;
   height: 40px;
   padding: 0 13px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 10px;
-  background: var(--surface);
-  color: var(--text-muted);
+  background: var(--surface-base);
+  color: var(--ink-muted);
 }
 
 .cloud-search:focus-within {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .cloud-search input {
@@ -1215,14 +1215,14 @@ body.vib .home {
   outline: none;
   background: transparent;
   font-size: 14px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 /* placeholder color follows the suite convention (AI input boxes):
    tertiary text, not the browser's UA default */
 .cloud-search input::placeholder,
 .proj-rename-input::placeholder {
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
 }
 
 /* .cloud-seg styles live with .filter-pills (shared segmented control). */
@@ -1236,9 +1236,9 @@ body.vib .home {
 /* Genspark Projects list styled like the recent-files table: bordered
    rounded container, column header, grid rows with hairline dividers */
 .cloud-table {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .cloud-columns,
@@ -1257,7 +1257,7 @@ body.vib .home {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* header label starts at the icon column so it lines up with the file badges */
@@ -1288,8 +1288,8 @@ body.vib .home {
 }
 
 .cloud-col-sort-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  color: var(--ink-primary);
+  background: var(--surface-sunken);
 }
 
 .cloud-list {
@@ -1313,7 +1313,7 @@ body.vib .home {
   cursor: pointer;
   text-align: left;
   font: inherit;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .cloud-list li:last-child .cloud-row {
@@ -1321,11 +1321,11 @@ body.vib .home {
 }
 
 .cloud-row:hover {
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
 }
 
 .cloud-row:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: -2px;
 }
 
@@ -1350,7 +1350,7 @@ body.vib .home {
 
 .cloud-row-time {
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -1363,7 +1363,7 @@ body.vib .home {
 
 .cloud-row:hover .cloud-row-external,
 .cloud-row:focus-visible .cloud-row-external {
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* right-aligned to match the sidebar count column (22px, centered digits) */
@@ -1371,7 +1371,7 @@ body.vib .home {
   flex-shrink: 0;
   margin-left: auto;
   margin-right: 4px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .cloud-refresh-btn {
@@ -1382,20 +1382,20 @@ body.vib .home {
   /* sits in the toolbar next to the 40px filter tabs / search box */
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   border-radius: 10px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
 .cloud-refresh-btn:hover:not(:disabled) {
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
 }
 
 .cloud-refresh-btn.syncing svg {
   animation: cloud-refresh-spin 0.9s linear infinite;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 @keyframes cloud-refresh-spin {
@@ -1413,7 +1413,7 @@ body.vib .home {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-overlay);
+  background: var(--overlay-scrim);
   /* never intercepts events — the drop must land on the page underneath */
   pointer-events: none;
 }
@@ -1424,24 +1424,24 @@ body.vib .home {
   align-items: center;
   gap: 10px;
   padding: 36px 56px;
-  background: var(--surface);
-  border: 2px dashed var(--accent);
-  border-radius: var(--radius-16);
-  box-shadow: var(--shadow-modal-strong);
-  color: var(--accent);
+  background: var(--surface-base);
+  border: 2px dashed var(--action-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  color: var(--action-primary);
   animation: menu-in 0.12s ease;
 }
 
 .home-drop-card h2 {
   margin: 0;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 17px;
   font-weight: 600;
 }
 
 .home-drop-card p {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 12px;
   max-width: 360px;
   overflow: hidden;

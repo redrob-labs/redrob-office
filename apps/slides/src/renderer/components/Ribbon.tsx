@@ -608,7 +608,7 @@ function ChartStyleThumb({
       />,
     )
     if (kind === 'doughnut')
-      els.push(<circle key="ph" cx={cx} cy={cy} r={r * 0.45} fill="var(--surface, #fff)" />)
+      els.push(<circle key="ph" cx={cx} cy={cy} r={r * 0.45} fill="var(--surface-base, #fff)" />)
     if (style.dataLabels) {
       els.push(<circle key="pd1" cx={cx - r * 0.45} cy={cy + r * 0.2} r={1.1} fill="#fff" />)
       els.push(<circle key="pd2" cx={cx + r * 0.5} cy={cy - r * 0.3} r={1.1} fill="#fff" />)

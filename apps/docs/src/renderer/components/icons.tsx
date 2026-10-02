@@ -454,7 +454,14 @@ export function IconShapes(props: IconProps) {
   return (
     <Svg {...props}>
       <circle cx="6.28" cy="6.28" r="3.1" />
-      <rect x="7.57" y="7.57" width="5.59" height="5.59" rx="0.69" fill="var(--surface, #fff)" />
+      <rect
+        x="7.57"
+        y="7.57"
+        width="5.59"
+        height="5.59"
+        rx="0.69"
+        fill="var(--surface-base, #fff)"
+      />
     </Svg>
   )
 }
@@ -559,7 +566,7 @@ export function IconTableDelete(props: IconProps) {
         d="M 3.26 6.03 h 8.03 M 3.26 8.51 h 8.03 M 5.96 3.62 v 7.3 M 8.58 3.62 v 7.3"
         strokeWidth="1"
       />
-      <path d="M 9.17 9.17 h 4.09 v 4.09 H 9.17 z" fill="var(--surface, #fff)" stroke="none" />
+      <path d="M 9.17 9.17 h 4.09 v 4.09 H 9.17 z" fill="var(--surface-base, #fff)" stroke="none" />
       <path d="m 9.97 9.97 2.63 2.63 M 12.6 9.97 l -2.63 2.63" strokeWidth="1" />
     </Svg>
   )
@@ -859,7 +866,7 @@ export function IconOrientation(props: IconProps) {
   return (
     <Svg {...props}>
       <rect x="3.2" y="4.8" width="6" height="8" rx="0.64" />
-      <rect x="6" y="7.6" width="7.2" height="5.2" rx="0.64" fill="var(--surface, #fff)" />
+      <rect x="6" y="7.6" width="7.2" height="5.2" rx="0.64" fill="var(--surface-base, #fff)" />
       <path d="M 10.4 3.36 a 4 4 0 0 1 2.4 2.08 M 12.8 3.6 v 2 h -2" strokeWidth="1" />
     </Svg>
   )
@@ -1055,7 +1062,7 @@ export function IconTrackChanges(props: IconProps) {
       <path d="M 6.08 6.08 h 3.85 M 6.08 8 h 2.31" />
       <path
         d="M 8.38 12 12.31 8.08 l 0.92 0.92 -3.93 3.93 -1.39 0.46 z"
-        fill="var(--surface, #fff)"
+        fill="var(--surface-base, #fff)"
       />
     </Svg>
   )

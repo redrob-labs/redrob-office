@@ -68,17 +68,17 @@
   --slides-ctl-border: var(--border-strong);
   --slides-thumb-shadow: var(--shadow-sm);
   --slides-text-disabled: var(--ink-muted);
-  --slides-hover-wash: color-mix(in srgb, var(--accent) 10%, transparent);
-  --slides-hover-wash-soft: color-mix(in srgb, var(--accent) 8%, transparent);
+  --slides-hover-wash: color-mix(in srgb, var(--action-primary) 10%, transparent);
+  --slides-hover-wash-soft: color-mix(in srgb, var(--action-primary) 8%, transparent);
   --slides-stagebar-ink: var(--ink-secondary);
   --slides-comment-bg: var(--surface-raised);
   --slides-chip-bg: var(--surface-raised);
   --slides-att-bg: var(--surface-raised);
   --slides-att-border: var(--border-subtle);
-  --slides-select-border: var(--accent);
-  --slides-select-hover-bg: color-mix(in srgb, var(--accent) 6%, var(--surface-base));
+  --slides-select-border: var(--action-primary);
+  --slides-select-hover-bg: color-mix(in srgb, var(--action-primary) 6%, var(--surface-base));
   --slides-select-active-bg: var(--surface-brand-subtle);
-  --slides-cell-focus-bg: color-mix(in srgb, var(--accent) 8%, var(--surface-base));
+  --slides-cell-focus-bg: color-mix(in srgb, var(--action-primary) 8%, var(--surface-base));
   --slides-ok: var(--status-success);
   --slides-error: var(--status-danger);
   --slides-error-bg: color-mix(in srgb, var(--status-danger) 10%, var(--surface-base));
@@ -228,8 +228,8 @@ body,
 
 body {
   font-family: var(--font-chrome);
-  color: var(--text);
-  background: var(--chrome-bg);
+  color: var(--ink-primary);
+  background: var(--surface-base);
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   /* The document itself never scrolls: a too-wide ribbon (or any other
@@ -290,7 +290,7 @@ button {
 }
 
 .autosave-toggle.on .autosave-knob {
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 .autosave-toggle.on .autosave-knob::after {
@@ -299,7 +299,7 @@ button {
 
 .autosave-text {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   white-space: nowrap;
 }
 
@@ -311,7 +311,7 @@ button {
   border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .qa-btn svg {
@@ -320,11 +320,11 @@ button {
 }
 
 .qa-btn:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .qa-btn:disabled {
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   cursor: default;
 }
 
@@ -332,11 +332,11 @@ button {
 
 .ribbon {
   flex-shrink: 0;
-  background: var(--chrome-bg);
+  background: var(--surface-base);
   border-bottom: 1px solid var(--border-control);
   user-select: none;
   /* shared toolbar ink (glyphs, letterforms, labels) — same as the sheets ribbon */
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .ribbon-tabs {
@@ -373,7 +373,7 @@ button {
 .ribbon-file {
   max-width: 40%;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -397,11 +397,11 @@ button {
 }
 
 .ribbon-tab:hover {
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 .ribbon-tab.active {
-  color: var(--accent);
+  color: var(--action-primary);
   font-weight: 600;
 }
 
@@ -415,12 +415,12 @@ button {
   bottom: -2px;
   height: 2px;
   border-radius: 1px;
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 .ribbon-tab-file {
   color: var(--slides-on-accent);
-  background: var(--accent);
+  background: var(--action-primary);
   border-radius: var(--radius-sm);
   padding: 6px 16px;
   margin-right: 6px;
@@ -428,7 +428,7 @@ button {
 
 .ribbon-tab-file:hover,
 .ribbon-tab-file.open {
-  background: var(--accent-dark);
+  background: var(--action-primary-hover);
 }
 
 .file-tab-wrap {
@@ -441,7 +441,7 @@ button {
   left: 0;
   z-index: 60;
   min-width: 210px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--slides-shadow-menu);
@@ -459,7 +459,7 @@ button {
   font-size: 13px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .file-menu button:hover:not(:disabled) {
@@ -472,7 +472,7 @@ button {
 }
 
 .file-menu-key {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12px;
 }
 
@@ -609,7 +609,7 @@ button {
   flex-shrink: 0;
   /* separators keep spanning the full ribbon height while groups center */
   align-self: stretch;
-  background: var(--border);
+  background: var(--border-subtle);
   /* 2px matches the groups' vertical padding, so the line spans exactly the
      tallest group content (the two 30px font rows) instead of stopping short
      of it — same inset across all three apps */
@@ -618,7 +618,7 @@ button {
 
 .ribbon-placeholder {
   align-self: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12.5px;
   padding: 0 14px;
 }
@@ -647,7 +647,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 /* Home-tab Genspark AI entry: black circular "+" badge with a dropdown caret,
@@ -658,7 +658,7 @@ button {
   place-items: center;
   width: 28px;
   height: 28px;
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 
 .ai-feature-icon svg {
@@ -676,7 +676,7 @@ button {
 
 .rb-big-icon .rb-caret {
   margin-left: 3px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .rb-big:hover:not(:disabled) .rb-big-icon {
@@ -689,7 +689,7 @@ button {
 }
 
 .rb-big.active {
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .rb-big.active .rb-big-icon {
@@ -699,7 +699,7 @@ button {
 
 /* The Genspark AI entry keeps a black label even while the panel is open. */
 .rb-big.ai-entry.active {
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 /* The AI entry buttons read as one piece: hover/press tint the whole button
@@ -737,7 +737,7 @@ button {
 }
 
 .rb-big.rb-ai.active {
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
 }
 
 .rb-big.rb-ai.active .rb-big-icon,
@@ -818,7 +818,7 @@ button {
   flex-shrink: 0;
   width: 14px;
   height: 14px;
-  color: var(--text-primary);
+  color: var(--ink-primary);
   /* CSS resizes these below their attr size — re-pin the painted stroke
      (2.15 units × 14/24 ≈ 1.25px) */
   stroke-width: 2.15;
@@ -834,7 +834,7 @@ button {
 }
 
 .rb-small.active svg {
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 .rb-small:disabled {
@@ -887,13 +887,13 @@ button {
   height: 13px;
   border: 1px solid var(--slides-ctl-border);
   border-radius: 2px;
-  background: var(--surface);
+  background: var(--surface-base);
   color: var(--slides-on-accent);
 }
 
 .rb-check.on .rb-check-box {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--action-primary);
+  border-color: var(--action-primary);
 }
 
 .rb-row {
@@ -924,7 +924,7 @@ button {
 
 .rb-icon.active {
   background: var(--surface-brand-subtle);
-  color: var(--accent);
+  color: var(--action-primary);
   color: var(--ink-brand);
 }
 
@@ -951,7 +951,7 @@ button {
 .rb-mini-sep {
   width: 1px;
   height: 20px;
-  background: var(--border);
+  background: var(--border-subtle);
   margin: 0 5px;
 }
 
@@ -972,14 +972,14 @@ button {
   flex: 1;
   display: flex;
   overflow: hidden;
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 
 .slide-list {
   width: 120px; /* fallback; App drives the actual width via inline style (drag-resizable) */
   flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
+  background: var(--surface-base);
+  border-right: 1px solid var(--border-subtle);
   overflow-y: auto;
   padding: 10px;
 }
@@ -1004,12 +1004,12 @@ body.vib {
 }
 
 body.vib .workspace {
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 
 body.vib .stage-col,
 body.vib .sorter-view {
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 
 body.vib .slide-list {
@@ -1034,11 +1034,11 @@ body.vib .slide-list {
 }
 
 .thumb.drop-before {
-  box-shadow: 0 -7px 0 -2.5px var(--accent);
+  box-shadow: 0 -7px 0 -2.5px var(--action-primary);
 }
 
 .thumb.drop-after {
-  box-shadow: 0 7px 0 -2.5px var(--accent);
+  box-shadow: 0 7px 0 -2.5px var(--action-primary);
 }
 
 .thumb.active {
@@ -1073,15 +1073,15 @@ body.vib .slide-list {
   padding: 2px 3px;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   cursor: pointer;
   line-height: 0;
   box-shadow: var(--slides-shadow-float);
 }
 
 .paste-floater-btn:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .paste-floater-caret {
@@ -1098,14 +1098,14 @@ body.vib .slide-list {
   padding: 3px 4px;
   border-radius: 4px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
   cursor: pointer;
   user-select: none;
   line-height: 1.3;
 }
 
 .section-header:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .section-header-none {
@@ -1148,7 +1148,7 @@ body.vib .slide-list {
   font-size: 12px;
   font-weight: 600;
   padding: 0 2px;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--action-primary);
   border-radius: 3px;
   outline: none;
 }
@@ -1191,8 +1191,8 @@ body.vib .slide-list {
   overflow-y: auto;
   padding: 9vh 24px 40px;
   text-align: center;
-  background: var(--color-bg-page);
-  font-family: var(--gs-font-sans);
+  background: var(--surface-base);
+  font-family: var(--font-sans);
 }
 
 .btn-primary.btn-lg,
@@ -1204,16 +1204,16 @@ body.vib .slide-list {
 
 .btn-secondary {
   border: 1px solid var(--border-control);
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   border-radius: 12px;
   cursor: pointer;
   font-size: 13px;
 }
 
 .btn-secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--action-primary);
+  color: var(--action-primary);
 }
 
 .recent {
@@ -1225,7 +1225,7 @@ body.vib .slide-list {
 
 .recent-title {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 8px;
   font-weight: 600;
 }
@@ -1240,9 +1240,9 @@ body.vib .slide-list {
   margin-bottom: 3px;
   border: none;
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -1266,7 +1266,7 @@ body.vib .slide-list {
   padding: 0 12px;
   height: 24px;
   font-size: 11.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   background: var(--slides-statusbar-bg);
   border-top: 1px solid var(--slides-statusbar-border);
 }
@@ -1336,7 +1336,7 @@ body.vib .slide-list {
   height: 16px;
   border: none;
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--slides-thumb-shadow);
 }
 
@@ -1391,7 +1391,7 @@ body.vib .slide-list {
 }
 
 .status-play-btn:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* ================= AI panel (Copilot-style pane, isomorphic to docs) ================= */
@@ -1432,7 +1432,7 @@ body.vib .slide-list {
   align-items: center;
   gap: 8px;
   padding: 10px 12px 10px 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   font-weight: 600;
   font-size: 14px;
 }
@@ -1461,14 +1461,14 @@ body.vib .slide-list {
   border: none;
   background: none;
   border-radius: 6px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
   padding: 0;
 }
 
 .ai-header-btn:hover {
-  background: var(--hover);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .ai-header-btn:disabled {
@@ -1543,7 +1543,7 @@ body.vib .slide-list {
 }
 .ai-tool-output-img-btn {
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   padding: 0;
   cursor: pointer;
@@ -1557,7 +1557,7 @@ body.vib .slide-list {
   transition: border-color 0.15s;
 }
 .ai-tool-output-img-btn:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 .ai-tool-output-img-btn img {
   max-width: 96px;
@@ -1579,7 +1579,7 @@ body.vib .slide-list {
   border-radius: 999px;
   background: var(--active-bg);
   font-size: 10.5px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* ================= modal (AI settings) ================= */
@@ -1597,7 +1597,7 @@ body.vib .slide-list {
 
 .modal {
   width: 440px;
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 16px;
   padding: 22px 24px;
   box-shadow: var(--slides-shadow-modal);
@@ -1611,7 +1611,7 @@ body.vib .slide-list {
 .modal label {
   display: block;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 12px;
 }
 
@@ -1626,12 +1626,12 @@ body.vib .slide-list {
   padding: 0 10px;
   font-size: 13px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .modal input:focus,
 .modal select:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .modal-actions {
@@ -1648,10 +1648,10 @@ body.vib .slide-list {
   justify-content: center;
   height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: var(--color-bg-page);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1659,8 +1659,8 @@ body.vib .slide-list {
 }
 
 .modal-actions button:not(.rr-btn):hover:not(:disabled) {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .modal-actions button:not(.rr-btn):active:not(:disabled) {
@@ -1679,26 +1679,26 @@ body.vib .slide-list {
 }
 
 .modal-actions button:not(.rr-btn).primary {
-  border-color: var(--color-btn-primary);
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary);
+  background: var(--action-primary);
+  color: var(--ink-on-brand);
 }
 
 .modal-actions button:not(.rr-btn).primary:hover:not(:disabled) {
-  border-color: var(--color-btn-primary-hover);
-  background: var(--color-btn-primary-hover);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary-hover);
+  background: var(--action-primary-hover);
+  color: var(--ink-on-brand);
 }
 
 .modal-actions .dlg-danger {
   background: none;
-  color: var(--color-error);
+  color: var(--status-danger);
 }
 
 .modal-actions .dlg-danger:hover:not(:disabled) {
   filter: none;
   background: var(--slides-error-bg);
-  color: var(--color-error);
+  color: var(--status-danger);
 }
 
 .provider-tabs {
@@ -1713,7 +1713,7 @@ body.vib .slide-list {
   align-items: center;
   gap: 5px;
   border: 1px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 999px;
   padding: 5px 13px;
   font-size: 12.5px;
@@ -1722,13 +1722,13 @@ body.vib .slide-list {
 }
 
 .provider-tab:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .provider-tab-active {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  color: var(--accent);
+  border-color: var(--action-primary);
+  background: color-mix(in srgb, var(--action-primary) 10%, var(--surface-base));
+  color: var(--action-primary);
   font-weight: 600;
 }
 
@@ -1746,14 +1746,14 @@ body.vib .slide-list {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
+  background: var(--surface-base);
+  border-left: 1px solid var(--border-subtle);
   font-family: 'Segoe UI', var(--ui-cjk), sans-serif;
 }
 
 .fp-empty {
   padding: 24px 16px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12.5px;
   line-height: 1.8;
   text-align: center;
@@ -1778,7 +1778,7 @@ body.vib .slide-list {
   flex-shrink: 0;
   gap: 18px;
   padding: 2px 14px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .fp-tab {
@@ -1788,7 +1788,7 @@ body.vib .slide-list {
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   background: none;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
@@ -1796,13 +1796,13 @@ body.vib .slide-list {
 }
 
 .fp-tab:hover {
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .fp-tab.active {
-  color: var(--accent);
+  color: var(--action-primary);
   font-weight: 700;
-  border-bottom-color: var(--accent);
+  border-bottom-color: var(--action-primary);
 }
 
 /* Second-level tabs (填充与线条 / 效果 / 大小与属性 …): Genspark segmented pill track —
@@ -1815,7 +1815,7 @@ body.vib .slide-list {
   margin: 10px 6px 0;
   padding: 3px;
   border-radius: 999px;
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .fp-subtab {
@@ -1824,7 +1824,7 @@ body.vib .slide-list {
   border: none;
   border-radius: 999px;
   background: none;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12.5px;
   line-height: 1.5;
   font-family: inherit;
@@ -1836,17 +1836,17 @@ body.vib .slide-list {
 }
 
 .fp-subtab.active {
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--slides-on-accent);
 }
 
 .fp-section {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin: 14px 0 6px;
   padding-bottom: 3px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 /* Collapsible PPT-style section header (填充 / 线条): chevron + label over a divider */
@@ -1859,7 +1859,7 @@ body.vib .slide-list {
   padding: 0 0 3px;
   border: none;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12px;
   font-weight: 600;
   font-family: inherit;
@@ -1868,12 +1868,12 @@ body.vib .slide-list {
 }
 
 .fp-sec:hover {
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 .fp-sec-caret {
   font-size: 10px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* PPT-style fill/line mode radio list */
@@ -1889,12 +1889,12 @@ body.vib .slide-list {
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .fp-radio input {
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--action-primary);
   cursor: pointer;
 }
 
@@ -1911,18 +1911,18 @@ body.vib .slide-list {
   gap: 8px;
   margin-bottom: 10px;
   font-size: 12.5px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
 .fp-checkrow input {
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--action-primary);
   cursor: pointer;
 }
 
 .fp-checkrow:has(input:disabled) {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: default;
 }
 
@@ -1935,18 +1935,18 @@ body.vib .slide-list {
   width: 26px;
   height: 26px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 3px;
   cursor: pointer;
 }
 
 .fp-gpreset:hover {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
 .fp-gpreset.sel {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -1968,7 +1968,7 @@ body.vib .slide-list {
   padding: 0;
   border: 1px solid var(--border-control);
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
 }
 
@@ -1984,7 +1984,7 @@ body.vib .slide-list {
   width: 7px;
   height: 7px;
   margin: -3.5px 0 0 -3.5px;
-  border: 1.5px solid var(--text);
+  border: 1.5px solid var(--ink-primary);
   border-radius: 50%;
   background: none;
   pointer-events: none;
@@ -1998,7 +1998,7 @@ body.vib .slide-list {
   min-width: 128px;
   border: 1px solid var(--border-control);
   border-radius: 7px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .fp-stepper button {
@@ -2007,19 +2007,19 @@ body.vib .slide-list {
   padding: 0;
   border: none;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 14px;
   font-family: inherit;
   cursor: pointer;
 }
 
 .fp-stepper button:disabled {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: default;
 }
 
 .fp-stepper button:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* beat the generic .fp-prow input box (declared later in this file) */
@@ -2031,7 +2031,7 @@ body.vib .slide-list {
   border: none;
   border-radius: 0;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12.5px;
   text-align: right;
   -moz-appearance: textfield;
@@ -2048,7 +2048,7 @@ body.vib .slide-list {
   margin-right: auto;
   padding: 3px 0 0 2px;
   align-self: flex-start;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 10px;
 }
 
@@ -2062,7 +2062,7 @@ body.vib .slide-list {
   height: 26px;
   border: 1px solid var(--border-control);
   border-radius: 3px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* beat the generic .fp-prow input box (declared later in this file).
@@ -2095,7 +2095,7 @@ body.vib .slide-list {
   border: none;
   border-radius: 0;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   text-align: left;
 }
 
@@ -2116,11 +2116,11 @@ body.vib .slide-list {
   padding: 5px 10px;
   border: 1px solid var(--border-control);
   border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 12px;
   line-height: 1.45;
-  box-shadow: var(--shadow-modal-strong);
+  box-shadow: var(--shadow-lg);
   pointer-events: none;
 }
 
@@ -2145,7 +2145,7 @@ body.vib .slide-list {
   border: none;
   border-radius: 3px;
   background: none;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
 }
 
@@ -2155,8 +2155,8 @@ body.vib .slide-list {
 }
 
 .fp-unitstep-btns button:hover:not(:disabled) {
-  background: var(--hover);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 /* Focus popover, anchored under the 射线/矩形 style tile */
@@ -2174,7 +2174,7 @@ body.vib .slide-list {
   padding: 8px;
   border: 1px solid var(--border-control);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--slides-shadow-popup);
 }
 
@@ -2205,7 +2205,7 @@ body.vib .slide-list {
 }
 
 .fp-gstop.sel {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -2232,7 +2232,7 @@ body.vib .slide-list {
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    var(--accent) var(--fp-pct, 0%),
+    var(--action-primary) var(--fp-pct, 0%),
     var(--slides-swatch-ring) var(--fp-pct, 0%)
   );
 }
@@ -2243,7 +2243,7 @@ body.vib .slide-list {
   height: 14px;
   border: none;
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--surface-base);
   /* crisp 1px contact ring + short drop so the knob pops off the light pane */
   box-shadow: var(--slides-thumb-shadow);
 }
@@ -2276,13 +2276,13 @@ body.vib .slide-list {
   padding: 0 5px 0 4px;
   border: 1px solid var(--border-control);
   border-radius: 3px;
-  background: var(--surface);
-  color: var(--text-dim);
+  background: var(--surface-base);
+  color: var(--ink-secondary);
   cursor: pointer;
 }
 
 .fp-shadowgal-btn:focus-visible {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   outline: none;
 }
 
@@ -2299,16 +2299,16 @@ body.vib .slide-list {
   box-sizing: border-box;
   width: 176px;
   padding: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  box-shadow: var(--shadow-menu);
+  box-shadow: var(--shadow-md);
 }
 
 .fp-shadowgal-group {
   margin: 4px 2px 6px;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .fp-shadowgal-grid {
@@ -2329,12 +2329,12 @@ body.vib .slide-list {
 }
 
 .fp-galopt:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .fp-galopt.selected {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  border-color: var(--action-primary);
+  background: var(--surface-brand-subtle);
 }
 
 /* tile face: a miniature preview of the document effect, deliberately theme-static */
@@ -2402,7 +2402,7 @@ body.vib .slide-list {
 .gs-dd-item .fp-dirico {
   flex-shrink: 0;
   margin-right: 8px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* line previews inside dropdown triggers/options (compound + dash pickers) */
@@ -2448,7 +2448,7 @@ body.vib .slide-list {
   gap: 8px;
   margin-bottom: 8px;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .fp-prow > span {
@@ -2473,13 +2473,13 @@ body.vib .slide-list {
   border-radius: 3px;
   padding: 0 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   outline: none;
 }
 
 .fp-prow input:focus,
 .fp-prow select:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .fp-row {
@@ -2532,7 +2532,7 @@ body.vib .slide-list {
   width: 74px;
   height: 26px;
   padding: 0 5px 0 3px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 3px;
   cursor: pointer;
@@ -2551,7 +2551,7 @@ body.vib .slide-list {
 .fp-color-well-caret {
   flex-shrink: 0;
   display: flex;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .fp-color-pop {
@@ -2580,14 +2580,14 @@ body.vib .slide-list {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
 .fp-bg-preview {
   max-width: 100%;
   max-height: 90px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   object-fit: contain;
 }
@@ -2597,21 +2597,21 @@ body.vib .slide-list {
   padding: 0 12px;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
 .fp-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--action-primary);
+  color: var(--action-primary);
 }
 
 .fp-btn.active {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   background: var(--active-bg);
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 /* Color strip on ribbon large buttons (colored buttons such as background fill) */
@@ -2665,14 +2665,14 @@ body.vib .slide-list {
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
   white-space: nowrap;
 }
 
 .rb-menu-sep {
   height: 1px;
   margin: 4px 2px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 /* paragraph space before/after entries in the line-spacing menu (#149) */
@@ -2694,7 +2694,7 @@ body.vib .slide-list {
   padding: 2px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   color: inherit;
   font: inherit;
   font-size: 12px;
@@ -2728,7 +2728,7 @@ body.vib .slide-list {
 .rb-menu-div {
   height: 1px;
   margin: 4px 6px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 .rb-drop {
@@ -2745,7 +2745,7 @@ body.vib .slide-list {
   /* trigger scrolled out of the ribbon → hide the panel with it */
   position-visibility: anchors-visible;
   z-index: 60;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 10px;
   box-shadow: var(--slides-shadow-drop);
@@ -2767,7 +2767,7 @@ body.vib .slide-list {
   left: calc(anchor(center) - 5px);
   width: 10px;
   height: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   border-left: 1px solid var(--border-control);
   border-top: 1px solid var(--border-control);
   border-top-left-radius: 2px;
@@ -2792,9 +2792,9 @@ body.vib .slide-list {
   padding: 0 7px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
@@ -2922,8 +2922,8 @@ body.vib .slide-list {
 .rb-menu-group-label {
   padding: 8px 12px 3px;
   font-size: 11px;
-  color: var(--text-secondary);
-  border-top: 1px solid var(--border);
+  color: var(--ink-secondary);
+  border-top: 1px solid var(--border-subtle);
   margin-top: 4px;
   cursor: default;
 }
@@ -2936,12 +2936,12 @@ body.vib .slide-list {
 }
 .rb-font-download-tag {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 .rb-font-install-local {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   margin-top: 4px;
-  color: var(--accent);
+  color: var(--action-primary);
 }
 
 .font-missing-banner {
@@ -2950,9 +2950,9 @@ body.vib .slide-list {
   gap: 10px;
   padding: 6px 14px;
   font-size: 12.5px;
-  background: var(--accent-soft);
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-primary);
+  border-bottom: 1px solid var(--border-subtle);
 }
 .font-missing-banner .fmb-text {
   flex: 1;
@@ -2963,13 +2963,13 @@ body.vib .slide-list {
 }
 .font-missing-banner .fmb-fonts {
   margin-left: 6px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 .font-missing-banner button {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 5px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   padding: 3px 10px;
   font-size: 12px;
   cursor: pointer;
@@ -2978,7 +2978,7 @@ body.vib .slide-list {
   background: var(--surface-sunken);
 }
 .font-missing-banner .fmb-download {
-  color: var(--accent);
+  color: var(--action-primary);
   font-weight: 600;
 }
 .font-missing-banner .fmb-download:disabled {
@@ -3017,7 +3017,7 @@ body.vib .slide-list {
 }
 
 .rb-swatch:hover {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -3029,9 +3029,9 @@ body.vib .slide-list {
   gap: 6px;
   margin-top: 3px;
   padding-top: 6px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -3048,7 +3048,7 @@ body.vib .slide-list {
 
 .rb-table-picker-label {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 6px;
   white-space: nowrap;
 }
@@ -3074,13 +3074,13 @@ body.vib .slide-list {
   font-size: 12px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   color: inherit;
 }
 
 .rb-table-custom span {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .rb-table-custom-ok {
@@ -3089,13 +3089,13 @@ body.vib .slide-list {
   font-size: 12px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
 }
 
 .rb-table-custom-ok:hover {
   background: var(--surface-brand-subtle);
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .rb-table-cell {
@@ -3103,19 +3103,19 @@ body.vib .slide-list {
   height: 16px;
   border: 1px solid var(--border-control);
   border-radius: 2px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
   padding: 0;
 }
 
 .rb-table-cell.on {
   background: var(--surface-brand-subtle);
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .rb-para-label {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin: 6px 0 2px;
   white-space: nowrap;
 }
@@ -3137,13 +3137,13 @@ body.vib .slide-list {
   padding: 0 6px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
 }
 
 .rb-bullet-tile:hover:not(:disabled) {
   background: var(--surface-brand-subtle);
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .rb-bullet-tile:disabled {
@@ -3154,12 +3154,12 @@ body.vib .slide-list {
 /* The tile matching the selection's current bullet (WPS-style filled highlight) */
 .rb-bullet-tile.on {
   background: var(--surface-brand-subtle);
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .rb-bullet-tile-none {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   align-items: center;
 }
 
@@ -3189,13 +3189,13 @@ body.vib .slide-list {
   font-size: 12px;
   border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
 }
 
 .rb-bullet-hang:hover:not(:disabled) {
   background: var(--surface-brand-subtle);
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .rb-bullet-hang:disabled {
@@ -3212,7 +3212,7 @@ body.vib .slide-list {
 }
 
 .rb-bullet-hang-input:hover:not(:disabled) {
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* Bullet color row: swatches + "More colors" on its own line */
@@ -3280,7 +3280,7 @@ body.vib .slide-list {
   gap: 4px;
   justify-content: center;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   padding: 2px 4px;
 }
 
@@ -3295,10 +3295,10 @@ body.vib .slide-list {
 .rb-anim-timing input {
   font-size: 12px;
   padding: 1px 4px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 .rb-anim-timing input {
@@ -3327,7 +3327,7 @@ body.vib .slide-list {
 }
 
 .anim-row.selected {
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 
 .anim-row.anim-entrance {
@@ -3350,7 +3350,7 @@ body.vib .slide-list {
   width: 16px;
   text-align: right;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   flex-shrink: 0;
 }
 
@@ -3375,7 +3375,7 @@ body.vib .slide-list {
 
 .anim-row-target {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3399,12 +3399,12 @@ body.vib .slide-list {
   font-size: 10px;
   padding: 2px 4px;
   border-radius: var(--radius-sm);
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .anim-row-actions button:hover:not(:disabled) {
   background: var(--surface-sunken);
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .anim-row-actions button:disabled {
@@ -3455,7 +3455,7 @@ body.vib .slide-list {
 .ctx-swatches-label {
   display: block;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 5px;
 }
 
@@ -3473,16 +3473,16 @@ body.vib .slide-list {
   padding: 0;
   font-size: 10px;
   line-height: 1;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .ctx-swatch:hover {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
 .ctx-swatch-none {
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* Shape style preset grid (fill+stroke combos; colors are document data, set
@@ -3508,7 +3508,7 @@ body.vib .slide-list {
 }
 
 .ctx-style-cell:hover {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -3532,7 +3532,7 @@ body.vib .slide-list {
   display: block;
   height: 1px;
   margin: 0 12px 3px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 .rb-fill-menu .rbf-actions + .gcp-section-title {
@@ -3551,7 +3551,7 @@ body.vib .slide-list {
   border: none;
   border-radius: 0;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 12.5px;
   font-weight: 400;
   font-family: inherit;
@@ -3560,7 +3560,7 @@ body.vib .slide-list {
 }
 
 .rb-fill-menu.rb-fill-menu .rbf-row:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-fill-menu .rbf-row input[type='color'] {
@@ -3585,7 +3585,7 @@ body.vib .slide-list {
   min-width: 0;
   height: 26px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink-primary) 18%, transparent);
   border-radius: 0;
   cursor: pointer;
 }
@@ -3593,7 +3593,7 @@ body.vib .slide-list {
 .rb-fill-menu.rb-fill-menu .rbf-gradient-tile:hover {
   position: relative;
   z-index: 1;
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -3609,7 +3609,7 @@ body.vib .slide-list {
   min-width: 0;
   height: 26px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink-primary) 18%, transparent);
   border-radius: 0;
   cursor: pointer;
 }
@@ -3617,7 +3617,7 @@ body.vib .slide-list {
 .rb-fill-menu.rb-fill-menu .rbf-texture-tile:hover {
   position: relative;
   z-index: 1;
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -3634,7 +3634,7 @@ body.vib .slide-list {
 }
 
 .rbf-sub-caret {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* Gradient/texture hover flyout: fixed so it escapes the menu's overflow clip */
@@ -3642,7 +3642,7 @@ body.vib .slide-list {
   position: fixed;
   z-index: 70;
   padding: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 8px;
   box-shadow: var(--slides-shadow-popup);
@@ -3736,7 +3736,7 @@ body.vib .slide-list {
   gap: 2px;
   align-self: stretch;
   padding: 0 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 6px;
   overflow: hidden;
@@ -3783,7 +3783,7 @@ body.vib .slide-list {
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 8px;
   box-shadow: var(--slides-shadow-popup);
@@ -3810,7 +3810,7 @@ body.vib .slide-list {
 }
 
 .ink-swatch.active {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -3833,12 +3833,12 @@ body.vib .slide-list {
 }
 
 .ink-width:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .ink-width.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  border-color: var(--action-primary);
+  background: var(--surface-brand-subtle);
 }
 
 .ink-width-dot {
@@ -3887,7 +3887,7 @@ body.vib .slide-list {
   display: inline-flex;
   align-items: center;
   padding: 3px 5px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-shadow: var(--slides-shadow-toolbar);
@@ -3910,7 +3910,7 @@ body.vib .slide-list {
 }
 
 .stage-ai-btn:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .stage-ai-btn:active {
@@ -3919,7 +3919,7 @@ body.vib .slide-list {
 }
 
 .stage-ai-btn.active {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .stage-ai-divider {
@@ -3927,13 +3927,13 @@ body.vib .slide-list {
   width: 1px;
   height: 16px;
   margin: 0 6px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 .stage-ai-btn svg {
   flex-shrink: 0;
   /* AI feature glyphs match the ribbon's blue */
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 
 /* the brand mark uses currentColor and keeps the button's ink, not the blue */
@@ -3947,7 +3947,7 @@ body.vib .slide-list {
   height: 118px;
   /* stage gray, not card white: the bar reads as part of the work area;
    * the divider needs --border-control to stay visible on that gray */
-  background: var(--canvas);
+  background: var(--surface-sunken);
   border-top: 1px solid var(--border-control);
   display: flex;
   flex-direction: column;
@@ -3971,12 +3971,12 @@ body.vib .slide-list {
     13px/1.5 'Segoe UI',
     var(--ui-cjk),
     sans-serif;
-  color: var(--text);
+  color: var(--ink-primary);
   background: transparent;
 }
 
 .notes-pane textarea::placeholder {
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
 }
 
 /* Long notes must stay readable at any pane height: native wheel scrolling
@@ -4155,14 +4155,14 @@ body.vib .slide-list {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  background: var(--surface);
+  background: var(--surface-base);
   border-right: 1px solid var(--border-control);
   border-bottom: 1px solid var(--border-control);
 }
 
 .ruler {
   position: relative;
-  background: var(--surface);
+  background: var(--surface-base);
   overflow: hidden;
   user-select: none;
   touch-action: none;
@@ -4188,7 +4188,7 @@ body.vib .slide-list {
 .ruler-num {
   position: absolute;
   font-size: 9px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   line-height: 1;
 }
 
@@ -4224,7 +4224,7 @@ body.vib .slide-list {
   position: absolute;
   display: none;
   pointer-events: none;
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 .ruler-h .ruler-indicator {
@@ -4244,8 +4244,8 @@ body.vib .slide-list {
   padding: 2px 6px;
   font-size: 11px;
   line-height: 1.4;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   border: 1px solid var(--border-control);
   border-radius: 4px;
   box-shadow: var(--slides-shadow-popup);
@@ -4303,8 +4303,8 @@ body.vib .slide-list {
 .outline-pane {
   width: 280px;
   flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
+  background: var(--surface-base);
+  border-right: 1px solid var(--border-subtle);
   overflow-y: auto;
   padding: 8px;
 }
@@ -4319,17 +4319,17 @@ body.vib .slide-list {
 }
 
 .outline-item:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .outline-item.active {
   background: var(--active-bg);
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .outline-num {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   min-width: 16px;
   padding-top: 2px;
 }
@@ -4347,7 +4347,7 @@ body.vib .slide-list {
 
 .outline-line {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4369,7 +4369,7 @@ body.vib .slide-list {
   flex-wrap: wrap;
   gap: 18px;
   align-content: flex-start;
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 
 .sorter-item {
@@ -4388,20 +4388,20 @@ body.vib .slide-list {
 }
 
 .sorter-item.drop-before {
-  box-shadow: -12px 0 0 -3px var(--accent);
+  box-shadow: -12px 0 0 -3px var(--action-primary);
 }
 
 .sorter-item.drop-after {
-  box-shadow: 12px 0 0 -3px var(--accent);
+  box-shadow: 12px 0 0 -3px var(--action-primary);
 }
 
 .sorter-item:hover {
-  border-color: var(--text-dim);
+  border-color: var(--ink-secondary);
 }
 
 .sorter-item.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft);
+  border-color: var(--action-primary);
+  box-shadow: 0 0 0 2px var(--surface-brand-subtle);
 }
 
 .sorter-num {
@@ -4477,8 +4477,8 @@ body.vib .slide-list {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
+  background: var(--surface-base);
+  border-left: 1px solid var(--border-subtle);
   font-family: 'Segoe UI', var(--ui-cjk), sans-serif;
 }
 
@@ -4490,7 +4490,7 @@ body.vib .slide-list {
 
 .comments-empty {
   text-align: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 40px 18px;
 }
 
@@ -4505,7 +4505,7 @@ body.vib .slide-list {
 }
 
 .comment-card {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 10px;
@@ -4522,7 +4522,7 @@ body.vib .slide-list {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--slides-on-accent);
   font-size: 10.5px;
   display: inline-flex;
@@ -4549,13 +4549,13 @@ body.vib .slide-list {
 
 .comment-time {
   font-size: 10.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .comment-del {
   border: none;
   background: none;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
   font-size: 12px;
   padding: 2px 5px;
@@ -4563,8 +4563,8 @@ body.vib .slide-list {
 }
 
 .comment-del:hover {
-  background: var(--hover);
-  color: var(--accent);
+  background: var(--surface-sunken);
+  color: var(--action-primary);
 }
 
 .comment-text {
@@ -4576,7 +4576,7 @@ body.vib .slide-list {
 }
 
 .comment-new {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
@@ -4596,7 +4596,7 @@ body.vib .slide-list {
 }
 
 .comment-new textarea:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .comment-new .btn-primary {
@@ -4618,7 +4618,7 @@ body.vib .slide-list {
   flex: 0 0 auto;
   width: 74px;
   height: 62px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   cursor: pointer;
   padding: 5px 6px 4px;
@@ -4633,7 +4633,7 @@ body.vib .slide-list {
 }
 
 .theme-card:hover:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   box-shadow: var(--slides-shadow-float);
 }
 
@@ -4901,18 +4901,18 @@ body.show-curtain::after {
 }
 
 .csd-item:hover {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: color-mix(in srgb, var(--action-primary) 8%, transparent);
 }
 
 .csd-item.active {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: var(--accent);
+  background: color-mix(in srgb, var(--action-primary) 14%, transparent);
+  color: var(--action-primary);
   font-weight: 600;
 }
 
 .csd-item-count {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-weight: 400;
 }
 
@@ -4939,7 +4939,7 @@ body.show-curtain::after {
 
 .csd-col-title {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   margin-bottom: 4px;
 }
 
@@ -4980,7 +4980,7 @@ body.show-curtain::after {
 
 .csd-order-btns button {
   border: 1px solid var(--border-control);
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 3px;
   width: 20px;
   height: 20px;
@@ -4996,7 +4996,7 @@ body.show-curtain::after {
 }
 
 .csd-empty {
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 12px;
   padding: 10px 8px;
 }
@@ -5365,7 +5365,7 @@ body.show-curtain::after {
 .rb-drop-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 4px 2px 3px;
 }
 
@@ -5390,7 +5390,7 @@ body.show-curtain::after {
   background: none;
   font-size: 15px;
   line-height: 1;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -5398,8 +5398,8 @@ body.show-curtain::after {
 }
 
 .rb-shape-cell:hover {
-  border-color: var(--accent);
-  background: var(--hover);
+  border-color: var(--action-primary);
+  background: var(--surface-sunken);
 }
 
 .rb-icon-gallery {
@@ -5415,11 +5415,11 @@ body.show-curtain::after {
   padding-top: 3px;
   padding-bottom: 6px;
   margin-bottom: 6px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .rb-swatch.on {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -5444,8 +5444,8 @@ body.show-curtain::after {
 }
 
 .rb-icon-cell:hover {
-  border-color: var(--accent);
-  background: var(--hover);
+  border-color: var(--action-primary);
+  background: var(--surface-sunken);
 }
 
 .rb-wordart-grid {
@@ -5457,9 +5457,9 @@ body.show-curtain::after {
 .rb-wordart-cell {
   width: 44px;
   height: 44px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 26px;
   font-family: Georgia, serif;
   cursor: pointer;
@@ -5469,7 +5469,7 @@ body.show-curtain::after {
 }
 
 .rb-wordart-cell:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .rb-menu-wide {
@@ -5494,7 +5494,7 @@ body.show-curtain::after {
   top: -1px;
   font-size: 14px;
   /* neutral glyphs — no accent tint in menus */
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 /* SmartArt / chart menu entries carry an SVG thumbnail instead of a text glyph */
@@ -5529,7 +5529,7 @@ body.show-curtain::after {
   align-items: center;
   gap: 7px;
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   margin: 0;
 }
@@ -5546,7 +5546,7 @@ body.show-curtain::after {
   margin: 0;
   padding: 0;
   flex: none;
-  accent-color: var(--accent);
+  accent-color: var(--action-primary);
 }
 
 .dlg-indent {
@@ -5569,16 +5569,16 @@ body.show-curtain::after {
 }
 
 .eq-item {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   padding: 8px 10px;
   text-align: left;
   cursor: pointer;
 }
 
 .eq-item:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .eq-preview {
@@ -5590,13 +5590,13 @@ body.show-curtain::after {
 
 .eq-label {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 /* Starting up (while pending file parsing): lightweight placeholder, don't flash the start screen */
 .start-booting {
   justify-content: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 13px;
 }
 
@@ -5614,9 +5614,9 @@ body.show-curtain::after {
   max-height: min(560px, 62vh);
   padding: 12px 16px;
   font-size: 16px;
-  color: var(--color-text-primary);
-  background: var(--color-bg-page);
-  border: 1px solid var(--color-border-default);
+  color: var(--ink-primary);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   animation: ai-clarify-rise 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -5640,8 +5640,8 @@ body.show-curtain::after {
   gap: 12px;
   margin: -12px -16px 16px;
   padding: 12px 16px;
-  background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border-default);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
   border-radius: 12px 12px 0 0;
 }
 
@@ -5649,7 +5649,7 @@ body.show-curtain::after {
   flex: 1;
   font-size: 16px;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
   line-height: 1.35;
   word-break: break-word;
 }
@@ -5658,7 +5658,7 @@ body.show-curtain::after {
 .ai-clarify-head-progress {
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
   min-width: 4em;
@@ -5680,7 +5680,7 @@ body.show-curtain::after {
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
   font-size: 17px;
   line-height: 1;
   cursor: pointer;
@@ -5690,8 +5690,8 @@ body.show-curtain::after {
 }
 
 .ai-clarify-head-arrow:hover:not(:disabled) {
-  background: var(--color-bg-page);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 .ai-clarify-head-arrow:focus-visible {
@@ -5756,7 +5756,7 @@ body.show-curtain::after {
   min-width: 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
   margin: 0;
   line-height: 1.4;
 }
@@ -5765,8 +5765,8 @@ body.show-curtain::after {
   flex-shrink: 0;
   margin-top: 2px;
   padding: 2px 7px;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-subtle);
+  color: var(--ink-secondary);
+  background: var(--surface-sunken);
   border: 1px solid var(--color-border-strong);
   border-radius: 999px;
   font-size: 10px;
@@ -5778,7 +5778,7 @@ body.show-curtain::after {
 
 .ai-clarify-desc {
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   margin: 0 0 8px;
   line-height: 1.5;
 }
@@ -5797,7 +5797,7 @@ body.show-curtain::after {
   gap: 8px;
   padding: 8px 12px;
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
@@ -5808,7 +5808,7 @@ body.show-curtain::after {
 }
 
 .ai-clarify-opt:hover {
-  background: var(--color-bg-subtle);
+  background: var(--surface-sunken);
 }
 
 .ai-clarify-opt:active {
@@ -5826,7 +5826,7 @@ body.show-curtain::after {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
 }
 
 /* 16px radio/checkbox glyph; selection is neutral black */
@@ -5837,7 +5837,7 @@ body.show-curtain::after {
   height: 16px;
   border: 2px solid var(--color-border-strong);
   border-radius: 50%;
-  background: var(--color-bg-page);
+  background: var(--surface-base);
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -5854,7 +5854,7 @@ body.show-curtain::after {
 .ai-clarify-opt-arrow {
   margin-left: auto;
   align-self: center;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   opacity: 0;
   transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -5864,21 +5864,21 @@ body.show-curtain::after {
 }
 
 .ai-clarify-opt-on {
-  background: var(--color-bg-subtle);
-  border-color: var(--color-border-default);
+  background: var(--surface-sunken);
+  border-color: var(--border-subtle);
 }
 
 .ai-clarify-opt-on .ai-clarify-opt-box {
-  border-color: var(--color-btn-primary);
+  border-color: var(--action-primary);
 }
 
 .ai-clarify-opt-on:not(.multi) .ai-clarify-opt-box {
-  background: var(--color-btn-primary);
-  box-shadow: inset 0 0 0 3px var(--color-bg-page);
+  background: var(--action-primary);
+  box-shadow: inset 0 0 0 3px var(--surface-base);
 }
 
 .ai-clarify-opt-on.multi .ai-clarify-opt-box {
-  background-color: var(--color-btn-primary);
+  background-color: var(--action-primary);
   background-image: var(--slides-choice-check);
   background-size: 12px;
   background-position: center;
@@ -5893,21 +5893,21 @@ body.show-curtain::after {
   font-family: inherit;
   font-size: 14px;
   line-height: 21px;
-  color: var(--color-text-primary);
-  background: var(--color-bg-page);
-  border: 1px solid var(--color-border-default);
+  color: var(--ink-primary);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-sizing: border-box;
   transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ai-clarify-other::placeholder {
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
 }
 
 .ai-clarify-other:focus {
   outline: none;
-  border-color: var(--color-btn-primary);
+  border-color: var(--action-primary);
   box-shadow: 0 0 0 3px var(--slides-focus-ring);
 }
 
@@ -5930,7 +5930,7 @@ body.show-curtain::after {
 
 .ai-clarify-count {
   font-size: 14px;
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -5951,8 +5951,8 @@ body.show-curtain::after {
   gap: 6px;
   padding: 0 14px;
   font-family: inherit;
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
+  background: var(--action-primary);
+  color: var(--ink-on-brand);
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -5988,9 +5988,9 @@ body.show-curtain::after {
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   background: transparent;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   white-space: nowrap;
   cursor: pointer;
@@ -6001,7 +6001,7 @@ body.show-curtain::after {
 
 .ai-clarify-skip:hover {
   border-color: var(--color-border-strong);
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
 }
 
 .ai-clarify-submit {
@@ -6010,8 +6010,8 @@ body.show-curtain::after {
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-btn-primary-text);
-  background: var(--color-btn-primary);
+  color: var(--ink-on-brand);
+  background: var(--action-primary);
   border: 1px solid transparent;
   border-radius: 8px;
   white-space: nowrap;
@@ -6046,7 +6046,7 @@ body.show-curtain::after {
   margin: 8px 0 0 auto;
   max-width: 420px;
   padding: 12px 16px;
-  background: var(--color-bg-subtle);
+  background: var(--surface-sunken);
   border: none;
   border-radius: 12px;
 }
@@ -6062,14 +6062,14 @@ body.show-curtain::after {
 .ai-clarify-answered-q {
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
   margin: 0 0 2px;
 }
 
 .ai-clarify-answered-a {
   font-size: 16px;
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   margin: 0;
 }
 
@@ -6080,22 +6080,22 @@ body.show-curtain::after {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-default);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
   border-radius: 999px;
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   max-width: 100%;
 }
 
 .ai-clarify-chip-eyebrow {
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
 }
 
 .ai-clarify-chip-arrow {
   font-weight: 700;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   animation: ai-clarify-chip-bounce 1.6s ease-in-out infinite;
 }
 
@@ -6124,12 +6124,12 @@ body.show-curtain::after {
 .deck-progress-card {
   margin: 6px 0 4px;
   padding: 12px 16px;
-  background: var(--color-bg-page);
-  border: 1px solid var(--color-border-default);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   box-shadow: var(--slides-shadow-card);
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* Collapsible head: one-line status + caret; the only loader while collapsed */
@@ -6178,7 +6178,7 @@ body.show-curtain::after {
 .deck-progress-title {
   font-size: 14px;
   font-weight: 400;
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
 }
 
 .deck-progress-title.is-error {
@@ -6189,7 +6189,7 @@ body.show-curtain::after {
 .deck-progress-done {
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
 }
 
 .deck-progress-steps {
@@ -6216,20 +6216,20 @@ body.show-curtain::after {
 }
 
 .deck-progress-icon.done {
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
 }
 .deck-progress-icon.error {
   color: var(--slides-ai-step-error);
 }
 .deck-progress-icon.running {
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 
 .deck-progress-spinner {
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: var(--color-brand-secondary);
+  background: var(--ink-brand);
   border-radius: 50%;
   animation: deck-dot-pulse 1.4s ease-in-out infinite;
 }
@@ -6253,7 +6253,7 @@ body.show-curtain::after {
 }
 
 .deck-progress-step-label {
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
   font-size: 14px;
 }
 
@@ -6283,7 +6283,7 @@ body.show-curtain::after {
 
 .deck-progress-page-title {
   font-size: 12px;
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -6301,22 +6301,22 @@ body.show-curtain::after {
 }
 
 .deck-progress-page-done .deck-progress-page-icon {
-  color: var(--color-text-secondary);
+  color: var(--ink-secondary);
 }
 .deck-progress-page-running .deck-progress-page-icon {
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 .deck-progress-page-error .deck-progress-page-icon {
   color: var(--slides-ai-step-error);
 }
 .deck-progress-page-done .deck-progress-page-title {
-  color: var(--color-text-tertiary);
+  color: var(--ink-muted);
 }
 .deck-progress-page-error .deck-progress-page-title {
   color: var(--slides-ai-step-error);
 }
 .deck-progress-page-running .deck-progress-page-title {
-  color: var(--color-text-primary);
+  color: var(--ink-primary);
   font-weight: 500;
 }
 
@@ -6332,17 +6332,17 @@ body.show-curtain::after {
   gap: 2px;
   width: 60px;
   padding: 4px 3px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 5px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
   font-size: 11px;
-  color: var(--text);
+  color: var(--ink-primary);
   transition: border-color 0.12s;
 }
 .rb-table-style-card:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--hover);
+  border-color: var(--action-primary);
+  background: var(--surface-sunken);
 }
 .rb-table-style-card:disabled {
   opacity: 0.4;
@@ -6382,7 +6382,7 @@ body.show-curtain::after {
   padding: 0;
 }
 .rb-color-swatch:hover:not(:disabled) {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 .rb-color-swatch:disabled {
@@ -6407,13 +6407,13 @@ body.show-curtain::after {
 }
 .rb-label {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   white-space: nowrap;
 }
 .rb-color-input {
   width: 28px;
   height: 22px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 3px;
   padding: 1px;
   cursor: pointer;
@@ -6436,12 +6436,12 @@ body.show-curtain::after {
   gap: 3px;
   width: 68px;
   padding: 5px 3px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 5px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
   font-size: 11px;
-  color: var(--text);
+  color: var(--ink-primary);
   transition: border-color 0.12s;
 }
 .rb-chart-scheme-card:hover:not(:disabled) {
@@ -6469,10 +6469,10 @@ body.show-curtain::after {
 .rb-input-sm {
   font-size: 11px;
   padding: 2px 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 3px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   width: 120px;
 }
 /* Add-chart-element dropdown (title/axis titles/legend/toggles) */
@@ -6514,11 +6514,11 @@ body.show-curtain::after {
   align-items: center;
   gap: 4px;
   padding: 8px 4px 6px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
   transition:
     border-color 0.12s,
     background 0.12s;
@@ -6549,7 +6549,7 @@ body.show-curtain::after {
 }
 .chart-data-grid th,
 .chart-data-grid td {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   padding: 0;
 }
 .chart-data-grid input {
@@ -6583,7 +6583,7 @@ body.show-curtain::after {
 .chart-data-del {
   border: none;
   background: transparent;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
   font-size: 13px;
   padding: 0 6px;
@@ -6599,7 +6599,7 @@ body.show-curtain::after {
   border: 1px dashed var(--border-control);
   background: transparent;
   border-radius: 4px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   cursor: pointer;
   font-size: 12px;
   padding: 4px 8px;
@@ -6607,8 +6607,8 @@ body.show-curtain::after {
   white-space: nowrap;
 }
 .chart-data-add:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--action-primary);
+  border-color: var(--action-primary);
 }
 
 /* Chart style gallery */
@@ -6625,11 +6625,11 @@ body.show-curtain::after {
   align-items: center;
   gap: 2px;
   padding: 3px 3px 4px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 5px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
   flex: 0 0 auto;
   transition: border-color 0.12s;
 }
@@ -6747,7 +6747,7 @@ body.show-curtain::after {
 }
 .rb-split:hover:not(:disabled) .rb-split-main,
 .rb-split:hover:not(:disabled) .rb-caret-hit {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 /* the half under the pointer (or with its dropdown open) darkens a step */
 .rb-split:not(:disabled) .rb-split-main:hover,
@@ -6786,9 +6786,9 @@ body.show-curtain::after {
   align-items: center;
   gap: 4px;
   padding: 4px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-base);
   cursor: pointer;
   transition:
     border-color 0.12s,
@@ -6797,7 +6797,7 @@ body.show-curtain::after {
 }
 
 .rb-layout-item:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   background: var(--slides-hover-wash-soft);
 }
 
@@ -6806,7 +6806,7 @@ body.show-curtain::after {
   width: 120px;
   height: 68px;
   background: var(--slides-paper);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 2px;
   overflow: hidden;
   flex-shrink: 0;
@@ -6827,7 +6827,7 @@ body.show-curtain::after {
 
 .rb-layout-name {
   font-size: 11px;
-  color: var(--text);
+  color: var(--ink-primary);
   max-width: 128px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -6837,7 +6837,7 @@ body.show-curtain::after {
 
 .rb-layout-empty {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 8px;
 }
 
@@ -6852,7 +6852,7 @@ body.show-curtain::after {
    * swallow every click (notably the × close button) */
   -webkit-app-region: no-drag;
   width: 280px;
-  background: var(--surface);
+  background: var(--surface-base);
   border: 1px solid var(--border-control);
   border-radius: 8px;
   box-shadow: var(--slides-shadow-menu);
@@ -6871,11 +6871,11 @@ body.show-curtain::after {
   background: none;
   font-size: 16px;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 0 4px;
 }
 .find-panel-close:hover {
-  color: var(--text);
+  color: var(--ink-primary);
 }
 .find-panel-row {
   margin-bottom: 6px;
@@ -6893,7 +6893,7 @@ body.show-curtain::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 .find-panel-opts label {
   display: flex;
@@ -6901,7 +6901,7 @@ body.show-curtain::after {
   gap: 4px;
 }
 .find-panel-status {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 12px;
 }
 .find-panel-actions {
@@ -6914,7 +6914,7 @@ body.show-curtain::after {
   padding: 4px 10px;
   border: 1px solid var(--border-control);
   border-radius: 4px;
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
   cursor: pointer;
 }
 .find-panel-actions button:hover:not(:disabled) {
@@ -6932,14 +6932,14 @@ body.show-curtain::after {
   z-index: 60;
   display: flex;
   flex-direction: column;
-  background: var(--canvas);
+  background: var(--surface-sunken);
 }
 .master-bar {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 6px 14px;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--slides-on-accent);
   flex-shrink: 0;
   /* The overlay covers the .ribbon-tabs window drag region; drag regions
@@ -6986,7 +6986,7 @@ body.show-curtain::after {
   bottom: -16px;
   font-size: 10px;
   line-height: 14px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7056,9 +7056,9 @@ body.show-curtain::after {
 .print-preview-pane {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--hover);
+  background: var(--surface-sunken);
   overflow: hidden;
 }
 .print-preview-pane iframe {
@@ -7072,7 +7072,7 @@ body.show-curtain::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   font-size: 13px;
 }
 .print-options {
@@ -7086,13 +7086,13 @@ body.show-curtain::after {
 .print-options fieldset {
   margin: 0;
   padding: 8px 10px 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
 }
 .print-options legend {
   padding: 0 4px;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 .print-options .print-radio {
   display: flex;
@@ -7100,7 +7100,7 @@ body.show-curtain::after {
   gap: 7px;
   margin: 0 0 7px;
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 .print-options .print-radio input {
@@ -7108,7 +7108,7 @@ body.show-curtain::after {
   width: auto;
   height: auto;
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--action-primary);
 }
 .print-options .print-radio:has(input:disabled) {
   opacity: 0.45;
@@ -7125,19 +7125,19 @@ body.show-curtain::after {
   padding: 0 8px;
   font-size: 12px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 .print-options .print-range-input:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 .print-options .print-range-input.invalid {
-  border-color: var(--danger);
+  border-color: var(--status-danger);
 }
 .print-page-count {
   margin-top: auto;
   padding: 2px 2px 0;
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   text-align: right;
 }
 
