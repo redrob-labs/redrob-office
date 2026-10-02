@@ -89,17 +89,20 @@ const cssFor = (view: ViewName): string => {
 }
 
 /**
- * app.evaluate occasionally rejects with "Resulting promise was garbage
- * collected" when the main process is busy creating a view; the call itself
- * is idempotent, so retry it.
+ * Errors from idempotent main-process calls that succeed when repeated:
+ * app.evaluate's "Resulting promise was garbage collected" while the main
+ * process is busy creating a view, and capturePage's UnknownVizError while a
+ * freshly mapped window's compositor frame is not ready yet (seen under Xvfb).
  */
+const TRANSIENT = ['garbage collected', 'UnknownVizError']
+
 async function retryGc<R>(call: () => Promise<R>): Promise<R> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await call()
     } catch (err) {
-      if (attempt >= 4 || !String(err).includes('garbage collected')) throw err
-      await sleep(250)
+      if (attempt >= 4 || !TRANSIENT.some((t) => String(err).includes(t))) throw err
+      await sleep(500)
     }
   }
 }

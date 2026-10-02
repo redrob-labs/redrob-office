@@ -1,9 +1,9 @@
 /**
  * Screenshots of every surface the Redrob UI migration touches, in both themes.
  *
- * One shell launch per theme walks Home, Settings, each editor and the tab
- * strip in order; onboarding needs its own launch because a seen profile
- * never shows it. Captures target single webContents (see harness.ts), named
+ * One shell launch per theme walks Home, Settings and each editor in order.
+ * The tab strip and onboarding get their own launches: the strip needs all six
+ * documents open at once, and a seen profile never shows onboarding. Captures target single webContents (see harness.ts), named
  * <surface>-<theme>.png.
  */
 import { expect, test, type ElectronApplication } from '@playwright/test'
@@ -34,9 +34,10 @@ const THEMES: Theme[] = ['light', 'dark']
 const EDITORS: FixtureKind[] = ['docs', 'sheets', 'slides', 'pdf', 'markdown', 'hangul']
 
 for (const theme of THEMES) {
+  // Default (not serial) mode: the tests share one launch while they pass, and
+  // a failure restarts the worker, whose beforeAll relaunches a fresh app. Every
+  // test therefore starts from whatever state it needs on its own.
   test.describe(`${theme} theme`, () => {
-    test.describe.configure({ mode: 'serial' })
-
     let app: ElectronApplication
     let profile: string
     let docs: ReturnType<typeof createFixtures>
@@ -82,7 +83,17 @@ for (const theme of THEMES) {
       })
     }
 
-    test('tab strip', async () => {
+  })
+
+  // Its own launch: Playwright restarts the worker after any failed test, which
+  // relaunches the serial group's app, so a strip shot taken there would show
+  // whichever tabs survived rather than all six.
+  test(`tab strip (${theme})`, async () => {
+    const profile = createProfile({ name: `tabs-${theme}`, theme })
+    const docs = createFixtures(`tabs-${theme}`)
+    const app = await launchShell(profile)
+    try {
+      for (const kind of EDITORS) await openDocument(app, kind, docs.files[kind])
       const tabs = await listTabs(app)
       expect(tabs.map((t) => t.kind)).toEqual(['home', ...EDITORS])
       // a docs tab active: the strip then shows an editor tab selected and Home not
@@ -92,7 +103,11 @@ for (const theme of THEMES) {
       expect(
         await captureStable(app, 'shell', { rect: { x: 0, y: 0, width, height: TAB_STRIP_HEIGHT } }),
       ).toMatchSnapshot(`tabstrip-${theme}.png`)
-    })
+    } finally {
+      await closeShell(app)
+      removeDir(profile)
+      removeDir(docs.dir)
+    }
   })
 
   test(`onboarding (${theme})`, async () => {
