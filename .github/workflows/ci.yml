@@ -61,6 +61,66 @@ jobs:
       - name: Test
         run: pnpm test
 
+  # Screenshot regression suite (tests/visual): launches the built shell under
+  # Xvfb and compares every surface against the committed Linux baselines.
+  # Not a required check. On failure it uploads the diffs and a full fresh
+  # render as `visual-baselines`; see tests/visual/playwright.config.ts for
+  # taking those as the new baselines.
+  visual-linux:
+    name: visual (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ELECTRON_DISABLE_SANDBOX: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Xvfb for a display, and a CJK system font: rhwp-studio's chrome (Hangul)
+      # relies on the OS for Korean glyphs and renders boxes without one.
+      - name: Xvfb and fonts
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb fonts-noto-cjk
+
+      - name: Build
+        run: pnpm build
+
+      - name: Visual
+        run: xvfb-run -a --server-args="-screen 0 1920x1080x24" pnpm --filter @genoffice/visual-tests visual
+
+      # before the re-render below, which reuses test-results/
+      - name: Upload diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: |
+            tests/visual/test-results/
+            tests/visual/playwright-report/
+          if-no-files-found: ignore
+
+      - name: Render fresh baselines
+        if: failure()
+        run: xvfb-run -a --server-args="-screen 0 1920x1080x24" pnpm --filter @genoffice/visual-tests visual:update || true
+
+      - name: Upload fresh baselines
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines
+          path: tests/visual/__screenshots__/linux/
+          if-no-files-found: ignore
+
   # Windows + macOS only on the weekly schedule or a manual run.
   build-test-native:
     name: build & test (${{ matrix.os }})

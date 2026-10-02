@@ -1,0 +1,18 @@
+{
+  "name": "@genoffice/visual-tests",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "Screenshot tests of the built Redrob Office shell and every editor it hosts, driven through Playwright's Electron support",
+  "scripts": {
+    "visual": "playwright test",
+    "visual:update": "playwright test --update-snapshots=all",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.20.1",
+    "typescript": "^5.9.3"
+  }
+}
