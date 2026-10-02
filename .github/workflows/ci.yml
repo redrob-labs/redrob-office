@@ -6,7 +6,7 @@ on:
   pull_request:
   # Full native matrix is expensive; keep it to a weekly check + manual runs.
   schedule:
-    - cron: "0 6 * * 1"
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 concurrency:
@@ -52,6 +52,9 @@ jobs:
       - name: Dependency licences
         run: pnpm check:licenses
 
+      - name: Design-system tokens
+        run: pnpm check:ui-tokens
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -71,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      ELECTRON_DISABLE_SANDBOX: "1"
+      ELECTRON_DISABLE_SANDBOX: '1'
     steps:
       - uses: actions/checkout@v4
 
