@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const it = {
+  aiYou: 'Tu',
+  aiFailedTitle: 'L’assistente non è riuscito a completare',
+  aiStepRunning: 'In corso',
+  aiStepDone: 'Fatto',
+  aiStepFailed: 'Non riuscito',
+  aiStartersLabel: 'Domande suggerite',
   aiEmptyDraftTitle: "Lascia che l'IA scriva la bozza di questo documento",
   aiEmptyDraftBody1:
     "Descrivi l'argomento e i punti chiave, o incolla il materiale di riferimento;",

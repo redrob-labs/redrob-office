@@ -136,7 +136,7 @@ function HfEditor({
       />
       <div className="hf-menu-actions">
         <button
-          className="btn-primary"
+          className="rr-btn rr-btn--primary rr-btn--md btn-primary"
           onClick={() => {
             onApply(text.trim())
             onClose()
@@ -247,7 +247,7 @@ export function BookmarkModal({ editor, onClose }: { editor: Editor; onClose: ()
             }}
             onKeyDown={(e) => e.key === 'Enter' && addBookmark()}
           />
-          <button className="btn-primary" onClick={addBookmark}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={addBookmark}>
             {t('ribbonAdd')}
           </button>
         </div>
@@ -454,7 +454,7 @@ export function ChartInsertModal({ editor, onClose }: { editor: Editor; onClose:
           </button>
         </div>
         <div className="modal-actions">
-          <button className="btn-primary" onClick={insert}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={insert}>
             {t('ribbonInsert')}
           </button>
           <button onClick={onClose}>{t('ribbonCancel')}</button>
@@ -508,10 +508,10 @@ export function TableInsertModal({ editor, onClose }: { editor: Editor; onClose:
           {countInput(t('ribbonTableRowsLabel'), rows, MAX_TABLE_ROWS, setRows)}
         </div>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('ribbonCancel')}
           </button>
-          <button className="btn-primary" onClick={insert}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={insert}>
             {t('ribbonOk')}
           </button>
         </div>
@@ -588,10 +588,14 @@ export function LinkInsertModal({ editor, onClose }: { editor: Editor; onClose: 
           />
         </label>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('ribbonCancel')}
           </button>
-          <button className="btn-primary" disabled={!linkUrl.trim()} onClick={insertLink}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+            disabled={!linkUrl.trim()}
+            onClick={insertLink}
+          >
             {t('ribbonInsert')}
           </button>
         </div>
@@ -1071,6 +1075,7 @@ export function InsertTab({
           <div className="rb-split-wrap">
             <button
               className={`rb-big ${header?.text ? 'active' : ''}`}
+              aria-pressed={!!header?.text}
               disabled={!hasDoc}
               data-tip={t('ribbonHeaderTip')}
               onClick={() => toggleDropdown(setDropdown, 'header')}
@@ -1093,6 +1098,7 @@ export function InsertTab({
           <div className="rb-split-wrap">
             <button
               className={`rb-big ${footer?.text ? 'active' : ''}`}
+              aria-pressed={!!footer?.text}
               disabled={!hasDoc}
               data-tip={t('ribbonFooterTip')}
               onClick={() => toggleDropdown(setDropdown, 'footer')}
@@ -1115,6 +1121,7 @@ export function InsertTab({
           <div className="rb-split-wrap">
             <button
               className={`rb-big ${footer?.pageNumber ? 'active' : ''}`}
+              aria-pressed={!!footer?.pageNumber}
               disabled={!hasDoc}
               data-tip={t('ribbonPageNumber')}
               onClick={() => toggleDropdown(setDropdown, 'pagenum')}
@@ -1176,6 +1183,7 @@ export function InsertTab({
           <div className="rb-col">
             <button
               className={`rb-small ${titlePg ? 'active' : ''}`}
+              aria-pressed={!!titlePg}
               disabled={!hasDoc}
               data-tip={t('ribbonDiffFirstPageTip')}
               onClick={() => onTitlePg(!titlePg)}
@@ -1184,6 +1192,7 @@ export function InsertTab({
             </button>
             <button
               className={`rb-small ${evenOddHf ? 'active' : ''}`}
+              aria-pressed={!!evenOddHf}
               disabled={!hasDoc}
               data-tip={t('ribbonDiffOddEvenTip')}
               onClick={() => onEvenOddHf(!evenOddHf)}

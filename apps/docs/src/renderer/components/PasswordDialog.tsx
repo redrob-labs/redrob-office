@@ -64,7 +64,11 @@ export function PasswordDialog({
         </label>
         <div className="modal-actions">
           <button onClick={onCancel}>{cancelLabel}</button>
-          <button className="btn-primary" disabled={busy || !value} onClick={onSubmit}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+            disabled={busy || !value}
+            onClick={onSubmit}
+          >
             {submitLabel}
           </button>
         </div>

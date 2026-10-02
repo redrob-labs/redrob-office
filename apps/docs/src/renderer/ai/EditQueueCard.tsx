@@ -4,6 +4,7 @@
  * follows the current content instead of a snapshot taken at annotation time.
  */
 import React, { useState } from 'react'
+import { Icon } from '@genoffice/ui'
 import type { Editor } from '@tiptap/core'
 import { useI18n } from '../i18n/locale'
 import {
@@ -62,16 +63,7 @@ export function EditQueueCard({
           onClick={() => setManualFold(!folded)}
           aria-expanded={!folded}
         >
-          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden>
-            <path
-              d="M4 6l4 4 4-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Icon name="chevronDown" size={14} />
         </button>
       </div>
       {!folded && (
@@ -121,7 +113,8 @@ export function EditQueueCard({
                   )}
                   <span className="ai-queue-row-actions" onClick={(e) => e.stopPropagation()}>
                     <button
-                      className="ai-queue-row-btn"
+                      type="button"
+                      className="rr-iconbtn rr-iconbtn--ghost rr-iconbtn--sm ai-queue-row-btn"
                       data-tip={t('aiQueueRowEdit')}
                       aria-label={t('aiQueueRowEdit')}
                       disabled={busy}
@@ -130,32 +123,17 @@ export function EditQueueCard({
                         setEditingQid(item.qid)
                       }}
                     >
-                      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden>
-                        <path
-                          d="M11.2 2.8l2 2L5.6 12.4l-2.6.6.6-2.6z"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.3"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                      <Icon name="edit" size={14} />
                     </button>
                     <button
-                      className="ai-queue-row-btn"
+                      type="button"
+                      className="rr-iconbtn rr-iconbtn--ghost rr-iconbtn--sm ai-queue-row-btn"
                       data-tip={t('ribbonGroupDelete')}
                       aria-label={t('ribbonGroupDelete')}
                       disabled={busy}
                       onClick={() => onRemove(item.qid)}
                     >
-                      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden>
-                        <path
-                          d="M4 4l8 8M12 4l-8 8"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.3"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+                      <Icon name="close" size={14} />
                     </button>
                   </span>
                 </li>
@@ -170,11 +148,16 @@ export function EditQueueCard({
             <span className="ai-queue-confirm">
               {t('aiQueueDiscardConfirm', { count: items.length })}
             </span>
-            <button className="ai-queue-discard" onClick={() => setConfirmDiscard(false)}>
+            <button
+              type="button"
+              className="rr-btn rr-btn--ghost rr-btn--sm ai-queue-discard"
+              onClick={() => setConfirmDiscard(false)}
+            >
               {t('appCancel')}
             </button>
             <button
-              className="ai-queue-send"
+              type="button"
+              className="rr-btn rr-btn--primary rr-btn--sm ai-queue-send"
               onClick={() => {
                 setConfirmDiscard(false)
                 onDiscardAll()
@@ -186,13 +169,19 @@ export function EditQueueCard({
         ) : (
           <>
             <button
-              className="ai-queue-discard"
+              type="button"
+              className="rr-btn rr-btn--ghost rr-btn--sm ai-queue-discard"
               disabled={busy}
               onClick={() => setConfirmDiscard(true)}
             >
               {t('aiQueueDiscard')}
             </button>
-            <button className="ai-queue-send" disabled={busy || liveCount === 0} onClick={onSend}>
+            <button
+              type="button"
+              className="rr-btn rr-btn--primary rr-btn--sm ai-queue-send"
+              disabled={busy || liveCount === 0}
+              onClick={onSend}
+            >
               {t('aiQueueSend', { count: liveCount })}
             </button>
           </>

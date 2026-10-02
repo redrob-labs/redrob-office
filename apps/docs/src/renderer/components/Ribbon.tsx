@@ -33,7 +33,13 @@ import type {
   ThemeColors,
   ThemeFonts,
 } from '@genoffice/docx-engine'
-import { ColorPicker, Dropdown, isSymbolFontFamily, useDismissablePopover } from '@genoffice/ui'
+import {
+  ColorPicker,
+  Dropdown,
+  Toolbar,
+  isSymbolFontFamily,
+  useDismissablePopover,
+} from '@genoffice/ui'
 import { HIGHLIGHT_CSS } from '../editor/extensions'
 import { applyCase, type CaseMode } from '../editor/case-transform'
 import { setParagraphDirection, setSelectionAlign } from '../editor/direction'
@@ -1825,6 +1831,7 @@ function RibbonInner({
   const markBtn = (name: string, active: boolean, title: string, label: ReactNode) => (
     <button
       className={`rb-icon ${active ? 'active' : ''}`}
+      aria-pressed={!!active}
       disabled={!canEdit}
       data-tip={title}
       aria-label={title}
@@ -1842,6 +1849,7 @@ function RibbonInner({
   ) => (
     <button
       className={`rb-icon ${active ? 'active' : ''}`}
+      aria-pressed={!!active}
       disabled={!canEdit}
       data-tip={title}
       aria-label={title}
@@ -1858,6 +1866,7 @@ function RibbonInner({
   ) => (
     <button
       className={`rb-icon ${shapeTextActive.align === align ? 'active' : ''}`}
+      aria-pressed={!!(shapeTextActive.align === align)}
       disabled={!canEdit}
       data-tip={title}
       aria-label={title}
@@ -1881,32 +1890,39 @@ function RibbonInner({
               {t('ribbonTabFile')}
             </button>
             {dropdown === 'file' && (
-              <div data-rb-panel="" className="file-menu">
+              <div data-rb-panel="" className="file-menu rr-menu__list">
                 <button
+                  type="button"
+                  className="rr-menu__item"
                   onClick={() => {
                     setDropdown(null)
                     onOpen()
                   }}
                 >
-                  {t('ribbonOpen')} <span className="file-menu-key">Ctrl+O</span>
+                  {t('ribbonOpen')} <span className="rr-menu__shortcut file-menu-key">Ctrl+O</span>
                 </button>
                 <button
+                  type="button"
+                  className="rr-menu__item"
                   disabled={!hasDoc}
                   onClick={() => {
                     setDropdown(null)
                     onSave()
                   }}
                 >
-                  {t('ribbonSave')} <span className="file-menu-key">Ctrl+S</span>
+                  {t('ribbonSave')} <span className="rr-menu__shortcut file-menu-key">Ctrl+S</span>
                 </button>
                 <button
+                  type="button"
+                  className="rr-menu__item"
                   disabled={!hasDoc}
                   onClick={() => {
                     setDropdown(null)
                     onSaveAs()
                   }}
                 >
-                  {t('ribbonSaveAs')} <span className="file-menu-key">Ctrl+Shift+S</span>
+                  {t('ribbonSaveAs')}{' '}
+                  <span className="rr-menu__shortcut file-menu-key">Ctrl+Shift+S</span>
                 </button>
               </div>
             )}
@@ -1970,7 +1986,7 @@ function RibbonInner({
         {trailingActions}
       </div>
 
-      <div className="ribbon-body">
+      <Toolbar label={t(TAB_LABEL_KEYS[tab])} className="ribbon-body">
         {tab === 'shapeFormat' && inShape ? (
           <div className="table-ribbon-body">
             <div className="ribbon-group">
@@ -2742,6 +2758,7 @@ function RibbonInner({
               <div className="ribbon-group-items">
                 <button
                   className={`rb-big ai-entry ${showAi ? 'active' : ''}`}
+                  aria-pressed={!!showAi}
                   data-tip={t('aiOpenAssistant')}
                   onClick={onToggleAi}
                 >
@@ -2887,6 +2904,7 @@ function RibbonInner({
                   </button>
                   <button
                     className={`rb-small ${painter ? 'active' : ''}`}
+                    aria-pressed={!!painter}
                     disabled={!canEdit || !!sub}
                     data-tip={painter ? t('ribbonPainterActiveTip') : t('ribbonPainterTip')}
                     aria-label={painter ? t('ribbonPainterActiveTip') : t('ribbonPainterTip')}
@@ -3118,6 +3136,7 @@ function RibbonInner({
                   {markBtn('strike', fs.strike, t('ribbonStrikethrough'), <s>ab</s>)}
                   <button
                     className={`rb-icon ${fs.vertAlign === 'subscript' ? 'active' : ''}`}
+                    aria-pressed={!!(fs.vertAlign === 'subscript')}
                     disabled={!canEdit}
                     data-tip={t('ribbonSubscript')}
                     onClick={() => toggleVertAlign('subscript')}
@@ -3126,6 +3145,7 @@ function RibbonInner({
                   </button>
                   <button
                     className={`rb-icon ${fs.vertAlign === 'superscript' ? 'active' : ''}`}
+                    aria-pressed={!!(fs.vertAlign === 'superscript')}
                     disabled={!canEdit}
                     data-tip={t('ribbonSuperscript')}
                     onClick={() => toggleVertAlign('superscript')}
@@ -3137,6 +3157,7 @@ function RibbonInner({
                   <div className="rb-split-wrap">
                     <button
                       className={`rb-icon rb-color-btn ${fs.highlight ? 'active' : ''}`}
+                      aria-pressed={!!fs.highlight}
                       disabled={!canEdit}
                       data-tip={t('ribbonTextHighlightColor')}
                       aria-label={t('ribbonTextHighlightColor')}
@@ -3245,6 +3266,7 @@ function RibbonInner({
                   <div className="rb-split-wrap">
                     <button
                       className={`rb-icon ${fs.listBullet ? 'active' : ''}`}
+                      aria-pressed={!!fs.listBullet}
                       disabled={!canEdit || !!sub}
                       data-tip={t('ribbonBullets')}
                       aria-label={t('ribbonBullets')}
@@ -3300,6 +3322,7 @@ function RibbonInner({
                   <div className="rb-split-wrap">
                     <button
                       className={`rb-icon ${fs.listOrdered ? 'active' : ''}`}
+                      aria-pressed={!!fs.listOrdered}
                       disabled={!canEdit || !!sub}
                       data-tip={t('ribbonNumbering')}
                       aria-label={t('ribbonNumbering')}
@@ -3432,6 +3455,7 @@ function RibbonInner({
                   </button>
                   <button
                     className={`rb-icon ${showMarks ? 'active' : ''}`}
+                    aria-pressed={!!showMarks}
                     disabled={!hasDoc}
                     data-tip={t('ribbonShowMarks')}
                     aria-label={t('ribbonShowMarks')}
@@ -3443,6 +3467,7 @@ function RibbonInner({
                 <div className="rb-row">
                   <button
                     className={`rb-icon ${activeAlign === 'left' ? 'active' : ''}`}
+                    aria-pressed={!!(activeAlign === 'left')}
                     disabled={!canEdit}
                     data-tip={t('ribbonAlignLeftTip')}
                     aria-label={t('ribbonAlignLeftTip')}
@@ -3452,6 +3477,7 @@ function RibbonInner({
                   </button>
                   <button
                     className={`rb-icon ${activeAlign === 'center' ? 'active' : ''}`}
+                    aria-pressed={!!(activeAlign === 'center')}
                     disabled={!canEdit}
                     data-tip={t('ribbonAlignCenterTip')}
                     aria-label={t('ribbonAlignCenterTip')}
@@ -3461,6 +3487,7 @@ function RibbonInner({
                   </button>
                   <button
                     className={`rb-icon ${activeAlign === 'right' ? 'active' : ''}`}
+                    aria-pressed={!!(activeAlign === 'right')}
                     disabled={!canEdit}
                     data-tip={t('ribbonAlignRightTip')}
                     aria-label={t('ribbonAlignRightTip')}
@@ -3470,6 +3497,7 @@ function RibbonInner({
                   </button>
                   <button
                     className={`rb-icon ${activeAlign === 'justify' ? 'active' : ''}`}
+                    aria-pressed={!!(activeAlign === 'justify')}
                     disabled={!canEdit}
                     data-tip={t('ribbonJustifyTip')}
                     aria-label={t('ribbonJustifyTip')}
@@ -3480,6 +3508,7 @@ function RibbonInner({
                   <span className="rb-mini-sep" />
                   <button
                     className={`rb-icon ${!fs.bidi ? 'active' : ''}`}
+                    aria-pressed={!!!fs.bidi}
                     disabled={!canEdit || !!sub}
                     data-tip={t('ribbonDirLtrTip')}
                     aria-label={t('ribbonDirLtrTip')}
@@ -3489,6 +3518,7 @@ function RibbonInner({
                   </button>
                   <button
                     className={`rb-icon ${fs.bidi ? 'active' : ''}`}
+                    aria-pressed={!!fs.bidi}
                     disabled={!canEdit || !!sub}
                     data-tip={t('ribbonDirRtlTip')}
                     aria-label={t('ribbonDirRtlTip')}
@@ -3500,6 +3530,7 @@ function RibbonInner({
                   <div className="rb-split-wrap">
                     <button
                       className={`rb-icon ${activeSpacing ? 'active' : ''}`}
+                      aria-pressed={!!activeSpacing}
                       disabled={!canEdit}
                       data-tip={t('ribbonLineSpacing')}
                       aria-label={t('ribbonLineSpacing')}
@@ -3547,6 +3578,7 @@ function RibbonInner({
                   <div className="rb-split-wrap">
                     <button
                       className={`rb-icon ${fs.shadingFill ? 'active' : ''}`}
+                      aria-pressed={!!fs.shadingFill}
                       disabled={!canEdit}
                       data-tip={t('ribbonParagraphShading')}
                       aria-label={t('ribbonParagraphShading')}
@@ -3581,6 +3613,7 @@ function RibbonInner({
                   <div className="rb-split-wrap">
                     <button
                       className={`rb-icon ${fs.paraBorders ? 'active' : ''}`}
+                      aria-pressed={!!fs.paraBorders}
                       disabled={!canEdit}
                       data-tip={t('ribbonParagraphBorders')}
                       aria-label={t('ribbonParagraphBorders')}
@@ -3773,7 +3806,7 @@ function RibbonInner({
             onPagePreview={onPagePreview}
           />
         )}
-      </div>
+      </Toolbar>
 
       {pictureDialog === 'cutout' && imageDataUrl && (
         <CutoutDialog

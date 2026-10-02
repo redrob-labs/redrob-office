@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const es = {
+  aiYou: 'Tú',
+  aiFailedTitle: 'El asistente no pudo terminar',
+  aiStepRunning: 'En curso',
+  aiStepDone: 'Hecho',
+  aiStepFailed: 'Error',
+  aiStartersLabel: 'Preguntas sugeridas',
   aiEmptyDraftTitle: 'Deja que la IA redacte este documento por ti',
   aiEmptyDraftBody1: 'Describe el tema y los puntos clave, o pega material de referencia;',
   aiEmptyDraftBody2: 'la IA escribe el primer borrador directamente en la página.',

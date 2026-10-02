@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const de = {
+  aiYou: 'Sie',
+  aiFailedTitle: 'Der Assistent konnte nicht abschließen',
+  aiStepRunning: 'Läuft',
+  aiStepDone: 'Fertig',
+  aiStepFailed: 'Fehlgeschlagen',
+  aiStartersLabel: 'Vorgeschlagene Fragen',
   aiEmptyDraftTitle: 'Lass die KI dieses Dokument für dich entwerfen',
   aiEmptyDraftBody1: 'Beschreibe Thema und Kernpunkte oder füge Referenzmaterial ein;',
   aiEmptyDraftBody2: 'die KI schreibt den ersten Entwurf direkt auf die Seite.',

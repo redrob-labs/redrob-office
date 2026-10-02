@@ -4547,10 +4547,10 @@ export function App() {
                       {/* Boolean(): a trailing 0 (empty non-floating image list) must not render as a literal "0" text node */}
                       {Boolean(
                         multiHf ||
-                        (hfViewTouched && effHfView !== 'default') ||
-                        shownHeader?.text ||
-                        shownHeader?.paras?.length ||
-                        hfImagesOf('header')?.length,
+                          (hfViewTouched && effHfView !== 'default') ||
+                          shownHeader?.text ||
+                          shownHeader?.paras?.length ||
+                          hfImagesOf('header')?.length,
                       ) && (
                         <HeaderFooterArea
                           kind="header"
@@ -4578,11 +4578,11 @@ export function App() {
                       />
                       {Boolean(
                         multiHf ||
-                        (hfViewTouched && effHfView !== 'default') ||
-                        shownFooter?.text ||
-                        shownFooter?.pageNumber ||
-                        shownFooter?.paras?.length ||
-                        hfImagesOf('footer')?.length,
+                          (hfViewTouched && effHfView !== 'default') ||
+                          shownFooter?.text ||
+                          shownFooter?.pageNumber ||
+                          shownFooter?.paras?.length ||
+                          hfImagesOf('footer')?.length,
                       ) && (
                         <HeaderFooterArea
                           kind="footer"
@@ -4921,7 +4921,10 @@ export function App() {
             </p>
             <div className="modal-actions">
               <button onClick={() => setPgNumModal(null)}>{t('appCancel')}</button>
-              <button className="btn-primary" onClick={applyPgNumFormat}>
+              <button
+                className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+                onClick={applyPgNumFormat}
+              >
                 {t('appOk')}
               </button>
             </div>
