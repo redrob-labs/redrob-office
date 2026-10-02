@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const de = {
+  aiYou: 'Sie',
+  aiFailedTitle: 'Der Assistent konnte nicht abschließen',
+  aiStepRunning: 'Läuft',
+  aiStepDone: 'Fertig',
+  aiStepFailed: 'Fehlgeschlagen',
+  aiStartersLabel: 'Vorgeschlagene Fragen',
   aiComposerPlaceholderBuild: 'Beschreibe die zu erstellende Tabelle, Daten oder Diagramme…',
   aiEmptyBuildTitle: 'Lass die KI diese Arbeitsmappe für dich aufbauen',
   aiEmptyBuildBody:

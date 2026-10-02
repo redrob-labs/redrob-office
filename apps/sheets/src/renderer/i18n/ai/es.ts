@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const es = {
+  aiYou: 'Tú',
+  aiFailedTitle: 'El asistente no pudo terminar',
+  aiStepRunning: 'En curso',
+  aiStepDone: 'Hecho',
+  aiStepFailed: 'Error',
+  aiStartersLabel: 'Preguntas sugeridas',
   aiComposerPlaceholderBuild: 'Describe la tabla, los datos o el gráfico a crear…',
   aiEmptyBuildTitle: 'Deja que la IA construya este libro por ti',
   aiEmptyBuildBody:

@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { platformShortcuts } from '@genoffice/i18n'
-import { Dropdown, SHAPE_GALLERY_GROUPS, ShapePreview, useDismissablePopover } from '@genoffice/ui'
+import {
+  Dropdown,
+  SHAPE_GALLERY_GROUPS,
+  ShapePreview,
+  Switch,
+  Toolbar,
+  useDismissablePopover,
+} from '@genoffice/ui'
 
 import {
   CaretIcon,
@@ -533,18 +540,14 @@ export function ExcelShell({
           >
             <RedoIcon />
           </button>
-          <label
-            className={`autosave-toggle ${autoSave ? 'on' : ''}`}
+          <Switch
+            className="autosave-toggle"
+            size="sm"
+            label={t('appAutoSave')}
+            checked={autoSave}
             data-tip={t('appAutoSaveTip')}
-          >
-            <span className="autosave-knob" />
-            <span className="autosave-text">{t('appAutoSave')}</span>
-            <input
-              type="checkbox"
-              checked={autoSave}
-              onChange={(e) => onAutoSaveChange(e.target.checked)}
-            />
-          </label>
+            onChange={(e) => onAutoSaveChange(e.target.checked)}
+          />
           <span className="qa-sep" aria-hidden="true" />
           {visibleTabs.map((tab) => (
             <button
@@ -1385,7 +1388,7 @@ function Ribbon({
       },
     ]
     return (
-      <div className="ribbon">
+      <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
         <RibbonGroup label={t('appGroupChartLayouts')}>
           {canEditChart ? (
             largeMenu(t('appAddChartElement'), '📊', t('appAddChartElementTitle'), elementOptions)
@@ -1498,13 +1501,13 @@ function Ribbon({
             onClick={() => onCommand('chart-delete')}
           />
         </RibbonGroup>
-      </div>
+      </Toolbar>
     )
   }
 
   if (activeTab === 'Insert') {
     return (
-      <div className="ribbon">
+      <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
         <RibbonGroup label={t('appGroupTables')}>
           <RibbonButton
             large
@@ -1741,7 +1744,7 @@ function Ribbon({
             </button>
           </div>
         </RibbonGroup>
-      </div>
+      </Toolbar>
     )
   }
 
@@ -1775,7 +1778,7 @@ function Ribbon({
       narrow: t('appMarginNarrow'),
     } as const
     return (
-      <div className="ribbon">
+      <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
         <RibbonGroup label={t('appGroupThemes')}>
           {largeMenu(
             t('appGroupThemes'),
@@ -1937,7 +1940,7 @@ function Ribbon({
             </button>
           </div>
         </RibbonGroup>
-      </div>
+      </Toolbar>
     )
   }
 
@@ -1958,7 +1961,7 @@ function Ribbon({
       />
     )
     return (
-      <div className="ribbon">
+      <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
         <RibbonGroup label={t('appGroupFunctionLibrary')}>
           <RibbonButton
             large
@@ -2119,13 +2122,13 @@ function Ribbon({
             </button>
           </div>
         </RibbonGroup>
-      </div>
+      </Toolbar>
     )
   }
 
   if (activeTab === 'Data') {
     return (
-      <div className="ribbon">
+      <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
         <RibbonGroup label={t('appPivotTable')}>
           <RibbonButton
             large
@@ -2276,13 +2279,13 @@ function Ribbon({
             onClick={() => onCommand('subtotal-open')}
           />
         </RibbonGroup>
-      </div>
+      </Toolbar>
     )
   }
 
   if (activeTab === 'View') {
     return (
-      <div className="ribbon">
+      <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
         <RibbonGroup label={t('appGroupWorkbookViews')}>
           <RibbonButton
             large
@@ -2373,13 +2376,13 @@ function Ribbon({
             { value: 'unfreeze', label: t('appUnfreeze') },
           ])}
         </RibbonGroup>
-      </div>
+      </Toolbar>
     )
   }
 
   if (activeTab === 'Review') {
     return (
-      <div className="ribbon">
+      <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
         <RibbonGroup label={t('appGroupProofing')}>
           <RibbonButton
             large
@@ -2484,7 +2487,7 @@ function Ribbon({
             onClick={() => onCommand('allow-edit-ranges-open')}
           />
         </RibbonGroup>
-      </div>
+      </Toolbar>
     )
   }
 
@@ -2504,10 +2507,11 @@ function Ribbon({
     ? fontSizes
     : [...fontSizes, echoSize].sort((a, b) => a - b)
   return (
-    <div className="ribbon">
+    <Toolbar label={t(TAB_LABEL[activeTab])} className="ribbon">
       <RibbonGroup label={t('appGroupAiAssistant')}>
         <button
           className={`ribbon-tool as-button large ai-entry ${aiOpen ? 'active' : ''}`}
+          aria-pressed={aiOpen}
           data-tip={t('aiOpenAssistant')}
           onClick={onAiToggle}
         >
@@ -2666,6 +2670,7 @@ function Ribbon({
             <button
               data-tip={t('appBold')}
               className={selectionFormat?.bold ? 'is-active' : ''}
+              aria-pressed={!!selectionFormat?.bold}
               onClick={() => onCommand('bold')}
             >
               <b>B</b>
@@ -2673,6 +2678,7 @@ function Ribbon({
             <button
               data-tip={t('appItalic')}
               className={selectionFormat?.italic ? 'is-active' : ''}
+              aria-pressed={!!selectionFormat?.italic}
               onClick={() => onCommand('italic')}
             >
               <em>I</em>
@@ -2680,6 +2686,7 @@ function Ribbon({
             <button
               data-tip={t('appUnderline')}
               className={selectionFormat?.underline ? 'is-active' : ''}
+              aria-pressed={!!selectionFormat?.underline}
               onClick={() => onCommand('underline')}
             >
               <u>U</u>
@@ -2693,6 +2700,7 @@ function Ribbon({
             <button
               data-tip={t('appStrikethrough')}
               className={selectionFormat?.strike ? 'is-active' : ''}
+              aria-pressed={!!selectionFormat?.strike}
               onClick={() => onCommand('strike')}
             >
               <s>S</s>
@@ -2794,6 +2802,7 @@ function Ribbon({
               data-tip={t('dlgFcWrapText')}
               aria-label={t('dlgFcWrapText')}
               className={selectionFormat?.wrap ? 'is-active' : ''}
+              aria-pressed={!!selectionFormat?.wrap}
               onClick={() => onCommand('wrap')}
             >
               <ToolSymbol symbol="↩" />
@@ -3074,7 +3083,7 @@ function Ribbon({
           </div>
         </div>
       </RibbonGroup>
-    </div>
+    </Toolbar>
   )
 }
 
@@ -3399,7 +3408,7 @@ function RibbonButton({
   menu = false,
   compact = false,
   large = false,
-  active = false,
+  active,
   disabled = false,
   onClick,
 }: {
@@ -3420,6 +3429,8 @@ function RibbonButton({
   return (
     <button
       className={`ribbon-tool as-button ${accent ? 'accent' : ''} ${compact ? 'compact-icon' : ''} ${large ? 'large' : ''} ${active ? 'active' : ''}`}
+      aria-pressed={active}
+      aria-haspopup={menu ? 'menu' : undefined}
       onClick={onClick}
       disabled={disabled}
       data-tip={label}

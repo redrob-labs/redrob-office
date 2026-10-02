@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const id = {
+  aiYou: 'Anda',
+  aiFailedTitle: 'Asisten tidak dapat menyelesaikan',
+  aiStepRunning: 'Berjalan',
+  aiStepDone: 'Selesai',
+  aiStepFailed: 'Gagal',
+  aiStartersLabel: 'Pertanyaan yang disarankan',
   aiComposerPlaceholderBuild: 'Jelaskan tabel, data, atau bagan yang akan dibuat…',
   aiEmptyBuildTitle: 'Biarkan AI membangun buku kerja ini untuk Anda',
   aiEmptyBuildBody: 'Jelaskan tabel, data, atau bagan yang Anda perlukan - AI langsung membuatnya.',

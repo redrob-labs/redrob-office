@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ko = {
+  aiYou: '나',
+  aiFailedTitle: '어시스턴트가 작업을 마치지 못했습니다',
+  aiStepRunning: '실행 중',
+  aiStepDone: '완료',
+  aiStepFailed: '실패',
+  aiStartersLabel: '추천 질문',
   aiComposerPlaceholderBuild: '만들 표, 데이터, 차트를 설명하세요…',
   aiEmptyBuildTitle: 'AI에게 시트 작성을 맡기세요',
   aiEmptyBuildBody: '원하는 표, 데이터, 차트를 설명하면 AI가 바로 만들어 줍니다.',

@@ -123,7 +123,7 @@ import '@univerjs/preset-sheets-sort/lib/index.css'
 import { UniverSheetsTablePreset, UniverSheetsTableUIPlugin } from '@univerjs/preset-sheets-table'
 import UniverPresetSheetsTableEnUS from '@univerjs/preset-sheets-table/locales/en-US'
 import '@univerjs/preset-sheets-table/lib/index.css'
-import { greenTheme } from '@univerjs/themes'
+import { redrobUniverTheme } from './univer-theme'
 import { createUniver } from './create-univer'
 
 import {
@@ -1410,8 +1410,8 @@ export function App(): React.JSX.Element {
       document.documentElement.getAttribute('data-theme') === 'dark' ||
       (!document.documentElement.hasAttribute('data-theme') && prefersDark.matches)
     const runtime = createUniver({
-      // green selection/highlight instead of Univer's default blue
-      theme: greenTheme,
+      // selection / highlight in the Redrob blue (kit tokens)
+      theme: redrobUniverTheme(),
       darkMode: isDarkTheme(),
       locale: LocaleType.EN_US,
       locales: {
@@ -1853,7 +1853,8 @@ export function App(): React.JSX.Element {
           // Demo mode journals nothing, but chart↔data sync still applies.
           if (event.id === SET_RANGE_VALUES_MUTATION) {
             const demoParams = event.params as
-              { subUnitId?: string; cellValue?: unknown } | undefined
+              | { subUnitId?: string; cellValue?: unknown }
+              | undefined
             const bounds = cellValueBounds(demoParams?.cellValue)
             if (demoParams?.subUnitId && bounds) queueChartDataSync(demoParams.subUnitId, bounds)
           }
@@ -2058,7 +2059,8 @@ export function App(): React.JSX.Element {
           // Recording from the mutation (not the ribbon handler) keeps the
           // journal in step with Univer's undo/redo of the freeze.
           const freeze = event.params as
-            { subUnitId?: string; ySplit?: number; xSplit?: number } | undefined
+            | { subUnitId?: string; ySplit?: number; xSplit?: number }
+            | undefined
           if (freeze?.subUnitId && !isSheetRemoved(state.editJournal, freeze.subUnitId)) {
             recordPageSetup(state.editJournal, freeze.subUnitId, {
               frozenRows: Math.max(0, freeze.ySplit ?? 0),
@@ -2070,7 +2072,8 @@ export function App(): React.JSX.Element {
         }
         if (event.id === TOGGLE_GRIDLINES_MUTATION) {
           const gridlines = event.params as
-            { subUnitId?: string; showGridlines?: number } | undefined
+            | { subUnitId?: string; showGridlines?: number }
+            | undefined
           if (
             gridlines?.subUnitId &&
             gridlines.showGridlines !== undefined &&
@@ -2266,7 +2269,8 @@ export function App(): React.JSX.Element {
           const options = event.options as { fromFormula?: boolean } | undefined
           if (options?.fromFormula) return
           const params = event.params as
-            { subUnitId?: string; value?: unknown; cellValue?: unknown } | undefined
+            | { subUnitId?: string; value?: unknown; cellValue?: unknown }
+            | undefined
           const formulas = collectCellFormulaTexts(params?.value ?? params?.cellValue)
           if (formulas.length > 0) {
             const subUnitId =
@@ -4050,9 +4054,10 @@ export function App(): React.JSX.Element {
                   } else if (haystack.includes(needle)) {
                     next = replaceOccurrences(value, op.find, op.replace, matchCase)
                   }
-                  if (next === null || next === value) continue
-                  // rich-text matches must clear the document, or setValues
-                  // merges and the old rich text keeps rendering
+                  if (next === null || next === value)
+                    continue
+                    // rich-text matches must clear the document, or setValues
+                    // merges and the old rich text keeps rendering
                   ;(updates[row] ??= {})[column] = isRich
                     ? { v: next, f: null, si: null, p: null }
                     : { v: next, f: null, si: null }
@@ -4478,7 +4483,9 @@ export function App(): React.JSX.Element {
 
   const isCellEditing = useCallback((): boolean => {
     const workbook = univerRef.current?.univerAPI.getActiveWorkbook() as
-      { isCellEditing?(): boolean } | null | undefined
+      | { isCellEditing?(): boolean }
+      | null
+      | undefined
     return workbook?.isCellEditing?.() === true
   }, [])
 
