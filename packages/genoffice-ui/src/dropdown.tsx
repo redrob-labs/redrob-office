@@ -12,6 +12,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react'
 import { useDismissablePopover } from './popover-dismiss'
+import { Icon } from './Icon'
 
 export interface DropdownOption<K extends string = string> {
   readonly value: K
@@ -117,15 +118,7 @@ export function Dropdown<K extends string>({
       >
         <span className="gs-dd-value">{current ? (current.render ?? current.label) : value}</span>
         <span className="gs-dd-caret" aria-hidden="true">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M5.5 9.25 12 15.75l6.5-6.5"
-              stroke="currentColor"
-              strokeWidth="2.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Icon name="chevronDown" size={14} />
         </span>
       </button>
       {open && (

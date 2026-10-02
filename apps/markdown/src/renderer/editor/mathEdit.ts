@@ -57,12 +57,14 @@ export function openMathEditor(editor: Editor, options: OpenMathOptions): void {
   const row = document.createElement('div')
   row.className = 'md-math-actions'
   const apply = document.createElement('button')
-  apply.className = 'md-math-apply'
+  apply.type = 'button'
+  apply.className = 'md-math-apply rr-btn rr-btn--primary rr-btn--sm'
   apply.textContent = t('linkApply')
   row.appendChild(apply)
   if (pos !== null) {
     const del = document.createElement('button')
-    del.className = 'md-math-delete'
+    del.type = 'button'
+    del.className = 'md-math-delete rr-btn rr-btn--ghost rr-btn--sm'
     del.textContent = t('blockDelete')
     del.addEventListener('click', () => {
       const target = targetNode()
