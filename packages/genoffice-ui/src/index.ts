@@ -1,3 +1,4 @@
+export * from './kit'
 export { AiComposer } from './AiComposer'
 export {
   ColorPicker,

@@ -4,9 +4,11 @@
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
-  "description": "Shared renderer UI components for the office apps (AI panel composer, icons); styling stays per-app via the shared class names",
+  "description": "Shared renderer UI for the office apps: the Redrob design system (@redrob-labs/ui) re-exported, plus the Office-only controls composed from it",
   "exports": {
     ".": "./src/index.ts",
+    "./theme.css": "./src/theme.css",
+    "./preflight.css": "./src/preflight.css",
     "./tokens.css": "./src/tokens.css",
     "./screentip.css": "./src/screentip.css",
     "./color-picker.css": "./src/color-picker.css",
@@ -14,17 +16,25 @@
     "./fonts/*": "./src/fonts/*"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "peerDependencies": {
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
-    "typescript": "^5.9.3"
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^28.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@genoffice/i18n": "workspace:*",
-    "@genoffice/pptx-render": "workspace:*"
+    "@genoffice/pptx-render": "workspace:*",
+    "@redrob-labs/ui": "1.0.2"
   }
 }
