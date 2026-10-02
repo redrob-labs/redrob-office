@@ -1,5 +1,54 @@
-/* The kit's page-level rules (html/body background and ink, color-scheme so
- * scrollbars and native <select> popups follow the theme, the Korean font stack
- * under :lang(ko), reduced motion). Import only on a surface the app owns end to
- * end; a view embedded in someone else's page skips it. */
-@import '@redrob-labs/ui/preflight.css';
+/* Page-level rules for an Office renderer that owns its whole window.
+ *
+ * Mirrors @redrob-labs/ui/preflight.css (the page background, ink and
+ * color-scheme the kit leaves to the application, the Korean stack, the focus
+ * outline and reduced motion) with two deliberate differences. Japanese keeps
+ * the chrome stack (see below). And the kit sets
+ * `body { font: var(--text-body) }`, a shorthand that also fixes an absolute
+ * 24px line-height. Every chrome element that sets a font-size but no
+ * line-height would inherit it, and the editors' dense toolbars are built on
+ * the browser's `normal` line-height. So only the family comes from here; the
+ * apps keep their sizes until each migrates to the kit's type scale.
+ *
+ * Load after @genoffice/ui/theme.css and before the app's own stylesheet. */
+
+html {
+  background: var(--surface-base);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font-family: var(--font-chrome, var(--font-sans));
+  text-rendering: optimizeLegibility;
+}
+
+/* The kit applies its Korean stack to Japanese too; Office keeps Japanese on
+ * --font-chrome, whose --ui-cjk names Japanese UI faces, because Wanted Sans
+ * and the Korean system fonts after it carry no proper kana or Japanese Kanji
+ * forms. */
+:lang(ko) body {
+  font-family: var(--font-sans-kr);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink-brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

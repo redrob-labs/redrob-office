@@ -1,10 +1,6 @@
 /* Shared chrome/AI-panel tokens come from @genoffice/ui/tokens.css (imported
  * before this file in main.tsx); only pdf-specific values live here. */
 :root {
-  --accent: #c43e1c;
-  --accent-dark: #a33517;
-  --accent-soft: #fbeae5;
-
   /* pdf-local chrome shades */
   --pdf-error: #c0392b;
   --pdf-error-border: rgb(192 57 43 / 45%);
@@ -80,9 +76,6 @@
 }
 
 [data-theme='dark'] {
-  --accent: #e8663f;
-  --accent-dark: #d4552f;
-  --accent-soft: #43261d;
   --pdf-error: #e57373;
   --pdf-error-border: rgb(229 115 115 / 50%);
   --pdf-error-bg-hover: rgb(229 115 115 / 12%);
@@ -105,9 +98,6 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='dark']) {
-    --accent: #e8663f;
-    --accent-dark: #d4552f;
-    --accent-soft: #43261d;
     --pdf-error: #e57373;
     --pdf-error-border: rgb(229 115 115 / 50%);
     --pdf-error-bg-hover: rgb(229 115 115 / 12%);
@@ -159,12 +149,7 @@ body,
 }
 
 body {
-  font-family:
-    'Segoe UI',
-    -apple-system,
-    BlinkMacSystemFont,
-    var(--ui-cjk),
-    sans-serif;
+  font-family: var(--font-chrome);
   font-size: 13px;
   color: var(--text);
   background: var(--chrome-bg);
@@ -196,7 +181,7 @@ button {
 .ribbon {
   flex-shrink: 0;
   background: var(--chrome-bg);
-  border-bottom: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-control);
   user-select: none;
 }
 
@@ -244,7 +229,7 @@ button {
   width: 1px;
   height: 16px;
   margin: 0 6px;
-  background: var(--border-strong);
+  background: var(--border-control);
   flex-shrink: 0;
 }
 
@@ -492,7 +477,7 @@ button {
 .tb-page-input {
   width: 40px;
   height: 24px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   text-align: center;
   font-size: 12px;
@@ -560,7 +545,7 @@ button {
   z-index: 60;
   min-width: 170px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--pdf-shadow-menu);
   padding: 5px;
@@ -980,7 +965,7 @@ button {
   position: relative;
   width: 100%;
   background: var(--pdf-paper);
-  border: 2px solid var(--border-strong);
+  border: 2px solid var(--border-control);
   border-radius: 4px;
   overflow: hidden;
   line-height: 0;
@@ -1208,7 +1193,7 @@ button {
 }
 
 .pdf-pwd-wrap input:hover:not(:focus):not(.invalid) {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .pdf-pwd-wrap input:focus {
@@ -1328,7 +1313,7 @@ button {
   margin-top: 96px;
   min-width: 300px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 16px;
   box-shadow: var(--pdf-shadow-modal);
   padding: 14px;
@@ -1393,7 +1378,7 @@ button {
 
 .pdf-modal-input {
   height: 28px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 0 8px;
   font-size: 13px;
@@ -1485,7 +1470,7 @@ button {
 .pdf-search-input {
   width: 180px;
   height: 26px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 0 8px;
   font-size: 13px;
@@ -2163,7 +2148,7 @@ button {
 .pdf-color-trigger-compact > span {
   width: 14px;
   height: 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 3px;
 }
 
@@ -2363,7 +2348,7 @@ button {
   align-items: center;
   gap: 7px;
   padding: 0 8px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   background: var(--surface);
   color: var(--text);
@@ -2374,7 +2359,7 @@ button {
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 3px;
 }
 
@@ -2406,7 +2391,7 @@ button {
   align-items: center;
   justify-content: center;
   height: 96px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   background: var(--pdf-paper);
   font-weight: 600;
@@ -2475,7 +2460,7 @@ button {
 .pdf-sign-tab {
   height: 26px;
   padding: 0 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 5px;
   background: var(--surface);
   color: var(--text);
@@ -2490,7 +2475,7 @@ button {
 }
 
 .pdf-sign-pad {
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--border-control);
   border-radius: 6px;
   background: var(--pdf-paper);
   cursor: crosshair;
@@ -2516,7 +2501,7 @@ button {
   justify-content: center;
   padding: 0 10px;
   overflow: hidden;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   background: var(--pdf-paper);
   font-size: 26px;
@@ -2535,7 +2520,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--border-control);
   border-radius: 6px;
   background: var(--pdf-paper);
   cursor: pointer;
@@ -2604,7 +2589,7 @@ button {
   align-items: center;
   justify-content: center;
   padding: 4px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   background: var(--pdf-paper);
   cursor: pointer;
@@ -2633,7 +2618,7 @@ button {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 50%;
   background: var(--surface);
   color: var(--text-dim);
@@ -2737,7 +2722,7 @@ button {
   position-visibility: anchors-visible;
   z-index: 60;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 10px;
   box-shadow: var(--pdf-shadow-drop);
   padding: 8px;
@@ -2783,7 +2768,7 @@ button {
   width: 48px;
   height: 24px;
   padding: 0;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -2815,7 +2800,7 @@ button {
 .pdf-modal-textarea {
   min-width: 300px;
   min-height: 90px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 7px 9px;
   font-size: 13px;
@@ -3367,7 +3352,7 @@ button {
 }
 
 .ai-chat-empty-title {
-  font-size: var(--text-body-lg);
+  font-size: var(--fs-body-lg);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: 8px;
@@ -3375,7 +3360,7 @@ button {
 
 .ai-chat-empty-body {
   color: var(--color-text-secondary);
-  font-size: var(--text-small);
+  font-size: var(--fs-small);
   font-weight: 400;
   line-height: 1.5;
 }
@@ -3903,7 +3888,7 @@ button {
 }
 
 .ai-input-hint {
-  font-size: var(--text-caption);
+  font-size: var(--fs-caption);
   color: var(--color-text-tertiary);
   user-select: none;
   white-space: nowrap;

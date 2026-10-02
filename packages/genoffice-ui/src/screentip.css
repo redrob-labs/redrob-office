@@ -8,7 +8,7 @@
   max-width: 280px;
   padding: 5px 10px;
   border-radius: var(--radius-6);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   background: var(--surface);
   color: var(--text-primary);
   font: 12px/1.45 var(--gs-font-sans);

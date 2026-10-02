@@ -1,4 +1,5 @@
 export * from './kit'
+export { applyUiTheme, type UiThemeMode } from './theme'
 export { AiComposer } from './AiComposer'
 export {
   ColorPicker,

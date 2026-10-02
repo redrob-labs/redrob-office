@@ -1,13 +1,12 @@
-/* Per-app accent (word-blue family) + docs-only tokens.
- * Chrome tokens (surface/text/border/…, AI panel --color-*) come from
- * @genoffice/ui/tokens.css; nothing here may shadow those names. */
+/* Docs-only tokens.
+ * Chrome tokens (surface/text/border/…, the brand --accent family, AI panel
+ * --color-*) come from @genoffice/ui/tokens.css; nothing here may shadow those
+ * names. --word-blue is the chrome accent's old name and now follows the brand;
+ * --word-heading previews Word's own heading colour and stays. */
 :root {
-  --word-blue: #185abd;
-  --word-blue-dark: #124a9e;
+  --word-blue: var(--accent);
+  --word-blue-dark: var(--accent-dark);
   --word-heading: #2f5496;
-  --accent: var(--word-blue);
-  --accent-dark: var(--word-blue-dark);
-  --accent-soft: #e8f1fb;
 
   --docs-heading-3: #1f3864;
   --docs-accent-ghost: rgb(24 90 189 / 10%);
@@ -150,10 +149,7 @@
 }
 
 [data-theme='dark'] {
-  --word-blue: #4a9eff;
-  --word-blue-dark: #3a8eef;
   --word-heading: #6cabf0;
-  --accent-soft: #1e3a5f;
 
   --docs-heading-3: #7fa8e0;
   --docs-accent-ghost: rgb(74 158 255 / 18%);
@@ -221,10 +217,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='dark']) {
-    --word-blue: #4a9eff;
-    --word-blue-dark: #3a8eef;
     --word-heading: #6cabf0;
-    --accent-soft: #1e3a5f;
 
     --docs-heading-3: #7fa8e0;
     --docs-accent-ghost: rgb(74 158 255 / 18%);
@@ -321,12 +314,7 @@ body,
 }
 
 body {
-  font-family:
-    'Segoe UI',
-    -apple-system,
-    BlinkMacSystemFont,
-    var(--ui-cjk),
-    sans-serif;
+  font-family: var(--font-chrome);
   color: var(--text);
   background: var(--chrome-bg);
   font-size: 13px;
@@ -379,7 +367,7 @@ button {
 .ribbon {
   flex-shrink: 0;
   background: var(--chrome-bg);
-  border-bottom: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-control);
   user-select: none;
   /* shared toolbar ink (glyphs, letterforms, labels) — same as sheets/slides */
   color: var(--text-primary);
@@ -491,7 +479,7 @@ html.genoffice-popover-open .ribbon-tabs {
   z-index: 60;
   min-width: 210px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 5px;
@@ -533,7 +521,7 @@ html.genoffice-popover-open .ribbon-tabs {
   width: 1px;
   height: 16px;
   margin: 0 6px;
-  background: var(--border-strong);
+  background: var(--border-control);
   flex-shrink: 0;
 }
 
@@ -840,7 +828,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .rb-select {
   height: 28px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 3px;
   background: var(--surface);
   font-size: 12px;
@@ -879,7 +867,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .rb-caret.rb-combo-caret {
   width: 18px;
   height: 28px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-left: none;
   border-radius: 0 3px 3px 0;
   background: var(--surface);
@@ -1078,7 +1066,7 @@ html.genoffice-popover-open .ribbon-tabs {
   grid-template-columns: repeat(6, 20px);
   gap: 4px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   padding: 8px;
   box-shadow: var(--docs-shadow-menu);
@@ -1230,7 +1218,7 @@ html.genoffice-popover-open .ribbon-tabs {
   z-index: 60;
   min-width: 92px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 4px;
@@ -1344,7 +1332,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 8px;
   padding: 10px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   max-height: 420px;
@@ -1373,7 +1361,7 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 116px;
   overflow: hidden;
   background: var(--docs-paper);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 2px;
   padding: 4px 5px;
   font-size: 4px;
@@ -1402,7 +1390,7 @@ html.genoffice-popover-open .ribbon-tabs {
   position-visibility: anchors-visible;
   z-index: 60;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 8px;
@@ -1467,7 +1455,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .table-cell {
   width: 18px;
   height: 16px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 2px;
   background: var(--surface);
   cursor: pointer;
@@ -1494,7 +1482,7 @@ html.genoffice-popover-open .ribbon-tabs {
   grid-template-columns: repeat(10, 28px);
   gap: 2px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 8px;
@@ -1529,7 +1517,7 @@ html.genoffice-popover-open .ribbon-tabs {
   max-height: 420px;
   overflow-y: auto;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 6px;
@@ -1577,7 +1565,7 @@ html.genoffice-popover-open .ribbon-tabs {
   grid-template-columns: repeat(4, 44px);
   gap: 5px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 8px;
@@ -1615,7 +1603,7 @@ html.genoffice-popover-open .ribbon-tabs {
   flex-direction: row;
   gap: 4px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 8px;
@@ -1667,7 +1655,7 @@ html.genoffice-popover-open .ribbon-tabs {
   max-height: 420px;
   overflow-y: auto;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 6px;
@@ -1707,7 +1695,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .equation-gallery-custom {
   width: 100%;
   border: none;
-  border-top: 1px solid var(--border-strong);
+  border-top: 1px solid var(--border-control);
   background: none;
   padding: 8px 6px;
   text-align: left;
@@ -1729,7 +1717,7 @@ html.genoffice-popover-open .ribbon-tabs {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   margin: 10px 0 2px;
   padding: 10px;
@@ -1772,7 +1760,7 @@ html.genoffice-popover-open .ribbon-tabs {
   z-index: 60;
   min-width: 200px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 5px;
@@ -1905,12 +1893,12 @@ th.cell-rev-del {
   width: 36px;
   height: 36px;
   padding: 4px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
 }
 
 .layout-menu button.pos-cell.active {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
   background: var(--active-bg);
 }
 
@@ -1974,7 +1962,7 @@ th.cell-rev-del {
 .layout-num input {
   width: 56px;
   height: 24px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 3px;
   padding: 0 4px;
   font-size: 12px;
@@ -2060,7 +2048,7 @@ th.cell-rev-del {
 }
 
 .style-gallery-more:hover {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
   background: var(--hover);
 }
 
@@ -2079,7 +2067,7 @@ th.cell-rev-del {
   grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
   gap: 4px;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 8px;
@@ -2105,12 +2093,12 @@ th.cell-rev-del {
 }
 
 .style-card:hover:not(:disabled) {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
   background: var(--hover);
 }
 
 .style-card.active {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
   background: var(--active-bg);
 }
 
@@ -2808,7 +2796,7 @@ th.cell-rev-del {
   width: 100%;
   min-height: 56px;
   resize: vertical;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   padding: 6px 8px;
   font-size: 13px;
@@ -2824,7 +2812,7 @@ th.cell-rev-del {
 }
 
 .comment-compose-actions button {
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   background: var(--surface);
   border-radius: 5px;
   padding: 4px 12px;
@@ -3216,7 +3204,7 @@ th.cell-rev-del {
 /* visual page-break indicator (w:pageBreakBefore) */
 .doc-page .page-break-before {
   position: relative;
-  border-top: 1px dashed var(--border-strong);
+  border-top: 1px dashed var(--border-control);
   padding-top: 14px;
   margin-top: 14pt;
 }
@@ -3852,7 +3840,7 @@ th.cell-rev-del {
 /* protected blocks (table / image / chart / math ...) */
 .doc-protected {
   position: relative;
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--border-control);
   border-radius: 3px;
   padding: 10px 14px;
   margin: 0 0 8pt;
@@ -3957,7 +3945,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected[data-doc-protected='table']:hover {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .doc-table {
@@ -4235,7 +4223,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   flex: 0 0 13px;
   width: 13px;
   height: 13px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   background: var(--surface);
 }
@@ -4279,7 +4267,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 
 .table-command-button:hover:not(:disabled),
 .table-command-button.active {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
   background: var(--hover);
 }
 
@@ -4643,7 +4631,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected-sectbreak:hover {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .doc-sectbreak-label {
@@ -4667,7 +4655,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected-rule:hover {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .doc-rule-line {
@@ -4685,7 +4673,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected-broken-img:hover {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .doc-broken-img-frame {
@@ -4723,7 +4711,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected-field:hover {
-  outline-color: var(--border-strong);
+  outline-color: var(--border-control);
 }
 
 .doc-toc-line {
@@ -4797,7 +4785,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 .doc-field-pagebreak::after {
   content: '';
   flex: 1;
-  border-top: 1px dashed var(--border-strong);
+  border-top: 1px dashed var(--border-control);
 }
 
 .doc-field-text {
@@ -5090,7 +5078,7 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 }
 
 .doc-protected-ole:hover {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 /* wrap inline-block + img block (like image blocks): the paragraph's
@@ -5710,7 +5698,7 @@ body.docs-crop-active
 }
 
 .ai-chat-empty-title {
-  font-size: var(--text-body-lg);
+  font-size: var(--fs-body-lg);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: 8px;
@@ -5718,7 +5706,7 @@ body.docs-crop-active
 
 .ai-chat-empty-body {
   color: var(--color-text-secondary);
-  font-size: var(--text-small);
+  font-size: var(--fs-small);
   line-height: 1.5;
 }
 
@@ -6481,7 +6469,7 @@ body.docs-crop-active
   padding: 3px 10px;
   border-radius: var(--radius-30);
   background: var(--docs-brand-ghost);
-  font-size: var(--text-caption);
+  font-size: var(--fs-caption);
   color: var(--color-brand-secondary);
   font-weight: 500;
 }
@@ -6524,7 +6512,7 @@ body.docs-crop-active
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-8);
   background: var(--color-bg-page);
-  font-size: var(--text-caption);
+  font-size: var(--fs-caption);
   line-height: 1.5;
   color: var(--color-text-secondary);
   max-height: 96px;
@@ -6984,7 +6972,7 @@ body.docs-crop-active
   border-radius: var(--radius-30);
   background: none;
   color: var(--color-text-secondary);
-  font-size: var(--text-caption);
+  font-size: var(--fs-caption);
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -7249,7 +7237,7 @@ body.docs-crop-active
 }
 
 .ai-input-hint {
-  font-size: var(--text-caption);
+  font-size: var(--fs-caption);
   color: var(--color-text-tertiary);
   user-select: none;
   min-width: 0;
@@ -7424,7 +7412,7 @@ body.docs-crop-active
   width: 100%;
   margin-top: 4px;
   height: 34px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 0 10px;
   font-size: 13px;
@@ -7440,7 +7428,7 @@ body.docs-crop-active
   width: 100%;
   margin-top: 4px;
   height: 34px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 0 6px;
   font-size: 13px;
@@ -7512,7 +7500,7 @@ body.docs-crop-active
   display: block;
   width: 100%;
   height: 34px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 8px;
   padding: 0 10px;
   font-size: 13px;
@@ -7635,7 +7623,7 @@ body.docs-crop-active
 }
 
 .gs-form .fld input:hover:not(:focus):not(.invalid) {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .gs-form .fld input:focus {
@@ -7706,7 +7694,7 @@ body.docs-crop-active
   width: 100%;
   margin-top: 4px;
   height: 34px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 0 6px;
   font-size: 13px;
@@ -7809,7 +7797,7 @@ body.docs-crop-active
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
-  border: 1.5px solid var(--border-strong);
+  border: 1.5px solid var(--border-control);
   background: var(--surface);
   position: relative;
   transition:
@@ -8079,7 +8067,7 @@ body.docs-crop-active
   width: 100%;
   box-sizing: border-box;
   height: 28px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 0 6px;
   font-size: 12px;
@@ -8119,7 +8107,7 @@ body.docs-crop-active
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   background: var(--surface);
   border-radius: 999px;
   padding: 5px 13px;
@@ -8186,7 +8174,7 @@ body.docs-crop-active
    * swallow every click (notably the × close button) */
   -webkit-app-region: no-drag;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   box-shadow: var(--docs-shadow-menu);
   padding: 8px 10px;
@@ -8208,7 +8196,7 @@ body.docs-crop-active
 .find-input {
   width: 200px;
   height: 28px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 0 8px;
   font-size: 13px;
@@ -8243,7 +8231,7 @@ body.docs-crop-active
 }
 
 .find-btn:disabled {
-  color: var(--border-strong);
+  color: var(--border-control);
   cursor: default;
 }
 
@@ -8254,7 +8242,7 @@ body.docs-crop-active
 .find-action {
   height: 26px;
   padding: 0 10px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   background: var(--surface);
   cursor: pointer;
@@ -8267,7 +8255,7 @@ body.docs-crop-active
 }
 
 .find-action:disabled {
-  color: var(--border-strong);
+  color: var(--border-control);
   cursor: default;
 }
 
@@ -8302,7 +8290,7 @@ body.docs-crop-active
   width: 26px;
   height: 14px;
   border-radius: 7px;
-  background: var(--border-strong);
+  background: var(--border-control);
   position: relative;
   transition: background 0.15s;
 }
@@ -8598,7 +8586,7 @@ body.docs-crop-active
   z-index: 60;
   height: 30px;
   padding: 0 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 15px;
   background: var(--surface);
   box-shadow: var(--docs-shadow-chip);
@@ -8702,7 +8690,7 @@ body.docs-crop-active
   flex: none;
   display: flex;
   flex-direction: column;
-  border-top: 3px solid var(--border-strong);
+  border-top: 3px solid var(--border-control);
   background: var(--canvas);
 }
 
@@ -8845,7 +8833,7 @@ ruby.doc-ruby rt {
   right: 2px;
   padding: 1px 6px;
   font-size: 11px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   background: var(--surface);
   color: var(--text-dim);
@@ -8979,7 +8967,7 @@ ruby.doc-ruby rt {
   z-index: 200;
   padding: 5px 0;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 8px;
   box-shadow: var(--docs-shadow-ctx);
   font-size: 13px;
@@ -9046,7 +9034,7 @@ ruby.doc-ruby rt {
   min-width: 150px;
   padding: 5px 0;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 8px;
   box-shadow: var(--docs-shadow-ctx);
 }
@@ -9115,7 +9103,7 @@ ruby.doc-ruby rt {
   display: block;
   width: 100%;
   margin-top: 4px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   padding: 8px 10px;
   font-size: 13px;
@@ -9385,7 +9373,7 @@ tr > .page-gap-cut {
   pointer-events: auto;
   cursor: pointer;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-left: 3px solid var(--docs-paper-comment-line);
   border-radius: 4px;
   padding: 5px 8px;
@@ -9807,7 +9795,7 @@ tr > .page-gap-cut {
 }
 
 .table-properties-grid input:hover {
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .table-properties-grid input:focus {
