@@ -220,12 +220,18 @@ export interface AgentStepsStrings {
  * The tools a turn ran, as kit AgentAction rows under one quiet toggle.
  * Collapsed by default; a person opens it when an answer looks wrong.
  */
-export function AgentSteps({
+export function AgentSteps<S extends AgentToolStep>({
   steps,
   strings,
+  renderDetail,
 }: {
-  steps: ReadonlyArray<AgentToolStep>
+  steps: ReadonlyArray<S>
   strings: AgentStepsStrings
+  /**
+   * Draws a step's expanded detail (image grids, link lists); by default the
+   * raw output as text. Return nothing for a step with no detail.
+   */
+  renderDetail?: (step: S) => ReactNode
 }): ReactElement {
   const [open, setOpen] = useState(false)
   const listId = useId()
@@ -264,7 +270,7 @@ export function AgentSteps({
               }
               className="go-agent-step"
             >
-              {step.output ? step.output : undefined}
+              {renderDetail ? renderDetail(step) : step.output ? step.output : undefined}
             </AgentAction>
           )
         })}
