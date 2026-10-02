@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const th = {
+  aiYou: 'คุณ',
+  aiFailedTitle: 'ผู้ช่วยทำงานไม่สำเร็จ',
+  aiStepRunning: 'กำลังทำงาน',
+  aiStepDone: 'เสร็จแล้ว',
+  aiStepFailed: 'ล้มเหลว',
+  aiStartersLabel: 'คำถามที่แนะนำ',
   aiComposerPlaceholderBuild: 'อธิบายตาราง ข้อมูล หรือแผนภูมิที่จะสร้าง…',
   aiEmptyBuildTitle: 'ให้ AI สร้างเวิร์กบุ๊กนี้ให้คุณ',
   aiEmptyBuildBody: 'อธิบายตาราง ข้อมูล หรือแผนภูมิที่ต้องการ แล้ว AI จะสร้างให้ทันที',
@@ -64,8 +70,7 @@ export const th = {
   aiOverloadedError: 'บริการ AI มีผู้ใช้งานจำนวนมากในขณะนี้ โปรดลองอีกครั้งในอีกสักครู่',
   aiNetworkError:
     'เครือข่ายมีปัญหา ไม่สามารถเชื่อมต่อบริการ AI ได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่',
-  aiCreditsExhausted:
-    'เครดิต Redrob ของคุณหมดแล้ว โปรดเติมเครดิตที่ console.redrob.ai แล้วลองใหม่',
+  aiCreditsExhausted: 'เครดิต Redrob ของคุณหมดแล้ว โปรดเติมเครดิตที่ console.redrob.ai แล้วลองใหม่',
   aiToolWorkbookContext: 'อ่านข้อมูลเวิร์กบุ๊ก',
   aiToolReadRange: 'อ่านช่วง',
   aiToolReadRangeOf: 'อ่านช่วง {range}',

@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ja = {
+  aiYou: 'あなた',
+  aiFailedTitle: 'アシスタントは完了できませんでした',
+  aiStepRunning: '実行中',
+  aiStepDone: '完了',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '提案されたプロンプト',
   aiComposerPlaceholderBuild: '作りたい表・データ・グラフを入力…',
   aiEmptyBuildTitle: 'AI にシート作りを任せる',
   aiEmptyBuildBody: '欲しい表・データ・グラフを伝えると、AI がその場で作成します。',

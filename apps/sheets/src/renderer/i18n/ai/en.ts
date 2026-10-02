@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const en = {
+  aiYou: 'You',
+  aiFailedTitle: 'The assistant could not finish',
+  aiStepRunning: 'Running',
+  aiStepDone: 'Done',
+  aiStepFailed: 'Failed',
+  aiStartersLabel: 'Suggested prompts',
   aiComposerPlaceholderBuild: 'Describe the table, data, or chart to create…',
   aiEmptyBuildTitle: 'Let AI build this workbook for you',
   aiEmptyBuildBody: 'Describe the table, data, or chart you need - AI creates it in place.',

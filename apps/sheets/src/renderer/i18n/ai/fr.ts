@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const fr = {
+  aiYou: 'Vous',
+  aiFailedTitle: 'L’assistant n’a pas pu terminer',
+  aiStepRunning: 'En cours',
+  aiStepDone: 'Terminé',
+  aiStepFailed: 'Échec',
+  aiStartersLabel: 'Suggestions de questions',
   aiComposerPlaceholderBuild: 'Décrivez le tableau, les données ou le graphique à créer…',
   aiEmptyBuildTitle: "Laissez l'IA construire ce classeur pour vous",
   aiEmptyBuildBody:

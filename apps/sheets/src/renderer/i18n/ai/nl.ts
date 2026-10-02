@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const nl = {
+  aiYou: 'Jij',
+  aiFailedTitle: 'De assistent kon het niet afmaken',
+  aiStepRunning: 'Bezig',
+  aiStepDone: 'Klaar',
+  aiStepFailed: 'Mislukt',
+  aiStartersLabel: 'Voorgestelde vragen',
   aiComposerPlaceholderBuild: 'Beschrijf de tabel, gegevens of grafiek om te maken…',
   aiEmptyBuildTitle: 'Laat AI deze werkmap voor je opbouwen',
   aiEmptyBuildBody:
