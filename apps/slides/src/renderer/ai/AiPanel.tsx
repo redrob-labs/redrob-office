@@ -1455,7 +1455,7 @@ export function AiPanel({
 
   // Input box auto-sizes, up to seven lines (keep in sync with the CSS max-height);
   // empty clears the inline height outright so the CSS min-height governs
-  // (a hidden-at-measure pass can leave a stale value), same as the shared AiComposer.
+  // (a hidden-at-measure pass can leave a stale value).
   useEffect(() => {
     const ta = inputRef.current
     if (!ta) return
