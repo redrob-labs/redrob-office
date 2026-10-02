@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Button, Icon } from '@genoffice/ui'
 import brandMark from './assets/redrob-mark.svg'
 import brandMarkOnDark from './assets/redrob-mark-on-dark.svg'
 import { useI18n } from './locale'
@@ -203,21 +204,15 @@ export function Onboarding({ onDone }: OnboardingProps) {
               {s.showStar && (
                 <div className="onb-star">
                   <p className="onb-star-hint">{t('onbStarHint')}</p>
-                  <button
+                  <Button
                     className="onb-star-btn"
+                    variant="secondary"
+                    size="sm"
+                    iconLeft={<Icon name="star" size={14} />}
                     onClick={() => void window.aiOffice.openGitHubRepo()}
                   >
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z" />
-                    </svg>
                     {t('starOnGitHub')}
-                  </button>
+                  </Button>
                 </div>
               )}
               {s.showAnalyticsNotice && (
@@ -231,18 +226,15 @@ export function Onboarding({ onDone }: OnboardingProps) {
               {s.showOffer && (
                 <div className="onb-offer">
                   <p className="onb-credits">{renderEmphasis(t('onbCredits'))}</p>
-                  <button className="onb-join" onClick={() => void window.aiOffice.openGenTeam()}>
+                  <Button
+                    className="onb-join"
+                    variant="secondary"
+                    size="sm"
+                    iconRight={<Icon name="arrowUpRight" size={14} />}
+                    onClick={() => void window.aiOffice.openGenTeam()}
+                  >
                     {t('onbJoinGenTeam')}
-                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                      <path
-                        d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"
-                        stroke="currentColor"
-                        strokeWidth="1.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -262,21 +254,35 @@ export function Onboarding({ onDone }: OnboardingProps) {
             ))}
           </div>
           <div className="onb-nav">
-            <button className="onb-skip" disabled={submitting} onClick={finish}>
+            <Button
+              className="onb-skip"
+              variant="ghost"
+              size="md"
+              disabled={submitting}
+              onClick={finish}
+            >
               {t('onbSkip')}
-            </button>
+            </Button>
             {index > 0 && (
-              <button
+              <Button
                 className="onb-back"
+                variant="secondary"
+                size="md"
                 disabled={submitting}
                 onClick={() => setIndex(index - 1)}
               >
                 {t('onbBack')}
-              </button>
+              </Button>
             )}
-            <button className="onb-next" disabled={submitting} onClick={next}>
+            <Button
+              className="onb-next"
+              variant="primary"
+              size="md"
+              disabled={submitting}
+              onClick={next}
+            >
               {isLast ? t('onbStart') : t('onbNext')}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

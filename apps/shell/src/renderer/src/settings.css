@@ -1,63 +1,19 @@
-/* Settings modal (opened from the account menu): two-pane dialog matched to
-   GenMail's settings window (values read from its packaged CSS) — borderless
-   header/nav, label-left / control-right rows with hairline dividers.
-   Chrome colors use semantic tokens only (see CLAUDE.md theming rules). */
+/* Settings: the shared Dialog (the kit's Modal) with a section nav on the left
+ * and label-left / control-right rows on the right. Every control is a kit
+ * component (Button, Input, Select, Switch); this file only lays them out,
+ * on the kit's semantic tokens. */
 
-.set-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5vh 24px;
-  background: var(--color-bg-overlay);
-  backdrop-filter: blur(6px);
+/* a fixed-height panel, so switching sections never resizes the dialog */
+.set-overlay .rr-modal {
+  height: min(720px, calc(100vh - var(--space-12)));
 }
 
-.set-dialog {
+.set-overlay .rr-modal__body {
   display: flex;
-  flex-direction: column;
-  width: min(960px, 100%);
-  height: min(720px, 90vh);
-  border-radius: 14px;
-  background: var(--surface);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-modal-strong);
+  flex: 1;
+  padding: 0;
+  color: var(--ink-primary);
   overflow: hidden;
-}
-
-.set-header {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px;
-}
-
-.set-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.set-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 8px;
-  background: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-}
-
-.set-close:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
 }
 
 .set-body {
@@ -68,46 +24,47 @@
 
 .set-nav {
   flex-shrink: 0;
-  width: 232px;
-  padding: 8px 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  width: 220px;
+  padding: var(--space-3) var(--space-3) var(--space-4);
 }
 
 .set-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: none;
-  font: inherit;
+  font: var(--text-body-sm);
   font-size: 14px;
-  font-weight: 400;
-  color: var(--text-primary);
-  cursor: pointer;
+  color: var(--ink-secondary);
   text-align: left;
+  cursor: pointer;
 }
 
 .set-nav-item svg {
   flex-shrink: 0;
-  color: var(--text-secondary);
 }
 
 .set-nav-item:hover:not(.active) {
-  background: var(--bg-content);
+  background: var(--surface-raised);
+  color: var(--ink-primary);
 }
 
 .set-nav-item.active {
-  background: var(--bg-hover);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
   font-weight: 600;
 }
 
-.set-nav-item.active svg {
-  color: var(--text-primary);
+.set-nav-item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
 }
 
 .set-pane {
@@ -115,24 +72,22 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 8px 28px 24px;
+  padding: var(--space-3) var(--space-6) var(--space-6);
   overflow-y: auto;
 }
 
 .set-pane-title {
-  margin: 0 0 18px;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+  margin: 0 0 var(--space-4);
+  font: var(--text-title-4);
+  color: var(--ink-primary);
 }
 
 .set-field {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--space-5);
   min-height: 52px;
-  padding: 10px 0;
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -146,25 +101,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .set-field-label {
   flex-shrink: 0;
   font-size: 14px;
-  font-weight: 400;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .set-field-value {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
   text-align: right;
   user-select: text;
   word-break: break-all;
 }
 
-/* stacked label + secondary description (analytics toggle row) */
+/* stacked label + secondary description */
 .set-field-stack {
   display: flex;
   flex-direction: column;
@@ -173,143 +127,51 @@
 }
 
 .set-field-desc {
+  font: var(--text-body-sm);
   font-size: 12px;
-  line-height: 1.45;
-  color: var(--text-secondary);
+  line-height: 18px;
+  color: var(--ink-secondary);
 }
 
-/* on/off switch (analytics toggle) */
-.set-switch {
-  position: relative;
+.set-field-desc a {
+  color: var(--ink-brand);
+}
+
+/* kit controls in a row: they keep their own width instead of stretching */
+.set-field > .rr-btn,
+.set-field > .rr-switch {
   flex-shrink: 0;
-  width: 40px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  border-radius: 11px;
-  background: var(--bg-hover-strong);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.set-switch::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow: var(--shadow-modal-strong);
-  transition: left 0.15s ease;
-}
-
-.set-switch[aria-checked='true'] {
-  background: var(--color-btn-primary);
-}
-
-.set-switch[aria-checked='true']::after {
-  left: 20px;
-}
-
-.set-switch:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-/* GenMail-style select pill: the visible layer is just the current value +
-   chevron (width hugs the content); the real <select> sits on top invisibly
-   and only supplies the click target and the native popup. */
-.set-select-wrap {
-  position: relative;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.set-select-wrap:hover,
-.set-select-wrap:focus-within {
-  background: var(--bg-hover);
-}
-
-.set-select-text {
-  font-size: 14px;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
-.set-select-wrap::after {
-  content: '';
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  margin-top: -4px;
-  border-right: 1.5px solid var(--text-primary);
-  border-bottom: 1.5px solid var(--text-primary);
-  transform: rotate(45deg);
 }
 
 .set-select {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  font: inherit;
-  cursor: pointer;
-  /* the element is invisible, but the OS popup that opens on click reads its
-     computed color/background to render the option list */
-  color: var(--text-primary);
-  background: var(--surface);
-}
-
-.set-select option {
-  color: var(--text-primary);
-  background: var(--surface);
-}
-
-/* Shared dropdown (@genoffice/ui gs-dd) in settings rows: borderless text
- * trigger matching the old .set-select-wrap look */
-.set-dd {
   flex-shrink: 0;
+  min-width: 200px;
 }
 
-.set-dd .gs-dd-btn {
-  height: auto;
-  gap: 6px;
-  padding: 4px 8px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  font-size: 14px;
-  color: var(--text-primary);
+.set-input {
+  flex-shrink: 0;
+  width: 46%;
+  min-width: 200px;
 }
 
-.set-dd .gs-dd-btn:hover,
-.set-dd .gs-dd-btn:focus-visible {
-  background: var(--bg-hover);
+.set-input > div,
+.set-input .rr-control {
+  width: 100%;
 }
 
-.set-dd .gs-dd-pop {
-  min-width: 180px;
+/* the Redrob mark beside the engine name */
+.set-provider-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-.set-dd .gs-dd-item {
-  font-size: 13px;
-}
-
-/* brand mark in the AI provider dropdown (trigger value + option rows are
-   flex containers from gs-dd); monochrome marks follow the text color */
 .set-provider-logo {
   flex-shrink: 0;
   display: inline-flex;
   width: 16px;
   height: 16px;
-  margin-right: 8px;
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 .set-provider-logo svg {
@@ -317,109 +179,40 @@
   height: 100%;
 }
 
-.set-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 8px;
-  background: var(--bg-hover);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.set-btn:hover {
-  background: var(--bg-hover-strong);
-}
-
-.set-btn:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.set-btn.primary {
-  border-color: var(--color-btn-primary);
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
-}
-
-.set-btn.primary:hover {
-  background: var(--color-btn-primary-hover);
-}
-
-.set-btn.danger {
-  color: var(--danger);
-}
-
 .set-pane-footer {
   margin-top: auto;
-  padding-top: 20px;
+  padding-top: var(--space-5);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
-/* ── AI model pane ── */
-
-.set-input {
-  flex-shrink: 0;
-  width: 46%;
-  min-width: 200px;
-  padding: 6px 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--text-primary);
-  background: var(--surface);
-}
-
-.set-input:focus {
-  outline: none;
-  border-color: var(--accent, var(--text-primary));
-}
-
-.set-input::placeholder {
-  color: var(--text-tertiary, var(--text-secondary));
-}
-
-.set-ai-note {
-  padding: 8px 0 2px;
-  line-height: 1.5;
-}
-
-/* footer feedback pill: spinner while testing, green on success/saved, red on failure */
+/* footer feedback: spinner while testing, success on ok/saved, danger on failure */
 .set-ai-status {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   min-width: 0;
-  margin-right: auto; /* status hugs the left edge, action buttons stay right */
-  padding: 4px 10px 4px 8px;
+  margin-right: auto;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
   border: 1px solid var(--border-subtle);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
   font-size: 12px;
-  color: var(--text-secondary);
-  background: var(--surface-subtle);
+  color: var(--ink-secondary);
 }
 
 .set-ai-status.ok {
-  color: var(--success);
   border-color: var(--success-border);
   background: var(--success-bg);
+  color: var(--status-success);
 }
 
 .set-ai-status.err {
-  color: var(--danger);
   border-color: var(--danger-border);
   background: var(--danger-bg);
+  color: var(--status-danger);
 }
 
 .set-ai-status-icon {
@@ -436,14 +229,4 @@
   flex-shrink: 0;
   width: 12px;
   height: 12px;
-  border: 2px solid var(--border-control);
-  border-top-color: var(--text-secondary);
-  border-radius: 50%;
-  animation: set-ai-spin 0.8s linear infinite;
-}
-
-@keyframes set-ai-spin {
-  to {
-    transform: rotate(360deg);
-  }
 }

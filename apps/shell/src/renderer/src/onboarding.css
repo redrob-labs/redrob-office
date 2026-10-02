@@ -1,65 +1,41 @@
-/* First-run onboarding: full-window overlay above the home screen.
- * Layout follows the design spec: 540×420 white
- * card, left-aligned content column, slide-2 credits offer panel, and a
- * dots-left / Skip-Back-Next-right footer. Genspark tokens: black pill primary,
- * gray ramp, brand blue #0f7fff only on the credits line. */
+/* First-run onboarding: a full-window overlay above the home screen.
+ * A 540px card with a left-aligned content column, three stacked slides, and
+ * a dots-left / Skip-Back-Next-right footer. The buttons are the kit's Button;
+ * everything here is layout on the design system's tokens, so the card follows
+ * the theme without a dark copy of its own. */
 
 .onb-overlay {
-  /* Genspark tokens, scoped to the overlay (home.css keeps its own --accent) */
-  --onb-font-sans:
-    'Arial', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-    sans-serif;
-  --onb-btn-primary: #232425;
-  --onb-btn-primary-hover: #393a3b;
-  --onb-btn-primary-text: #fff;
-  --onb-brand: #0f7fff;
-  --onb-text-primary: #232425;
-  --onb-text-secondary: #606366;
-  --onb-text-tertiary: #909499;
-  --onb-bg-subtle: #f6f7f8;
-  /* offer panel: a whisper of the brand blue instead of neutral gray */
-  --onb-bg-panel: #f0f7ff;
-  --onb-border-default: #eaeaea;
-  --onb-border-strong: #d0d3d8;
-  /* outline-CTA seat (shared by the GenTeam join and GitHub star buttons) */
-  --onb-cta-bg: #fff;
-  --onb-cta-hover-text: #fff;
-  --onb-cta-shadow: 0 1px 3px rgba(15, 127, 255, 0.18);
-  --onb-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-
   position: fixed;
   inset: 0;
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(35, 36, 37, 0.4);
+  background: var(--overlay-scrim);
   backdrop-filter: blur(4px);
-  font-family: var(--onb-font-sans);
+  font-family: var(--font-chrome, var(--font-sans));
 }
 
 .onb-card {
   position: relative;
-  outline: none; /* receives initial focus as the dialog container */
   display: flex;
   flex-direction: column;
   width: 540px;
-  /* 420px is the design-spec height for the anchor languages; longer locales
-   * (de/ru/ar wrap the slide-2 copy to 3 lines) grow the card instead of
-   * overflowing the fixed box and eating the bottom padding */
+  /* grows for locales whose copy wraps to more lines, instead of overflowing */
   min-height: 420px;
-  max-width: calc(100vw - 48px);
-  max-height: calc(100vh - 48px);
-  border-radius: 20px;
-  background: #fff;
-  box-shadow:
-    0 24px 64px rgba(35, 36, 37, 0.22),
-    0 2px 8px rgba(35, 36, 37, 0.08);
-  padding: 41px 32px 25px;
+  max-width: calc(100vw - var(--space-12));
+  max-height: calc(100vh - var(--space-12));
+  padding: var(--space-10) var(--space-8) var(--space-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-base);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink-primary);
+  outline: none; /* receives initial focus as the dialog container */
 }
 
-/* all slides render stacked in one grid cell; the tallest one sets the card
- * height for the language, so the footer never moves between steps */
+/* every slide sits in one grid cell; the tallest sets the card height for
+ * the language, so the footer never moves between steps */
 .onb-stage {
   flex: 1;
   display: grid;
@@ -74,7 +50,7 @@
 }
 
 .onb-slide.active {
-  animation: onb-slide-in 0.25s ease-out;
+  animation: onb-slide-in var(--duration-base) var(--easing-entrance);
 }
 
 .onb-slide:not(.active) {
@@ -94,17 +70,17 @@
 
 .onb-art {
   display: block;
-  margin-bottom: 15px;
-  color: var(--onb-text-primary);
+  margin-bottom: var(--space-4);
+  color: var(--ink-primary);
 }
 
 .onb-art-logo {
   width: 60px;
   height: 60px;
-  border-radius: 13.5px;
+  border-radius: var(--radius-lg);
 }
 
-/* Redrob mark: light tile on the white card, dark tile on the dark card. */
+/* the Redrob mark: light tile on a light card, dark tile on a dark one */
 .onb-art-logo-dark {
   display: none;
 }
@@ -117,36 +93,23 @@
   display: block;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) .onb-art-logo-light {
-    display: none;
-  }
-
-  :root:not([data-theme='light']):not([data-theme='dark']) .onb-art-logo-dark {
-    display: block;
-  }
-}
-
-/* decorative glyphs: exact design-spec vectors — 60px box, 4px strokes, bare
- * black line art matching the app icon's visual mass */
+/* the gift and check illustrations: line art in a 60px slot */
 .onb-art-badge {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 60px;
   height: 60px;
-  color: var(--onb-text-primary);
+  color: var(--ink-brand);
 }
 
-/* glyph drawn a notch smaller inside the fixed 60px slot (box size unchanged,
- * so the text rhythm below stays put) */
 .onb-art-badge svg {
   width: 58px;
   height: 58px;
 }
 
-/* each glyph carries different padding inside its canvas; pull it out so the
- * visible left edge of the artwork sits on the text axis below */
+/* each glyph has different padding in its canvas; align its visible left
+ * edge with the text below */
 .onb-art-gift {
   margin-left: -6px;
 }
@@ -157,44 +120,51 @@
 
 .onb-title {
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  line-height: 1.5;
-  color: var(--onb-text-primary);
+  font: var(--text-title-2);
+  color: var(--ink-primary);
 }
 
 .onb-subtitle {
-  margin: 0;
-  font-size: 18px;
-  letter-spacing: -0.24px;
-  line-height: 1.5;
-  color: var(--onb-text-primary);
+  margin: var(--space-1) 0 0;
+  font: var(--text-body-lg);
+  color: var(--ink-primary);
 }
 
 .onb-body {
-  margin: 10px 0 0;
-  font-size: 16px;
-  letter-spacing: -0.154px;
-  line-height: 1.5;
-  color: var(--onb-text-secondary);
+  margin: var(--space-3) 0 0;
+  font: var(--text-body);
+  color: var(--ink-secondary);
 }
 
-/* slide 3's credits disclaimer reads as a footnote */
+/* slide 3's disclaimer reads as a footnote */
 .onb-body-dim {
-  color: var(--onb-text-tertiary);
+  color: var(--ink-muted);
+}
+
+/* panels: analytics notice, star ask, community offer */
+.onb-consent,
+.onb-star,
+.onb-offer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  box-sizing: border-box;
 }
 
 .onb-consent {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  margin-top: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--onb-border-default);
-  border-radius: 12px;
-  background: var(--onb-bg-subtle);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+}
+
+.onb-star,
+.onb-offer {
+  border: 1px solid var(--border-ai);
+  background: var(--surface-ai);
 }
 
 .onb-consent-copy {
@@ -206,134 +176,50 @@
 }
 
 .onb-consent-title {
-  color: var(--onb-text-primary);
+  font: var(--text-label);
   font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
+  color: var(--ink-primary);
 }
 
 .onb-consent-desc {
-  color: var(--onb-text-secondary);
+  font: var(--text-caption);
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 18px;
+  color: var(--ink-secondary);
 }
 
-/* slide 3's star ask: same panel treatment as the offer, but low-key — a
- * one-line hint plus an outline CTA that opens the GitHub repo */
-.onb-star {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  margin-top: 14px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: var(--onb-bg-panel);
-}
-
-.onb-star-hint {
-  margin: 0;
-  font-size: 14px;
-  letter-spacing: -0.154px;
-  line-height: 1.5;
-  color: var(--onb-text-secondary);
-}
-
-.onb-star-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.154px;
-  color: var(--onb-brand);
-  background: var(--onb-cta-bg);
-  border: 1.5px solid var(--onb-brand);
-  border-radius: 12px;
-  box-shadow: var(--onb-cta-shadow);
-  cursor: pointer;
-  transition: all var(--onb-transition);
-}
-
-.onb-star-btn:hover {
-  color: var(--onb-cta-hover-text);
-  background: var(--onb-brand);
-}
-
-/* slide 2's offer: quiet gray lead-in, then the amount in large brand-blue
- * type, grouped with the Join CTA in one panel so the page reads as
- * info / offer / navigation */
-.onb-offer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  margin-top: 14px;
-  padding: 17px 16px;
-  border-radius: 12px;
-  background: var(--onb-bg-panel);
-}
-
+.onb-star-hint,
 .onb-credits {
   margin: 0;
-  font-size: 16px;
-  letter-spacing: -0.154px;
-  line-height: 1.5;
-  color: var(--onb-text-secondary);
+  font: var(--text-body-sm);
+  font-size: 14px;
+  color: var(--ink-secondary);
 }
 
+/* the offer's amount, in large brand type */
 .onb-credits strong {
   display: block;
-  margin-top: 4px;
-  color: var(--onb-brand);
-  font-size: 22px;
-  font-weight: 700;
-  font-style: italic;
-  letter-spacing: -0.3px;
-  line-height: normal;
+  margin-top: var(--space-1);
+  font: var(--text-title-3);
+  color: var(--ink-brand);
 }
 
-/* the offer CTA is the dialog's standout action: a weighted blue outline —
- * 1.5px border + semibold + a faint blue seat-shadow so it doesn't float on
- * the tinted panel — inverting to solid blue on hover */
+.onb-star-btn,
 .onb-join {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   flex: none;
-  padding: 10.5px 22.5px;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.154px;
-  color: var(--onb-brand);
-  background: #fff;
-  border: 1.5px solid var(--onb-brand);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 127, 255, 0.18);
-  cursor: pointer;
-  transition: all var(--onb-transition);
 }
 
-.onb-join:hover {
-  color: #fff;
-  background: var(--onb-brand);
-}
-
-/* footer: progress dots on the start side, Skip / Back / Next grouped on the end side */
+/* footer: progress dots on the start side, Skip / Back / Next on the end side */
 .onb-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 
 .onb-dots {
   display: flex;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .onb-dot {
@@ -341,162 +227,28 @@
   height: 6px;
   padding: 0;
   border: none;
-  border-radius: 3px;
-  background: var(--onb-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
   cursor: pointer;
-  transition: background var(--onb-transition);
+  transition: background var(--duration-fast) var(--easing-standard);
 }
 
 .onb-dot.active {
-  background: var(--onb-btn-primary);
+  width: 18px;
+  background: var(--action-primary);
+}
+
+.onb-dot:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .onb-nav {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.onb-skip {
-  border: none;
-  background: none;
-  padding: 10px 6px;
-  font-size: 14px;
-  letter-spacing: -0.154px;
-  color: var(--onb-text-tertiary);
-  cursor: pointer;
-  transition: color var(--onb-transition);
-}
-
-.onb-skip:hover {
-  color: var(--onb-text-secondary);
-}
-
-.onb-skip:disabled,
-.onb-back:disabled,
-.onb-next:disabled,
-.onb-consent-switch:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.onb-back {
-  min-width: 76px;
-  padding: 11px 21px;
-  border: none;
-  border-radius: 12px;
-  background: var(--onb-bg-subtle);
-  color: var(--onb-text-primary);
-  font-size: 14px;
-  letter-spacing: -0.154px;
-  text-align: center;
-  cursor: pointer;
-  transition: background var(--onb-transition);
-}
-
-.onb-back:hover {
-  background: var(--onb-border-default);
+  gap: var(--space-2);
 }
 
 .onb-next {
-  min-width: 84px;
-  padding: 11px 20px;
-  border: none;
-  border-radius: 12px;
-  background: var(--onb-btn-primary);
-  color: var(--onb-btn-primary-text);
-  font-size: 14px;
-  letter-spacing: -0.154px;
-  text-align: center;
-  cursor: pointer;
-  transition: background var(--onb-transition);
-}
-
-.onb-next:hover {
-  background: var(--onb-btn-primary-hover);
-}
-
-/* replace the UA default focus ring (tinted by the OS accent color) with the
- * brand ring, and only for keyboard focus — clicks stay ring-free */
-.onb-next:focus,
-.onb-back:focus,
-.onb-skip:focus,
-.onb-join:focus,
-.onb-star-btn:focus,
-.onb-consent-switch:focus,
-.onb-dot:focus {
-  outline: none;
-}
-
-.onb-next:focus-visible,
-.onb-back:focus-visible,
-.onb-skip:focus-visible,
-.onb-join:focus-visible,
-.onb-star-btn:focus-visible,
-.onb-consent-switch:focus-visible,
-.onb-dot:focus-visible {
-  outline: 2px solid var(--onb-brand);
-  outline-offset: 2px;
-}
-
-/* ── Dark mode onboarding overrides ──────────────────────── */
-
-[data-theme='dark'] .onb-overlay {
-  --onb-btn-primary: #e4e4e4;
-  --onb-btn-primary-hover: #ccc;
-  --onb-btn-primary-text: #1a1a1a;
-  --onb-text-primary: #e4e4e4;
-  --onb-text-secondary: #a0a0a0;
-  --onb-text-tertiary: #777;
-  --onb-bg-subtle: #333;
-  --onb-bg-panel: #1a2a3a;
-  --onb-border-default: #444;
-  --onb-border-strong: #555;
-}
-
-[data-theme='dark'] .onb-card {
-  background: #2a2a2a;
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-[data-theme='dark'] .onb-join,
-[data-theme='dark'] .onb-star-btn {
-  background: #2a2a2a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) .onb-overlay {
-    --onb-btn-primary: #e4e4e4;
-    --onb-btn-primary-hover: #ccc;
-    --onb-btn-primary-text: #1a1a1a;
-    --onb-text-primary: #e4e4e4;
-    --onb-text-secondary: #a0a0a0;
-    --onb-text-tertiary: #777;
-    --onb-bg-subtle: #333;
-    --onb-bg-panel: #1a2a3a;
-    --onb-border-default: #444;
-    --onb-border-strong: #555;
-  }
-  :root:not([data-theme='light']):not([data-theme='dark']) .onb-card {
-    background: #2a2a2a;
-    box-shadow:
-      0 24px 64px rgba(0, 0, 0, 0.5),
-      0 2px 8px rgba(0, 0, 0, 0.3);
-  }
-  :root:not([data-theme='light']):not([data-theme='dark']) .onb-join,
-  :root:not([data-theme='light']):not([data-theme='dark']) .onb-star-btn {
-    background: #2a2a2a;
-  }
-}
-/* Motion accessibility: suppress all animation for users who opt out */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  min-width: 88px;
 }

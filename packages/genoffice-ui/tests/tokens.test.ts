@@ -103,13 +103,17 @@ describe('the apps', () => {
   })
 
   it('define no accent of their own: one brand palette for the suite', () => {
-    const offenders = appCss.filter((f) => /(^|[;{\s])--accent(-dark|-soft|-hover)?\s*:/m.test(stripComments(read(f))))
+    const offenders = appCss.filter((f) =>
+      /(^|[;{\s])--accent(-dark|-soft|-hover)?\s*:/m.test(stripComments(read(f))),
+    )
     expect(offenders).toEqual([])
   })
 
-  it('no longer read the renamed legacy names the kit now owns', () => {
-    const offenders = appCss.filter((f) =>
-      /var\(\s*--(border-strong|text-body-lg|text-small|text-caption)\b/.test(read(f)),
+  it('never read a kit font shorthand as a font size (the legacy meaning of those names)', () => {
+    // --text-body-lg / --text-caption are now the kit's `font` shorthands and
+    // belong in `font:`; as a font-size they are invalid. --text-small is gone.
+    const offenders = appCss.filter(
+      (f) => /font-size:\s*var\(\s*--text-/.test(read(f)) || /var\(\s*--text-small\b/.test(read(f)),
     )
     expect(offenders).toEqual([])
   })
