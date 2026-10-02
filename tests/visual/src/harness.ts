@@ -37,7 +37,8 @@ export const VIEW = {
   slides: '/apps/slides/out/renderer/index.html',
   pdf: '/apps/pdf/out/renderer/index.html',
   markdown: '/apps/markdown/out/renderer/index.html',
-  hangul: '/apps/hangul/out/renderer/index.html',
+  // served over the rhwp-studio loopback origin (http://127.0.0.1:*/host/), not file://
+  hangul: '/host/index.html',
 } as const
 export type ViewName = keyof typeof VIEW
 
