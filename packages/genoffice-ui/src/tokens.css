@@ -1,188 +1,141 @@
-/* GenOffice design tokens — the single source of truth for UI chrome colors.
- * Theme switching: light defaults in :root, [data-theme='dark'] overrides,
- * prefers-color-scheme fallback for system mode (no data-theme attribute).
- * Per-app accents (--accent / --accent-dark / --accent-soft) live in each
- * app's styles.css. Document content colors (paper, cells, exports, chart
- * palettes) never live here and never reference these tokens. */
+/* Legacy chrome token names, bridged onto the Redrob design system.
+ *
+ * The apps' stylesheets still speak GenOffice's vocabulary (--surface, --text-*,
+ * --hover, --accent, the AI panel's --color-*). Until each app migrates to the
+ * kit's own names, every one of those names is defined here as an alias of a
+ * kit token, so the whole suite renders in the kit's palette at once. This file
+ * is deleted by the legacy cleanup once nothing reads these names.
+ *
+ * Rules:
+ *   - Load after @genoffice/ui/theme.css (the kit's tokens) and before any app
+ *     stylesheet.
+ *   - Never declare a name the kit declares. Doing so would restyle the kit's
+ *     own components. Two names collided and were renamed at every use site:
+ *     the legacy --border-strong (a light divider) is now --border-control, and
+ *     the legacy --text-body-lg / --text-small / --text-caption font sizes are
+ *     now --fs-body-lg / --fs-small / --fs-caption. The kit's --border-subtle,
+ *     --border-strong, --text-body-lg and --text-caption now mean what the kit
+ *     says.
+ *   - Most aliases point at kit semantic tokens, which switch with
+ *     [data-theme] themselves. Values the kit has no semantic token for are
+ *     picked from its ramps, per theme, in the two blocks below.
+ *   - The rendered theme is always written to <html data-theme> by
+ *     applyUiTheme (theme.ts), "system" included, so no prefers-color-scheme
+ *     copy is needed.
+ *   - Document content colours (paper, cells, exports, chart palettes) never
+ *     live here and never reference these tokens. */
 
 :root {
-  /* chrome */
-  --surface: #ffffff;
-  --surface-subtle: #f6f7f9;
-  --chrome-bg: #ffffff;
-  --canvas: #e6e6e6;
-  --border: #e3e6ea;
-  --border-subtle: #efefef;
-  --border-strong: #d9d9d9;
-  --border-hover: #d3d7dd;
-  --text: #242424;
-  --text-primary: #232425;
-  --text-secondary: #606366;
-  --text-tertiary: #909499;
-  --text-muted: #878e96;
-  --text-dim: #605e5c;
-  --hover: #f5f5f5;
-  --pressed: #edebe9;
-  --active-bg: #eaeaea;
-  --bg-hover: #f5f5f5;
-  --bg-hover-subtle: #f0f2f5;
-  --bg-hover-strong: #e8eaee;
-  --bg-hover-accent: #e0e4ea;
-  --bg-content: #fafafa;
-  --icon-muted: #b9bfc7;
-  --danger: #d13438;
-  --danger-bg: #fdf3f3;
-  --danger-border: #f0c8c9;
-  --success: #107c41;
-  --success-bg: #eaf7ef;
-  --success-border: #c8e8d4;
-  --color-bg-overlay: rgb(0 0 0 / 50%);
-  --shadow-modal-strong: 0 20px 25px rgb(0 0 0 / 10%);
-  --shadow-btn-hover: 0 2px 8px rgb(35 36 37 / 15%);
-  --shadow-menu: 0 8px 24px rgb(0 0 0 / 18%);
+  /* surfaces */
+  --surface: var(--surface-base);
+  --surface-subtle: var(--surface-raised);
+  --chrome-bg: var(--surface-base);
+  --canvas: var(--surface-sunken);
+  --bg-content: var(--surface-raised);
 
-  /* AI panel (canonical names from the former per-app copies) */
-  --gs-font-sans:
-    'Arial', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-    sans-serif;
-  --color-btn-primary: #232425;
-  --color-btn-primary-hover: #393a3b;
-  --color-btn-primary-text: #ffffff;
-  --color-ai-action: #e8663f;
-  --color-ai-action-hover: #d4552f;
-  --color-ai-action-text: #ffffff;
-  --color-brand-secondary: #0f7fff;
-  --color-text-primary: #232425;
-  --color-text-secondary: #606366;
-  --color-text-tertiary: #909499;
-  --color-bg-page: #ffffff;
-  --color-bg-subtle: #f5f5f5;
-  --color-border-default: #eaeaea;
-  --color-border-strong: #d0d3d8;
-  --color-border-brand: #0f7fff;
-  --color-error: #ef4444;
-  --color-error-hover: #dc2626;
+  /* borders (--border-subtle and --border-strong are the kit's) */
+  --border: var(--border-subtle);
 
-  /* non-color */
-  --radius-6: 6px;
-  --radius-8: 8px;
-  --radius-12: 12px;
-  --radius-16: 16px;
-  --radius-30: 30px;
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --text-body-lg: 18px;
-  --text-small: 14px;
-  --text-caption: 12px;
+  /* ink */
+  --text: var(--ink-primary);
+  --text-primary: var(--ink-primary);
+  --text-secondary: var(--ink-secondary);
+  --text-dim: var(--ink-secondary);
+  --text-tertiary: var(--ink-muted);
+  --text-muted: var(--ink-muted);
 
-  color-scheme: light;
+  /* interaction fills */
+  --hover: var(--surface-sunken);
+  --bg-hover: var(--surface-sunken);
+  --bg-hover-subtle: var(--surface-sunken);
+
+  /* status */
+  --danger: var(--status-danger);
+  --success: var(--status-success);
+
+  /* overlay and elevation */
+  --color-bg-overlay: var(--overlay-scrim);
+  --shadow-modal-strong: var(--shadow-lg);
+  --shadow-menu: var(--shadow-md);
+  --shadow-btn-hover: var(--shadow-sm);
+
+  /* one brand accent for every editor (replaces Word blue, Excel green,
+   * PowerPoint orange and the shell's blue) */
+  --accent: var(--action-primary);
+  --accent-dark: var(--action-primary-hover);
+  --accent-hover: var(--action-primary-hover);
+  --accent-soft: var(--surface-brand-subtle);
+
+  /* AI panel */
+  --color-btn-primary: var(--action-primary);
+  --color-btn-primary-hover: var(--action-primary-hover);
+  --color-btn-primary-text: var(--ink-on-brand);
+  --color-ai-action: var(--action-primary);
+  --color-ai-action-hover: var(--action-primary-hover);
+  --color-ai-action-text: var(--ink-on-brand);
+  --color-brand-secondary: var(--ink-brand);
+  --color-text-primary: var(--ink-primary);
+  --color-text-secondary: var(--ink-secondary);
+  --color-text-tertiary: var(--ink-muted);
+  --color-bg-page: var(--surface-base);
+  --color-bg-subtle: var(--surface-sunken);
+  --color-border-default: var(--border-subtle);
+  --color-border-brand: var(--focus-ring);
+  --color-error: var(--status-danger);
+
+  /* type: the kit's sans for all chrome, with the per-language CJK stack the
+   * apps define as --ui-cjk ahead of the system face, so Han glyphs keep the
+   * regional font they had */
+  --gs-font-sans: var(--font-sans);
+  --font-chrome: Pretendard, 'Wanted Sans', var(--ui-cjk, system-ui), system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  --fs-body-lg: 17px;
+  --fs-small: 13px;
+  --fs-caption: 11px;
+
+  /* geometry */
+  --radius-6: var(--radius-sm);
+  --radius-8: var(--radius-md);
+  --radius-12: var(--radius-lg);
+  --radius-16: var(--radius-xl);
+  --radius-30: var(--radius-full);
+  --transition-fast: var(--duration-fast) var(--easing-standard);
+
+  /* picked from the kit's ramps: light */
+  --border-control: var(--gray-4);
+  --border-hover: var(--gray-4);
+  --color-border-strong: var(--gray-4);
+  --pressed: var(--gray-3);
+  --active-bg: var(--gray-3);
+  --bg-hover-strong: var(--gray-3);
+  --bg-hover-accent: var(--blue-2);
+  --icon-muted: var(--gray-5);
+  --danger-bg: var(--accent-red-1);
+  --danger-border: var(--accent-red-2);
+  --success-bg: var(--accent-green-1);
+  --success-border: var(--accent-green-2);
+  --color-error-hover: var(--accent-red-5);
 }
 
+/* picked from the kit's ramps: dark */
 [data-theme='dark'] {
-  --surface: #1e1e1e;
-  --surface-subtle: #2a2a2a;
-  --chrome-bg: #252525;
-  --canvas: #2b2b2b;
-  --border: #3a3a3a;
-  --border-subtle: #3a3a3a;
-  --border-strong: #555;
-  --border-hover: #555;
-  --text: #e4e4e4;
-  --text-primary: #e4e4e4;
-  --text-secondary: #a0a0a0;
-  --text-tertiary: #a0a0a0;
-  --text-muted: #8a8a8a;
-  --text-dim: #a0a0a0;
-  --hover: #333;
-  --pressed: #3c3c3c;
-  --active-bg: #454545;
-  --bg-hover: #333;
-  --bg-hover-subtle: #333;
-  --bg-hover-strong: #444;
-  --bg-hover-accent: #444;
-  --bg-content: #1a1a1a;
-  --icon-muted: #666;
-  --danger: #d13438;
-  --danger-bg: #3a2020;
-  --danger-border: #5a3030;
-  --success: #52c082;
-  --success-bg: #20342a;
-  --success-border: #33543f;
-  --color-bg-overlay: rgb(0 0 0 / 60%);
-  --shadow-modal-strong: 0 20px 25px rgb(0 0 0 / 30%);
-  --shadow-btn-hover: 0 2px 8px rgb(0 0 0 / 50%);
-  --shadow-menu: 0 8px 24px rgb(0 0 0 / 55%);
-
-  --color-btn-primary: #e4e4e4;
-  --color-btn-primary-hover: #d0d0d0;
-  --color-btn-primary-text: #1e1e1e;
-  --color-ai-action: #e8663f;
-  --color-ai-action-hover: #f07a55;
-  --color-ai-action-text: #ffffff;
-  --color-brand-secondary: #4a9eff;
-  --color-text-primary: #e4e4e4;
-  --color-text-secondary: #a0a0a0;
-  --color-text-tertiary: #8a8a8a;
-  --color-bg-page: #1e1e1e;
-  --color-bg-subtle: #2a2a2a;
-  --color-border-default: #3a3a3a;
-  --color-border-strong: #555;
-  --color-border-brand: #4a9eff;
-
-  color-scheme: dark;
+  --border-control: var(--gray-7);
+  --border-hover: var(--gray-7);
+  --color-border-strong: var(--gray-7);
+  --pressed: var(--gray-8);
+  --active-bg: var(--gray-8);
+  --bg-hover-strong: var(--gray-8);
+  --bg-hover-accent: var(--blue-9);
+  --icon-muted: var(--gray-7);
+  --danger-bg: var(--accent-red-5);
+  --danger-border: var(--accent-red-4);
+  --success-bg: var(--accent-green-5);
+  --success-border: var(--accent-green-4);
+  --color-error-hover: var(--accent-red-2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) {
-    --surface: #1e1e1e;
-    --surface-subtle: #2a2a2a;
-    --chrome-bg: #252525;
-    --canvas: #2b2b2b;
-    --border: #3a3a3a;
-    --border-subtle: #3a3a3a;
-    --border-strong: #555;
-    --border-hover: #555;
-    --text: #e4e4e4;
-    --text-primary: #e4e4e4;
-    --text-secondary: #a0a0a0;
-    --text-tertiary: #a0a0a0;
-    --text-muted: #8a8a8a;
-    --text-dim: #a0a0a0;
-    --hover: #333;
-    --pressed: #3c3c3c;
-    --active-bg: #454545;
-    --bg-hover: #333;
-    --bg-hover-subtle: #333;
-    --bg-hover-strong: #444;
-    --bg-hover-accent: #444;
-    --bg-content: #1a1a1a;
-    --icon-muted: #666;
-    --danger: #d13438;
-    --danger-bg: #3a2020;
-    --danger-border: #5a3030;
-    --success: #52c082;
-    --success-bg: #20342a;
-    --success-border: #33543f;
-    --color-bg-overlay: rgb(0 0 0 / 60%);
-    --shadow-modal-strong: 0 20px 25px rgb(0 0 0 / 30%);
-    --shadow-btn-hover: 0 2px 8px rgb(0 0 0 / 50%);
-    --shadow-menu: 0 8px 24px rgb(0 0 0 / 55%);
-
-    --color-btn-primary: #e4e4e4;
-    --color-btn-primary-hover: #d0d0d0;
-    --color-btn-primary-text: #1e1e1e;
-    --color-ai-action: #e8663f;
-    --color-ai-action-hover: #f07a55;
-    --color-ai-action-text: #ffffff;
-    --color-brand-secondary: #4a9eff;
-    --color-text-primary: #e4e4e4;
-    --color-text-secondary: #a0a0a0;
-    --color-text-tertiary: #8a8a8a;
-    --color-bg-page: #1e1e1e;
-    --color-bg-subtle: #2a2a2a;
-    --color-border-default: #3a3a3a;
-    --color-border-strong: #555;
-    --color-border-brand: #4a9eff;
-
-    color-scheme: dark;
-  }
+/* The kit tints every list marker with --ink-secondary. A marker inside a
+ * document is part of the document's content, which keeps its own colour. */
+li::marker {
+  color: inherit;
 }

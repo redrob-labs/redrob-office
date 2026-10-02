@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Dropdown } from '@genoffice/ui'
+import { Dropdown, applyUiTheme } from '@genoffice/ui'
 import {
   DEFAULT_MAX_OUTPUT_TOKENS,
   MAX_MAX_OUTPUT_TOKENS,
@@ -522,8 +522,7 @@ export function SettingsModal({
   const applyTheme = (next: UiTheme) => {
     setTheme(next)
     void window.aiOffice.setTheme(next)
-    if (next === 'system') document.documentElement.removeAttribute('data-theme')
-    else document.documentElement.setAttribute('data-theme', next)
+    applyUiTheme(next)
   }
 
   const changeSaveDir = () => {

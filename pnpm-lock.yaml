@@ -864,16 +864,31 @@ importers:
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../pptx-render
-      react:
-        specifier: ^19.0.0
-        version: 19.2.8
+      '@redrob-labs/ui':
+        specifier: 1.0.2
+        version: 1.0.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+      jsdom:
+        specifier: ^28.0.0
+        version: 28.1.0(@noble/hashes@2.2.0)
+      react:
+        specifier: ^19.2.4
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.8(react@19.2.8)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
   packages/i18n:
     devDependencies:
@@ -2210,6 +2225,12 @@ packages:
 
   '@radix-ui/rect@1.1.3':
     resolution: {integrity: sha512-JtyZR+mqgBibTo8xea3B6ZRmzZiM/YeVBtUkas6zMuXjAlfIFIW2FgqeM9eLyvEaYX66vr6DJMK+4U6LV0KhNw==}
+
+  '@redrob-labs/ui@1.0.2':
+    resolution: {integrity: sha512-QfjxT1AFq74oJYLuobviBXLR53FAopjZXZolVaqvSmZgDpU7A2CI342rBAtCZuis00WxMcu7xjkrcU7bfVPLWQ==}
+    peerDependencies:
+      react: ^18.2.0 || ^19.0.0
+      react-dom: ^18.2.0 || ^19.0.0
 
   '@rolldown/pluginutils@1.0.0-rc.3':
     resolution: {integrity: sha512-eybk3TjzzzV97Dlj5c+XrBFW57eTNhzod66y9HrBlzJ6NsCrWCp/2kaPS3K9wJmurBC0Tdw4yPjXKZqlznim3Q==}
@@ -5983,6 +6004,11 @@ snapshots:
       '@types/react': 19.2.17
 
   '@radix-ui/rect@1.1.3': {}
+
+  '@redrob-labs/ui@1.0.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
 
   '@rolldown/pluginutils@1.0.0-rc.3': {}
 
