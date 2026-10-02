@@ -69,11 +69,11 @@ export function AgentPanelHeader({
 
 export interface AgentEmptyProps {
   title: string
-  description?: string
+  description?: string | undefined
   /** Starter prompts; picking one calls onPick with its text. */
   prompts?: ReadonlyArray<string>
-  promptsLabel?: string
-  onPick?: (prompt: string) => void
+  promptsLabel?: string | undefined
+  onPick?: ((prompt: string) => void) | undefined
 }
 
 /** First-run state of a conversation: what the assistant can do, and a few starters. */
@@ -113,7 +113,7 @@ export interface AgentMessageProps {
   /** Who said it, localized ("You", "Redrob AI"). */
   author: string
   /** Text is still arriving: draws the streaming caret after the content. */
-  streaming?: boolean
+  streaming?: boolean | undefined
   footer?: ReactNode
   children?: ReactNode
 }
@@ -167,7 +167,7 @@ export interface AgentUndeliveredProps {
   message: string
   retryLabel: string
   /** Omit to hide Retry (e.g. while another run is in flight). */
-  onRetry?: () => void
+  onRetry?: (() => void) | undefined
 }
 
 /** Marks a user message that a failed run rolled back out of the model's context. */
@@ -196,12 +196,12 @@ export function AgentUndelivered({
 // ── tool activity ──
 
 export interface AgentToolStep {
-  /** Tool function name (kept for the tooltip). */
-  name: string
+  /** Tool function name (for the app's own use; not shown). */
+  name?: string | undefined
   /** What it did, in plain words. */
   summary: string
-  running?: boolean
-  isError?: boolean
+  running?: boolean | undefined
+  isError?: boolean | undefined
   /** Tool output, shown when the step is expanded. */
   output?: string | undefined
 }
@@ -325,12 +325,12 @@ export interface AgentComposerProps {
   /** Right of the bar, before Send. */
   tools?: ReactNode
   /** Pass to focus the field from outside. */
-  textareaRef?: RefObject<HTMLTextAreaElement | null>
+  textareaRef?: RefObject<HTMLTextAreaElement | null> | undefined
   onChange: (next: string) => void
   onSend: () => void
   onStop: () => void
   /** Files pasted into the field; text paste stays native. */
-  onPasteFiles?: (files: File[]) => void
+  onPasteFiles?: ((files: File[]) => void) | undefined
 }
 
 /**
