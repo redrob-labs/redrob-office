@@ -281,7 +281,7 @@ export function AiAskPopover({
       >
         <button
           type="button"
-          className="ai-ask-pop-close"
+          className="rr-iconbtn rr-iconbtn--ghost rr-iconbtn--sm ai-ask-pop-close"
           data-tip={t('aiCancel')}
           aria-label={t('aiCancel')}
           onClick={close}
@@ -341,7 +341,7 @@ export function AiAskPopover({
           {open.mode === 'edit' ? (
             <>
               <button
-                className="ai-ask-cancel"
+                className="rr-btn rr-btn--secondary rr-btn--sm ai-ask-cancel"
                 onClick={() => {
                   onQueueRemove(open.qid)
                   close()
@@ -350,7 +350,7 @@ export function AiAskPopover({
                 {t('blockDelete')}
               </button>
               <button
-                className="ai-ask-confirm"
+                className="rr-btn rr-btn--primary rr-btn--sm ai-ask-confirm"
                 disabled={!canSubmit}
                 onClick={() => {
                   onQueueUpdate(open.qid, text.trim())
@@ -363,7 +363,7 @@ export function AiAskPopover({
           ) : (
             <>
               <button
-                className="ai-ask-cancel"
+                className="rr-btn rr-btn--secondary rr-btn--sm ai-ask-cancel"
                 disabled={!canSubmit}
                 onClick={() => {
                   onSendNow(text.trim())
@@ -373,7 +373,7 @@ export function AiAskPopover({
                 {t('aiAskSendNow')}
               </button>
               <button
-                className="ai-ask-confirm"
+                className="rr-btn rr-btn--primary rr-btn--sm ai-ask-confirm"
                 disabled={!canSubmit || queueFull}
                 data-tip={queueFull ? t('aiQueueFullNotice', { max: EDIT_QUEUE_MAX }) : undefined}
                 onClick={() => {
