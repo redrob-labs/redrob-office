@@ -1,0 +1,223 @@
+/* DocTabs: the document tab strip, on the Redrob design system's tokens.
+ *
+ * A raised (layer one) bar holding browser-style tabs. The active tab is cut
+ * from the page ground below it: same colour, top corners rounded, with two
+ * concave feet joining it to the content area. Inactive tabs show a sunken
+ * capsule on hover. Geometry follows Chromium's tab strip, which the shell has
+ * always matched: 40px bar, 34px tabs, shrinking from 240px but never growing.
+ *
+ * Window-drag regions (-webkit-app-region) are Electron's: the bar drags the
+ * window, every control in it does not. */
+
+.go-doctabs {
+  --go-doctabs-height: 40px;
+  --go-doctabs-ground: var(--surface-raised);
+  --go-doctabs-page: var(--surface-base);
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 10;
+  display: flex;
+  align-items: stretch;
+  height: var(--go-doctabs-height);
+  background: var(--go-doctabs-ground);
+  border-bottom: 1px solid var(--border-subtle);
+  box-sizing: border-box;
+  font-family: var(--font-chrome, var(--font-sans));
+  -webkit-app-region: drag;
+}
+
+/* the scrolling middle: empty space stays part of the drag region; side
+ * padding keeps the edge tabs' feet inside the scroll clip */
+.go-doctabs__strip {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.go-doctabs__strip::-webkit-scrollbar {
+  display: none;
+}
+
+.go-doctabs__tabs {
+  display: contents;
+}
+
+.go-doctabs__tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* 34px body flush with the bar bottom; the 6px bottom padding centres the
+   * content in the upper 28px band, on the hover capsule's line */
+  margin-top: 6px;
+  padding: 0 var(--space-2) 6px var(--space-3);
+  flex: 0 1 240px;
+  min-width: 104px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  color: var(--ink-secondary);
+  font-size: 12.5px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  -webkit-app-region: no-drag;
+}
+
+/* pinned tabs (Home) hug their content and never shrink */
+.go-doctabs__tab--pinned {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding-right: var(--space-6);
+}
+
+/* separators between adjacent inactive tabs, hidden beside the active,
+ * hovered or dragged tab */
+.go-doctabs__tab:not(.go-doctabs__tab--active):not(:first-child)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(50% - 3px);
+  width: 1px;
+  height: 16px;
+  transform: translateY(-50%);
+  background: var(--border-subtle);
+}
+
+.go-doctabs__tab:not(.go-doctabs__tab--active):hover::before,
+.go-doctabs__tab:hover + .go-doctabs__tab:not(.go-doctabs__tab--active)::before,
+.go-doctabs__tab--active + .go-doctabs__tab:not(.go-doctabs__tab--active)::before,
+.go-doctabs__tab--drag + .go-doctabs__tab:not(.go-doctabs__tab--active)::before {
+  opacity: 0;
+}
+
+/* the plate: hover capsule and active body share the same side edges */
+.go-doctabs__plate {
+  position: absolute;
+  inset: 0 3px 6px;
+  z-index: -1;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+
+.go-doctabs__tab:not(.go-doctabs__tab--active):hover .go-doctabs__plate {
+  background: var(--surface-sunken);
+}
+
+.go-doctabs__tab--active {
+  z-index: 1;
+  color: var(--ink-primary);
+}
+
+.go-doctabs__tab--active .go-doctabs__plate {
+  inset: 0 3px -1px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--go-doctabs-page);
+}
+
+/* concave feet joining the active plate to the page below */
+.go-doctabs__tab--active .go-doctabs__plate::before,
+.go-doctabs__tab--active .go-doctabs__plate::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+}
+
+.go-doctabs__tab--active .go-doctabs__plate::before {
+  left: -8px;
+  background: radial-gradient(circle at 0 0, transparent 7.5px, var(--go-doctabs-page) 8px);
+}
+
+.go-doctabs__tab--active .go-doctabs__plate::after {
+  right: -8px;
+  background: radial-gradient(circle at 100% 0, transparent 7.5px, var(--go-doctabs-page) 8px);
+}
+
+/* keyboard focus: the kit's ring, drawn around the plate */
+.go-doctabs__tab:focus-visible .go-doctabs__plate {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+/* drag to reorder: neighbours slide, the grabbed tab follows the pointer */
+.go-doctabs--dragging .go-doctabs__tab {
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.go-doctabs--dragging .go-doctabs__tab--drag {
+  z-index: 2;
+  transition: none;
+}
+
+.go-doctabs__tab--drag .go-doctabs__plate {
+  box-shadow: var(--shadow-md);
+}
+
+.go-doctabs__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.go-doctabs__title {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* unsaved changes: a dot in the close button's place, which the close
+ * button replaces while the tab is hovered */
+.go-doctabs__dirty {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  border-radius: var(--radius-full);
+  background: var(--ink-secondary);
+}
+
+.go-doctabs__tab--dirty:not(:hover) .go-doctabs__close {
+  display: none;
+}
+
+.go-doctabs__tab--dirty:hover .go-doctabs__dirty {
+  display: none;
+}
+
+.go-doctabs__close {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.go-doctabs__close:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+
+.go-doctabs__tab--active .go-doctabs__close:hover {
+  background: var(--surface-raised);
+}
+
+/* buttons placed in the bar (new tab, tab list) stay clickable */
+.go-doctabs .rr-iconbtn {
+  align-self: center;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}

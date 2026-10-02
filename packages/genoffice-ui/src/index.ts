@@ -1,5 +1,8 @@
 export * from './kit'
 export { applyUiTheme, type UiThemeMode } from './theme'
+export { Icon, type GlyphProps } from './Icon'
+export { Dialog, type DialogProps } from './Dialog'
+export { DocTabs, type DocTab, type DocTabsProps, type DocTabsStrings } from './DocTabs'
 export { AiComposer } from './AiComposer'
 export {
   ColorPicker,

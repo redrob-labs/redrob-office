@@ -52,6 +52,16 @@
           }
         }
       },
+      "@redrob-labs/ui": {
+        "peerDependencies": {
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        }
+      },
       "react-konva": {
         "peerDependencies": {
           "@types/react": "*"
