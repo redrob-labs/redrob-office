@@ -1,106 +1,35 @@
-/* Markdown-only tokens.
- * Chrome tokens (surface/text/border/…, the brand --accent family, AI panel
+/* Markdown-only tokens. Each is an alias of a @redrob-labs/ui token, so the
+ * kit's data-theme switch carries both themes and nothing here is repeated per
+ * theme. Chrome tokens (surface/text/border/…, the --accent family, AI panel
  * --color-*) come from @genoffice/ui/tokens.css; nothing here may shadow those
  * names. */
 :root {
   --word-blue: var(--accent);
 
-  --md-link: #0a69da;
-  --md-code-bg: #f6f8fa;
-  --md-code-inline-bg: rgb(129 139 152 / 14%);
-  --md-table-header-bg: #f6f8fa;
-  --md-ai-changed: rgb(255 213 79 / 40%);
-  --md-ai-anchor-bg: rgb(80 128 220 / 14%);
-  --md-ai-anchor-line: #5080dc;
-  --md-on-accent: #ffffff;
-  --md-selection: color-mix(in srgb, var(--accent) 10%, transparent);
+  --md-link: var(--ink-brand);
+  --md-code-bg: var(--surface-raised);
+  --md-code-inline-bg: var(--surface-sunken);
+  --md-table-header-bg: var(--surface-sunken);
+  --md-ai-changed: color-mix(in srgb, var(--accent-yellow-3) 40%, transparent);
+  --md-ai-anchor-bg: var(--surface-ai);
+  --md-ai-anchor-line: var(--border-ai);
+  --md-on-accent: var(--ink-on-brand);
+  --md-selection: color-mix(in srgb, var(--accent) 12%, transparent);
   --md-text-selection: color-mix(in srgb, var(--accent) 32%, transparent);
-  --md-focus: var(--accent);
+  --md-focus: var(--focus-ring);
   --md-node-outline: color-mix(in srgb, var(--accent) 60%, transparent);
-  --md-focus-ring: rgb(35 36 37 / 20%);
-  --md-focus-ring-blue: rgb(74 141 246 / 30%);
-  --md-error: #c62828;
-  --md-error-border: rgb(198 40 40 / 45%);
-  --md-error-bg: rgb(198 40 40 / 8%);
-  --md-shadow-color: rgb(0 0 0 / 13%);
-  --md-shadow-soft: rgb(0 0 0 / 9%);
-  --md-shimmer-base: #666666;
-  --md-shimmer-hi: #d9d9d9;
-  --md-pop-shadow: 0 8px 24px rgb(0 0 0 / 18%);
-  --md-tip-shadow: 0 4px 6px rgb(0 0 0 / 10%);
-  /* same paper shadow as the pdf app's --pdf-shadow-page */
-  --md-page-shadow: 0 1px 4px rgb(0 0 0 / 18%);
-  /* toast pill is a dark surface in both themes */
-  --md-toast-bg: rgb(35 35 37 / 92%);
-  --md-toast-error-bg: rgb(196 49 75 / 95%);
-  --md-toast-ink: #ffffff;
-  --md-toast-ok: #34c759;
-}
-
-[data-theme='dark'] {
-
-  --md-link: #4a9eff;
-  --md-code-bg: #23272e;
-  --md-code-inline-bg: rgb(129 139 152 / 22%);
-  --md-table-header-bg: #282c32;
-  --md-ai-changed: rgb(255 213 79 / 28%);
-  --md-ai-anchor-bg: rgb(96 148 240 / 22%);
-  --md-ai-anchor-line: #6a9aec;
-  --md-on-accent: #ffffff;
-  --md-selection: color-mix(in srgb, var(--accent) 20%, transparent);
-  --md-text-selection: color-mix(in srgb, var(--accent) 40%, transparent);
-  --md-focus: var(--accent);
-  --md-node-outline: color-mix(in srgb, var(--accent) 70%, transparent);
-  --md-focus-ring: rgb(228 228 228 / 25%);
-  --md-focus-ring-blue: rgb(74 158 255 / 40%);
-  --md-error: #f28b82;
-  --md-error-border: rgb(242 139 130 / 45%);
-  --md-error-bg: rgb(242 139 130 / 12%);
-  --md-shadow-color: rgb(0 0 0 / 55%);
-  --md-shadow-soft: rgb(0 0 0 / 45%);
-  --md-shimmer-base: #8a8a8a;
-  --md-shimmer-hi: #d0d0d0;
-  --md-pop-shadow: 0 8px 24px rgb(0 0 0 / 50%);
-  --md-tip-shadow: 0 4px 6px rgb(0 0 0 / 35%);
-  --md-page-shadow: 0 1px 4px rgb(0 0 0 / 18%);
-  --md-toast-bg: rgb(35 35 37 / 92%);
-  --md-toast-error-bg: rgb(196 49 75 / 95%);
-  --md-toast-ink: #ffffff;
-  --md-toast-ok: #34c759;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) {
-
-    --md-link: #4a9eff;
-    --md-code-bg: #23272e;
-    --md-code-inline-bg: rgb(129 139 152 / 22%);
-    --md-table-header-bg: #282c32;
-    --md-ai-changed: rgb(255 213 79 / 28%);
-    --md-ai-anchor-bg: rgb(96 148 240 / 22%);
-    --md-ai-anchor-line: #6a9aec;
-    --md-on-accent: #ffffff;
-    --md-selection: color-mix(in srgb, var(--accent) 20%, transparent);
-    --md-text-selection: color-mix(in srgb, var(--accent) 40%, transparent);
-    --md-focus: var(--accent);
-    --md-node-outline: color-mix(in srgb, var(--accent) 70%, transparent);
-    --md-focus-ring: rgb(228 228 228 / 25%);
-    --md-focus-ring-blue: rgb(74 158 255 / 40%);
-    --md-error: #f28b82;
-    --md-error-border: rgb(242 139 130 / 45%);
-    --md-error-bg: rgb(242 139 130 / 12%);
-    --md-shadow-color: rgb(0 0 0 / 55%);
-    --md-shadow-soft: rgb(0 0 0 / 45%);
-    --md-shimmer-base: #8a8a8a;
-    --md-shimmer-hi: #d0d0d0;
-    --md-pop-shadow: 0 8px 24px rgb(0 0 0 / 50%);
-    --md-tip-shadow: 0 4px 6px rgb(0 0 0 / 35%);
-    --md-page-shadow: 0 1px 4px rgb(0 0 0 / 18%);
-    --md-toast-bg: rgb(35 35 37 / 92%);
-    --md-toast-error-bg: rgb(196 49 75 / 95%);
-    --md-toast-ink: #ffffff;
-    --md-toast-ok: #34c759;
-  }
+  --md-focus-ring: color-mix(in srgb, var(--ink-primary) 20%, transparent);
+  --md-focus-ring-blue: color-mix(in srgb, var(--focus-ring) 30%, transparent);
+  --md-error: var(--status-danger);
+  --md-error-border: color-mix(in srgb, var(--status-danger) 45%, transparent);
+  --md-error-bg: color-mix(in srgb, var(--status-danger) 8%, transparent);
+  /* AI composer float; the AI panel moves to kit parts in its own change */
+  --md-shadow-soft: color-mix(in srgb, var(--redrob-black) 9%, transparent);
+  --md-shimmer-base: var(--ink-secondary);
+  --md-shimmer-hi: var(--gray-3);
+  --md-pop-shadow: var(--shadow-md);
+  --md-tip-shadow: var(--shadow-sm);
+  --md-page-shadow: var(--shadow-sm);
 }
 
 * {
@@ -270,7 +199,7 @@ button {
 }
 
 .doc-editor code {
-  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.875em;
   background: var(--md-code-inline-bg);
   border-radius: 4px;
@@ -376,14 +305,19 @@ html.genoffice-popover-open .ribbon-tabs {
   -webkit-app-region: no-drag;
 }
 
+.ribbon-tabs .autosave-toggle {
+  margin: 0 var(--space-1);
+  font-size: 12px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
 /* the toolbar row below the QAT row (old single-row ribbon) */
 .ribbon-body {
-  display: flex;
   /* stretch like the docs ribbon: groups fill the band and the tall AI
      buttons top-align at the same size/position as docs */
   align-items: stretch;
-  /* band metrics shared with the docs/slides/pdf ribbons; no row gap — groups
-     own their spacing (2px 4px padding) exactly like the docs/slides ribbons */
+  /* band metrics shared with the docs/slides/pdf ribbons */
   padding: 6px 12px;
   /* HARD-fixed height like the other editors' ribbons, so switching shell tabs
      never shifts the toolbar's bottom edge (no wrap-driven growth) */
@@ -401,200 +335,12 @@ html.genoffice-popover-open .ribbon-tabs {
   display: none;
 }
 
-.rb-sep {
-  width: 1px;
-  flex-shrink: 0;
-  align-self: stretch;
-  background: var(--border);
-  /* 2px matches the groups' vertical padding — same inset as docs/slides */
-  margin: 2px 6px;
-}
-
-.rb-spacer {
-  flex: 1;
-}
-
-/* ---- quick-access buttons (save / undo / redo), same as the docs QAT ---- */
-
-.qa-btn {
-  width: 30px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  background: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--text-primary);
-}
-
-.qa-btn svg {
-  display: block;
-  margin: 0 auto;
-}
-
-.qa-btn:hover:not(:disabled) {
-  background: var(--hover);
-}
-
-.qa-btn:disabled {
-  color: var(--text-muted);
-  cursor: default;
-}
-
-/* ---- autosave toggle (pill), same as the docs one ---- */
-
-.autosave-toggle {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  margin-left: 4px;
-  margin-right: 4px;
-  user-select: none;
-}
-
-.autosave-toggle input {
-  display: none;
-}
-
-.autosave-knob {
-  width: 26px;
-  height: 14px;
-  border-radius: 7px;
-  background: var(--border-control);
-  position: relative;
-  transition: background 0.15s;
-}
-
-.autosave-knob::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--surface);
-  transition: left 0.15s;
-}
-
-.autosave-toggle.on .autosave-knob {
-  background: var(--accent);
-}
-
-.autosave-toggle.on .autosave-knob::after {
-  left: 14px;
-}
-
-.autosave-text {
-  font-size: 11px;
-  /* same ink as the docs/slides autosave label */
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
-/* inline toolbar button + suite-wide states (ink/hover/neutral selected
- * plate, no brand color) — same metrics as the docs/slides .rb-icon
- * (28px min box, 30px tall, 3px radius, 15px letterform glyphs) */
-.rb-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  height: 30px;
-  padding: 0 4px;
-  white-space: nowrap;
-  border: none;
-  border-radius: 3px;
-  font-size: 15px;
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.rb-btn:hover:not(:disabled) {
-  background: var(--hover);
-}
-
-.rb-btn.active {
-  background: var(--active-bg);
-  color: var(--text-primary);
-}
-
-.rb-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-/* ---- docs-parity ribbon group with tall AI buttons ---- */
-
-.ribbon-group {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 2px 4px;
-  /* groups never shrink below content, same as the docs/slides ribbons */
-  flex-shrink: 0;
-}
-
-.ribbon-group-items {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-}
-
-.rb-big {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  border: none;
-  background: none;
-  border-radius: 4px;
-  padding: 4px 7px 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  cursor: pointer;
-  color: var(--text-primary);
-}
-
-.rb-big-icon {
-  min-height: 28px;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-primary);
-  /* same icon-row box as docs: full button width with horizontal bleed */
-  align-self: stretch;
-  border-radius: 4px;
-  padding: 3px 4px;
-  margin: 0 -4px;
-}
-
-.rb-big:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-/* the AI entries read as one piece: hover/press tint the whole button */
-.rb-big.ai-entry:hover:not(:disabled) {
-  background: var(--hover);
-}
-
-/* neutral gray open state, same control across docs/sheets/slides ribbons */
-.rb-big.ai-entry.active {
-  background: var(--active-bg);
-  color: var(--text-primary);
-}
-
 .ai-feature-icon {
   display: grid;
   place-items: center;
   width: 28px;
   height: 28px;
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 
 .ai-feature-icon svg {
@@ -602,24 +348,14 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 24px;
 }
 
-/* typographic letterform glyphs (B/I/U/S): 15px/600 like the docs inline row */
-.rb-mono {
-  font-family: 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 11.5px;
-}
-
-/* block-style picker (shared @genoffice/ui gs-dd dropdown): same box as the
- * docs/slides font pickers (28px tall, 3px radius, 13px label, 7px inline
- * padding, strong border) */
+/* block-style picker (shared @genoffice/ui gs-dd dropdown) at the dense
+ * 28px toolbar height, same box as the docs/slides font pickers */
 .rb-style.gs-dd {
   min-width: 108px;
 }
 
 .rb-style .gs-dd-btn {
   height: 28px;
-  padding: 0 7px;
-  border-color: var(--color-border-strong);
-  color: var(--text-primary);
   font-size: 13px;
 }
 
@@ -636,80 +372,42 @@ html.genoffice-popover-open .ribbon-tabs {
 .rb-link-pop {
   position: fixed;
   position-anchor: --rb-link-anchor;
-  top: calc(anchor(bottom) + 2px);
+  top: calc(anchor(bottom) + var(--space-1));
   left: anchor(left);
   position-try-fallbacks: flip-inline;
   position-visibility: anchors-visible;
   z-index: 30;
   display: flex;
-  gap: 6px;
-  padding: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px var(--md-shadow-color);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 }
 
-.rb-link-pop input {
+.rb-link-pop .rb-link-input {
   width: 240px;
-  height: 26px;
-  border: 1px solid var(--border-control);
-  border-radius: 5px;
-  padding: 0 8px;
-  font-size: 12.5px;
-  outline: none;
 }
 
-.rb-link-pop button {
-  height: 26px;
-  border: none;
-  border-radius: 5px;
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
-  font-size: 12.5px;
-  padding: 0 10px;
-  cursor: pointer;
-}
+/* ---- slash menu (kit rr-menu__list / rr-menu__item) ---- */
 
-.rb-link-pop button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-/* ---- slash menu ---- */
-
-.slash-menu {
+.slash-menu.rr-menu__list {
   z-index: 40;
   min-width: 180px;
   max-height: 320px;
   overflow-y: auto;
-  padding: 5px;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 10px;
-  box-shadow: 0 10px 32px var(--md-shadow-color);
 }
 
-.slash-item {
-  display: block;
-  width: 100%;
-  text-align: start;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 13.5px;
-  color: var(--text);
-  cursor: pointer;
-}
-
+/* the keyboard-highlighted row reads like the kit's hover row */
 .slash-item.active {
-  background: var(--pressed);
+  background: var(--surface-sunken);
 }
 
 .slash-empty {
-  padding: 8px 10px;
-  color: var(--text-muted);
+  padding: var(--space-2) var(--space-3);
+  color: var(--ink-muted);
   font-size: 13px;
 }
 
@@ -819,7 +517,7 @@ html.genoffice-popover-open .ribbon-tabs {
   background: transparent;
   resize: vertical;
   padding: 6px 12px 10px;
-  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--text);
@@ -2008,9 +1706,10 @@ html.genoffice-popover-open .ribbon-tabs {
   right: 8px;
   z-index: 5;
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: var(--space-1);
   opacity: 0;
-  transition: opacity 0.12s;
+  transition: opacity var(--duration-fast) var(--easing-standard);
 }
 
 .md-codeblock:hover .md-codeblock-bar,
@@ -2018,79 +1717,35 @@ html.genoffice-popover-open .ribbon-tabs {
   opacity: 1;
 }
 
-/* language picker (shared @genoffice/ui gs-dd dropdown), sized like the copy
-   button beside it */
+/* language picker (shared @genoffice/ui gs-dd dropdown) and the kit copy
+   button share one compact 24px row */
 .md-codeblock-lang .gs-dd-btn {
-  height: 22px;
-  border-radius: 5px;
-  color: var(--text-secondary);
-  font-size: 11.5px;
-  padding: 0 4px;
+  height: 24px;
+  color: var(--ink-secondary);
+  font-size: 12px;
 }
 
-.md-codeblock-copy {
-  height: 22px;
-  border: 1px solid var(--border-control);
-  border-radius: 5px;
-  background: var(--surface);
-  color: var(--text-secondary);
-  font-size: 11.5px;
-  padding: 0 8px;
-  cursor: pointer;
-  outline: none;
+.md-codeblock-bar .md-codeblock-copy {
+  height: 24px;
+  color: var(--ink-secondary);
+  font-size: 12px;
 }
 
-.md-codeblock-copy:hover {
-  background: var(--hover);
-}
-
-/* ---- floating table menu ---- */
+/* ---- floating table menu (kit-styled Toolbar on a popover surface) ---- */
 
 .table-menu {
   z-index: 35;
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 8px;
-  box-shadow: 0 6px 20px var(--md-shadow-color);
+  padding: var(--space-1);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 }
 
-.tm-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.tm-btn:hover {
-  background: var(--hover);
-}
-
-.tm-btn.active {
-  background: var(--active-bg);
-  color: var(--color-text-primary);
-}
-
-.tm-btn.danger:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
-.tm-sep {
-  width: 1px;
-  height: 16px;
-  background: var(--border);
-  margin: 0 3px;
+.table-menu .tm-danger:hover:not(:disabled) {
+  color: var(--status-danger);
 }
 
 /* ---- block gutter (+ and grip) & block menu ---- */
@@ -2111,62 +1766,37 @@ html.genoffice-popover-open .ribbon-tabs {
   width: 20px;
   height: 22px;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--icon-muted);
+  color: var(--ink-muted);
   cursor: pointer;
   padding: 0;
 }
 
 .md-gutter-btn:hover {
-  background: var(--hover);
-  color: var(--text-muted);
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+}
+
+.md-gutter-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
 }
 
 .md-gutter-grip {
   cursor: grab;
 }
 
-.md-block-menu {
-  position: absolute;
+/* kit rr-menu__list; top/left are set inline beside the gutter */
+.md-block-menu.rr-menu__list {
   z-index: 30;
   min-width: 150px;
-  padding: 5px;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 10px;
-  box-shadow: 0 10px 32px var(--md-shadow-color);
-}
-
-.md-block-menu-item {
-  display: block;
-  width: 100%;
-  text-align: start;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 13px;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.md-block-menu-item:hover {
-  background: var(--hover);
-}
-
-.md-block-menu-item.danger {
-  color: var(--danger);
-}
-
-.md-block-menu-item.danger:hover {
-  background: var(--danger-bg);
 }
 
 /* ---- math (KaTeX) nodes & LaTeX edit popover ---- */
 
 .tiptap-mathematics-render {
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
 }
 
 span.tiptap-mathematics-render {
@@ -2186,19 +1816,19 @@ div.tiptap-mathematics-render {
 }
 
 .tiptap-mathematics-render--editable:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .tiptap-mathematics-render.ProseMirror-selectednode {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
 }
 
 /* KaTeX parse failure: show the raw source in the code font */
 .tiptap-mathematics-render.block-math-error,
 .tiptap-mathematics-render.inline-math-error {
-  color: var(--danger);
-  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  color: var(--status-danger);
+  font-family: var(--font-mono);
   font-size: 0.85em;
   white-space: pre-wrap;
 }
@@ -2208,30 +1838,32 @@ div.tiptap-mathematics-render {
   z-index: 40;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
   width: 400px;
-  padding: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 10px;
-  box-shadow: 0 10px 32px var(--md-shadow-color);
+  padding: var(--space-3);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 }
 
+/* a code-font textarea in the kit field look */
 .md-math-input {
   resize: vertical;
-  border: 1px solid var(--border-control);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
-  padding: 6px 8px;
-  font-family: 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 12.5px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--field-radius);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 13px;
   line-height: 1.5;
   outline: none;
 }
 
-.md-math-input:focus {
-  border-color: var(--accent);
+.md-math-input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
 }
 
 .md-math-preview {
@@ -2241,9 +1873,9 @@ div.tiptap-mathematics-render {
   justify-content: safe center;
   min-height: 36px;
   max-height: 40vh;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: var(--hover);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
   overflow: auto;
 }
 
@@ -2254,30 +1886,12 @@ div.tiptap-mathematics-render {
 .md-math-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
-.md-math-actions button {
-  height: 26px;
-  border: none;
-  border-radius: 5px;
-  font-size: 12.5px;
-  padding: 0 10px;
-  cursor: pointer;
-}
-
-.md-math-apply {
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
-}
-
-.md-math-delete {
-  background: transparent;
-  color: var(--danger);
-}
-
-.md-math-delete:hover {
-  background: var(--danger-bg);
+/* the kit ghost button, in the destructive ink */
+.md-math-actions .md-math-delete {
+  color: var(--status-danger);
 }
 
 /* ---- selection scope chip in the AI composer header ---- */
@@ -2710,30 +2324,19 @@ div.tiptap-mathematics-render {
 
 /* ================= transient toast (action feedback) ================= */
 
+/* Positions and animates the kit Toast; the surface is the kit's own. */
 .app-toast {
   position: fixed;
   top: 64px;
   left: 50%;
-  transform: translate(-50%, -8px);
   z-index: 2000;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: var(--md-toast-bg);
-  color: var(--md-toast-ink);
-  font-size: 13px;
-  box-shadow: var(--md-pop-shadow);
+  max-width: min(360px, 60vw);
+  transform: translate(-50%, -8px);
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
-  max-width: 60vw;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    opacity var(--duration-fast) var(--easing-entrance),
+    transform var(--duration-fast) var(--easing-entrance);
 }
 
 .app-toast.show {
@@ -2741,16 +2344,8 @@ div.tiptap-mathematics-render {
   transform: translate(-50%, 0);
 }
 
-.app-toast.error {
-  background: var(--md-toast-error-bg);
-}
-
-.app-toast-icon {
-  width: 16px;
-  height: 16px;
-  flex: none;
-}
-
-.app-toast.success .app-toast-icon {
-  color: var(--md-toast-ok);
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    transition: none;
+  }
 }

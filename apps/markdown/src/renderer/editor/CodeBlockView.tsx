@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react'
 import type { NodeViewProps } from '@tiptap/react'
-import { Dropdown } from '@genoffice/ui'
+import { Button, Dropdown } from '@genoffice/ui'
 import { t } from '../i18n/locale'
 
 const LANGUAGES = [
@@ -76,9 +76,16 @@ export function CodeBlockView({ node, updateAttributes, editor }: NodeViewProps)
           options={LANGUAGES.map((lang) => ({ value: lang, label: lang }))}
           onPick={(lang) => updateAttributes({ language: lang === 'plaintext' ? null : lang })}
         />
-        <button type="button" className="md-codeblock-copy" onClick={copy}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="md-codeblock-copy"
+          aria-live="polite"
+          onClick={copy}
+        >
           {copied ? t('codeCopied') : t('codeCopy')}
-        </button>
+        </Button>
       </div>
       <pre>
         <NodeViewContent<'code'> as="code" />
