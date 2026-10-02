@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const pl = {
+  aiYou: 'Ty',
+  aiFailedTitle: 'Asystent nie mógł dokończyć',
+  aiStepRunning: 'W toku',
+  aiStepDone: 'Gotowe',
+  aiStepFailed: 'Niepowodzenie',
+  aiStartersLabel: 'Sugerowane pytania',
   aiEmptyDraftTitle: 'Pozwól AI napisać szkic tego dokumentu',
   aiEmptyDraftBody1: 'Opisz temat i kluczowe punkty albo wklej materiały;',
   aiEmptyDraftBody2: 'AI napisze pierwszy szkic prosto na stronie.',

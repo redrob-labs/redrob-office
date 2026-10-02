@@ -52,7 +52,7 @@ export function WordCountDialog({ stats, onClose }: { stats: DocStats; onClose: 
           </tbody>
         </table>
         <div className="modal-actions">
-          <button className="btn-primary" onClick={onClose}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={onClose}>
             {t('appClose')}
           </button>
         </div>

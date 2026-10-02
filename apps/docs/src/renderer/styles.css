@@ -1,96 +1,97 @@
-/* Docs-only tokens.
- * Chrome tokens (surface/text/border/…, the brand --accent family, AI panel
- * --color-*) come from @genoffice/ui/tokens.css; nothing here may shadow those
- * names. --word-blue is the chrome accent's old name and now follows the brand;
- * --word-heading previews Word's own heading colour and stays. */
+/* Docs-only tokens. Chrome values alias @redrob-labs/ui tokens, so the kit's
+ * data-theme switch carries both themes; only previews of document content
+ * (Word's heading colours) keep a dark value of their own. Shared chrome
+ * tokens come from @genoffice/ui/tokens.css; nothing here may shadow those
+ * names. --word-blue is the chrome accent's old name and follows the brand. */
 :root {
   --word-blue: var(--accent);
   --word-blue-dark: var(--accent-dark);
   --word-heading: #2f5496;
-
   --docs-heading-3: #1f3864;
-  --docs-accent-ghost: rgb(24 90 189 / 10%);
-  --docs-copilot-bg-a: #f5f0ff;
-  --docs-copilot-bg-b: #eef6ff;
-  --docs-swatch-outline: rgb(0 0 0 / 15%);
-  --docs-swatch-outline-strong: rgb(0 0 0 / 25%);
-  --docs-swatch-border: #a6a6a6;
-  --docs-ins-ink: #166534;
-  --docs-ins-bg: rgb(22 101 52 / 6%);
-  --docs-del-ink: #b91c1c;
-  --docs-del-bg: rgb(185 28 28 / 6%);
-  --docs-ai-error: #c62828;
-  --docs-ai-error-border: rgb(198 40 40 / 45%);
-  --docs-ai-error-bg: rgb(198 40 40 / 8%);
-  --docs-ok-ink: #2e7d32;
-  --docs-ok-bg: #e6f2e6;
-  --docs-ok-border: #a5d6a7;
-  --docs-ok-dot: #2e9e44;
-  --docs-chip-bg: #f6f8fc;
-  --docs-brand-ghost: rgb(15 127 255 / 8%);
-  --docs-brand-ghost-weak: rgb(15 127 255 / 6%);
-  --docs-brand-ring: rgb(15 127 255 / 40%);
-  --docs-focus-ring: rgb(35 36 37 / 20%);
-  --docs-focus-ring-blue: rgb(74 141 246 / 30%);
-  --docs-input-focus: #0f7fff;
-  --docs-input-ring: rgb(15 127 255 / 10%);
-  --docs-error-ring: rgb(239 68 68 / 10%);
-  --docs-scroll-thumb: rgb(0 0 0 / 25%);
-  --docs-tooltip-bg: #232425;
-  --docs-tooltip-ink: #ffffff;
-  --docs-shimmer-base: #666666;
-  --docs-shimmer-hi: #d9d9d9;
-  --docs-statusbar-bg: #f3f4f6;
-  --docs-statusbar-border: #e1e4e8;
-  --docs-statusbar-hover: rgb(0 0 0 / 8%);
-  --docs-zoom-slider: #8a8886;
-  --docs-ruler-bg: #f3f2f1;
-  --docs-ruler-tick: #b9b9b9;
-  --docs-ruler-border: #d6d6d6;
-  --docs-ruler-ink: #666;
-  --docs-ruler-btn-bg: #e0e0e0;
-  --docs-ruler-btn-hover: #d0d0d0;
-  --docs-ruler-btn-border: #ccc;
-  --docs-ruler-btn-ink: #333;
-  --docs-ruler-tab-guide: #aaa;
-  --docs-ruler-zone: rgb(0 0 0 / 8%);
-  --docs-tstyle-border: #b8bcc4;
-  --docs-tstyle-header: #7f8b9d;
-  --docs-tstyle-row: #eef1f5;
-  --docs-gap-cut: #b6c2d2;
-  --docs-pv-canvas: #525659;
-  --docs-overlay: rgb(0 0 0 / 50%);
+
+  /* chrome */
+  --docs-accent-ghost: color-mix(in srgb, var(--accent) 10%, transparent);
+  --docs-copilot-bg-a: var(--surface-ai);
+  --docs-copilot-bg-b: var(--surface-brand-subtle);
+  --docs-swatch-outline: color-mix(in srgb, var(--ink-primary) 15%, transparent);
+  --docs-swatch-outline-strong: color-mix(in srgb, var(--ink-primary) 25%, transparent);
+  --docs-swatch-border: var(--border-strong);
+  --docs-ins-ink: var(--status-success);
+  --docs-ins-bg: color-mix(in srgb, var(--status-success) 6%, transparent);
+  --docs-del-ink: var(--status-danger);
+  --docs-del-bg: color-mix(in srgb, var(--status-danger) 6%, transparent);
+  --docs-ai-error: var(--status-danger);
+  --docs-ai-error-border: color-mix(in srgb, var(--status-danger) 45%, transparent);
+  --docs-ai-error-bg: color-mix(in srgb, var(--status-danger) 8%, transparent);
+  --docs-ok-ink: var(--status-success);
+  --docs-ok-bg: color-mix(in srgb, var(--status-success) 12%, var(--surface-base));
+  --docs-ok-border: color-mix(in srgb, var(--status-success) 40%, transparent);
+  --docs-ok-dot: var(--status-success);
+  --docs-chip-bg: var(--surface-raised);
+  --docs-brand-ghost: color-mix(in srgb, var(--action-primary) 8%, transparent);
+  --docs-brand-ghost-weak: color-mix(in srgb, var(--action-primary) 6%, transparent);
+  --docs-brand-ring: color-mix(in srgb, var(--action-primary) 40%, transparent);
+  --docs-focus-ring: color-mix(in srgb, var(--ink-primary) 20%, transparent);
+  --docs-focus-ring-blue: color-mix(in srgb, var(--focus-ring) 30%, transparent);
+  --docs-input-focus: var(--focus-ring);
+  --docs-input-ring: color-mix(in srgb, var(--focus-ring) 20%, transparent);
+  --docs-error-ring: color-mix(in srgb, var(--status-danger) 20%, transparent);
+  --docs-scroll-thumb: var(--border-strong);
+  --docs-tooltip-bg: var(--redrob-black);
+  --docs-tooltip-ink: var(--redrob-white);
+  --docs-shimmer-base: var(--ink-secondary);
+  --docs-shimmer-hi: var(--gray-3);
+  --docs-statusbar-bg: var(--surface-raised);
+  --docs-statusbar-border: var(--border-subtle);
+  --docs-statusbar-hover: var(--surface-sunken);
+  --docs-zoom-slider: var(--action-primary);
+  --docs-ruler-bg: var(--surface-raised);
+  --docs-ruler-tick: var(--border-strong);
+  --docs-ruler-border: var(--border-subtle);
+  --docs-ruler-ink: var(--ink-secondary);
+  --docs-ruler-btn-bg: var(--surface-sunken);
+  --docs-ruler-btn-hover: var(--border-subtle);
+  --docs-ruler-btn-border: var(--border-strong);
+  --docs-ruler-btn-ink: var(--ink-primary);
+  --docs-ruler-tab-guide: var(--border-strong);
+  --docs-ruler-zone: color-mix(in srgb, var(--ink-primary) 8%, transparent);
+  --docs-tstyle-border: var(--border-strong);
+  --docs-tstyle-header: var(--ink-muted);
+  --docs-tstyle-row: var(--surface-sunken);
+  --docs-gap-cut: var(--border-strong);
+  --docs-pv-canvas: var(--gray-8);
+  --docs-overlay: var(--overlay-scrim);
+  --docs-shadow-menu: var(--shadow-md);
+  --docs-shadow-ctx: var(--shadow-md);
+  --docs-shadow-modal: var(--shadow-lg);
+  --docs-shadow-modal-gs: var(--shadow-lg);
+  --docs-shadow-chip: var(--shadow-sm);
+  --docs-shadow-tooltip: var(--shadow-sm);
+  --docs-shadow-composer: var(--shadow-sm);
+  --docs-shadow-toast: var(--shadow-lg);
+  --docs-on-accent: var(--ink-on-brand);
+  --docs-on-accent-dim: color-mix(in srgb, var(--ink-on-brand) 75%, transparent);
+  --docs-comment-accent: var(--status-warning);
+  --docs-badge-gradient: var(--gradient-brand);
+  --docs-shadow-badge: var(--shadow-sm);
+  --docs-shadow-badge-strong: var(--shadow-md);
+  --docs-chip-remove-bg: var(--ink-primary);
+  --docs-chip-remove-hover: var(--ink-secondary);
+  --docs-chip-remove-ink: var(--surface-base);
+  --docs-knob-dot: var(--redrob-white);
+  --docs-toast-bg: var(--redrob-black);
+  --docs-toast-error-bg: var(--status-danger);
+  --docs-toast-ink: var(--redrob-white);
+  --docs-toast-ok: var(--status-success);
+
+  /* paper shadows sit on the canvas in both themes */
   --docs-page-shadow: 0 1px 3px rgb(0 0 0 / 28%), 0 4px 16px rgb(0 0 0 / 10%);
   --docs-gap-inset: inset 0 8px 8px -8px rgb(0 0 0 / 35%), inset 0 -3px 3px -3px rgb(0 0 0 / 18%);
-  --docs-shadow-menu: 0 8px 24px rgb(0 0 0 / 18%);
-  --docs-shadow-ctx: 0 8px 28px rgb(0 0 0 / 22%);
-  --docs-shadow-modal: 0 3px 30px rgb(0 0 0 / 8%);
-  --docs-shadow-modal-gs: 0 12px 40px rgb(0 0 0 / 16%);
-  --docs-shadow-chip: 0 2px 8px rgb(0 0 0 / 12%);
-  --docs-shadow-tooltip: 0 4px 6px rgb(0 0 0 / 10%);
-  --docs-shadow-composer: 0 6px 30px rgb(0 0 0 / 8%);
-  --docs-shadow-toast: 0 4px 16px rgb(0 0 0 / 18%);
-
-  /* brand-fixed chrome: identical in both themes */
-  --docs-on-accent: #fff;
-  --docs-on-accent-dim: rgb(255 255 255 / 75%);
-  --docs-comment-accent: #e8a33d;
-  --docs-badge-gradient: linear-gradient(135deg, #6a5cff 0%, #2b88f8 55%, #29c3a6 120%);
-  --docs-shadow-badge: 0 2px 6px rgb(74 92 255 / 25%);
-  --docs-shadow-badge-strong: 0 2px 6px rgb(74 92 255 / 35%);
-  --docs-chip-remove-bg: #000;
-  --docs-chip-remove-hover: #4b4e51;
-  --docs-chip-remove-ink: #fff;
   /* table move handle floats over the always-white page: fixed colors */
   --docs-table-handle-bg: #ffffff;
   --docs-table-handle-hover: #f0f0f0;
   --docs-table-handle-border: #b8bcc4;
   --docs-table-handle-ink: #444444;
-  --docs-knob-dot: #fff;
-  --docs-toast-bg: rgb(35 35 37 / 92%);
-  --docs-toast-error-bg: rgb(196 49 75 / 95%);
-  --docs-toast-ink: #fff;
-  --docs-toast-ok: #34c759;
 
   /* content-side constants: everything painted on the white paper (including
    * the AI change highlight) keeps its light value in both themes */
@@ -148,140 +149,10 @@
   --docs-paper-hit-active-ink: #fff;
 }
 
+/* previews of Word's own heading colours, lightened for the dark canvas */
 [data-theme='dark'] {
   --word-heading: #6cabf0;
-
   --docs-heading-3: #7fa8e0;
-  --docs-accent-ghost: rgb(74 158 255 / 18%);
-  --docs-copilot-bg-a: #322c46;
-  --docs-copilot-bg-b: #253546;
-  --docs-swatch-outline: rgb(255 255 255 / 25%);
-  --docs-swatch-outline-strong: rgb(255 255 255 / 30%);
-  --docs-swatch-border: #666;
-  --docs-ins-ink: #6fcf8f;
-  --docs-ins-bg: rgb(111 207 143 / 10%);
-  --docs-del-ink: #f28b82;
-  --docs-del-bg: rgb(242 139 130 / 10%);
-  --docs-ai-error: #f28b82;
-  --docs-ai-error-border: rgb(242 139 130 / 45%);
-  --docs-ai-error-bg: rgb(242 139 130 / 12%);
-  --docs-ok-ink: #7bd88a;
-  --docs-ok-bg: #16351c;
-  --docs-ok-border: #2e5c36;
-  --docs-ok-dot: #34c759;
-  --docs-chip-bg: #2a2f36;
-  --docs-brand-ghost: rgb(74 158 255 / 14%);
-  --docs-brand-ghost-weak: rgb(74 158 255 / 10%);
-  --docs-brand-ring: rgb(74 158 255 / 45%);
-  --docs-focus-ring: rgb(228 228 228 / 25%);
-  --docs-focus-ring-blue: rgb(74 158 255 / 40%);
-  --docs-input-focus: #4a9eff;
-  --docs-input-ring: rgb(74 158 255 / 20%);
-  --docs-error-ring: rgb(242 139 130 / 20%);
-  --docs-scroll-thumb: rgb(255 255 255 / 28%);
-  --docs-tooltip-bg: #e4e4e4;
-  --docs-tooltip-ink: #1e1e1e;
-  --docs-shimmer-base: #8a8a8a;
-  --docs-shimmer-hi: #d0d0d0;
-  --docs-statusbar-bg: #252525;
-  --docs-statusbar-border: #3a3a3a;
-  --docs-statusbar-hover: rgb(255 255 255 / 10%);
-  --docs-zoom-slider: #8a8a8a;
-  --docs-ruler-bg: #2d2d2d;
-  --docs-ruler-tick: #6a6a6a;
-  --docs-ruler-border: #444;
-  --docs-ruler-ink: #a0a0a0;
-  --docs-ruler-btn-bg: #3a3a3a;
-  --docs-ruler-btn-hover: #4a4a4a;
-  --docs-ruler-btn-border: #555;
-  --docs-ruler-btn-ink: #d0d0d0;
-  --docs-ruler-tab-guide: #777;
-  --docs-ruler-zone: rgb(255 255 255 / 10%);
-  --docs-tstyle-border: #5a5f66;
-  --docs-tstyle-header: #8a93a3;
-  --docs-tstyle-row: #333;
-  --docs-gap-cut: #56606c;
-  --docs-pv-canvas: #1f1f1f;
-  --docs-overlay: rgb(0 0 0 / 55%);
-  --docs-page-shadow: 0 1px 3px rgb(0 0 0 / 60%), 0 4px 16px rgb(0 0 0 / 40%);
-  --docs-gap-inset: inset 0 8px 8px -8px rgb(0 0 0 / 65%), inset 0 -3px 3px -3px rgb(0 0 0 / 40%);
-  --docs-shadow-menu: 0 8px 24px rgb(0 0 0 / 55%);
-  --docs-shadow-ctx: 0 8px 28px rgb(0 0 0 / 60%);
-  --docs-shadow-modal: 0 20px 50px rgb(0 0 0 / 65%);
-  --docs-shadow-modal-gs: 0 20px 50px rgb(0 0 0 / 65%);
-  --docs-shadow-chip: 0 2px 8px rgb(0 0 0 / 40%);
-  --docs-shadow-tooltip: 0 4px 6px rgb(0 0 0 / 30%);
-  --docs-shadow-composer: 0 6px 30px rgb(0 0 0 / 30%);
-  --docs-shadow-toast: 0 4px 16px rgb(0 0 0 / 45%);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) {
-    --word-heading: #6cabf0;
-
-    --docs-heading-3: #7fa8e0;
-    --docs-accent-ghost: rgb(74 158 255 / 18%);
-    --docs-copilot-bg-a: #322c46;
-    --docs-copilot-bg-b: #253546;
-    --docs-swatch-outline: rgb(255 255 255 / 25%);
-    --docs-swatch-outline-strong: rgb(255 255 255 / 30%);
-    --docs-swatch-border: #666;
-    --docs-ins-ink: #6fcf8f;
-    --docs-ins-bg: rgb(111 207 143 / 10%);
-    --docs-del-ink: #f28b82;
-    --docs-del-bg: rgb(242 139 130 / 10%);
-    --docs-ai-error: #f28b82;
-    --docs-ai-error-border: rgb(242 139 130 / 45%);
-    --docs-ai-error-bg: rgb(242 139 130 / 12%);
-    --docs-ok-ink: #7bd88a;
-    --docs-ok-bg: #16351c;
-    --docs-ok-border: #2e5c36;
-    --docs-ok-dot: #34c759;
-    --docs-chip-bg: #2a2f36;
-    --docs-brand-ghost: rgb(74 158 255 / 14%);
-    --docs-brand-ghost-weak: rgb(74 158 255 / 10%);
-    --docs-brand-ring: rgb(74 158 255 / 45%);
-    --docs-focus-ring: rgb(228 228 228 / 25%);
-    --docs-focus-ring-blue: rgb(74 158 255 / 40%);
-    --docs-input-focus: #4a9eff;
-    --docs-input-ring: rgb(74 158 255 / 20%);
-    --docs-error-ring: rgb(242 139 130 / 20%);
-    --docs-scroll-thumb: rgb(255 255 255 / 28%);
-    --docs-tooltip-bg: #e4e4e4;
-    --docs-tooltip-ink: #1e1e1e;
-    --docs-shimmer-base: #8a8a8a;
-    --docs-shimmer-hi: #d0d0d0;
-    --docs-statusbar-bg: #252525;
-    --docs-statusbar-border: #3a3a3a;
-    --docs-statusbar-hover: rgb(255 255 255 / 10%);
-    --docs-zoom-slider: #8a8a8a;
-    --docs-ruler-bg: #2d2d2d;
-    --docs-ruler-tick: #6a6a6a;
-    --docs-ruler-border: #444;
-    --docs-ruler-ink: #a0a0a0;
-    --docs-ruler-btn-bg: #3a3a3a;
-    --docs-ruler-btn-hover: #4a4a4a;
-    --docs-ruler-btn-border: #555;
-    --docs-ruler-btn-ink: #d0d0d0;
-    --docs-ruler-tab-guide: #777;
-    --docs-ruler-zone: rgb(255 255 255 / 10%);
-    --docs-tstyle-border: #5a5f66;
-    --docs-tstyle-header: #8a93a3;
-    --docs-tstyle-row: #333;
-    --docs-gap-cut: #56606c;
-    --docs-pv-canvas: #1f1f1f;
-    --docs-overlay: rgb(0 0 0 / 55%);
-    --docs-page-shadow: 0 1px 3px rgb(0 0 0 / 60%), 0 4px 16px rgb(0 0 0 / 40%);
-    --docs-gap-inset: inset 0 8px 8px -8px rgb(0 0 0 / 65%), inset 0 -3px 3px -3px rgb(0 0 0 / 40%);
-    --docs-shadow-menu: 0 8px 24px rgb(0 0 0 / 55%);
-    --docs-shadow-ctx: 0 8px 28px rgb(0 0 0 / 60%);
-    --docs-shadow-modal: 0 20px 50px rgb(0 0 0 / 65%);
-    --docs-shadow-modal-gs: 0 20px 50px rgb(0 0 0 / 65%);
-    --docs-shadow-chip: 0 2px 8px rgb(0 0 0 / 40%);
-    --docs-shadow-tooltip: 0 4px 6px rgb(0 0 0 / 30%);
-    --docs-shadow-composer: 0 6px 30px rgb(0 0 0 / 30%);
-    --docs-shadow-toast: 0 4px 16px rgb(0 0 0 / 45%);
-  }
 }
 
 * {
@@ -342,7 +213,7 @@ button {
   height: 28px;
   border: none;
   background: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 13px;
   color: var(--text-primary);
@@ -354,7 +225,7 @@ button {
 }
 
 .qa-btn:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .qa-btn:disabled {
@@ -428,17 +299,17 @@ html.genoffice-popover-open .ribbon-tabs {
   cursor: pointer;
   /* transparent border keeps the row height; the visible underline is the
    * ::after, sized to the label text rather than the padded button */
-  border-bottom: 2.5px solid transparent;
+  border-bottom: 2px solid transparent;
   border-radius: 4px 4px 0 0;
 }
 
 /* hovering a tab tints the label, it doesn't paint a box */
 .ribbon-tab:hover {
-  color: var(--word-blue);
+  color: var(--ink-brand);
 }
 
 .ribbon-tab.active {
-  color: var(--word-blue);
+  color: var(--ink-brand);
   font-weight: 600;
 }
 
@@ -449,68 +320,38 @@ html.genoffice-popover-open .ribbon-tabs {
   position: absolute;
   left: 13px;
   right: 13px;
-  bottom: -2.5px;
-  height: 2.5px;
+  bottom: -2px;
+  height: 2px;
   border-radius: 1px;
-  background: var(--word-blue);
+  background: var(--ink-brand);
 }
 
 .ribbon-tab-file {
   color: var(--docs-on-accent);
-  background: var(--word-blue);
-  border-radius: 4px;
+  background: var(--ink-brand);
+  border-radius: var(--radius-sm);
   padding: 6px 16px;
   margin-right: 6px;
 }
 
 .ribbon-tab-file:hover,
 .ribbon-tab-file.open {
-  background: var(--word-blue-dark);
+  background: var(--action-primary-hover);
 }
 
 .file-tab-wrap {
   position: relative;
 }
 
-.file-menu {
-  position: absolute;
+/* File menu: a kit rr-menu__list under the File tab */
+.file-menu.rr-menu__list {
   top: calc(100% + 2px);
-  left: 0;
   z-index: 60;
   min-width: 210px;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 6px;
-  box-shadow: var(--docs-shadow-menu);
-  padding: 5px;
 }
 
-.file-menu button {
-  display: flex;
+.file-menu .rr-menu__item {
   justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  border: none;
-  background: none;
-  padding: 8px 12px;
-  font-size: 13px;
-  border-radius: 4px;
-  cursor: pointer;
-  color: var(--text);
-}
-
-.file-menu button:hover:not(:disabled) {
-  background: var(--hover);
-}
-
-.file-menu button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.file-menu-key {
-  color: var(--text-dim);
-  font-size: 12px;
 }
 
 .ribbon-tabs-spacer {
@@ -540,8 +381,8 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .copilot-btn:hover,
 .copilot-btn.active {
-  border-color: var(--word-blue);
-  color: var(--word-blue);
+  border-color: var(--ink-brand);
+  color: var(--ink-brand);
 }
 
 /* AI entry points share the app icon (used by the Ribbon AI button and the AI panel title) */
@@ -561,10 +402,6 @@ html.genoffice-popover-open .ribbon-tabs {
   border-radius: 50%;
 }
 
-.ai-panel-title .genspark-badge {
-  width: 18px;
-  height: 18px;
-}
 /* ---- ribbon body ---- */
 
 .ribbon-body {
@@ -654,7 +491,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 4px;
   border: none;
   background: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   /* PowerPoint-density: minimal side padding (slides ribbon parity) */
   padding: 4px 7px 6px;
   font-size: 12px;
@@ -679,7 +516,7 @@ html.genoffice-popover-open .ribbon-tabs {
  * cancel the bleed so button layout/alignment is unchanged. */
 .rb-big .rb-big-icon {
   align-self: stretch;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 3px 4px;
   margin: 0 -4px;
 }
@@ -730,7 +567,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .rb-big:hover:not(:disabled) .rb-big-icon {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-big:disabled {
@@ -740,7 +577,8 @@ html.genoffice-popover-open .ribbon-tabs {
 
 /* Active state paints only the gray icon plate — ink stays the standard #232425 */
 .rb-big.active .rb-big-icon {
-  background: var(--active-bg);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 /* The Genspark AI entry keeps a black label even while the panel is open. */
@@ -752,15 +590,16 @@ html.genoffice-popover-open .ribbon-tabs {
    (icon + label together), unlike the other tall buttons where only the icon
    row is painted. */
 .rb-big.ai-entry {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .rb-big.ai-entry:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-big.ai-entry.active {
-  background: var(--active-bg);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 .rb-big.ai-entry:hover:not(:disabled) .rb-big-icon,
@@ -780,7 +619,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 5px;
   border: none;
   background: none;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   padding: 3px 8px;
   font-size: 12px;
   text-align: left;
@@ -801,11 +640,12 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .rb-small:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-small.active {
-  background: var(--active-bg);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 .rb-small:disabled {
@@ -829,7 +669,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .rb-select {
   height: 28px;
   border: 1px solid var(--border-control);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   font-size: 12px;
   padding: 0 4px;
@@ -874,7 +714,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .rb-caret.rb-combo-caret:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-icon {
@@ -882,7 +722,7 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 30px;
   border: none;
   background: none;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   /* letter glyphs (I/U/ab/Aa/A) share 15px/500: matched to the svg icons'
      1.5px stroke by INTEGRATED ink mass, not run-length — with mac's
      antialiased font smoothing a text stem's peak alpha sits below a
@@ -907,11 +747,12 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .rb-icon:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-icon.active {
-  background: var(--active-bg);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 .rb-icon:disabled {
@@ -963,7 +804,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .rb-caret:hover:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-caret:disabled {
@@ -986,13 +827,14 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .rb-split-wrap:has(> .rb-icon + .rb-caret):hover > .rb-icon:not(:disabled),
 .rb-split-wrap:has(> .rb-icon + .rb-caret):hover > .rb-caret:not(:disabled) {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .rb-split-wrap:has(> .rb-icon + .rb-caret) > .rb-icon:hover:not(:disabled),
 .rb-split-wrap:has(> .rb-icon + .rb-caret) > .rb-caret:hover:not(:disabled),
 .rb-split-wrap:has(> .rb-icon + .rb-caret) > .rb-caret.active {
-  background: var(--active-bg);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 /* same footprint as the plain .rb-caret — a wider zone reads as a gap
@@ -1092,7 +934,7 @@ html.genoffice-popover-open .ribbon-tabs {
   margin-top: 2px;
   border: none;
   background: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 5px 6px;
   font-size: 12.5px;
   text-align: left;
@@ -1102,7 +944,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .color-clear:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .color-palette-highlight {
@@ -1152,7 +994,7 @@ html.genoffice-popover-open .ribbon-tabs {
 /* Selected (no highlight applied) is a quiet filled state, matching the
    shared picker's auto row — an accent ring reads as a stray focus outline. */
 .color-highlight-none.selected {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* Anchor positioning for the shared Word-style color panel (@genoffice/ui
@@ -1177,7 +1019,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .color-none {
   grid-column: 1 / -1;
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   font-size: 12px;
   padding: 4px 0;
@@ -1186,7 +1028,18 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .color-none:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
+}
+
+/* every ribbon control shows the kit focus ring */
+.rb-big:focus-visible,
+.rb-icon:focus-visible,
+.rb-small:focus-visible,
+.rb-caret:focus-visible,
+.qa-btn:focus-visible,
+.ribbon-tab:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
 }
 
 /* line spacing dropdown */
@@ -3157,12 +3010,6 @@ th.cell-rev-del {
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
-}
-
-.hf-menu-actions .btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--docs-on-accent);
 }
 
 /* the page: size/margins/background follow the docx sectPr via CSS vars */
@@ -5485,40 +5332,6 @@ body.docs-crop-active
   font-size: 13px;
 }
 
-.btn-primary {
-  height: 34px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 12px;
-  background: var(--word-blue);
-  color: var(--docs-on-accent);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--word-blue-dark);
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.btn-ghost {
-  border: none;
-  background: none;
-  color: var(--word-blue);
-  font-size: 13px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 12px;
-}
-
-.btn-ghost:hover {
-  background: var(--hover);
-}
-
 .btn-sm {
   font-size: 12px;
   padding: 2px 10px;
@@ -5563,7 +5376,7 @@ body.docs-crop-active
   white-space: nowrap;
 }
 
-/* ================= AI panel (Copilot-style pane) ================= */
+/* ================= AI panel shell (conversation parts are @genoffice/ui Agent*) ================= */
 
 .ai-panel {
   position: relative;
@@ -5571,14 +5384,13 @@ body.docs-crop-active
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-page);
-  /* Same visible divider as the GenOffice Sheets panel: the editor canvas is gray, so the default border would drown */
-  border-right: 1px solid var(--color-border-strong);
-  font-family: var(--gs-font-sans);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  border-right: 1px solid var(--border-subtle);
+  font-family: var(--font-sans);
+  color: var(--ink-primary);
 }
 
-/* drag handle on the panel's right edge — resize the panel horizontally */
+/* drag handle on the panel's right edge: resizes the panel horizontally */
 .ai-panel-resizer {
   position: absolute;
   right: -3px;
@@ -5590,947 +5402,28 @@ body.docs-crop-active
   background: transparent;
 }
 
+.ai-panel-resizer:hover {
+  background: var(--border-subtle);
+}
+
 /* while dragging: keep the col-resize cursor everywhere, no text selection */
 .ai-panel-resizing {
   cursor: col-resize;
   user-select: none;
 }
 
-.ai-panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px 10px 14px;
-  border-bottom: 1px solid var(--color-border-default);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--color-text-primary);
-}
-
-.ai-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  white-space: nowrap;
-}
-
-.ai-panel-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-}
-
-.ai-header-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border: none;
-  background: none;
-  border-radius: var(--radius-8);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  padding: 0;
-  transition: all var(--transition-fast);
-}
-
-.ai-header-btn:hover {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
-}
-
-/* collapsed AI sidebar: thin rail on the left edge */
-.ai-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: 34px;
-  padding: 12px 2px;
-  border: none;
-  border-right: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.ai-rail:hover {
-  background: var(--hover);
-}
-
-.ai-rail-text {
-  writing-mode: vertical-rl;
-  font-size: 12px;
-  letter-spacing: 2px;
-  color: var(--text-dim);
-}
-
 .ai-chat {
   flex: 1;
   overflow-y: auto;
-  padding: 32px 16px;
+  padding: var(--space-5) var(--space-4);
   display: flex;
   flex-direction: column;
-  /* uniform 16px flex gap between blocks, messages carry no margin */
-  gap: 16px;
-  font-family: var(--gs-font-sans);
+  gap: var(--space-4);
 }
 
-/* Boundary between the restored transcript and the live turn */
-.ai-history-sep {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  font-size: 14px;
-  color: var(--color-text-tertiary);
-}
-
-.ai-chat-empty {
-  margin-top: 36px;
-  padding: 0 10px;
-  text-align: center;
-}
-
-.ai-chat-empty-title {
-  font-size: var(--fs-body-lg);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 8px;
-}
-
-.ai-chat-empty-body {
-  color: var(--color-text-secondary);
-  font-size: var(--fs-small);
-  line-height: 1.5;
-}
-
-/* clickable starter prompts in the empty state — suggestion chips:
- * 30px-radius outline pills, 13px/400 */
-.ai-starter-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.ai-starter {
-  padding: 8px 16px;
-  border-radius: var(--radius-30);
-  border: 1px solid var(--color-border-default);
-  background: var(--color-bg-page);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.4;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.ai-starter:hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-subtle);
-}
-
-.ai-starter:active {
-  filter: brightness(0.88);
-  transform: scale(0.98);
-}
-
-/* Chat messages (scaled to the 14px panel): user = gray pill, AI = plain text without a bubble, no accent colors */
-.ai-msg {
-  position: relative;
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* markdown body inside assistant bubbles */
-.ai-md {
-  white-space: normal;
-}
-
-.ai-md p,
-.ai-md ul,
-.ai-md ol {
-  margin: 0 0 16px;
-}
-
-.ai-md :last-child {
-  margin-bottom: 0;
-}
-
-/* blank markdown paragraphs would each eat a 16px margin — the stream never renders them */
-.ai-md p:empty {
-  display: none;
-}
-
-.ai-md ul,
-.ai-md ol {
-  margin-bottom: 20px;
-  padding-left: 20px;
-}
-
-.ai-md li {
-  margin-left: 20px;
-  line-height: 28px;
-}
-
-.ai-md .ai-md-h {
-  font-weight: 700;
-  line-height: 1.3;
-  margin: 20px 0 8px;
-}
-
-.ai-md .ai-md-h:first-child {
-  margin-top: 0;
-}
-
-/* inline code: neutral gray chip (deliberately not red), 2px below body size */
-.ai-md code {
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--color-bg-subtle);
-  color: var(--color-text-secondary);
-  font-size: 14px;
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-}
-
-/* User pill: gray, fully rounded (no tail) */
-.ai-msg-user {
-  align-self: flex-end;
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
-  padding: 8px 16px;
-  border-radius: 14px;
-  max-width: 80%;
-  line-height: 1.5;
-}
-
-.ai-msg-assistant {
-  align-self: stretch;
-  background: none;
-  border: none;
-  padding: 0;
-  max-width: 100%;
-  color: var(--color-text-primary);
-}
-
-/* tool activity chips inside assistant bubbles */
-/* Collapsible tool-activity group */
-.ai-work-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-top: 12px;
-}
-
-.ai-msg-assistant .ai-work-group:first-child,
-.ai-work-group:only-child {
-  margin-top: 0;
-}
-
-.ai-work-group-summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-  margin: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  user-select: none;
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text-tertiary);
-  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-work-group-summary:hover {
-  color: var(--color-text-secondary);
-}
-
-.ai-work-group-summary:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--docs-focus-ring);
-  border-radius: 4px;
-}
-
-.ai-work-group-summary.running {
-  color: var(--color-text-secondary);
-}
-
-.ai-work-group-summary.running .ai-work-group-label {
-  animation: ai-summary-pulse 1500ms linear infinite;
-}
-
-@keyframes ai-summary-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-
-.ai-work-group-body {
-  align-self: stretch;
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-work-group-body.open {
-  grid-template-rows: 1fr;
-}
-
-.ai-work-group-body-inner {
-  overflow: hidden;
-  min-height: 0;
-  padding: 0 0 0 8px;
-  transition: padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-work-group-body.open .ai-work-group-body-inner {
-  padding: 4px 0 8px 8px;
-}
-
-/* Step rows inside the group: 20px icon slot + 1px connector */
-.ai-step-row {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 8px 0;
-  color: var(--color-text-tertiary);
-  animation: ai-row-ease-in 320ms ease-out;
-}
-
-.ai-step-row:not(:last-child) {
-  padding-bottom: 16px;
-}
-
-.ai-step-row:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  left: 9.5px;
-  top: 32px;
-  bottom: -4px;
-  width: 1px;
-  background: var(--color-border-default);
-}
-
-.ai-step-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-tertiary);
-}
-
-.ai-step-icon.done {
-  color: var(--color-text-secondary);
-}
-
-.ai-step-icon.error {
-  color: var(--color-error);
-}
-
-.ai-step-icon.running svg {
-  animation: ai-hourglass-flip 1.8s ease-in-out infinite;
-}
-
-@keyframes ai-hourglass-flip {
-  0%,
-  12% {
-    transform: rotate(0);
-  }
-  44%,
-  56% {
-    transform: rotate(180deg);
-  }
-  88%,
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.ai-step-content {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 1px;
-}
-
-.ai-step-title {
-  font-size: 14px;
-  line-height: 1.3;
-  color: var(--color-text-secondary);
-  text-align: left;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-family: inherit;
-}
-
-.ai-step-title.clickable {
-  cursor: pointer;
-  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-step-title.clickable:hover {
-  color: var(--text-primary);
-}
-
-.ai-step-title.clickable:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--docs-focus-ring);
-  border-radius: 4px;
-}
-
-/* Step detail opens instantly, no animation */
-.ai-step-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ai-step-row,
-  .ai-step-icon.running svg,
-  .ai-work-group-summary.running .ai-work-group-label {
-    animation: none;
-  }
-}
-
-/* Running tool row: two grow/shrink brand dots */
-.ai-tool-chip-spinner {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 12px;
-}
-
-.ai-tool-chip-spinner::before,
-.ai-tool-chip-spinner::after {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-brand-secondary);
-}
-
-.ai-tool-chip-spinner::before {
-  animation: ai-tool-dot-grow 2s infinite;
-}
-
-.ai-tool-chip-spinner::after {
-  animation: ai-tool-dot-shrink 2s infinite;
-}
-
-@keyframes ai-tool-dot-grow {
-  0%,
-  100% {
-    transform: scale(0.333);
-    opacity: 0.45;
-  }
-  50% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes ai-tool-dot-shrink {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(0.333);
-    opacity: 0.45;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ai-tool-chip-spinner::before,
-  .ai-tool-chip-spinner::after {
-    animation: none;
-    opacity: 0.65;
-  }
-}
-
-/* Elapsed run time next to the typing indicator */
-.ai-typing-row {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.ai-elapsed {
-  font-size: 14px;
-  color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-/* caret: text glyph right after the label, always visible, rotates open */
-.ai-tool-chip-caret {
-  margin-left: 4px;
-  opacity: 0.7;
-  display: inline-block;
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-tool-chip-caret.open {
-  transform: rotate(90deg);
-}
-
-/* stream rows ease in */
-@keyframes ai-row-ease-in {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* expanded step detail: subtle gray card, no border */
-.ai-tool-output {
-  background: var(--color-bg-subtle);
-  border: none;
-  border-radius: 12px;
-  font-family:
-    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-  font-size: 14px;
-  color: var(--text-primary);
-  max-height: 300px;
-  overflow-y: auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.ai-tool-output-pre {
-  padding: 12px 16px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  line-height: 1.5;
-}
-
-/* streaming typing indicator */
-/* Thinking indicator (white background, no container):
- * phase one = two bouncing blue dots (alternating small/large); phase two = shimmering "Thinking…" text + streaming caret block */
-.ai-typing {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 0;
-  font-size: 15px;
-} /* Thinking indicator: shimmer label above two grow/shrink dots */
-.ai-typing {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 4px 0;
-}
-
-.ai-typing-label {
-  display: inline-block;
-  position: relative;
-  font-size: 14px;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  color: var(--docs-shimmer-base);
-  -webkit-text-fill-color: transparent;
-  background: var(--docs-shimmer-base)
-    linear-gradient(
-      to left,
-      var(--docs-shimmer-base),
-      var(--docs-shimmer-hi) 50%,
-      var(--docs-shimmer-base)
-    );
-  background-clip: text;
-  -webkit-background-clip: text;
-  background-repeat: no-repeat;
-  background-size: 70% 100%;
-  animation: ai-thinking-shimmer 1.2s infinite alternate linear;
-}
-
-.ai-typing-elapsed {
-  font-variant-numeric: tabular-nums;
-}
-
-@keyframes ai-thinking-shimmer {
-  0% {
-    background-position: -100% top;
-  }
-  100% {
-    background-position: 250% top;
-  }
-}
-
-.ai-typing-dots {
-  height: 12px;
-  display: flex;
-  gap: 2px;
-}
-
-.ai-typing-dot-slot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 12px;
-}
-
-.ai-typing-dot-grow,
-.ai-typing-dot-shrink {
-  background: var(--color-brand-secondary);
-  border-radius: 50%;
-}
-
-.ai-typing-dot-grow {
-  animation: ai-dot-grow 2s infinite;
-}
-
-.ai-typing-dot-shrink {
-  animation: ai-dot-shrink 2s infinite;
-}
-
-@keyframes ai-dot-grow {
-  0%,
-  100% {
-    width: 4px;
-    height: 4px;
-    opacity: 0.45;
-  }
-  50% {
-    width: 12px;
-    height: 12px;
-    opacity: 1;
-  }
-}
-
-@keyframes ai-dot-shrink {
-  0%,
-  100% {
-    width: 12px;
-    height: 12px;
-    opacity: 1;
-  }
-  50% {
-    width: 4px;
-    height: 4px;
-    opacity: 0.45;
-  }
-}
-
-/* streaming caret at the tail of streaming assistant text */
-.ai-msg-streaming .ai-md > :last-child::after {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 1em;
-  margin-left: 2px;
-  border-radius: 1px;
-  background: var(--color-text-secondary);
-  vertical-align: text-bottom;
-  animation: ai-caret-blink 900ms steps(1, end) infinite;
-}
-
-@keyframes ai-caret-blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ai-typing-label,
-  .ai-msg-streaming .ai-md > :last-child::after {
-    animation: none;
-  }
-}
-
-/* hover actions under assistant messages (copy / regenerate):
- * borderless 30px icon buttons, radius 8, hover = subtle gray fill */
-.ai-msg-toolbar {
-  display: flex;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.ai-msg-tool-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  height: 30px;
-  min-width: 30px;
-  padding: 5px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-msg-tool-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.ai-msg-tool-btn:hover:not(:disabled) {
-  background: var(--color-bg-subtle);
-}
-
-.ai-msg-tool-btn:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-/* Hairline before the roll-back action; hidden unless an icon action precedes it */
-.ai-rollback-sep {
-  display: none;
-  width: 1px;
-  height: 14px;
-  align-self: center;
-  background: var(--border);
-}
-
-.ai-msg-tool-btn ~ .ai-rollback-sep {
-  display: block;
-}
-
-/* Quiet roll-back in the message toolbar (after copy/regenerate): dim at rest, solid on hover */
-.ai-rollback-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  height: 30px;
-  border: none;
-  background: none;
-  color: var(--text-dim);
-  font-size: 12px;
-  font-family: inherit;
-  padding: 0 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.ai-rollback-btn:hover:not(:disabled) {
-  color: var(--text);
-  background: var(--hover);
-}
-
-.ai-rollback-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.ai-msg-tool-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--docs-focus-ring-blue);
-}
-
-/* Tooltip: dark pill under the button, 0.3s hover delay */
-.ai-msg-tool-btn {
-  position: relative;
-}
-
-/* Global press feedback */
-.ai-msg-tool-btn:active {
-  filter: brightness(0.88);
-  transform: scale(0.98);
-}
-
-.ai-continue-btn {
-  margin-top: 8px;
-  padding: 5px 12px;
-  border: 1px solid var(--word-blue);
-  border-radius: 6px;
-  background: var(--word-blue);
-  color: var(--docs-on-accent);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.ai-continue-btn:hover {
-  filter: brightness(0.94);
-}
-
-.ai-msg-error {
-  margin-top: 6px;
-  color: var(--docs-ai-error);
-  font-size: 13px;
-}
-
-.ai-msg-actions {
-  margin-top: 8px;
-  display: flex;
-  gap: 6px;
-}
-
-.ai-msg-raw {
-  margin-top: 6px;
-  font-size: 11px;
-}
-
-.ai-msg-raw summary {
-  cursor: pointer;
-  color: var(--text-dim);
-  border-radius: 4px;
-  padding: 1px 4px;
-  margin: 0 -4px;
-  user-select: none;
-}
-
-.ai-msg-raw summary:hover {
-  background: var(--hover);
-  color: var(--text);
-}
-
-.ai-msg-raw pre {
-  margin: 4px 0 0;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--border);
-  max-height: 200px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  font-size: 10.5px;
-  color: var(--text-dim);
-}
-
-.ai-applied-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--docs-ok-ink);
-  background: var(--docs-ok-bg);
-  border-radius: 999px;
-  padding: 2px 9px;
-}
-
-.ai-applied-tag::before {
-  content: '✓';
-  font-size: 10px;
-}
-
-/* Composer floats over the chat scroll area — no top border (agent-shell §4.6) */
 .ai-composer {
-  border-top: none;
-  padding: 8px 12px 12px;
-  background: var(--color-bg-page);
-}
-
-.ai-composer-top {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 7px;
-}
-
-/* scope chip — guidance accent (blue is reserved for guidance/onboarding) */
-.ai-scope-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: var(--radius-30);
-  background: var(--docs-brand-ghost);
-  font-size: var(--fs-caption);
-  color: var(--color-brand-secondary);
-  font-weight: 500;
-}
-
-.ai-scope-hint::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.ai-scope-row {
-  margin-bottom: 7px;
-}
-
-.ai-scope-hint .ai-scope-label,
-.ai-scope-hint .ai-scope-clear {
-  display: inline-flex;
-  align-items: center;
-  border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-
-.ai-scope-hint .ai-scope-clear {
-  opacity: 0.65;
-}
-
-.ai-scope-hint .ai-scope-clear:hover {
-  opacity: 1;
-}
-
-.ai-scope-preview {
-  margin-top: 6px;
-  padding: 7px 10px;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-8);
-  background: var(--color-bg-page);
-  font-size: var(--fs-caption);
-  line-height: 1.5;
-  color: var(--color-text-secondary);
-  max-height: 96px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* in-answer citation links: click selects and scrolls to the cited block */
-.ai-md .ai-md-nav {
-  color: var(--accent);
-  text-decoration: underline dotted;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
-.ai-md .ai-md-nav:hover {
-  text-decoration-style: solid;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  background: var(--surface-base);
 }
 
 /* queued-edit anchor highlight inside the document (decoration, never document data) */
@@ -6538,757 +5431,6 @@ body.docs-crop-active
   background: var(--docs-paper-ai-anchor-bg);
   border-bottom: 2px dashed var(--docs-paper-ai-anchor-line);
   cursor: pointer;
-}
-
-/* floating Ask-AI entry that follows the text selection */
-.ai-ask-trigger {
-  position: fixed;
-  z-index: 59;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--color-ai-action);
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: var(--docs-shadow-menu);
-  cursor: pointer;
-}
-
-.ai-ask-trigger:hover {
-  background: var(--hover);
-}
-
-/* anchored ask popover (shared look with the slides one, docs tokens) */
-.ai-ask-pop {
-  position: fixed;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-12);
-  background: var(--surface);
-  box-shadow: var(--docs-shadow-menu);
-}
-
-.ai-ask-pop-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-dim);
-  cursor: pointer;
-}
-
-.ai-ask-pop-close:hover {
-  background: var(--hover);
-  color: var(--text);
-}
-
-.ai-ask-pop-close:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-.ai-ask-pop-title {
-  padding-right: 24px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.ai-ask-pop-sub {
-  margin-top: -4px;
-  font-size: 11.5px;
-  color: var(--text-dim);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ai-ask-pop-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-8);
-  background: var(--color-bg-page);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 13px;
-  outline: none;
-}
-
-.ai-ask-pop-input:focus {
-  border-color: var(--accent);
-}
-
-.ai-ask-pop-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.ai-ask-chip {
-  padding: 3px 9px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 11.5px;
-  cursor: pointer;
-}
-
-.ai-ask-chip:hover {
-  background: var(--hover);
-  color: var(--text);
-}
-
-.ai-ask-pop-foot {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.ai-ask-cancel,
-.ai-ask-confirm {
-  padding: 5px 12px;
-  border-radius: var(--radius-6);
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.ai-ask-cancel {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--color-text-secondary);
-}
-
-.ai-ask-cancel:hover {
-  background: var(--hover);
-}
-
-.ai-ask-cancel:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.ai-ask-confirm {
-  border: 1px solid transparent;
-  background: var(--color-ai-action);
-  color: var(--color-ai-action-text);
-}
-
-.ai-ask-confirm:hover:not(:disabled) {
-  background: var(--color-ai-action-hover);
-}
-
-.ai-ask-confirm:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-/* queue card above the composer */
-.ai-queue {
-  margin-bottom: 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-12);
-  background: var(--color-bg-subtle);
-  overflow: hidden;
-}
-
-.ai-queue-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-}
-
-.ai-queue-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.ai-queue-count {
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.ai-queue-fold {
-  margin-left: auto;
-  display: inline-flex;
-  padding: 2px;
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: transform var(--transition-fast);
-}
-
-.ai-queue-fold.folded {
-  transform: rotate(-90deg);
-}
-
-.ai-queue-hint {
-  padding: 0 10px 6px;
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.ai-queue-list {
-  margin: 0;
-  padding: 0 6px 4px;
-  list-style: none;
-  max-height: 168px;
-  overflow-y: auto;
-}
-
-.ai-queue-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 4px 4px 6px;
-  border-radius: var(--radius-6);
-  font-size: 12px;
-  color: var(--text);
-  cursor: default;
-}
-
-.ai-queue-row:hover {
-  background: var(--hover);
-}
-
-.ai-queue-row.stale {
-  opacity: 0.5;
-  text-decoration: line-through;
-}
-
-.ai-queue-ord {
-  flex-shrink: 0;
-  width: 14px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--color-text-tertiary);
-}
-
-.ai-queue-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ai-queue-target {
-  margin-right: 5px;
-  color: var(--text-dim);
-}
-
-.ai-queue-target::after {
-  content: ' ·';
-}
-
-.ai-queue-edit-input {
-  flex: 1;
-  min-width: 0;
-  padding: 2px 6px;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-6);
-  background: var(--color-bg-page);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 12px;
-  outline: none;
-}
-
-.ai-queue-row-actions {
-  display: flex;
-  gap: 2px;
-  flex-shrink: 0;
-  opacity: 0;
-}
-
-.ai-queue-row:hover .ai-queue-row-actions {
-  opacity: 1;
-}
-
-.ai-queue-row-btn {
-  display: inline-flex;
-  padding: 2px;
-  border: none;
-  border-radius: var(--radius-6);
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.ai-queue-row-btn:hover {
-  background: var(--active-bg);
-  color: var(--text);
-}
-
-.ai-queue-foot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px 8px;
-}
-
-.ai-queue-confirm {
-  flex: 1;
-  min-width: 0;
-  font-size: 11.5px;
-  color: var(--text-dim);
-}
-
-.ai-queue-discard {
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-6);
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 11.5px;
-  cursor: pointer;
-}
-
-.ai-queue-discard:hover {
-  background: var(--hover);
-}
-
-.ai-queue-send {
-  margin-left: auto;
-  padding: 4px 12px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-6);
-  background: var(--accent);
-  color: var(--docs-on-accent);
-  font-size: 11.5px;
-  cursor: pointer;
-}
-
-.ai-queue-send:disabled,
-.ai-queue-discard:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-/* composer card — 16px radius, default border, production float shadow */
-.ai-input-box {
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-16);
-  background: var(--color-bg-page);
-  box-shadow: var(--docs-shadow-composer);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-/* textarea: 16px / 24px fixed line-height (chat body size), auto-grow band
- * (resting height matches the sheets panel, 25% taller than default) */
-.ai-input-box textarea {
-  display: block;
-  width: 100%;
-  resize: none;
-  border: none;
-  background: none;
-  border-radius: var(--radius-16) var(--radius-16) 0 0;
-  /* vertical gaps live on margin, not padding: textarea padding scrolls away
-   * with the content, so clipped lines would sit flush against chips/footer */
-  padding: 0 14px;
-  margin: 12px 0 4px;
-  font-size: 16px;
-  font-family: inherit;
-  line-height: 24px;
-  outline: none;
-  color: var(--color-text-primary);
-  min-height: 48px;
-  max-height: 168px;
-  overflow-y: auto;
-}
-
-.ai-input-box textarea::placeholder {
-  color: var(--color-text-tertiary);
-}
-
-.ai-input-footer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px 8px 10px;
-}
-
-.ai-input-footer .ai-send-btn {
-  margin-left: auto;
-}
-
-/* attach — brand-supplied paperclip art, 20×20 (5/9 of the 36px enter button), same as the sheets panel */
-.ai-attach-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
-  transition: all var(--transition-fast);
-}
-
-.ai-attach-btn img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.ai-attach-btn:hover {
-  filter: brightness(0.7);
-}
-
-/* track-changes pill: quiet gray when off, guide-blue tinted when on */
-.ai-track-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 24px;
-  padding: 0 10px;
-  flex-shrink: 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-30);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--fs-caption);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.ai-track-btn:hover {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
-}
-
-.ai-track-btn .ai-track-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-border-strong);
-}
-
-.ai-track-btn.on {
-  border-color: var(--docs-brand-ring);
-  background: var(--docs-brand-ghost-weak);
-  color: var(--color-brand-secondary);
-}
-
-.ai-track-btn.on .ai-track-dot {
-  background: var(--color-brand-secondary);
-}
-
-/* attachment chips above the composer */
-.ai-attachments {
-  display: flex;
-  gap: 8px;
-  /* single row inside the prompt box, above the textarea (Genspark composer style):
-     extra images run past the box edge and scroll horizontally.
-     scroll (not auto) + zero bottom padding: the always-present 4px scrollbar lane
-     doubles as the bottom padding, so overflowing never grows the strip and
-     shifts its content up */
-  overflow-x: scroll;
-  /* side insets are transparent borders, not padding: overflow clips at the
-     padding edge, so side padding would let scrolled items slide flush against
-     the box edges — borders keep the 14px gaps while scrolling */
-  padding: 13px 0 0;
-  border-inline: 14px solid transparent;
-  margin-bottom: -6px;
-}
-
-.ai-attachments > * {
-  flex-shrink: 0;
-}
-
-/* The 4px scrollbar lane is always reserved (no layout jump when it appears);
-   the thumb is painted only while scrolling (.is-scrolling from the strip's onScroll) */
-.ai-attachments::-webkit-scrollbar {
-  height: 4px;
-}
-
-.ai-attachments::-webkit-scrollbar-thumb {
-  border-radius: 2px;
-  background: transparent;
-}
-
-.ai-attachments.is-scrolling::-webkit-scrollbar-thumb {
-  background: var(--docs-scroll-thumb);
-}
-
-/* Image attachments: square thumbnail with a round dark remove button on its corner */
-.ai-attachment-thumb {
-  position: relative;
-}
-
-.ai-attachment-thumb img {
-  display: block;
-  width: 56px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: 12px;
-}
-
-.ai-attachment-thumb-remove {
-  position: absolute;
-  top: -10px;
-  right: -2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: var(--docs-chip-remove-bg);
-  color: var(--docs-chip-remove-ink);
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.ai-attachment-thumb-remove:hover {
-  background: var(--docs-chip-remove-hover);
-}
-
-/* The card's 1px border shifts its absolutely-positioned button inward by 1px
-   on both axes; land the borderless thumbs' button on the exact same spot */
-.ai-attachment-thumb .ai-attachment-thumb-remove {
-  top: -9px;
-  right: -1px;
-}
-
-/* image thumb before its preview arrives (or when reading fails): neutral tile + type icon */
-.ai-attachment-thumb-pending {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: var(--bg-content);
-}
-
-.ai-attachment-thumb .ai-attachment-thumb-pending img {
-  width: 26px;
-  height: 26px;
-}
-
-/* Non-image attachments (pdf, xlsx, …): fixed-width bordered card — brand type
-   icon + truncated name and size, same height and remove button as the thumbs */
-.ai-attachment-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 190px;
-  height: 56px;
-  padding: 0 14px 0 8px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 12px;
-  background: var(--bg-content);
-}
-
-/* the type icon sits in its own bordered white tile, like the Genspark card */
-.ai-attachment-card-icon {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--surface);
-}
-
-.ai-attachment-card-icon img {
-  display: block;
-  width: 26px;
-  height: 26px;
-}
-
-.ai-attachment-card-meta {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.ai-attachment-card-name {
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ai-attachment-card-size {
-  margin-top: 4px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-/* attachments echoed on a sent user message (read-only: no remove button, smaller thumbs) */
-.ai-msg-attachments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.ai-msg-attachments .ai-attachment-thumb img {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-}
-
-.ai-msg-attachments .ai-attachment-card {
-  width: auto;
-  max-width: 190px;
-  height: 44px;
-  background: var(--surface);
-}
-
-.ai-msg-attachments .ai-attachment-card-icon {
-  width: 32px;
-  height: 32px;
-  background: var(--surface-subtle);
-}
-
-.ai-msg-attachments .ai-attachment-card-icon img {
-  width: 22px;
-  height: 22px;
-}
-
-.ai-attachment-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 4px 2px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--docs-chip-bg);
-  font-size: 11.5px;
-  color: var(--text);
-  max-width: 100%;
-}
-
-.ai-attachment-chip svg {
-  flex-shrink: 0;
-  color: var(--word-blue);
-}
-
-.ai-attachment-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border: none;
-  border-radius: 50%;
-  background: none;
-  color: var(--text-dim);
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-}
-
-.ai-attachment-remove:hover {
-  background: var(--hover);
-  color: var(--text);
-}
-
-.ai-attach-notice {
-  margin-bottom: 7px;
-  font-size: 11.5px;
-  color: var(--docs-ai-error);
-}
-
-/* whole-panel drop target highlight */
-.ai-panel-dragover {
-  outline: 2px dashed var(--word-blue);
-  outline-offset: -4px;
-}
-
-.ai-input-hint {
-  font-size: var(--fs-caption);
-  color: var(--color-text-tertiary);
-  user-select: none;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* icon-only enter key: transparent button chrome, visuals come from brand-supplied PNGs
- * (gray arrow = disabled, black arrow = enabled), 36×36, same as the sheets panel */
-.ai-send-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  flex-shrink: 0;
-  border: none;
-  border-radius: 35%;
-  background: transparent;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.ai-send-btn img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.ai-send-btn:hover:not(:disabled) {
-  filter: brightness(0.92);
-}
-
-.ai-send-btn:active:not(:disabled) {
-  filter: brightness(0.88);
-  transform: scale(0.98);
-}
-
-.ai-send-btn:disabled {
-  cursor: default;
-}
-
-/* Stop button while generating: brand-supplied art (white square on black), transparent button chrome */
-.ai-send-btn.ai-stop-btn {
-  background: transparent;
-}
-
-.ai-send-btn.ai-stop-btn:hover {
-  filter: brightness(0.92);
 }
 
 /* ================= status bar ================= */
@@ -7437,7 +5579,7 @@ body.docs-crop-active
 }
 
 /* Genspark DS modal footer buttons: secondary = bg-subtle, primary = black (#232425) */
-.modal-actions button {
+.modal-actions button:not(.rr-btn) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -7453,35 +5595,33 @@ body.docs-crop-active
   transition: all var(--transition-fast);
 }
 
-.modal-actions button:hover:not(:disabled) {
+.modal-actions button:not(.rr-btn):hover:not(:disabled) {
   background: var(--color-bg-subtle);
   color: var(--color-text-primary);
 }
 
-.modal-actions button:active:not(:disabled) {
+.modal-actions button:not(.rr-btn):active:not(:disabled) {
   filter: brightness(0.88);
   transform: scale(0.98);
 }
 
-.modal-actions button:focus-visible {
+.modal-actions button:not(.rr-btn):focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--docs-focus-ring);
 }
 
-.modal-actions button:disabled {
+.modal-actions button:not(.rr-btn):disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.modal-actions button.primary,
-.modal-actions .btn-primary {
+.modal-actions button:not(.rr-btn).primary {
   border-color: var(--color-btn-primary);
   background: var(--color-btn-primary);
   color: var(--color-btn-primary-text);
 }
 
-.modal-actions button.primary:hover:not(:disabled),
-.modal-actions .btn-primary:hover:not(:disabled) {
+.modal-actions button:not(.rr-btn).primary:hover:not(:disabled) {
   border-color: var(--color-btn-primary-hover);
   background: var(--color-btn-primary-hover);
   color: var(--color-btn-primary-text);
@@ -8133,8 +6273,6 @@ body.docs-crop-active
   border-radius: 50%;
   background: var(--docs-ok-dot);
 }
-
-/* ProseMirror basics */
 
 /* pre-wrap, NOT prosemirror-view's break-spaces (its runtime-injected sheet
    loads after this one, so the selector is doubled to win): Word hangs the
@@ -8960,83 +7098,42 @@ ruby.doc-ruby rt {
   outline: 2px solid var(--word-blue);
 }
 
-/* ---- Context menu: editor right-click menu ---- */
+/* ---- Context menu: editor right-click menu (kit rr-menu__list / rr-menu__item) ---- */
 
-.ctx-menu {
+.ctx-menu.rr-menu__list {
   position: fixed;
+  top: auto;
+  left: auto;
   z-index: 200;
-  padding: 5px 0;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 8px;
-  box-shadow: var(--docs-shadow-ctx);
-  font-size: 13px;
 }
 
-.ctx-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  border: none;
-  background: none;
-  padding: 6px 14px;
-  font-size: 13px;
-  color: var(--text);
-  cursor: pointer;
-  text-align: left;
+.ctx-item.rr-menu__item {
   white-space: nowrap;
-}
-
-.ctx-item:hover:not(:disabled) {
-  background: var(--word-blue);
-  color: var(--docs-on-accent);
-}
-
-.ctx-item:hover:not(:disabled) .ctx-key {
-  color: var(--docs-on-accent-dim);
-}
-
-.ctx-item:disabled {
-  color: var(--text-dim);
-  opacity: 0.55;
-  cursor: default;
 }
 
 .ctx-label {
   flex: 1;
-  margin-right: 28px;
+  margin-right: var(--space-6);
 }
 
 .ctx-key {
-  color: var(--text-dim);
+  color: var(--ink-muted);
   font-size: 12px;
 }
 
 .ctx-arrow {
-  margin-left: 6px;
-  color: var(--text-dim);
-}
-
-.ctx-sep {
-  height: 1px;
-  margin: 4px 10px;
-  background: var(--border);
+  margin-left: var(--space-2);
+  color: var(--ink-muted);
 }
 
 .ctx-item-wrap {
   position: relative;
 }
 
-.ctx-submenu {
-  position: absolute;
-  top: -5px;
+.ctx-submenu.rr-menu__list {
+  top: calc(-1 * var(--space-2));
   left: calc(100% - 4px);
   min-width: 150px;
-  padding: 5px 0;
-  background: var(--surface);
-  border: 1px solid var(--border-control);
-  border-radius: 8px;
-  box-shadow: var(--docs-shadow-ctx);
 }
 
 /* ---- Font / Paragraph dialogs ---- */
@@ -9999,21 +8096,6 @@ tr > .page-gap-cut {
   .ai-dock {
     transition: none;
   }
-}
-
-.ai-login-btn {
-  margin-top: 8px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  background: var(--accent);
-  padding: 4px 14px;
-  font-size: 13px;
-  color: var(--docs-on-accent);
-  cursor: pointer;
-}
-
-.ai-login-btn:hover {
-  opacity: 0.88;
 }
 
 /* ================= transient toast (save feedback) ================= */

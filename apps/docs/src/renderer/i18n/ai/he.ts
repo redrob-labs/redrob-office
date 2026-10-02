@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const he = {
+  aiYou: 'את/ה',
+  aiFailedTitle: 'העוזר לא הצליח לסיים',
+  aiStepRunning: 'פועל',
+  aiStepDone: 'הושלם',
+  aiStepFailed: 'נכשל',
+  aiStartersLabel: 'הצעות לשאלות',
   aiEmptyDraftTitle: 'תנו ל-AI לנסח את המסמך הזה עבורכם',
   aiEmptyDraftBody1: 'תארו את הנושא והנקודות המרכזיות, או הדביקו חומר עזר;',
   aiEmptyDraftBody2: 'ה-AI כותב את הטיוטה הראשונה ישירות על העמוד.',

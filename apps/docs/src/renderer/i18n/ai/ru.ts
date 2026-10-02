@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ru = {
+  aiYou: 'Вы',
+  aiFailedTitle: 'Ассистенту не удалось завершить',
+  aiStepRunning: 'Выполняется',
+  aiStepDone: 'Готово',
+  aiStepFailed: 'Ошибка',
+  aiStartersLabel: 'Предлагаемые вопросы',
   aiEmptyDraftTitle: 'Пусть ИИ набросает этот документ за вас',
   aiEmptyDraftBody1: 'Опишите тему и ключевые пункты или вставьте материалы;',
   aiEmptyDraftBody2: 'ИИ сразу напишет черновик на странице.',

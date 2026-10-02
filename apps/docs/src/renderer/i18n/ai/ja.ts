@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ja = {
+  aiYou: 'あなた',
+  aiFailedTitle: 'アシスタントは完了できませんでした',
+  aiStepRunning: '実行中',
+  aiStepDone: '完了',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '提案されたプロンプト',
   aiEmptyDraftTitle: 'AI にドキュメントの下書きを任せる',
   aiEmptyDraftBody1: 'テーマや要点を伝えるか、参考資料を貼り付けると',
   aiEmptyDraftBody2: 'AI がそのまま初稿を書き上げます。',

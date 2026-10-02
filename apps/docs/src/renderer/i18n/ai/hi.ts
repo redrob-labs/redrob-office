@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const hi = {
+  aiYou: 'आप',
+  aiFailedTitle: 'सहायक पूरा नहीं कर सका',
+  aiStepRunning: 'चल रहा है',
+  aiStepDone: 'पूरा हुआ',
+  aiStepFailed: 'विफल',
+  aiStartersLabel: 'सुझाए गए प्रश्न',
   aiEmptyDraftTitle: 'AI को यह दस्तावेज़ ड्राफ़्ट करने दें',
   aiEmptyDraftBody1: 'विषय और मुख्य बिंदु बताएँ, या संदर्भ सामग्री पेस्ट करें;',
   aiEmptyDraftBody2: 'AI सीधे पेज पर पहला ड्राफ़्ट लिख देता है।',
