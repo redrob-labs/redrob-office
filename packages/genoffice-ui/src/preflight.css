@@ -42,6 +42,14 @@ body {
   outline-offset: 2px;
 }
 
+/* A container focused from script so a dialog or panel owns keyboard focus
+ * (tabindex="-1": reachable by focus(), never by Tab) is not a control the
+ * person moved to. Chromium still matches :focus-visible on it, which drew the
+ * ring around whole cards and panels. */
+[tabindex='-1']:focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
