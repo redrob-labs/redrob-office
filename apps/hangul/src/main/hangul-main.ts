@@ -13,7 +13,7 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
-import { serveHangulStudio, stopHangulStudio } from './studio-serve'
+import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
 import type {
   HangulDocumentBytes,
@@ -269,11 +269,36 @@ export function setHangulFileSavedHook(hook: (wc: WebContents, path: string) => 
 async function ensureStudioOrigin(): Promise<string | null> {
   if (!runtime.studioDir) return null
   try {
-    return await serveHangulStudio(runtime.studioDir)
+    // a built renderer is served from the same loopback origin (see loadRenderer)
+    const hostDir =
+      !runtime.rendererUrl && runtime.rendererFile ? dirname(runtime.rendererFile) : undefined
+    return await serveHangulStudio(runtime.studioDir, hostDir)
   } catch (err) {
     console.warn('[hangul] offline studio unavailable:', err)
     return null
   }
+}
+
+/**
+ * Load the Hangul renderer. In dev it comes from the Vite server; a built
+ * renderer is served over the studio's loopback origin under /host/ rather
+ * than loaded from file://, because rhwp-studio ignores every message from a
+ * parent whose origin is not http(s), which a file:// page ("null") never is.
+ * Without the studio there is no editor to embed, so file:// stays the fallback
+ * that shows the offline notice.
+ */
+function loadRenderer(contents: WebContents): void {
+  if (runtime.rendererUrl) {
+    void contents.loadURL(runtime.rendererUrl)
+    return
+  }
+  if (!runtime.rendererFile) return
+  const file = runtime.rendererFile
+  void ensureStudioOrigin().then((origin) => {
+    if (contents.isDestroyed()) return
+    if (origin) void contents.loadURL(`${origin}${HOST_PREFIX}${basename(file)}`)
+    else void contents.loadFile(file)
+  })
 }
 
 export function hangulIsDirty(webContentsId: number): boolean {
@@ -491,8 +516,7 @@ export function createHangulView(openPath?: string | null): WebContentsView {
     },
   })
   grantAndTrack(view.webContents, openPath)
-  if (runtime.rendererUrl) void view.webContents.loadURL(runtime.rendererUrl)
-  else if (runtime.rendererFile) void view.webContents.loadFile(runtime.rendererFile)
+  loadRenderer(view.webContents)
   return view
 }
 
@@ -525,8 +549,7 @@ export function startHangulStandalone(): void {
     })
     const argPath = process.argv.slice(1).find((a) => /\.(hwp|hwpx)$/i.test(a) && existsSync(a))
     grantAndTrack(win.webContents, argPath)
-    if (runtime.rendererUrl) void win.loadURL(runtime.rendererUrl)
-    else if (runtime.rendererFile) void win.loadFile(runtime.rendererFile)
+    loadRenderer(win.webContents)
   })
   app.on('window-all-closed', () => {
     void stopHangulStudio().finally(() => app.quit())
