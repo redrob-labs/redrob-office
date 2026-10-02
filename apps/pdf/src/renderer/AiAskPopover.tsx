@@ -10,6 +10,7 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
+import { Button, Icon, IconButton } from '@genoffice/ui'
 import { useI18n, type StringKey } from './i18n/locale'
 
 export interface AskAnchorRect {
@@ -95,6 +96,7 @@ export function AiAskPopover({
       className="ai-ask-pop"
       style={{ left, top, width: WIDTH }}
       role="dialog"
+      aria-label={t('aiAskTitle')}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.preventDefault()
@@ -103,22 +105,9 @@ export function AiAskPopover({
         }
       }}
     >
-      <button
-        type="button"
-        className="ai-ask-pop-close"
-        data-tip={t('noteClose')}
-        aria-label={t('noteClose')}
-        onClick={onClose}
-      >
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" aria-hidden>
-          <path
-            d="M6 6l12 12M18 6L6 18"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
-      </button>
+      <IconButton label={t('noteClose')} size="sm" className="ai-ask-pop-close" onClick={onClose}>
+        <Icon name="close" size={14} />
+      </IconButton>
       <div className="ai-ask-pop-title">{t('aiAskTitle')}</div>
       {shortExcerpt && (
         <div className="ai-ask-pop-sub">
@@ -143,6 +132,7 @@ export function AiAskPopover({
         {chips.map((key) => (
           <button
             key={key}
+            type="button"
             className="ai-ask-chip"
             // filling rather than submitting: the shorthand almost always wants a qualifier
             onClick={() => {
@@ -155,9 +145,9 @@ export function AiAskPopover({
         ))}
       </div>
       <div className="ai-ask-pop-foot">
-        <button className="ai-ask-confirm" disabled={!canSubmit} onClick={submit}>
+        <Button size="sm" disabled={!canSubmit} onClick={submit}>
           {t('aiSend')}
-        </button>
+        </Button>
       </div>
     </div>
   )

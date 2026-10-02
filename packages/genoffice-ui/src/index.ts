@@ -19,6 +19,25 @@ export {
   type KitGlyphProps,
   type KitIconKey,
 } from './icon-map'
+export {
+  AgentComposer,
+  AgentEmpty,
+  AgentFailure,
+  AgentMessage,
+  AgentPanelHeader,
+  AgentSteps,
+  AgentUndelivered,
+  AgentWorking,
+  type AgentComposerProps,
+  type AgentEmptyProps,
+  type AgentFailureProps,
+  type AgentMessageProps,
+  type AgentPanelAction,
+  type AgentPanelHeaderProps,
+  type AgentStepsStrings,
+  type AgentToolStep,
+  type AgentUndeliveredProps,
+} from './Agent'
 export { AiComposer } from './AiComposer'
 export {
   ColorPicker,

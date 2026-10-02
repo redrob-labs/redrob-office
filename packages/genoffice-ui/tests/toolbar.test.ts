@@ -148,6 +148,27 @@ describe('Toolbar', () => {
     expect(onBold).toHaveBeenCalledTimes(1)
   })
 
+  it('leaves arrow keys to a text field inside the toolbar', () => {
+    act(() =>
+      root.render(
+        createElement(
+          Toolbar,
+          { label: 'Page' },
+          createElement('input', { className: 'page-input', defaultValue: '12' }),
+          createElement(ToolbarButton, { label: 'Zoom in', icon: '+', onClick: () => {} }),
+        ),
+      ),
+    )
+    const input = host.querySelector<HTMLInputElement>('.page-input')!
+    input.focus()
+    const ev = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true })
+    act(() => {
+      input.dispatchEvent(ev)
+    })
+    expect(document.activeElement).toBe(input)
+    expect(ev.defaultPrevented).toBe(false)
+  })
+
   it('does not rove into an open dropdown list or a [data-toolbar-skip] popover', () => {
     act(() =>
       root.render(

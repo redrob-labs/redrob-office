@@ -110,11 +110,14 @@ export function PropertiesDialog({
           {row(t('propModified'), fmtPdfDate(info?.ModDate))}
         </div>
         <div className="pdf-modal-actions">
-          <button className="pdf-modal-btn" onClick={onCancel}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn" onClick={onCancel}>
             {readOnly ? t('ok') : t('cancel')}
           </button>
           {!readOnly && (
-            <button className="pdf-modal-btn primary" onClick={() => onApply(form)}>
+            <button
+              className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
+              onClick={() => onApply(form)}
+            >
               {t('ok')}
             </button>
           )}

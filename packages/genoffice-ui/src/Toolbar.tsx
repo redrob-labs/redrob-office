@@ -8,6 +8,9 @@ import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react'
 const FOCUSABLE =
   'button:not(:disabled):not([role="option"]), [role="combobox"]:not(:disabled), input:not(:disabled)'
 const ANY_CONTROL = 'button:not([role="option"]), [role="combobox"], input'
+/** Fields whose arrow keys move a caret, which the toolbar must not take. */
+const TEXT_ENTRY =
+  'textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"])'
 
 export interface ToolbarProps {
   /** Names the toolbar for assistive technology. */
@@ -51,6 +54,8 @@ export function Toolbar({ label, className, children }: ToolbarProps): ReactElem
   })
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    // a text field keeps its own arrow keys (caret movement); Tab leaves it
+    if ((event.target as HTMLElement).matches?.(TEXT_ENTRY)) return
     const list = controls()
     const at = list.indexOf(document.activeElement as HTMLElement)
     if (at < 0) return

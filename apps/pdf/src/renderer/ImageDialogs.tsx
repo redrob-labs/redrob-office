@@ -234,11 +234,15 @@ export function CutoutDialog({
           {t('imageCutoutHint', { pct: removedPct })}
         </div>
         <div className="pdf-modal-actions">
-          <button className="pdf-modal-btn" onClick={onCancel} disabled={applying}>
+          <button
+            className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn"
+            onClick={onCancel}
+            disabled={applying}
+          >
             {t('cancel')}
           </button>
           <button
-            className="pdf-modal-btn primary"
+            className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
             onClick={apply}
             disabled={!loaded || !!error || applying}
           >
@@ -561,10 +565,14 @@ export function CropDialog({
         </div>
         {extraFooter}
         <div className="pdf-modal-actions">
-          <button className="pdf-modal-btn" onClick={onCancel}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn" onClick={onCancel}>
             {t('cancel')}
           </button>
-          <button className="pdf-modal-btn primary" onClick={apply} disabled={!loaded || !!error}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
+            onClick={apply}
+            disabled={!loaded || !!error}
+          >
             {t('imageApply')}
           </button>
         </div>

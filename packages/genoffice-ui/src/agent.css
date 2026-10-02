@@ -1,0 +1,287 @@
+/* AI panel parts (Agent.tsx) on the design system. The conversation surfaces
+ * themselves (rr-msg, rr-action, rr-composer, rr-alert, rr-empty, rr-prompts)
+ * are the kit's; this file only fits them to a docked side panel and styles
+ * the shared chat Markdown (ai-md, from Markdown.tsx) inside a message. */
+
+/* ── header ── */
+
+.go-agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-sans);
+}
+
+.go-agent-header__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.go-agent-header__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ── empty state ── */
+
+.go-agent-empty .rr-empty {
+  align-items: center;
+  text-align: center;
+}
+
+.go-agent-empty .rr-empty__actions {
+  justify-content: center;
+}
+
+.go-agent-empty .rr-prompts {
+  justify-content: center;
+}
+
+/* ── messages: the kit Message, sized for a 280-720px panel ── */
+
+.go-agent-msg.rr-msg {
+  max-width: 100%;
+}
+
+.go-agent-msg.rr-msg--user {
+  align-self: flex-end;
+}
+
+.go-agent-msg .rr-msg__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.go-agent-msg .rr-msg__content {
+  overflow-wrap: anywhere;
+}
+
+.go-agent-msg.rr-msg--user .rr-msg__content {
+  white-space: pre-wrap;
+}
+
+/* the Redrob mark is its own tile; drop the kit's initials disc behind it */
+.go-agent-msg.rr-msg--assistant .rr-msg__mark {
+  background: none;
+}
+
+.go-agent-msg .rr-msg__bubble > .rr-msg__content > * + * {
+  margin-top: var(--space-3);
+}
+
+/* streaming caret after the last block of an arriving answer */
+.go-agent-msg--streaming .ai-md > :last-child::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 1em;
+  margin-left: 2px;
+  border-radius: 1px;
+  background: var(--action-primary);
+  vertical-align: text-bottom;
+  animation: go-agent-caret 900ms steps(1, end) infinite;
+}
+
+@keyframes go-agent-caret {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* the failed-turn and undelivered notices sit inside the message */
+.go-agent-msg .rr-alert {
+  padding: var(--space-3);
+}
+
+/* ── chat Markdown (Markdown.tsx) ── */
+
+.go-agent-msg .ai-md p,
+.go-agent-msg .ai-md ul,
+.go-agent-msg .ai-md ol {
+  margin: 0 0 var(--space-3);
+}
+
+.go-agent-msg .ai-md > :last-child {
+  margin-bottom: 0;
+}
+
+.go-agent-msg .ai-md p:empty {
+  display: none;
+}
+
+.go-agent-msg .ai-md .ai-md-h {
+  margin: var(--space-4) 0 var(--space-2);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.go-agent-msg .ai-md .ai-md-h:first-child {
+  margin-top: 0;
+}
+
+.go-agent-msg .ai-md ul,
+.go-agent-msg .ai-md ol {
+  padding-left: var(--space-5);
+}
+
+.go-agent-msg .ai-md li + li {
+  margin-top: var(--space-1);
+}
+
+.go-agent-msg .ai-md code {
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-xs);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* in-answer navigation links (page / cell / block citations) */
+.go-agent-msg .ai-md .ai-md-nav {
+  color: var(--ink-brand);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.go-agent-msg .ai-md .ai-md-nav:hover {
+  text-decoration-style: solid;
+}
+
+.go-agent-msg .ai-md .ai-md-nav:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+  border-radius: var(--radius-xs);
+}
+
+/* ── tool activity ── */
+
+.go-agent-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.go-agent-steps__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  margin-left: calc(-1 * var(--space-2));
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.go-agent-steps__toggle:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+
+.go-agent-steps__toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 0;
+}
+
+.go-agent-steps__spinner {
+  font-size: 12px;
+  color: var(--ink-brand);
+}
+
+.go-agent-steps__caret {
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.go-agent-steps__caret--open {
+  transform: rotate(180deg);
+}
+
+.go-agent-steps__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-self: stretch;
+}
+
+.go-agent-steps__list[hidden] {
+  display: none;
+}
+
+/* the panel is narrow: let the step name wrap instead of a mono one-liner */
+.go-agent-step .rr-action__name {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  white-space: normal;
+  text-align: left;
+}
+
+.go-agent-step .rr-action__body {
+  max-height: 300px;
+  overflow-y: auto;
+  word-break: break-word;
+}
+
+/* ── in-progress ── */
+
+.go-agent-working {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-secondary);
+}
+
+.go-agent-working__elapsed {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── composer ── */
+
+.go-agent-composer .rr-composer__input {
+  max-height: 168px;
+}
+
+.go-agent-composer .rr-composer__lead:empty {
+  display: none;
+}
+
+.go-agent-composer .rr-composer__trail {
+  margin-left: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .go-agent-msg--streaming .ai-md > :last-child::after {
+    animation: none;
+  }
+  .go-agent-steps__caret {
+    transition: none;
+  }
+}
