@@ -17,9 +17,11 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createEditor, type RhwpEditor } from '@rhwp/editor'
+import { Alert, Badge, Button } from '@genoffice/ui'
 import { useI18n } from './i18n/locale'
 import { saveHangulDocument } from './hangul-save'
 import { resolveStudioOrigin, type StudioOriginResult } from './studio-origin'
+import { syncStudioTheme } from './studio-theme'
 import type { HangulFormat, SaveMode } from '../shared/ipc'
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
@@ -63,6 +65,8 @@ export function HangulEditor(): React.JSX.Element {
     if (!container) return
     let cancelled = false
     let created: RhwpEditor | null = null
+    // the studio frame is same-origin with this page: keep its chrome on the kit theme
+    const stopTheme = syncStudioTheme(container)
     setReady(false)
     setLoadError(null)
     ;(async () => {
@@ -91,42 +95,40 @@ export function HangulEditor(): React.JSX.Element {
     })()
     return () => {
       cancelled = true
+      stopTheme()
       created?.destroy()
       if (editorRef.current === created) editorRef.current = null
     }
   }, [studioUrl])
 
-  const doSave = useCallback(
-    async (mode: SaveMode): Promise<boolean> => {
-      const editor = editorRef.current
-      if (!editor) return false
-      setSaveState('saving')
-      setSaveError(null)
-      try {
-        const fileName = fileNameRef.current
-        const result = await saveHangulDocument(editor, window.hangulApi, {
-          format: fileName ? formatOf(fileName) : 'hwp',
-          mode,
-          fileName: fileName || undefined,
-        })
-        if (!result.saved) {
-          setSaveState('idle')
-          return false
-        }
-        if (result.path) {
-          fileNameRef.current = result.path.split(/[\\/]/).pop() ?? fileNameRef.current
-        }
-        window.hangulApi.setDirty(false)
-        setSaveState('saved')
-        return true
-      } catch (err) {
-        setSaveState('error')
-        setSaveError(err instanceof Error ? err.message : String(err))
+  const doSave = useCallback(async (mode: SaveMode): Promise<boolean> => {
+    const editor = editorRef.current
+    if (!editor) return false
+    setSaveState('saving')
+    setSaveError(null)
+    try {
+      const fileName = fileNameRef.current
+      const result = await saveHangulDocument(editor, window.hangulApi, {
+        format: fileName ? formatOf(fileName) : 'hwp',
+        mode,
+        fileName: fileName || undefined,
+      })
+      if (!result.saved) {
+        setSaveState('idle')
         return false
       }
-    },
-    [],
-  )
+      if (result.path) {
+        fileNameRef.current = result.path.split(/[\\/]/).pop() ?? fileNameRef.current
+      }
+      window.hangulApi.setDirty(false)
+      setSaveState('saved')
+      return true
+    } catch (err) {
+      setSaveState('error')
+      setSaveError(err instanceof Error ? err.message : String(err))
+      return false
+    }
+  }, [])
 
   // Mirror rhwp's document-changed events to the host as the dirty flag so the
   // shell's close guard prompts before discarding edits.
@@ -176,9 +178,9 @@ export function HangulEditor(): React.JSX.Element {
   if (!origin) {
     return (
       <div className="hangul-notice-wrap">
-        <p className="hangul-notice" role="status">
+        <Alert tone="info" className="hangul-notice">
           {t('resolvingStudio')}
-        </p>
+        </Alert>
       </div>
     )
   }
@@ -188,9 +190,9 @@ export function HangulEditor(): React.JSX.Element {
   if (!origin.studioUrl) {
     return (
       <div className="hangul-notice-wrap">
-        <p className="hangul-notice" role="status">
+        <Alert tone="warning" className="hangul-notice">
           {t('offlineUnavailable')}
-        </p>
+        </Alert>
       </div>
     )
   }
@@ -198,9 +200,9 @@ export function HangulEditor(): React.JSX.Element {
   if (loadError) {
     return (
       <div className="hangul-notice-wrap">
-        <p className="hangul-notice hangul-notice-error" role="alert">
+        <Alert tone="danger" className="hangul-notice">
           {t('loadFailed', { error: loadError })}
-        </p>
+        </Alert>
       </div>
     )
   }
@@ -208,20 +210,27 @@ export function HangulEditor(): React.JSX.Element {
   return (
     <div className="hangul-root">
       <div className="hangul-toolbar">
-        <button
-          type="button"
+        <Button
+          size="sm"
           className="hangul-save-button"
           disabled={!ready || saveState === 'saving'}
+          loading={saveState === 'saving'}
           onClick={() => void doSave('save')}
         >
           {saveState === 'saving' ? t('saving') : t('save')}
-        </button>
-        {saveState === 'saved' ? <span className="hangul-status">{t('saved')}</span> : null}
-        {saveState === 'error' && saveError ? (
-          <span className="hangul-status hangul-status-error">
-            {t('saveFailed', { error: saveError })}
-          </span>
-        ) : null}
+        </Button>
+        <span className="hangul-status" role="status" aria-live="polite">
+          {saveState === 'saved' ? (
+            <Badge tone="success" size="sm" dot>
+              {t('saved')}
+            </Badge>
+          ) : null}
+          {saveState === 'error' && saveError ? (
+            <Badge tone="danger" size="sm" dot>
+              {t('saveFailed', { error: saveError })}
+            </Badge>
+          ) : null}
+        </span>
         <span className="hangul-powered">{t('poweredBy')}</span>
       </div>
       <div ref={containerRef} className="hangul-studio-container" />
