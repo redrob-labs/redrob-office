@@ -3,6 +3,22 @@ export { applyUiTheme, type UiThemeMode } from './theme'
 export { Icon, type GlyphProps } from './Icon'
 export { Dialog, type DialogProps } from './Dialog'
 export { DocTabs, type DocTab, type DocTabsProps, type DocTabsStrings } from './DocTabs'
+export {
+  Toolbar,
+  ToolbarButton,
+  ToolbarGroup,
+  ToolbarSpacer,
+  type ToolbarButtonProps,
+  type ToolbarGroupProps,
+  type ToolbarProps,
+} from './Toolbar'
+export {
+  KIT_ICON_FALLBACKS,
+  KIT_ICON_MAP,
+  kitGlyph,
+  type KitGlyphProps,
+  type KitIconKey,
+} from './icon-map'
 export { AiComposer } from './AiComposer'
 export {
   ColorPicker,
