@@ -1,38 +1,14 @@
-/* Shared chrome/AI-panel tokens come from @genoffice/ui/tokens.css (imported
- * before this file in main.tsx); only shell-specific tokens live here. */
+/* Home, the sidebar, the recents table and the project panel. Shared chrome
+ * tokens come from @genoffice/ui (theme.css, then the legacy bridge in
+ * tokens.css); every value here is a design-system token, so the page follows
+ * the theme without dark copies of its rules. */
 :root {
   --modal-width-sm: 480px;
-  --avatar-bg: #e8ebef;
-  --badge-bg: #eaf0fd;
-  --checkbox-bg: #ececec;
-  --timeline-user-bg: #eef1f5;
-  --timeline-user-text: #5a6170;
+  --avatar-bg: var(--surface-sunken);
+  --badge-bg: var(--surface-brand-subtle);
+  --checkbox-bg: var(--surface-sunken);
   /* lift for the active segment in gray-track tab pills */
-  --shadow-pill: 0 1px 2px rgb(0 0 0 / 8%);
-}
-
-/* ── Dark mode overrides ─────────────────────────────────── */
-
-/* Explicit dark: [data-theme="dark"] on <html> */
-[data-theme='dark'] {
-  --avatar-bg: #333;
-  --badge-bg: #2a3a4a;
-  --checkbox-bg: #333;
-  --timeline-user-bg: #2a2a3a;
-  --timeline-user-text: #b0b0c0;
-  --shadow-pill: 0 1px 2px rgb(0 0 0 / 40%);
-}
-
-/* System dark: no data-theme or data-theme="system" — follow OS preference */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) {
-    --avatar-bg: #333;
-    --badge-bg: #2a3a4a;
-    --checkbox-bg: #333;
-    --timeline-user-bg: #2a2a3a;
-    --timeline-user-text: #b0b0c0;
-    --shadow-pill: 0 1px 2px rgb(0 0 0 / 40%);
-  }
+  --shadow-pill: var(--shadow-sm);
 }
 
 * {
@@ -119,16 +95,6 @@ body.vib .home {
 
 [data-theme='dark'] .logo-lockup-dark {
   display: block;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) .logo-lockup-light {
-    display: none;
-  }
-
-  :root:not([data-theme='light']):not([data-theme='dark']) .logo-lockup-dark {
-    display: block;
-  }
 }
 
 .sidebar-nav {
@@ -224,8 +190,8 @@ body.vib .home {
 }
 
 .account-avatar.logged-in {
-  background: linear-gradient(135deg, #3d7ff5, #1b58cf);
-  color: #fff;
+  background: var(--gradient-deep);
+  color: var(--ink-on-brand);
 }
 
 .account-avatar.waiting {
@@ -273,7 +239,7 @@ body.vib .home {
 }
 
 .account-sub.error {
-  color: #b3261e;
+  color: var(--status-danger);
 }
 
 /* one-line rescue hint while waiting for the browser sign-in (auto-open may have failed) */
@@ -289,7 +255,7 @@ body.vib .home {
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   background: var(--surface);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
   z-index: 30;
 }
 
@@ -410,7 +376,7 @@ body.vib .home {
 
 .quick-card:hover {
   border-color: var(--border-hover);
-  box-shadow: 0 3px 12px rgb(0 0 0 / 8%);
+  box-shadow: var(--shadow-md);
 }
 
 .quick-card svg {
@@ -553,7 +519,6 @@ body.vib .home {
 /* segmented filter control: gray track, active segment = white card.
    One shared 40px rail for the recents page and the Genspark Projects
    toolbar (where it lines up with the 40px refresh button and search box). */
-.filter-pills,
 .cloud-seg {
   display: flex;
   align-items: center;
@@ -564,7 +529,6 @@ body.vib .home {
   flex-shrink: 0;
 }
 
-.filter-pill,
 .cloud-seg button {
   padding: 7px 15px;
   border: none;
@@ -579,17 +543,20 @@ body.vib .home {
   white-space: nowrap;
 }
 
-.filter-pill:hover,
 .cloud-seg button:hover {
   color: var(--text);
 }
 
-.filter-pill.active,
 .cloud-seg button.active {
   background: var(--surface);
   color: var(--text);
   font-weight: 600;
   box-shadow: var(--shadow-pill);
+}
+
+/* the recents type filter: kit Tabs (pill) */
+.filter-pills {
+  flex-shrink: 0;
 }
 
 .empty {
@@ -779,21 +746,9 @@ body.vib .home {
 }
 
 .star-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: none;
+  width: 26px;
+  height: 26px;
   color: var(--icon-muted);
-  cursor: pointer;
-}
-
-.star-btn:hover {
-  background: var(--bg-hover-subtle);
 }
 
 .recent-item:hover .star-btn,
@@ -801,8 +756,16 @@ body.vib .home {
   opacity: 1;
 }
 
+.star-btn.starred {
+  color: var(--accent-yellow-4);
+}
+
+.star-btn.starred svg {
+  fill: currentColor;
+}
+
 .star-btn:hover {
-  color: #f5a623;
+  color: var(--accent-yellow-4);
 }
 
 .rename-input {
@@ -845,37 +808,24 @@ body.vib .home {
 }
 
 .more-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 26px;
   height: 26px;
-  border: none;
-  border-radius: 8px;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.1s;
+  color: var(--ink-muted);
 }
 
 .more-btn:hover,
 .more-btn[aria-expanded='true'] {
-  background: var(--bg-hover-strong);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .row-menu {
-  position: absolute;
   top: calc(100% + 6px);
   right: 0;
+  left: auto;
   z-index: 20;
-  min-width: 160px;
-  padding: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 10px 28px rgb(0 0 0 / 14%);
-  animation: menu-in 0.1s ease;
+  min-width: 180px;
+  animation: menu-in var(--duration-fast) var(--easing-entrance);
 }
 
 @keyframes menu-in {
@@ -885,141 +835,10 @@ body.vib .home {
   }
 }
 
-.row-menu button {
-  display: block;
-  width: 100%;
-  padding: 7px 10px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.row-menu button:hover {
-  background: var(--surface-subtle);
-}
-
-.row-menu button.danger {
-  color: var(--danger);
-}
-
-.row-menu button.danger:hover {
-  background: var(--danger-bg);
-}
-
 .row-menu-divider {
   height: 1px;
-  margin: 5px 6px;
+  margin: var(--space-1) 0;
   background: var(--border-subtle);
-}
-
-/* ---- buttons + modal ---- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: var(--radius-6);
-  font: inherit;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* design-system interaction states; hover fills live on each variant below */
-.btn:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgb(35 36 37 / 20%);
-}
-
-.btn-secondary {
-  background: var(--surface);
-  border: 1px solid var(--color-border-default);
-  color: var(--text);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--border-hover);
-}
-
-.btn-danger {
-  background: var(--color-error);
-  border: none;
-  color: #fff;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: var(--color-error-hover);
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-overlay);
-  backdrop-filter: blur(4px);
-}
-
-/* ConfirmDialog per the design system: 8px container, 6px buttons */
-.modal {
-  min-width: min(var(--modal-width-sm), 90vw);
-  max-width: 500px;
-  padding: 24px;
-  background: var(--surface);
-  border-radius: var(--radius-8);
-  box-shadow: var(--shadow-modal-strong);
-  animation: menu-in 0.12s ease;
-}
-
-.modal h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
-}
-
-.modal p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.modal-file-list {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-  list-style: none;
-  background: var(--surface-subtle);
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-  max-height: 150px;
-  overflow-y: auto;
-}
-
-.modal-file-list li {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.8;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
 }
 
 /* ── Project sidebar (P1) ─────────────────────────────── */
@@ -1052,24 +871,14 @@ body.vib .home {
 }
 
 .proj-add-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 22px;
   height: 22px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background 0.1s,
-    color 0.1s;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
 }
 
 .proj-add-btn:hover {
-  background: var(--surface-subtle);
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .proj-new-row {
@@ -1196,65 +1005,26 @@ body.vib .home {
 }
 
 .proj-more-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 22px;
   height: 22px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background 0.1s,
-    color 0.1s;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
 }
 
 .proj-more-btn:hover,
 .proj-more-btn[aria-expanded='true'] {
-  background: var(--bg-hover-accent);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 /* fixed-position popup anchored via inline top/right (set at open time) so it
    escapes the scrollable project list without the list losing overflow-y */
 .proj-menu {
   position: fixed;
+  left: auto;
   z-index: 30;
-  min-width: 140px;
-  padding: 5px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 13%);
-  animation: menu-in 0.1s ease;
-}
-
-.proj-menu button {
-  display: block;
-  width: 100%;
-  padding: 6px 9px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.proj-menu button:hover {
-  background: var(--surface-subtle);
-}
-
-.proj-menu button.danger {
-  color: var(--danger);
-}
-
-.proj-menu button.danger:hover {
-  background: var(--danger-bg);
+  min-width: 160px;
+  animation: menu-in var(--duration-fast) var(--easing-entrance);
 }
 
 /* "move to project" submenu on a file row */
@@ -1271,42 +1041,16 @@ body.vib .home {
 /* opens to the right of the host menu; .submenu-left flips it to the left
    when the window edge leaves no room (WPS-style edge flip) */
 .submenu {
-  position: absolute;
-  top: 0;
-  left: calc(100% + 4px);
+  top: calc(-1 * var(--space-2));
+  left: calc(100% + var(--space-2));
   z-index: 40;
-  min-width: 140px;
-  padding: 5px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 13%);
-  animation: menu-in 0.1s ease;
+  min-width: 160px;
+  animation: menu-in var(--duration-fast) var(--easing-entrance);
 }
 
 .submenu.submenu-left {
   left: auto;
-  right: calc(100% + 4px);
-}
-
-.submenu button,
-.selection-move-menu button {
-  display: block;
-  width: 100%;
-  padding: 6px 9px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.submenu button:hover,
-.selection-move-menu button:hover {
-  background: var(--surface-subtle);
+  right: calc(100% + var(--space-2));
 }
 
 /* bulk move-to-project dropdown in the selection bar (anchored below the button) */
@@ -1316,17 +1060,12 @@ body.vib .home {
 }
 
 .selection-move-menu {
-  position: absolute;
   top: calc(100% + 4px);
   right: 0;
+  left: auto;
   z-index: 40;
-  min-width: 140px;
-  padding: 5px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 13%);
-  animation: menu-in 0.1s ease;
+  min-width: 160px;
+  animation: menu-in var(--duration-fast) var(--easing-entrance);
 }
 
 /* empty-project onboarding copy — centered in the space below the toolbar */
@@ -1341,158 +1080,32 @@ body.vib .home {
   flex-direction: column;
 }
 
+/* the kit's EmptyState (and the cloud view's plain notices), centred in the
+ * space below the toolbar */
 .proj-empty {
   flex: 1;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  row-gap: 14px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   margin: 0;
   padding-bottom: 60px;
-  color: var(--text-tertiary);
-  line-height: 1.7 !important;
+  text-align: center;
+}
+
+.proj-empty.rr-empty {
+  align-items: center;
+  text-align: center;
+}
+
+.proj-empty.rr-empty .rr-empty__title {
+  font: var(--text-body);
+  color: var(--ink-secondary);
 }
 
 .empty-hint {
   font-size: inherit;
   color: var(--text-secondary);
-}
-
-/* ── Project activity timeline (P1) ───────────────────── */
-
-.timeline-section {
-  margin-top: 28px;
-}
-
-.timeline-head {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-  margin-bottom: 12px;
-}
-
-.timeline-head:hover .section-label {
-  color: var(--text);
-}
-
-.timeline-chevron {
-  flex-shrink: 0;
-  color: var(--text-muted);
-  transition: transform 0.15s;
-  transform: rotate(-90deg);
-}
-
-.timeline-chevron.open {
-  transform: rotate(0deg);
-}
-
-.timeline-count {
-  margin-left: 4px;
-  font-size: 12px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.timeline-empty {
-  color: var(--text-muted);
-  font-size: 14px;
-  padding-left: 2px;
-}
-
-.timeline-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.timeline-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.timeline-item:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.timeline-list .timeline-item + .timeline-item {
-  border-top: 1px solid var(--border-subtle);
-}
-
-.timeline-item:hover {
-  background: var(--surface-subtle);
-}
-
-.timeline-role {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.timeline-role.user {
-  background: var(--timeline-user-bg);
-  color: var(--timeline-user-text);
-}
-
-.timeline-role.assistant {
-  background: var(--badge-bg);
-  color: var(--accent);
-}
-
-.timeline-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.timeline-filename {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.timeline-preview {
-  font-size: 14px;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.timeline-ts {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  padding-top: 1px;
 }
 
 /* ── Cloud (Genspark web) projects ── */
@@ -1553,42 +1166,18 @@ body.vib .home {
 }
 
 .cloud-sort-menu {
-  position: absolute;
-  right: 0;
   top: calc(100% + 6px);
-  min-width: 150px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
-  padding: 4px;
+  right: 0;
+  left: auto;
   z-index: 5;
-}
-
-.cloud-sort-menu button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: 100%;
-  text-align: left;
-  border: none;
-  background: none;
-  padding: 8px 11px;
-  font-size: 13px;
-  border-radius: 7px;
-  cursor: pointer;
-  color: var(--text);
+  min-width: 160px;
 }
 
 .cloud-sort-check {
   flex-shrink: 0;
 }
 
-.cloud-sort-menu button:hover {
-  background: var(--surface-subtle);
-}
-
-.cloud-sort-menu button.active {
+.cloud-sort-menu .rr-menu__item.active {
   font-weight: 600;
 }
 
@@ -1769,7 +1358,7 @@ body.vib .home {
 /* always visible so rows read as external links; darkens on hover */
 .cloud-row-external {
   flex-shrink: 0;
-  color: #c9ced4;
+  color: var(--ink-muted);
 }
 
 .cloud-row:hover .cloud-row-external,
