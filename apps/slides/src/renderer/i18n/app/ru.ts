@@ -1,6 +1,8 @@
 import type { zh } from './zh'
 
 export const ru = {
+  appSlideRail: 'Слайды',
+  appSlideLabel: 'Слайд {n}',
   appPhPromptTitle: 'Щелкните, чтобы добавить заголовок',
   appPhPromptSubtitle: 'Щелкните, чтобы добавить подзаголовок',
   appPhPromptBody: 'Щелкните, чтобы добавить текст',

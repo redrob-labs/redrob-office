@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const he = {
+  aiYou: 'את/ה',
+  aiFailedTitle: 'העוזר לא הצליח לסיים',
+  aiStepRunning: 'פועל',
+  aiStepDone: 'הושלם',
+  aiStepFailed: 'נכשל',
+  aiStartersLabel: 'הצעות לשאלות',
   aiInputPlaceholderGen: 'תארו את המצגת ליצירה, או שאלו כל דבר',
   aiEmptyGenTitle: 'תנו ל-AI ליצור את המצגת שלכם',
   aiEmptyGenBody1: 'תארו את הנושא, הקהל ומספר העמודים המשוער;',

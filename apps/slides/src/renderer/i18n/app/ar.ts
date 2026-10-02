@@ -1,6 +1,8 @@
 import type { zh } from './zh'
 
 export const ar = {
+  appSlideRail: 'الشرائح',
+  appSlideLabel: 'الشريحة {n}',
   appPhPromptTitle: 'انقر لإضافة عنوان',
   appPhPromptSubtitle: 'انقر لإضافة عنوان فرعي',
   appPhPromptBody: 'انقر لإضافة نص',

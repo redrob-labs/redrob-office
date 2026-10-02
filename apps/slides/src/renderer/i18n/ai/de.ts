@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const de = {
+  aiYou: 'Sie',
+  aiFailedTitle: 'Der Assistent konnte nicht abschließen',
+  aiStepRunning: 'Läuft',
+  aiStepDone: 'Fertig',
+  aiStepFailed: 'Fehlgeschlagen',
+  aiStartersLabel: 'Vorgeschlagene Fragen',
   aiInputPlaceholderGen: 'Beschreibe die zu erstellende Präsentation oder frag etwas',
   aiEmptyGenTitle: 'Lass die KI deine Präsentation erstellen',
   aiEmptyGenBody1: 'Beschreibe Thema, Anlass und ungefähre Seitenzahl;',

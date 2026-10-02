@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const id = {
+  aiYou: 'Anda',
+  aiFailedTitle: 'Asisten tidak dapat menyelesaikan',
+  aiStepRunning: 'Berjalan',
+  aiStepDone: 'Selesai',
+  aiStepFailed: 'Gagal',
+  aiStartersLabel: 'Pertanyaan yang disarankan',
   aiInputPlaceholderGen: 'Jelaskan presentasi yang akan dibuat, atau tanyakan apa saja',
   aiEmptyGenTitle: 'Biarkan AI membuat presentasi Anda',
   aiEmptyGenBody1: 'Jelaskan topik, acara, dan perkiraan jumlah halaman;',

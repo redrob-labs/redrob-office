@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const zhTW = {
+  aiYou: '你',
+  aiFailedTitle: '助理未能完成',
+  aiStepRunning: '執行中',
+  aiStepDone: '完成',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '建議的提問',
   aiInputPlaceholderGen: '描述要生成的簡報,或直接提問',
   aiEmptyGenTitle: '讓 AI 為你生成簡報',
   aiEmptyGenBody1: '描述主題、場合和大致頁數,',

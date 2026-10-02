@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const es = {
+  aiYou: 'Tú',
+  aiFailedTitle: 'El asistente no pudo terminar',
+  aiStepRunning: 'En curso',
+  aiStepDone: 'Hecho',
+  aiStepFailed: 'Error',
+  aiStartersLabel: 'Preguntas sugeridas',
   aiInputPlaceholderGen: 'Describe la presentación a generar, o pregunta lo que quieras',
   aiEmptyGenTitle: 'Deja que la IA genere tu presentación',
   aiEmptyGenBody1: 'Describe el tema, la ocasión y el número aproximado de páginas;',

@@ -1,6 +1,8 @@
 import type { zh } from './zh'
 
 export const zhTW = {
+  appSlideRail: '投影片',
+  appSlideLabel: '投影片 {n}',
   appPhPromptTitle: '按一下此處新增標題',
   appPhPromptSubtitle: '按一下此處新增副標題',
   appPhPromptBody: '按一下此處新增文字',

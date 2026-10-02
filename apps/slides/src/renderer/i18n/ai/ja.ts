@@ -1,6 +1,12 @@
 import type { zh } from './zh'
 
 export const ja = {
+  aiYou: 'あなた',
+  aiFailedTitle: 'アシスタントは完了できませんでした',
+  aiStepRunning: '実行中',
+  aiStepDone: '完了',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '提案されたプロンプト',
   aiInputPlaceholderGen: '作りたいプレゼンを説明するか、質問を入力',
   aiEmptyGenTitle: 'AI にプレゼンの作成を任せる',
   aiEmptyGenBody1: 'テーマ・用途・ページ数の目安を伝えると',
