@@ -5195,6 +5195,7 @@ export function App(): React.JSX.Element {
         />
       )}
       <ExcelShell
+        fileName={workbookFile?.name}
         prompt={prompt}
         preview={preview}
         sheetHasContent={sheetHasContent}

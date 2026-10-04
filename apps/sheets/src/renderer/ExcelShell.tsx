@@ -7,7 +7,15 @@ import {
   Switch,
   Toolbar,
   useDismissablePopover,
+  EditorFrame,
+  OldFormatBanner,
+  StatusBar,
+  formatOf,
+  frameCopy,
+  frameT,
+  useFrameState,
 } from '@genoffice/ui'
+import { SimpleToolbar, sheetsTools } from './SimpleToolbar'
 
 import {
   CaretIcon,
@@ -220,6 +228,8 @@ interface ExcelShellProps {
   /// AutoSave toggle in the tab row (docs/slides parity).
   readonly autoSave: boolean
   readonly onAutoSaveChange: (on: boolean) => void
+  /** the open workbook's file name, shown in the title bar with its format chip */
+  readonly fileName?: string | undefined
   /// Non-null while a floating chart is selected in the grid.
   readonly selectedChart: SelectedChartRibbon | null
   /// Column choices of the active selection, read when the Sort dialog opens.
@@ -369,8 +379,12 @@ export function ExcelShell({
   pageLayout,
   calcManual,
   onGoalSeek,
+  fileName,
 }: ExcelShellProps): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  // the shared editor frame: toolbar choice, panel width and online state
+  const frame = useFrameState(window.desktopApi, 'sheets-frame-panel-width')
+  const [oldFormatDismissed, setOldFormatDismissed] = useState(false)
   const [activeTab, setActiveTab] = useState<RibbonTab>('Home')
   // Persisted so a closed AI panel stays closed on next launch (docs/slides parity)
   const [isCopilotOpen, setIsCopilotOpen] = useState(
@@ -493,164 +507,242 @@ export function ExcelShell({
     : ribbonTabs
   const saveAsTitle = `${t('appSaveAs')} (${platformShortcuts('⇧⌘S')})`
 
+  const frameText = frameCopy(lang)
+  const sheetsActions = {
+    command: onCommand,
+    ask: () => setIsCopilotOpen(true),
+    run: (nextPrompt: string) => {
+      setIsCopilotOpen(true)
+      onSend(nextPrompt)
+    },
+  }
+  const frameTools = sheetsTools(t, sheetsActions, true)
+
   return (
     <main className={`app-shell ${isCopilotOpen ? '' : 'copilot-collapsed'}`}>
-      <header className="excel-header">
-        <nav
-          className={`ribbon-tabs ${IN_TAB ? '' : IS_MAC ? 'ribbon-tabs-mac' : 'ribbon-tabs-win'}`}
-          aria-label="Workbook commands"
-        >
-          <button
-            type="button"
-            className="qa-btn"
-            data-tip={t('appSaveTitle')}
-            aria-label={t('appSaveTitle')}
-            disabled={!canSave}
-            onClick={onSave}
-          >
-            <SaveIcon />
-          </button>
-          <button
-            type="button"
-            className="qa-btn"
-            data-tip={saveAsTitle}
-            aria-label={saveAsTitle}
-            disabled={!canSaveAs}
-            onClick={onSaveAs}
-          >
-            <SaveAsIcon />
-          </button>
-          <button
-            type="button"
-            className="qa-btn"
-            data-tip={t('appUndo')}
-            aria-label={t('appUndo')}
-            disabled={!canUndo}
-            onClick={() => onUndo()}
-          >
-            <UndoIcon />
-          </button>
-          <button
-            type="button"
-            className="qa-btn"
-            data-tip={t('appRedo')}
-            aria-label={t('appRedo')}
-            disabled={!canRedo}
-            onClick={onRedo}
-          >
-            <RedoIcon />
-          </button>
-          <Switch
-            className="autosave-toggle"
-            size="sm"
-            label={t('appAutoSave')}
-            checked={autoSave}
-            data-tip={t('appAutoSaveTip')}
-            onChange={(e) => onAutoSaveChange(e.target.checked)}
-          />
-          <span className="qa-sep" aria-hidden="true" />
-          {visibleTabs.map((tab) => (
-            <button
-              className={`${tab === activeTab ? 'active' : ''} ${tab === 'Chart Design' ? 'contextual' : ''}`}
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+      <EditorFrame
+        strings={frameText.frame}
+        fileName={fileName ?? t('appUntitledXlsx')}
+        onUndo={canUndo ? () => onUndo() : undefined}
+        onRedo={canRedo ? onRedo : undefined}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        saveStatus={<span className="sheets-save-status">{canSave ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}</span>}
+        search={{ tools: frameTools, strings: frameText.search, onAsk: sheetsActions.run }}
+        mode={{
+          value: 'editing',
+          onChange: () => {},
+          strings: frameText.mode,
+          // workbooks have no tracked-change model to suggest with, and no read-only lock yet
+          unavailable: ['suggesting', 'viewing'],
+        }}
+        toolbar={frame.toolbar}
+        onToolbarChange={frame.setToolbar}
+        toolbarStrings={frameText.toolbar}
+        banner={
+          fileName && !oldFormatDismissed ? (
+            <OldFormatBanner
+              file={fileName}
+              title={frameT(lang, 'oldFormatTitle', { fmt: formatOf(fileName)?.label ?? '' })}
+              body={frameT(lang, 'oldFormatBody')}
+              saveLabel={t('appSaveCopyXlsx')}
+              keepLabel={frameT(lang, 'oldFormatKeep', { fmt: formatOf(fileName)?.ext ?? '' })}
+              onSaveCopy={canSaveAs ? onSaveAs : undefined}
+              onKeep={() => setOldFormatDismissed(true)}
+            />
+          ) : undefined
+        }
+        simpleToolbar={<SimpleToolbar actions={sheetsActions} canEdit={true} format={selectionFormat} />}
+        classicToolbar={
+          <div className="excel-header">
+            <nav
+              className={`ribbon-tabs ${IN_TAB ? '' : IS_MAC ? 'ribbon-tabs-mac' : 'ribbon-tabs-win'}`}
+              aria-label="Workbook commands"
             >
-              {t(TAB_LABEL[tab])}
-            </button>
-          ))}
-          <span className="ribbon-tabs-spacer" />
-          <span className="workbook-status" role="status" aria-live="polite">
-            {statusMessage}
-          </span>
-        </nav>
+              <button
+                type="button"
+                className="qa-btn"
+                data-tip={t('appSaveTitle')}
+                aria-label={t('appSaveTitle')}
+                disabled={!canSave}
+                onClick={onSave}
+              >
+                <SaveIcon />
+              </button>
+              <button
+                type="button"
+                className="qa-btn"
+                data-tip={saveAsTitle}
+                aria-label={saveAsTitle}
+                disabled={!canSaveAs}
+                onClick={onSaveAs}
+              >
+                <SaveAsIcon />
+              </button>
+              <button
+                type="button"
+                className="qa-btn"
+                data-tip={t('appUndo')}
+                aria-label={t('appUndo')}
+                disabled={!canUndo}
+                onClick={() => onUndo()}
+              >
+                <UndoIcon />
+              </button>
+              <button
+                type="button"
+                className="qa-btn"
+                data-tip={t('appRedo')}
+                aria-label={t('appRedo')}
+                disabled={!canRedo}
+                onClick={onRedo}
+              >
+                <RedoIcon />
+              </button>
+              <Switch
+                className="autosave-toggle"
+                size="sm"
+                label={t('appAutoSave')}
+                checked={autoSave}
+                data-tip={t('appAutoSaveTip')}
+                onChange={(e) => onAutoSaveChange(e.target.checked)}
+              />
+              <span className="qa-sep" aria-hidden="true" />
+              {visibleTabs.map((tab) => (
+                <button
+                  className={`${tab === activeTab ? 'active' : ''} ${tab === 'Chart Design' ? 'contextual' : ''}`}
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {t(TAB_LABEL[tab])}
+                </button>
+              ))}
+              <span className="ribbon-tabs-spacer" />
+              <span className="workbook-status" role="status" aria-live="polite">
+                {statusMessage}
+              </span>
+            </nav>
 
-        <Ribbon
-          activeTab={activeTab}
-          selectionFormat={selectionFormat}
-          sheetHasContent={sheetHasContent}
-          sheetProtected={onGetSheetProtection()}
-          workbookProtected={onGetWorkbookProtection()}
-          formulaBarVisible={formulaBarVisible}
-          crossHighlightVisible={crossHighlightVisible}
-          pageLayout={pageLayout}
-          selectedChart={selectedChart}
-          onListNames={() => {
-            // Names scoped to another sheet resolve to #NAME? here; only
-            // workbook-scoped and active-sheet names are usable in a formula.
-            const data = onGetDefinedNames()
-            return data.names
-              .filter(
-                (entry) => entry.scopeSheetId === null || entry.scopeSheetId === data.activeSheetId,
-              )
-              .map((entry) => entry.name)
-          }}
-          calcManual={calcManual}
-          onRefreshPivot={onRefreshPivot}
-          onIsSelectionInPivot={onIsSelectionInPivot}
-          onCommand={(command) => {
-            if (command === 'format-cells') setShowFormatCells(true)
-            else if (command === 'row-height-open') setAxisSizeTarget('row')
-            else if (command === 'col-width-open') setAxisSizeTarget('col')
-            else if (command === 'link-open') setShowLinkDialog(true)
-            else if (command === 'sort-custom-open') setShowSortDialog(true)
-            else if (command === 'remove-duplicates-open') setShowDedupeDialog(true)
-            else if (command === 'name-manager-open') setShowNameManager(true)
-            else if (command === 'pivot-open') setShowPivotDialog(true)
-            else if (command === 'pivot-edit') setPivotEditSeed(onGetPivotEditSeed())
-            else if (command === 'insert-function-open') setInsertFunctionCat('All')
-            else if (command.startsWith('insert-function-open:'))
-              setInsertFunctionCat(command.slice('insert-function-open:'.length))
-            else if (command === 'goal-seek-open') setShowGoalSeek(true)
-            else if (command === 'subtotal-open') setShowSubtotalDialog(true)
-            else if (command === 'consolidate-open') setShowConsolidateDialog(true)
-            else if (command === 'goto-open') setShowGoTo(true)
-            else if (command === 'header-footer-open') setShowHeaderFooter(true)
-            else if (command === 'allow-edit-ranges-open') setShowAllowEditRanges(true)
-            else if (command === 'ai-open-panel') setIsCopilotOpen(true)
-            else if (command === 'ai-toggle-panel') setIsCopilotOpen((v) => !v)
-            else if (command === 'chart-element-title') setChartTextTarget('title')
-            else if (command === 'chart-element-axis-cat') setChartTextTarget('axis-category')
-            else if (command === 'chart-element-axis-val') setChartTextTarget('axis-value')
-            else onCommand(command)
-          }}
-          onAiRun={(nextPrompt) => {
-            setIsCopilotOpen(true)
-            onSend(nextPrompt)
-          }}
-          aiOpen={isCopilotOpen}
-          onAiToggle={() => setIsCopilotOpen((open) => !open)}
-        />
-      </header>
-
-      {/* AI panel docks on the left, full height under the ribbon (unified with docs) */}
-      <div className="sheet-body">
-        <AiChatPanel
-          isOpen={isCopilotOpen}
-          hasContent={sheetHasContent}
-          chat={chat}
-          {...(historicChat !== undefined ? { historicChat } : {})}
-          attachments={attachments}
-          attachNotice={attachNotice}
-          onPickAttachments={onPickAttachments}
-          onAddAttachmentPaths={onAddAttachmentPaths}
-          onAddPastedImage={onAddPastedImage}
-          onRemoveAttachment={onRemoveAttachment}
-          prompt={prompt}
-          preview={preview}
-          aiBusy={aiBusy}
-          onPromptChange={onPromptChange}
-          onSend={onSend}
-          onStop={onStop}
-          onNewChat={onNewChat}
-          onUndo={onUndo}
-          scopeRange={aiScopeRange}
-          scopeColumns={aiScopeColumns}
-          scopeLocked={aiScopeLocked}
-          onScopeDismiss={onAiScopeDismiss}
-          onCitation={onAiCitation}
-          onExpand={() => setIsCopilotOpen(true)}
-          onCollapse={() => setIsCopilotOpen(false)}
-        />
+            <Ribbon
+              activeTab={activeTab}
+              selectionFormat={selectionFormat}
+              sheetHasContent={sheetHasContent}
+              sheetProtected={onGetSheetProtection()}
+              workbookProtected={onGetWorkbookProtection()}
+              formulaBarVisible={formulaBarVisible}
+              crossHighlightVisible={crossHighlightVisible}
+              pageLayout={pageLayout}
+              selectedChart={selectedChart}
+              onListNames={() => {
+                // Names scoped to another sheet resolve to #NAME? here; only
+                // workbook-scoped and active-sheet names are usable in a formula.
+                const data = onGetDefinedNames()
+                return data.names
+                  .filter(
+                    (entry) => entry.scopeSheetId === null || entry.scopeSheetId === data.activeSheetId,
+                  )
+                  .map((entry) => entry.name)
+              }}
+              calcManual={calcManual}
+              onRefreshPivot={onRefreshPivot}
+              onIsSelectionInPivot={onIsSelectionInPivot}
+              onCommand={(command) => {
+                if (command === 'format-cells') setShowFormatCells(true)
+                else if (command === 'row-height-open') setAxisSizeTarget('row')
+                else if (command === 'col-width-open') setAxisSizeTarget('col')
+                else if (command === 'link-open') setShowLinkDialog(true)
+                else if (command === 'sort-custom-open') setShowSortDialog(true)
+                else if (command === 'remove-duplicates-open') setShowDedupeDialog(true)
+                else if (command === 'name-manager-open') setShowNameManager(true)
+                else if (command === 'pivot-open') setShowPivotDialog(true)
+                else if (command === 'pivot-edit') setPivotEditSeed(onGetPivotEditSeed())
+                else if (command === 'insert-function-open') setInsertFunctionCat('All')
+                else if (command.startsWith('insert-function-open:'))
+                  setInsertFunctionCat(command.slice('insert-function-open:'.length))
+                else if (command === 'goal-seek-open') setShowGoalSeek(true)
+                else if (command === 'subtotal-open') setShowSubtotalDialog(true)
+                else if (command === 'consolidate-open') setShowConsolidateDialog(true)
+                else if (command === 'goto-open') setShowGoTo(true)
+                else if (command === 'header-footer-open') setShowHeaderFooter(true)
+                else if (command === 'allow-edit-ranges-open') setShowAllowEditRanges(true)
+                else if (command === 'ai-open-panel') setIsCopilotOpen(true)
+                else if (command === 'ai-toggle-panel') setIsCopilotOpen((v) => !v)
+                else if (command === 'chart-element-title') setChartTextTarget('title')
+                else if (command === 'chart-element-axis-cat') setChartTextTarget('axis-category')
+                else if (command === 'chart-element-axis-val') setChartTextTarget('axis-value')
+                else onCommand(command)
+              }}
+              onAiRun={(nextPrompt) => {
+                setIsCopilotOpen(true)
+                onSend(nextPrompt)
+              }}
+              aiOpen={isCopilotOpen}
+              onAiToggle={() => setIsCopilotOpen((open) => !open)}
+            />
+          </div>
+        }
+        panel={
+            <AiChatPanel
+              isOpen={isCopilotOpen}
+              hasContent={sheetHasContent}
+              chat={chat}
+              {...(historicChat !== undefined ? { historicChat } : {})}
+              attachments={attachments}
+              attachNotice={attachNotice}
+              onPickAttachments={onPickAttachments}
+              onAddAttachmentPaths={onAddAttachmentPaths}
+              onAddPastedImage={onAddPastedImage}
+              onRemoveAttachment={onRemoveAttachment}
+              prompt={prompt}
+              preview={preview}
+              aiBusy={aiBusy}
+              onPromptChange={onPromptChange}
+              onSend={onSend}
+              onStop={onStop}
+              onNewChat={onNewChat}
+              onUndo={onUndo}
+              scopeRange={aiScopeRange}
+              scopeColumns={aiScopeColumns}
+              scopeLocked={aiScopeLocked}
+              onScopeDismiss={onAiScopeDismiss}
+              onCitation={onAiCitation}
+              onExpand={() => setIsCopilotOpen(true)}
+              onCollapse={() => setIsCopilotOpen(false)}
+              hosted
+            />
+        }
+        panelOpen={isCopilotOpen}
+        onPanelOpenChange={setIsCopilotOpen}
+        panelWidth={frame.panelWidth}
+        onPanelWidthChange={frame.setPanelWidth}
+        status={
+          <StatusBar
+            label={frameT(lang, 'status')}
+            items={[<span key="msg" className="status-msg">{statusMessage}</span>]}
+            connection={{ online: frame.online, onlineLabel: frameT(lang, 'online'), offlineLabel: frameT(lang, 'offline') }}
+            zoom={
+              <span className="status-zoom">
+                <button className="zoom-btn" data-tip={t('appZoomOut')} aria-label={t('appZoomOut')} onClick={() => onCommand('zoom-out')}>
+                  -
+                </button>
+                <input
+                  className="zoom-slider"
+                  type="range"
+                  aria-label={frameT(lang, 'zoom')}
+                  min={50}
+                  max={400}
+                  value={Math.min(400, Math.max(50, zoomPercent))}
+                  onChange={(event) => onCommand(`zoom:${event.target.value}`)}
+                />
+                <button className="zoom-btn" data-tip={t('appZoomIn')} aria-label={t('appZoomIn')} onClick={() => onCommand('zoom-in')}>
+                  +
+                </button>
+                <span className="zoom-value">{zoomPercent}%</span>
+              </span>
+            }
+          />
+        }
+      >
         <div className="sheet-main">
           {/* Excel's formula-bar row, Name Box only for now (fx bar TBD). */}
           <div className="name-box-bar">
@@ -678,42 +770,8 @@ export function ExcelShell({
               }}
             />
           )}
-
-          {/* Status bar spans the sheet column only — the AI dock keeps the full window height (unified with docs/slides). */}
-          <footer className="status-bar">
-            <div className="status-left">
-              <span className="status-msg">{statusMessage}</span>
-            </div>
-            <div className="status-right">
-              <button
-                className="zoom-btn"
-                data-tip={t('appZoomOut')}
-                aria-label={t('appZoomOut')}
-                onClick={() => onCommand('zoom-out')}
-              >
-                −
-              </button>
-              <input
-                className="zoom-slider"
-                type="range"
-                min={50}
-                max={400}
-                value={Math.min(400, Math.max(50, zoomPercent))}
-                onChange={(event) => onCommand(`zoom:${event.target.value}`)}
-              />
-              <button
-                className="zoom-btn"
-                data-tip={t('appZoomIn')}
-                aria-label={t('appZoomIn')}
-                onClick={() => onCommand('zoom-in')}
-              >
-                +
-              </button>
-              <span className="zoom-value">{zoomPercent}%</span>
-            </div>
-          </footer>
         </div>
-      </div>
+      </EditorFrame>
       {showFormatCells && (
         <FormatCellsDialog
           selectionFormat={selectionFormat}

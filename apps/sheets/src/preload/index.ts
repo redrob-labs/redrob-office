@@ -7,6 +7,7 @@ import type {
   GenSparkAccountStatus,
 } from '@genoffice/ai-provider'
 import type { ProjectApi } from '@genoffice/project-store'
+import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import type {
   AttachmentAddResult,
   AttachmentImageResult,
@@ -53,6 +54,7 @@ import {
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 
 const desktopApi: DesktopApi = {
+  ...officePrefsBridge(ipcRenderer),
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
   onLanguageChanged(handler) {
     const listener = (

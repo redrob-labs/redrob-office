@@ -14,11 +14,10 @@ import {
   Icon,
   IconButton,
 } from '@genoffice/ui'
-import { GensparkMark } from '../ribbon-icons'
 import type { ChangePlan } from '../../domain/workbook.types'
 import { ATTACHMENT_IMAGE_EXTS, type AttachmentMeta } from '../../shared/desktop-api'
 import { useI18n, type TFunc } from '../i18n/locale'
-import { Markdown } from '@genoffice/ui'
+import { Markdown, RedrobMark } from '@genoffice/ui'
 import { SHEET_NAV_SCHEME } from './sheet-nav'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
@@ -242,6 +241,7 @@ export function AiChatPanel({
   onCitation,
   onExpand,
   onCollapse,
+  hosted = false,
 }: {
   readonly isOpen: boolean
   /** the workbook has cells with content — empty workbooks get "build me a sheet" copy instead */
@@ -288,6 +288,8 @@ export function AiChatPanel({
   readonly onCitation: (href: string) => void
   readonly onExpand: () => void
   readonly onCollapse: () => void
+  /** hosted by the shared EditorFrame, which owns the width, the resize handle and hiding it */
+  readonly hosted?: boolean | undefined
 }): React.JSX.Element {
   const { t } = useI18n()
   const chatRef = useRef<HTMLDivElement | null>(null)
@@ -441,7 +443,7 @@ export function AiChatPanel({
     stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
   }
 
-  if (!isOpen) {
+  if (!isOpen && !hosted) {
     return (
       <aside className="copilot collapsed">
         <button
@@ -450,7 +452,7 @@ export function AiChatPanel({
           data-tip={t('aiOpenAssistant')}
           aria-label={t('aiOpenAssistant')}
         >
-          <GensparkMark size={22} />
+          <RedrobMark size={22} />
         </button>
       </aside>
     )
@@ -517,13 +519,15 @@ export function AiChatPanel({
       }}
       onDrop={onDrop}
     >
-      <div
-        className="ai-panel-resizer"
-        onPointerDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Redrob AI"
-      />
+      {!hosted && (
+        <div
+          className="ai-panel-resizer"
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Redrob AI"
+        />
+      )}
       <AgentPanelHeader
         title="Redrob AI"
         actions={[

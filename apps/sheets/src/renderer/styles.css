@@ -4136,3 +4136,41 @@ textarea:focus {
   flex-shrink: 0;
   min-width: 120px;
 }
+
+/* ---- the shared editor frame (EditorFrame, @genoffice/ui) ---- */
+
+.app-shell:has(> .go-frame) {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell > .go-frame {
+  flex: 1;
+  min-height: 0;
+}
+
+.go-frame__page > .sheet-main {
+  height: 100%;
+  /* name box / workbook; the status bar is the frame's */
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.go-frame__panel > .copilot {
+  flex: 1;
+  width: 100%;
+}
+
+.go-frame__toolbar > .excel-header {
+  min-width: 0;
+}
+
+.sheets-save-status {
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.status-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
