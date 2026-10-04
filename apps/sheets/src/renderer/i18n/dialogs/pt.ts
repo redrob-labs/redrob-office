@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pt = {
   dlgAllowEditRangesTitle: 'Permitir Edição de Intervalos',
@@ -401,4 +401,4 @@ export const pt = {
   dlgFnDescNpv: 'Retorna o valor presente líquido de um fluxo de caixa a uma taxa de desconto.',
   dlgFnDescIrr: 'Retorna a taxa interna de retorno de uma série de fluxos de caixa.',
   dlgFnCatFinancial: 'Financeira',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

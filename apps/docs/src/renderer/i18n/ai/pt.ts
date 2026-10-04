@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pt = {
   aiYou: 'Você',
@@ -162,4 +162,4 @@ export const pt = {
   aiCmdImages: '{count} imagem(ns) atualizada(s)',
   aiCmdToc: 'Sumário inserido ({count} entradas)',
   aiCmdSkipped: ' ({count} bloco(s) protegido(s) ignorado(s))',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

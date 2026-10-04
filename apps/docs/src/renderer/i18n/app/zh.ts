@@ -1,4 +1,5 @@
-/** app strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** app strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   appScTitle: '键盘快捷键',
   appScFilter: '搜索快捷键',
@@ -363,4 +364,4 @@ export const zh = {
   appUpdateStyleTip: '用当前选区的格式更新此样式(写回 styles.xml)',
   appNewStyleFromSelection: '从当前选区新建样式',
   appStyleNamePlaceholder: '样式名称',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const he = {
   aiYou: 'את/ה',
@@ -108,4 +108,4 @@ export const he = {
   aiScopeRangeTip:
     'ה-AI מפרש "העמודה הזו / השורות האלה / החלק הנבחר" כטווח הזה, והוא מקובע לכל ההרצה עם השליחה',
   aiScopeClearTitle: 'ביטול טווח הבחירה ומיקוד בגיליון כולו',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

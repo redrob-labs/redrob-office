@@ -1,4 +1,5 @@
-/** ai strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** ai strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   aiYou: '你',
   aiFailedTitle: '助手未能完成',
@@ -106,4 +107,4 @@ export const zh = {
   aiScopeColumns: '已选中 {names} 共 {count} 列',
   aiScopeRangeTip: 'AI 会把"这一列 / 这些行 / 选中部分"理解为该区域；发送后本轮固定不变',
   aiScopeClearTitle: '取消该区域范围，本次针对整张表',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const nl = {
   ribbonAiCreditNote: 'Gebruikt AI en verbruikt tegoed',
@@ -706,4 +706,4 @@ export const nl = {
   ribbonClearAll: 'Alles wissen',
   ribbonClearAllTip: 'Alle inkt in het document verwijderen',
   ribbonGroupClear: 'Wissen',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -38,7 +38,7 @@ import {
   windowMenuTemplate,
 } from '@genoffice/electron-utils'
 import { configureMetricsCache, familyVerticalMetrics } from '@genoffice/font-metrics'
-import { createI18n, getUiLang, normalizeLang, setUiLang } from '@genoffice/i18n'
+import { createI18n, getUiLang, normalizeLang, setUiLang, toSelectableLang } from '@genoffice/i18n'
 import { ProjectStore } from '@genoffice/project-store'
 import type {
   IpcMainInvokeEvent,
@@ -4303,7 +4303,7 @@ export function startDocsStandalone(): void {
   registerDocsIpc()
 
   app.whenReady().then(() => {
-    setUiLang(normalizeLang(process.env.GENOFFICE_LANG ?? app.getLocale()))
+    setUiLang(toSelectableLang(normalizeLang(process.env.GENOFFICE_LANG ?? app.getLocale())))
     // packaged builds get the Dock icon from icon.icns; dev shows Electron's default
     if (isDev && process.platform === 'darwin') {
       app.dock?.setIcon(join(app.getAppPath(), 'build/icon.png'))

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   aiYou: 'あなた',
@@ -252,4 +252,4 @@ export const ja = {
   aiSumSaveTemplate: 'スタイル テンプレート「{name}」を保存',
   aiSumTemplatesEmpty: 'スタイル テンプレート一覧（空）',
   aiSumListTemplates: '{count} 個のスタイル テンプレートを一覧表示',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

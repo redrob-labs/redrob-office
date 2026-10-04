@@ -42,7 +42,8 @@ import menuHwpIcon1x from './assets/menu-hwp.png?asset'
 import menuHwpIcon2x from './assets/menu-hwp@2x.png?asset'
 import menuHomeIcon1x from './assets/menu-home.png?asset'
 import menuHomeIcon2x from './assets/menu-home@2x.png?asset'
-import { createI18n, isLang, normalizeLang, setUiLang, type Lang } from '@genoffice/i18n'
+import { createI18n, isSelectableLang, setUiLang, type Lang } from '@genoffice/i18n'
+import { resolveStartupLang } from './ui-language'
 import {
   DEFAULT_SAVE_DIR_KEY,
   DROP_OPEN_CHANNEL,
@@ -364,14 +365,11 @@ let uiLang: Lang | null = null
 
 function currentLang(): Lang {
   if (uiLang) return uiLang
-  if (process.env.GENOFFICE_LANG) {
-    uiLang = normalizeLang(process.env.GENOFFICE_LANG)
-    setUiLang(uiLang)
-    return uiLang
-  }
-  const saved = readAppSettings(APP_SETTINGS_PATH()).language
-  if (isLang(saved)) uiLang = saved
-  uiLang ??= normalizeLang(app.getLocale())
+  const envLang = process.env.GENOFFICE_LANG
+  const saved = envLang ? undefined : readAppSettings(APP_SETTINGS_PATH()).language
+  const resolved = resolveStartupLang({ envLang, saved, systemLocale: app.getLocale() })
+  uiLang = resolved.lang
+  if (resolved.migrate) writeAppSetting(APP_SETTINGS_PATH(), 'language', uiLang)
   setUiLang(uiLang)
   return uiLang
 }
@@ -3223,7 +3221,8 @@ function registerHomeIpc(): void {
   ipcMain.handle(HOME_CHANNELS.getLanguage, (): Lang => currentLang())
 
   ipcMain.handle(HOME_CHANNELS.setLanguage, (_event, lang: unknown) => {
-    if (!isLang(lang) || lang === currentLang()) return
+    // a language listed as "Not yet" cannot be chosen, even by a crafted IPC call
+    if (!isSelectableLang(lang) || lang === currentLang()) return
     persistLang(lang)
     // the switcher lives on the home page, so the home menu is the active one
     buildHomeMenu()

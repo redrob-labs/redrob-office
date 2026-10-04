@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   appSlideRail: 'Slides',
@@ -231,4 +231,4 @@ export const en = {
   appSettingsCancel: 'Cancel',
   appSettingsSave: 'Save',
   appCropHint: 'Enter to confirm · Esc to cancel · Click outside to confirm',
-} satisfies Record<keyof typeof zh, string>
+}

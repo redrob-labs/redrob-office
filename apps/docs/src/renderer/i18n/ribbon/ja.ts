@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   ribbonAiCreditNote: 'AI を呼び出し、クレジットを消費します',
@@ -716,4 +716,4 @@ export const ja = {
   ribbonClearAll: 'すべてクリア',
   ribbonClearAllTip: 'ドキュメント内のすべてのインクを削除',
   ribbonGroupClear: 'クリア',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

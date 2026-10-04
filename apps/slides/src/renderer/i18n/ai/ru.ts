@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ru = {
   aiYou: 'Вы',
@@ -254,4 +254,4 @@ export const ru = {
   aiSumSaveTemplate: 'Сохранён шаблон стиля «{name}»',
   aiSumTemplatesEmpty: 'Шаблоны стиля (пусто)',
   aiSumListTemplates: 'Показано шаблонов стиля: {count}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pl = {
   appScTitle: 'Skróty klawiaturowe',
@@ -354,4 +354,4 @@ export const pl = {
     'Zaktualizuj ten styl formatem bieżącego zaznaczenia (zapisywane z powrotem do styles.xml)',
   appNewStyleFromSelection: 'Nowy styl z bieżącego zaznaczenia',
   appStyleNamePlaceholder: 'Nazwa stylu',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const de = {
   dlgAllowEditRangesTitle: 'Bearbeitungsbereiche zulassen',
@@ -404,4 +404,4 @@ export const de = {
   dlgFnDescNpv: 'Gibt den Nettobarwert eines Cashflows bei einem Abschlagssatz zurück.',
   dlgFnDescIrr: 'Gibt den internen Zinsfuß einer Cashflow-Reihe zurück.',
   dlgFnCatFinancial: 'Finanzmathematik',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

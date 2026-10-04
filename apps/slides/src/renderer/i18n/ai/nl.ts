@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const nl = {
   aiYou: 'Jij',
@@ -255,4 +255,4 @@ export const nl = {
   aiSumSaveTemplate: 'Stijlsjabloon "{name}" opgeslagen',
   aiSumTemplatesEmpty: 'Stijlsjablonen (leeg)',
   aiSumListTemplates: '{count} stijlsjablonen weergegeven',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

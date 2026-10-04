@@ -390,6 +390,7 @@ export const strings = {
     yesterday: 'Yesterday',
     daysAgo: '{n}d ago',
     language: 'Language',
+    langNotYet: 'Not yet',
     closeTab: 'Close tab',
     tabList: 'All tabs',
     newTab: 'New tab',

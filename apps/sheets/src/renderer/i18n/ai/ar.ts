@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
   aiYou: 'أنت',
@@ -112,4 +112,4 @@ export const ar = {
   aiScopeRangeTip:
     'يفهم الذكاء الاصطناعي "هذا العمود / هذه الصفوف / الجزء المحدد" على أنه هذا النطاق، ويُثبَّت طوال التشغيل بعد الإرسال',
   aiScopeClearTitle: 'إلغاء نطاق التحديد واستهداف الورقة بأكملها',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

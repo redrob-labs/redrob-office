@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
   appSlideRail: 'Slaid',
@@ -240,4 +240,4 @@ export const ms = {
   appSettingsCancel: 'Batal',
   appSettingsSave: 'Simpan',
   appCropHint: 'Enter untuk mengesahkan · Esc untuk membatalkan · Klik di luar untuk mengesahkan',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

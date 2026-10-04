@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const hi = {
   paneCancel: 'रद्द करें',
@@ -277,4 +277,4 @@ export const hi = {
   paneShowEnded: 'स्लाइड शो समाप्त।',
   paneShowRehearseTip: 'समय का पूर्वाभ्यास: इस स्लाइड पर समय / कुल समय',
   paneShowRehearseTotal: 'कुल {time}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

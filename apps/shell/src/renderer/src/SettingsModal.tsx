@@ -9,6 +9,7 @@ import {
   clampMaxOutputTokens,
 } from '@genoffice/ai-provider'
 import type { AiSettings } from '@genoffice/ai-provider'
+import { isSelectableLang, languageOptions } from '@genoffice/i18n'
 import { useI18n } from './locale'
 import type { StringKey, TFunc } from './locale'
 import type { AccountStatus, UiTheme } from '../../shared/home-api'
@@ -29,29 +30,8 @@ import './settings.css'
  * Redrob Console, so a settings object always carries one Console key. */
 const REDROB_ENGINE_SLOT: AiSettings['provider'] = 'genspark'
 
-// sorted by ISO 639 language code — native-script labels have no natural
-// shared alphabet, so the code is the ordering key
-const LANG_OPTIONS = [
-  { value: 'ar', label: 'العربية' },
-  { value: 'de', label: 'Deutsch' },
-  { value: 'en', label: 'English' },
-  { value: 'es', label: 'Español' },
-  { value: 'fr', label: 'Français' },
-  { value: 'he', label: 'עברית' },
-  { value: 'hi', label: 'हिन्दी' },
-  { value: 'id', label: 'Bahasa Indonesia' },
-  { value: 'it', label: 'Italiano' },
-  { value: 'ja', label: '日本語' },
-  { value: 'ko', label: '한국어' },
-  { value: 'ms', label: 'Bahasa Melayu' },
-  { value: 'nl', label: 'Nederlands' },
-  { value: 'pl', label: 'Polski' },
-  { value: 'pt', label: 'Português' },
-  { value: 'ru', label: 'Русский' },
-  { value: 'th', label: 'ไทย' },
-  { value: 'zh', label: '简体中文' },
-  { value: 'zh-TW', label: '繁體中文' },
-] as const
+// selectable languages first, then the ones listed as "Not yet" (shown, never chosen)
+const LANG_OPTIONS = languageOptions()
 
 // GenMail's option order: follow-system first, then the manual picks
 const THEME_OPTIONS = [
@@ -551,9 +531,13 @@ export function SettingsModal({
                   className="set-select"
                   size="sm"
                   value={lang}
-                  options={LANG_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))}
+                  options={LANG_OPTIONS.map((opt) => ({
+                    value: opt.value,
+                    label: opt.selectable ? opt.label : `${opt.label} - ${t('langNotYet')}`,
+                    disabled: !opt.selectable,
+                  }))}
                   onChange={(_event, option) => {
-                    if (option) setLang(option.value as typeof lang)
+                    if (option && isSelectableLang(option.value)) setLang(option.value)
                   }}
                 />
               </div>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const es = {
   aiYou: 'Tú',
@@ -115,4 +115,4 @@ export const es = {
   aiScopeRangeTip:
     'La IA interpreta «esta columna / estas filas / la parte seleccionada» como este rango, y al enviar queda fijo durante toda la ejecución',
   aiScopeClearTitle: 'Quitar el ámbito del rango y usar toda la hoja',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

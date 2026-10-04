@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
   aiYou: 'Anda',
@@ -113,4 +113,4 @@ export const ms = {
   aiScopeRangeTip:
     'AI membaca "lajur ini / baris ini / bahagian yang dipilih" sebagai julat ini, dan ia dikunci sepanjang larian selepas anda hantar',
   aiScopeClearTitle: 'Buang skop julat dan gunakan seluruh helaian',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

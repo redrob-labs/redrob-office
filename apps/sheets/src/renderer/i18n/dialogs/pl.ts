@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pl = {
   dlgAllowEditRangesTitle: 'Zezwalaj na edytowanie zakresów',
@@ -402,4 +402,4 @@ export const pl = {
   dlgFnDescNpv: 'Zwraca wartość bieżącą netto przepływów przy danej stopie dyskontowej.',
   dlgFnDescIrr: 'Zwraca wewnętrzną stopę zwrotu dla serii przepływów.',
   dlgFnCatFinancial: 'Finansowe',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const hi = {
   dlgAllowEditRangesTitle: 'रेंज संपादन की अनुमति दें',
@@ -399,4 +399,4 @@ export const hi = {
   dlgFnDescNpv: 'किसी छूट दर पर नकदी प्रवाह का शुद्ध वर्तमान मूल्य देता है।',
   dlgFnDescIrr: 'नकदी प्रवाहों की श्रृंखला की आंतरिक प्रतिफल दर देता है।',
   dlgFnCatFinancial: 'वित्तीय',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

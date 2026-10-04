@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
   aiYou: 'คุณ',
@@ -156,4 +156,4 @@ export const th = {
   aiCmdImages: 'อัปเดตรูปภาพ {count} รูปแล้ว',
   aiCmdToc: 'แทรกสารบัญแล้ว ({count} รายการ)',
   aiCmdSkipped: ' (ข้ามบล็อกที่ได้รับการป้องกัน {count} บล็อก)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

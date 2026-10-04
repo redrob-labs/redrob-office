@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   aiYou: 'You',
@@ -158,4 +158,4 @@ export const en = {
   aiCmdImages: 'Updated {count} image(s)',
   aiCmdToc: 'Inserted a table of contents ({count} entries)',
   aiCmdSkipped: ' ({count} protected block(s) skipped)',
-} satisfies Record<keyof typeof zh, string>
+}

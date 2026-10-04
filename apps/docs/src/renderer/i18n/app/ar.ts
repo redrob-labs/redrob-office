@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
   appScTitle: 'اختصارات لوحة المفاتيح',
@@ -345,4 +345,4 @@ export const ar = {
   appUpdateStyleTip: 'تحديث هذا النمط بتنسيق التحديد الحالي (يُكتب مرة أخرى في styles.xml)',
   appNewStyleFromSelection: 'نمط جديد من التحديد الحالي',
   appStyleNamePlaceholder: 'اسم النمط',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const de = {
   aiYou: 'Sie',
@@ -114,4 +114,4 @@ export const de = {
   aiScopeRangeTip:
     'Die KI versteht „diese Spalte / diese Zeilen / die Auswahl“ als diesen Bereich; beim Senden wird er für den Lauf fixiert',
   aiScopeClearTitle: 'Bereichsvorgabe aufheben und das ganze Blatt verwenden',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

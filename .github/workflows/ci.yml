@@ -55,6 +55,9 @@ jobs:
       - name: Design-system tokens
         run: pnpm check:ui-tokens
 
+      - name: English copy
+        run: pnpm check:copy
+
       - name: Typecheck
         run: pnpm typecheck
 

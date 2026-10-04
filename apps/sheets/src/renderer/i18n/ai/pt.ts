@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pt = {
   aiYou: 'Você',
@@ -114,4 +114,4 @@ export const pt = {
   aiScopeRangeTip:
     'A IA interpreta "esta coluna / estas linhas / a parte selecionada" como este intervalo, que fica fixo durante toda a execução ao enviar',
   aiScopeClearTitle: 'Remover o escopo do intervalo e usar a planilha inteira',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

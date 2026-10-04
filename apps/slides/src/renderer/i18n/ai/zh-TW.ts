@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
   aiYou: '你',
@@ -246,4 +246,4 @@ export const zhTW = {
   aiSumSaveTemplate: '儲存風格範本"{name}"',
   aiSumTemplatesEmpty: '風格範本清單（空）',
   aiSumListTemplates: '列出 {count} 個風格範本',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
   paneCancel: '取消',
@@ -274,4 +274,4 @@ export const zhTW = {
   paneShowEnded: '放映結束。',
   paneShowRehearseTip: '排練計時：目前頁停留 / 總時長',
   paneShowRehearseTotal: '總時長 {time}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const he = {
   appSlideRail: 'שקופיות',
@@ -225,4 +225,4 @@ export const he = {
   appSettingsCancel: 'ביטול',
   appSettingsSave: 'שמור',
   appCropHint: 'Enter לאישור · Esc לביטול · לחץ בחוץ לאישור',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
   aiYou: 'Anda',
@@ -159,4 +159,4 @@ export const ms = {
   aiCmdImages: '{count} imej dikemas kini',
   aiCmdToc: 'Jadual kandungan disisipkan ({count} entri)',
   aiCmdSkipped: ' ({count} blok dilindungi dilangkau)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

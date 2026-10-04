@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   appSlideRail: 'スライド',
@@ -232,4 +232,4 @@ export const ja = {
   appSettingsCancel: 'キャンセル',
   appSettingsSave: '保存',
   appCropHint: 'Enter で確定 · Esc でキャンセル · 外側をクリックで確定',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

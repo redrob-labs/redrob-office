@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
   appScTitle: '鍵盤快速鍵',
@@ -337,4 +337,4 @@ export const zhTW = {
   appUpdateStyleTip: '用目前選取範圍的格式更新此樣式(寫回 styles.xml)',
   appNewStyleFromSelection: '從目前選取範圍建立新樣式',
   appStyleNamePlaceholder: '樣式名稱',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

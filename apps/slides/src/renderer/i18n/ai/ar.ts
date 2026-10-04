@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
   aiYou: 'أنت',
@@ -251,4 +251,4 @@ export const ar = {
   aiSumSaveTemplate: 'حفظ قالب النمط "{name}"',
   aiSumTemplatesEmpty: 'قوالب الأنماط (فارغ)',
   aiSumListTemplates: 'سرد {count} من قوالب الأنماط',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

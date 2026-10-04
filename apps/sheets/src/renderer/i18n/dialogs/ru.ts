@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ru = {
   dlgAllowEditRangesTitle: 'Разрешить изменение диапазонов',
@@ -403,4 +403,4 @@ export const ru = {
   dlgFnDescNpv: 'Возвращает чистую приведённую стоимость потока платежей при заданной ставке.',
   dlgFnDescIrr: 'Возвращает внутреннюю норму доходности потока платежей.',
   dlgFnCatFinancial: 'Финансовые',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

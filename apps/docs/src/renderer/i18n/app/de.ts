@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const de = {
   appScTitle: 'Tastenkombinationen',
@@ -360,4 +360,4 @@ export const de = {
     'Diese Formatvorlage mit der Formatierung der aktuellen Auswahl aktualisieren (wird in styles.xml zurückgeschrieben)',
   appNewStyleFromSelection: 'Neue Formatvorlage aus der aktuellen Auswahl',
   appStyleNamePlaceholder: 'Name der Formatvorlage',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

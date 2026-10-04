@@ -1,4 +1,5 @@
-/** ai strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** ai strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   aiYou: '你',
   aiFailedTitle: '助手未能完成',
@@ -150,4 +151,4 @@ export const zh = {
   aiCmdImages: '已更新 {count} 张图片',
   aiCmdToc: '已插入目录({count} 个条目)',
   aiCmdSkipped: '(跳过 {count} 个受保护块)',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

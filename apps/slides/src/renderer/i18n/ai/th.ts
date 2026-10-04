@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
   aiYou: 'คุณ',
@@ -250,4 +250,4 @@ export const th = {
   aiSumSaveTemplate: 'บันทึกเทมเพลตสไตล์ "{name}"',
   aiSumTemplatesEmpty: 'รายการเทมเพลตสไตล์ (ว่าง)',
   aiSumListTemplates: 'แสดงเทมเพลตสไตล์ {count} รายการ',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

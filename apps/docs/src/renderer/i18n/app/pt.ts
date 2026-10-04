@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pt = {
   appScTitle: 'Atalhos de Teclado',
@@ -349,4 +349,4 @@ export const pt = {
   appUpdateStyleTip: 'Atualizar este estilo com a seleção atual (gravado de volta em styles.xml)',
   appNewStyleFromSelection: 'Novo estilo a partir da seleção atual',
   appStyleNamePlaceholder: 'Nome do estilo',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

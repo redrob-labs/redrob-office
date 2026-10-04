@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
   ribbonAiCreditNote: 'เรียกใช้ AI และใช้เครดิต',
@@ -717,4 +717,4 @@ export const th = {
   ribbonEqStdDev: 'ส่วนเบี่ยงเบนมาตรฐาน',
   ribbonEqFourier: 'การแปลงฟูรีเย',
   ribbonEqNormalDist: 'การแจกแจงปกติ',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

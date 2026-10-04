@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const hi = {
   aiYou: 'आप',
@@ -253,4 +253,4 @@ export const hi = {
   aiSumSaveTemplate: 'स्टाइल टेम्पलेट "{name}" सहेजा गया',
   aiSumTemplatesEmpty: 'स्टाइल टेम्पलेट (खाली)',
   aiSumListTemplates: '{count} स्टाइल टेम्पलेट सूचीबद्ध किए गए',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

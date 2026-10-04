@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   aiYou: 'You',
@@ -253,4 +253,4 @@ export const en = {
   aiSumSaveTemplate: 'Saved style template "{name}"',
   aiSumTemplatesEmpty: 'Style templates (empty)',
   aiSumListTemplates: 'Listed {count} style templates',
-} satisfies Record<keyof typeof zh, string>
+}

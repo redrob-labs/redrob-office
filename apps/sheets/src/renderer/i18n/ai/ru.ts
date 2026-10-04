@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ru = {
   aiYou: 'Вы',
@@ -113,4 +113,4 @@ export const ru = {
   aiScopeRangeTip:
     'ИИ понимает «этот столбец / эти строки / выделенную часть» как этот диапазон; после отправки он фиксируется на весь запуск',
   aiScopeClearTitle: 'Снять область диапазона и работать со всем листом',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

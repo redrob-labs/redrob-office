@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
   aiYou: 'คุณ',
@@ -111,4 +111,4 @@ export const th = {
   aiScopeRangeTip:
     'AI จะตีความ "คอลัมน์นี้ / แถวเหล่านี้ / ส่วนที่เลือก" เป็นช่วงนี้ และจะถูกตรึงไว้ตลอดการทำงานเมื่อคุณส่ง',
   aiScopeClearTitle: 'ยกเลิกขอบเขตช่วงนี้และใช้ทั้งแผ่นงาน',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

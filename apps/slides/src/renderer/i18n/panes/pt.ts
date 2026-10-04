@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pt = {
   paneCancel: 'Cancelar',
@@ -280,4 +280,4 @@ export const pt = {
   paneShowEnded: 'Fim da apresentação de slides.',
   paneShowRehearseTip: 'Testar Intervalos: tempo neste slide / tempo total',
   paneShowRehearseTotal: 'Total {time}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const fr = {
   aiYou: 'Vous',
@@ -114,4 +114,4 @@ export const fr = {
   aiScopeRangeTip:
     "L'IA interprète « cette colonne / ces lignes / la partie sélectionnée » comme cette plage, figée pendant toute l'exécution dès l'envoi",
   aiScopeClearTitle: 'Retirer la portée de la plage et viser toute la feuille',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

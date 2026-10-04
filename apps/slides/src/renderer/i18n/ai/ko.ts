@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
   aiYou: '나',
@@ -253,4 +253,4 @@ export const ko = {
   aiSumSaveTemplate: '스타일 템플릿 "{name}" 저장',
   aiSumTemplatesEmpty: '스타일 템플릿 목록(비어 있음)',
   aiSumListTemplates: '스타일 템플릿 {count}개 나열',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
   appMergeWorkbooks: 'รวมเวิร์กบุ๊ก',
@@ -1280,4 +1280,4 @@ export const th = {
   appFindTitle: 'ค้นหาและเลือก ⌘F',
   appReplace: 'แทนที่',
   appGoTo: 'ไปที่',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,5 @@
-/** ai strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** ai strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   aiYou: '你',
   aiFailedTitle: '助手未能完成',
@@ -245,4 +246,4 @@ export const zh = {
   aiSumSaveTemplate: '保存风格模板"{name}"',
   aiSumTemplatesEmpty: '风格模板列表（空）',
   aiSumListTemplates: '列出 {count} 个风格模板',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

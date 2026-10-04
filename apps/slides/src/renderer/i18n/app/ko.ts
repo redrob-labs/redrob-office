@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
   appSlideRail: '슬라이드',
@@ -228,4 +228,4 @@ export const ko = {
   appSettingsCancel: '취소',
   appSettingsSave: '저장',
   appCropHint: 'Enter 확인 · Esc 취소 · 바깥쪽 클릭으로 확인',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

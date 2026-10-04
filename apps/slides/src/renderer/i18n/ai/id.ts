@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const id = {
   aiYou: 'Anda',
@@ -254,4 +254,4 @@ export const id = {
   aiSumSaveTemplate: 'Menyimpan templat gaya "{name}"',
   aiSumTemplatesEmpty: 'Daftar templat gaya (kosong)',
   aiSumListTemplates: 'Menampilkan {count} templat gaya',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   aiYou: 'あなた',
@@ -159,4 +159,4 @@ export const ja = {
   aiCmdImages: '{count} 枚の画像を更新しました',
   aiCmdToc: '目次を挿入しました({count} 項目)',
   aiCmdSkipped: '({count} 個の保護されたブロックをスキップ)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

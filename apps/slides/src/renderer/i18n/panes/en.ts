@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   paneCancel: 'Cancel',
@@ -277,4 +277,4 @@ export const en = {
   paneShowEnded: 'End of slide show.',
   paneShowRehearseTip: 'Rehearse Timings: time on this slide / total time',
   paneShowRehearseTotal: 'Total {time}',
-} satisfies Record<keyof typeof zh, string>
+}

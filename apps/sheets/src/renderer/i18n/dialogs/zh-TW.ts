@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
   dlgAllowEditRangesTitle: '允許編輯範圍',
@@ -387,4 +387,4 @@ export const zhTW = {
   dlgFnDescNpv: '按貼現率計算現金流的淨現值。',
   dlgFnDescIrr: '計算一系列現金流的內部報酬率。',
   dlgFnCatFinancial: '財務',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

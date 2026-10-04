@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const id = {
   aiYou: 'Anda',
@@ -112,4 +112,4 @@ export const id = {
   aiScopeRangeTip:
     'AI membaca "kolom ini / baris ini / bagian yang dipilih" sebagai rentang ini, dan dikunci selama proses berjalan setelah Anda mengirim',
   aiScopeClearTitle: 'Hapus cakupan rentang dan gunakan seluruh lembar',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

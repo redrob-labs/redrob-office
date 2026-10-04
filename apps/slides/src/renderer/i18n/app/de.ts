@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const de = {
   appSlideRail: 'Folien',
@@ -247,4 +247,4 @@ export const de = {
   appSettingsCancel: 'Abbrechen',
   appSettingsSave: 'Speichern',
   appCropHint: 'Eingabetaste zum Bestätigen · Esc zum Abbrechen · Klick außerhalb zum Bestätigen',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

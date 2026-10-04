@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
   appScTitle: '키보드 바로 가기',
@@ -375,4 +375,4 @@ export const ko = {
   appUpdateStyleTip: '현재 선택 영역의 서식으로 이 스타일을 업데이트합니다(styles.xml에 기록)',
   appNewStyleFromSelection: '선택 영역에서 새 스타일 만들기',
   appStyleNamePlaceholder: '스타일 이름',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
   ribbonAiCreditNote: 'Menggunakan AI dan menggunakan kredit',
@@ -702,4 +702,4 @@ export const ms = {
   ribbonClearAll: 'Kosongkan Semua',
   ribbonClearAllTip: 'Padamkan semua dakwat dalam dokumen',
   ribbonGroupClear: 'Kosongkan',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>
