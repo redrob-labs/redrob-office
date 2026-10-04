@@ -93,6 +93,7 @@
   },
   "dependencies": {
     "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/facts": "workspace:*",
     "@genoffice/font-metrics": "workspace:*",
     "electron-updater": "^6.8.9",
     "pdf-lib": "^1.17.1",

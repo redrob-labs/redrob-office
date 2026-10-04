@@ -26,6 +26,7 @@ import {
   type ToolbarChoice,
 } from '@genoffice/ui'
 import { SimpleToolbar, docsCommands, docsTools } from './components/SimpleToolbar'
+import { useLinkedFigures } from './linked/useLinkedFigures'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
   BLANK_BULLET_NUM_ID,
@@ -4273,6 +4274,14 @@ export function App() {
   }, [cancelNewComment])
 
   const hasDoc = !!doc
+  // linked figures: the index lives in the shell, the figures in this file
+  const linked = useLinkedFigures({
+    editor,
+    filePath: doc?.filePath ?? null,
+    clean: hasDoc && !hasUnsavedChanges,
+    editable: hasDoc && formatState.editable && !viewing,
+    setStatus,
+  })
   // Undo/redo availability: refreshed on every transaction so the QAT buttons grey out when empty
   const [histState, setHistState] = useState({ canUndo: false, canRedo: false })
   useEffect(() => {
@@ -4359,7 +4368,7 @@ export function App() {
     comment: startNewComment,
   }
   const docsCmd = docsCommands(editor, allocateListNumId, doc?.parsed.blocks ?? EMPTY_BLOCKS)
-  const frameTools = docsTools(t, docsCmd, redrobActions, hasDoc && formatState.editable)
+  const frameTools = [...docsTools(t, docsCmd, redrobActions, hasDoc && formatState.editable), ...(hasDoc ? linked.tools : [])]
   const openComments = comments.filter((c) => !c.parentId && c.done !== true).length
   const docsStatusBar = (
     <StatusBar
@@ -4496,6 +4505,8 @@ export function App() {
     >
       <ToastHost />
       {docCss && <style data-doc-css="">{docCss}</style>}
+      {linked.css && <style data-linked-figures="">{linked.css}</style>}
+      {hasDoc && linked.overlay}
       {doc && liveDocCjk != null && (
         <style data-doc-css="">{`.doc-page { --doc-line-factor:${docLineFactor(doc.parsed, liveDocCjk)} }`}</style>
       )}
@@ -4657,6 +4668,8 @@ export function App() {
         panelWidth={panelWidth}
         onPanelWidthChange={changePanelWidth}
         status={docsStatusBar}
+        rail={hasDoc ? linked.rail : undefined}
+        railWidth={260}
       >
         <div className="app-content">
           <div className={`workspace ${darkCanvas ? 'workspace-dark' : ''}`}>

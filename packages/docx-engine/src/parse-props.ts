@@ -18,6 +18,7 @@ import {
   plainText,
   stripHash,
 } from './parse-xml-text'
+import { parseLinkedFigureInstr } from './linked-figure'
 import type {
   Block,
   CellBorders,
@@ -375,6 +376,7 @@ export function onlyXeFields(xml: string): boolean {
       /^\s*XE[\s"]/.test(text) ||
       /^\s*REF\s/.test(text) ||
       SIMPLE_INLINE_FIELD_RE.test(text) ||
+      parseLinkedFigureInstr(text) !== null ||
       convertibleHyperlink(text) !== null
     )
   })

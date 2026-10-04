@@ -12,6 +12,7 @@ import type {
 } from '../shared/ipc'
 import type { ProjectApi } from '@genoffice/project-store'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import { FACTS_CHANNELS, normalizeFactsState } from '@genoffice/facts'
 
 const api: DesktopApi = {
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
@@ -67,6 +68,19 @@ const api: DesktopApi = {
     const listener = (_e: unknown, p: unknown) => handler(normalizeOfficePrefs(p))
     ipcRenderer.on(OFFICE_PREFS_CHANGED, listener)
     return () => ipcRenderer.removeListener(OFFICE_PREFS_CHANGED, listener)
+  },
+  // shell-owned linked figures (apps/shell/src/main/facts-service.ts)
+  getFacts: () =>
+    ipcRenderer
+      .invoke(FACTS_CHANNELS.get)
+      .then((s: unknown) => normalizeFactsState(s))
+      .catch(() => null),
+  factsCommand: (cmd) =>
+    ipcRenderer.invoke(FACTS_CHANNELS.command, cmd).then((s: unknown) => normalizeFactsState(s)),
+  onFactsChanged: (handler) => {
+    const listener = (_e: unknown, s: unknown) => handler(normalizeFactsState(s))
+    ipcRenderer.on(FACTS_CHANNELS.changed, listener)
+    return () => ipcRenderer.removeListener(FACTS_CHANNELS.changed, listener)
   },
   consumeAiDocContent: () => ipcRenderer.invoke('docs:consume-ai-doc-content'),
   createDocument: (request) => ipcRenderer.invoke('docs:create-document', request),

@@ -119,6 +119,11 @@
   --docs-paper-chart-border: #d9d9d9;
   --docs-paper-field-bg: rgb(0 0 0 / 7%);
   --docs-paper-field-bg-inverse: rgb(255 255 255 / 12%);
+  /* linked figures: dotted underline, a tint while an update waits, amber when out of date */
+  --docs-paper-fig-line: #6b7280;
+  --docs-paper-fig-wait-bg: rgb(59 130 246 / 14%);
+  --docs-paper-fig-wait-line: #2563eb;
+  --docs-paper-fig-stale-line: #d97706;
   --docs-paper-watermark: rgb(128 128 128 / 18%);
   --docs-paper-rev-ink: #b91c1c;
   --docs-paper-ins-bg: rgb(22 163 74 / 8%);
@@ -5065,6 +5070,23 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
 
 .doc-ref-field:hover {
   background: var(--docs-paper-field-bg);
+}
+
+/* a linked figure reads as text with a dotted underline; it opens its card on click or Enter */
+.doc-fig {
+  text-decoration: underline dotted var(--docs-paper-fig-line);
+  text-underline-offset: 3px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.doc-fig:hover {
+  background: var(--docs-paper-field-bg);
+}
+
+.doc-fig:focus-visible {
+  outline: 2px solid var(--docs-paper-fig-wait-line);
+  outline-offset: 1px;
 }
 
 .workspace-dark .doc-ref-field:hover {

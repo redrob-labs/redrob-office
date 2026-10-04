@@ -92,6 +92,13 @@ export {
 export { nextNoteId, parseNotesXml, type NoteKind } from './notes'
 export { readWatermarkText } from './watermark'
 export {
+  isLinkedFigureId,
+  linkedFigureInstr,
+  parseLinkedFigureInstr,
+  type LinkedFigurePart,
+  type LinkedFigureRef,
+} from './linked-figure'
+export {
   INK_NAME_PREFIX,
   anchoredInkRunXml,
   findInkRuns,

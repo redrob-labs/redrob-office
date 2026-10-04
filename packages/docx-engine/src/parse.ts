@@ -142,6 +142,7 @@ import {
   themedRFonts,
   txbxHasStructuredContent,
 } from './parse-props'
+import { parseLinkedFigureInstr } from './linked-figure'
 import {
   parseComments,
   parseNumbering,
@@ -2845,6 +2846,13 @@ function extractRuns(
                 rev,
               )
             }
+          } else if (parseLinkedFigureInstr(fieldInstr) !== null) {
+            // a linked figure keeps the formatting of its cached result
+            const first = fieldCachedRuns[0]
+            pushRun(
+              { ...(first ?? {}), text: fieldCached || ' ', instrField: fieldInstr.trim() },
+              rev,
+            )
           } else if (SIMPLE_INLINE_FIELD_RE.test(fieldInstr)) {
             pushRun({ text: fieldCached || ' ', instrField: fieldInstr.trim() }, rev)
           } else if (fieldCachedRuns.length > 0) {

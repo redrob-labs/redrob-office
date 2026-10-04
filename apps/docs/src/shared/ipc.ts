@@ -1,4 +1,5 @@
 import type { OfficePrefs } from '@genoffice/electron-utils/office-prefs'
+import type { FactsCommand, FactsState } from '@genoffice/facts'
 
 export interface OpenFileResult {
   path: string
@@ -221,6 +222,11 @@ export interface DesktopApi {
   getOfficePrefs?(): Promise<OfficePrefs | null>
   setOfficePrefs?(patch: Partial<OfficePrefs>): Promise<OfficePrefs | null>
   onOfficePrefsChanged?(handler: (prefs: OfficePrefs) => void): () => void
+  /** The shell's linked-figure index (null outside the suite or when it failed to read) */
+  getFacts?(): Promise<FactsState | null>
+  /** Rejects when the shell refused or could not save the command */
+  factsCommand?(cmd: FactsCommand): Promise<FactsState>
+  onFactsChanged?(handler: (state: FactsState) => void): () => void
   consumeAiDocContent(): Promise<AiDocContent | null>
   /** AI create_document: build a new standalone file and open it in a new tab */
   createDocument(request: CreateDocumentRequest): Promise<CreateDocumentResult>
