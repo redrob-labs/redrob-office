@@ -465,7 +465,7 @@ export function App() {
   const { lang } = useI18n()
   const [doc, setDoc] = useState<DocState | null>(null)
   /** true until the pending-open / new-blank boot checks settle; the start screen stays hidden meanwhile */
-  const bootPendingRef = useRef<Promise<[OpenDocxResult, boolean, AiDocContent | null]> | null>(
+  const bootPendingRef = useRef<Promise<[OpenDocxResult, boolean, AiDocContent | null, string | null]> | null>(
     null,
   )
   const bootHandledRef = useRef(false)
@@ -1270,9 +1270,10 @@ export function App() {
       // Still consume the one-shot new-blank flag so it doesn't leak into the next open
       window.desktop.consumeNewBlankDoc(),
       window.desktop.consumeAiDocContent(),
+      window.desktop.consumeAskPrompt?.() ?? Promise.resolve(null),
     ])
     void bootPendingRef.current
-      .then(async ([pending, , aiContent]) => {
+      .then(async ([pending, , aiContent, askPrompt]) => {
         if (bootHandledRef.current) return
         bootHandledRef.current = true
         // A failed open (corrupt file etc.) falls back to a blank document —
@@ -1287,6 +1288,11 @@ export function App() {
             await new Promise((resolve) => setTimeout(resolve, 20))
           }
           await applyAiDocContentImpl(fileCtxRef.current, aiContent)
+        }
+        // Home's composer: open the panel and run the request through the agent loop
+        if (askPrompt && !pending) {
+          setShowAi(true)
+          setAiPreset({ text: askPrompt, nonce: Date.now(), autoRun: true })
         }
       })
       // Open failures also land on a blank document, or the tab stays at "Opening…" forever

@@ -213,6 +213,8 @@ export interface DesktopApi {
   /** returns true when this tab was created via "New Document" and should start blank */
   consumeNewBlankDoc(): Promise<boolean>
   /** AI-authored content queued for this tab by create_document; one-shot, null when none */
+  /** a request typed into Home's composer, for the Redrob panel to answer (one-shot) */
+  consumeAskPrompt(): Promise<string | null>
   consumeAiDocContent(): Promise<AiDocContent | null>
   /** AI create_document: build a new standalone file and open it in a new tab */
   createDocument(request: CreateDocumentRequest): Promise<CreateDocumentResult>

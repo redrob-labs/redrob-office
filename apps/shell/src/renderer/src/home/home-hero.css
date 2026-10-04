@@ -1,0 +1,222 @@
+/* Home, composer first (handoff 01-home): greeting, the serif ask, one
+ * composer, three starters, then "Or start blank". The Office wash is
+ * location only and fades into the content ground; every control is blue. */
+
+.content .home-hero {
+  margin: -28px -36px 8px;
+  padding: 36px 36px 28px;
+  background: linear-gradient(
+    180deg,
+    var(--product-office-wash) 0%,
+    var(--surface-raised) 100%
+  );
+}
+
+.home-hero__hi {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--ink-secondary);
+}
+
+.home-hero__hi svg {
+  color: var(--action-primary);
+}
+
+/* the one spoken sentence on the surface: the serif voice */
+.home-hero__ask {
+  margin: var(--space-1) 0 var(--space-5);
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 42px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink-primary);
+}
+
+.home-hero__compose {
+  max-width: 760px;
+}
+
+.home-hero__try {
+  max-width: 760px;
+  margin-top: var(--space-3);
+}
+
+.home-blank {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+.home-blank__label {
+  margin-right: var(--space-1);
+  font-size: 14px;
+  color: var(--ink-secondary);
+}
+
+.home-blank__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 var(--space-3) 0 var(--space-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-primary);
+  cursor: pointer;
+}
+
+.home-blank__btn:hover {
+  border-color: var(--border-strong);
+}
+
+.home-blank__btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.home-fmt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+}
+
+.home-blank__ext {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+/* ---- Recent: heading, count, search ---- */
+
+.recents-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.recents-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.recents-count {
+  min-width: 22px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.recents-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 260px;
+  height: 34px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-base);
+  color: var(--ink-muted);
+}
+
+.recents-search:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.recents-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-primary);
+}
+
+/* ---- sidebar foot: theme and language above Settings ---- */
+
+.home-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding: var(--space-3) var(--space-3) 0;
+}
+
+.home-foot__lang {
+  width: 100%;
+}
+
+/* the foot takes the free space above itself; Settings follows directly */
+.home-foot + .account-entry {
+  margin-top: 0;
+}
+
+/* ---- Updates ---- */
+
+.updates-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.updates-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.updates-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.updates-empty {
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 520px) {
+  .recents-bar {
+    flex-wrap: wrap;
+  }
+  .recents-search {
+    width: 100%;
+  }
+}

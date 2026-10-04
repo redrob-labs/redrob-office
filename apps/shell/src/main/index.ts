@@ -44,6 +44,7 @@ import menuHomeIcon1x from './assets/menu-home.png?asset'
 import menuHomeIcon2x from './assets/menu-home@2x.png?asset'
 import { createI18n, isSelectableLang, setUiLang, type Lang } from '@genoffice/i18n'
 import { resolveStartupLang } from './ui-language'
+import { cleanAskPrompt, queueAskPrompt, registerAskPromptIpc, routeAsk } from './ask-prompt'
 import {
   DEFAULT_SAVE_DIR_KEY,
   DROP_OPEN_CHANNEL,
@@ -208,7 +209,12 @@ import { HOME_CHANNELS } from '../shared/home-api'
 import type { TabKind } from '../shared/tabs-api'
 import { TABS_CHANNELS } from '../shared/tabs-api'
 import { showErrorDialog } from './error-dialog'
-import { normalizeRecentQuery, pageRecentPaths, statPathEntries } from './recent-files'
+import {
+  filterRecentEntries,
+  normalizeRecentQuery,
+  pageRecentPaths,
+  statPathEntries,
+} from './recent-files'
 import { TabManager } from './tab-manager'
 import { applyUpdateChannel, initAutoUpdater } from './updater'
 import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
@@ -3051,9 +3057,9 @@ function registerHomeIpc(): void {
 
   // Starred files sort by mtime, which requires stat-ing them all first; they are hand-picked and few, so this is fine
   ipcMain.handle(HOME_CHANNELS.starred, (_event, query: unknown): RecentPage => {
-    const { offset, limit, ext } = normalizeRecentQuery(query)
+    const { offset, limit, ext, q } = normalizeRecentQuery(query)
     const all = statEntries(readStarredFiles()).sort((a, b) => b.mtimeMs - a.mtimeMs)
-    const filtered = ext ? all.filter((entry) => entry.ext === ext) : all
+    const filtered = filterRecentEntries(all, ext, q)
     return {
       entries: limit === 0 ? [] : filtered.slice(offset, offset + limit),
       total: filtered.length,
@@ -3090,6 +3096,24 @@ function registerHomeIpc(): void {
       properties: ['openFile', 'multiSelections'],
     })
     if (!result.canceled) for (const path of result.filePaths) openDocumentPath(path)
+  })
+
+  ipcMain.handle(HOME_CHANNELS.ask, (_event, raw: unknown) => {
+    const prompt = cleanAskPrompt(raw)
+    if (!prompt || !tabManager) return
+    try {
+      const target = routeAsk(prompt)
+      const id =
+        target === 'slides'
+          ? tabManager.openSlidesTab()
+          : tabManager.openDocsTab(undefined, { newBlank: true })
+      const wc = tabManager.webContentsOf(id)
+      if (wc) queueAskPrompt(wc.id, prompt)
+      recordStarPromptDocOpen()
+      analytics.track('file_new', { kind: target === 'slides' ? 'pptx' : 'docx' })
+    } catch (err) {
+      surfaceNewTabError(err)
+    }
   })
 
   ipcMain.handle(HOME_CHANNELS.newDoc, (_event, opts?: { projectId?: string }) => {
@@ -4411,6 +4435,7 @@ registerProjectIpc()
 registerDocsIpc()
 registerHomeIpc()
 registerRedrobConnectIpc()
+registerAskPromptIpc()
 registerEngineIpc()
 registerTabsIpc()
 registerDroppedFilesIpc()

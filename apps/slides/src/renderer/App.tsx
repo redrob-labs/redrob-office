@@ -1166,6 +1166,21 @@ export function App() {
     [],
   )
 
+  // Home's composer: a request queued by the shell for this tab runs once, in the panel.
+  // The consume is one-shot on the main side, so StrictMode's second mount gets null.
+  useEffect(() => {
+    let cancelled = false
+    void window.slidesApi
+      .consumeAskPrompt?.()
+      .then((prompt) => {
+        if (!cancelled && prompt) pushAiPreset(prompt)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [pushAiPreset])
+
   // ── AI element edit queue ──────────────────────────────────────────────
   // Session-only: annotations are a scratchpad for the next AI submission, not
   // document content, so nothing here is persisted with the file.

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Copy lint for the English interface strings.
  *

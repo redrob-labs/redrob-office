@@ -32,6 +32,11 @@ import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import { useI18n } from './locale'
 import type { I18n, StringKey } from './locale'
 import { SettingsModal } from './SettingsModal'
+import { HomeHero } from './home/HomeHero'
+import './home/home-hero.css'
+import { HomeFoot } from './home/HomeFoot'
+import { UpdatesView } from './home/UpdatesView'
+import type { StartKind } from './home/formats'
 
 declare global {
   interface Window {
@@ -43,15 +48,6 @@ declare global {
 /** page size of the home list; scrolling to the bottom auto-loads the next page */
 const PAGE_SIZE = 50
 
-/** greeting sublines on the home page: one is picked at random on entry */
-const GREET_ASK_KEYS = [
-  'greetAsk1',
-  'greetAsk2',
-  'greetAsk3',
-  'greetAsk4',
-  'greetAsk5',
-  'greetAsk6',
-] as const satisfies readonly StringKey[]
 
 const FILE_ICONS: Record<string, string> = {
   docx: iconDocx,
@@ -1035,6 +1031,10 @@ export function Home() {
   const [view, setView] = useState<'recent' | 'starred'>('recent')
   // Genspark web projects take over the content area (like a selected project)
   const [cloudMode, setCloudMode] = useState(false)
+  // Updates takes over the content area like a selected project
+  const [updatesMode, setUpdatesMode] = useState(false)
+  // files waiting in Updates; the linked-figure store reports it (0 until it exists)
+  const updatesWaiting = 0
   const [filter, setFilter] = useState('all')
   // modified-column sort (WPS-style header popover), shared by the global and project tables
   const [fileSort, setFileSort] = useState<'recent' | 'oldest'>('recent')
@@ -1061,9 +1061,13 @@ export function Home() {
     const name = on ? (s?.email ?? '').split('@')[0] : ''
     setAccountName(name ? name[0].toUpperCase() + name.slice(1) : '')
   }, [])
-  const [greetAskKey] = useState(
-    () => GREET_ASK_KEYS[Math.floor(Math.random() * GREET_ASK_KEYS.length)]!,
-  )
+  // Recent's name search; sent to main debounced so typing doesn't page on every key
+  const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedQuery(query.trim()), 150)
+    return () => window.clearTimeout(id)
+  }, [query])
 
   // ── Project state ──
   const [projects, setProjects] = useState<ProjectSummaryEntry[]>([])
@@ -1081,13 +1085,16 @@ export function Home() {
   const reload = (keepCount: boolean) => {
     const seq = ++requestSeq.current
     const ext = filter === 'all' ? undefined : filter
+    const q = debouncedQuery || undefined
     const limit = keepCount ? Math.max(entriesLen.current, PAGE_SIZE) : PAGE_SIZE
     const primary = view === 'recent' ? window.aiOffice.recents : window.aiOffice.starred
     const secondary = view === 'recent' ? window.aiOffice.starred : window.aiOffice.recents
-    void primary({ offset: 0, limit, ext }).then((page) => {
+    void primary({ offset: 0, limit, ext, q }).then((page) => {
       if (seq !== requestSeq.current) return
       setEntries(page.entries)
       setListTotal(page.total)
+      // the sidebar counts the list, not what the search narrowed it to
+      if (q) return
       setNavCounts((prev) =>
         view === 'recent'
           ? { ...prev, recent: visiblePageCount(page) }
@@ -1120,7 +1127,7 @@ export function Home() {
 
   useEffect(() => {
     reloadRef.current(false)
-  }, [view, filter])
+  }, [view, filter, debouncedQuery])
 
   useEffect(() => {
     const onFocus = () => {
@@ -1144,7 +1151,8 @@ export function Home() {
     const seq = requestSeq.current
     const ext = filter === 'all' ? undefined : filter
     const api = view === 'recent' ? window.aiOffice.recents : window.aiOffice.starred
-    void api({ offset: entriesLen.current, limit: PAGE_SIZE, ext }).then((page) => {
+    const q = debouncedQuery || undefined
+    void api({ offset: entriesLen.current, limit: PAGE_SIZE, ext, q }).then((page) => {
       setLoadingMore(false)
       if (seq !== requestSeq.current) return
       setEntries((prev) => [...prev, ...page.entries])
@@ -1461,6 +1469,19 @@ export function Home() {
 
   const handleNewHangul = () => {
     void window.aiOffice.newHangul(selectedProjectId ? { projectId: selectedProjectId } : undefined)
+  }
+
+  /** Home's "Or start blank" row */
+  const startBlank = (kind: StartKind) => {
+    const start: Record<StartKind, () => void> = {
+      docx: handleNewDoc,
+      xlsx: handleNewSheet,
+      pptx: handleNewSlide,
+      hwp: handleNewHangul,
+      md: handleNewMarkdown,
+      pdf: handleNewPdf,
+    }
+    start[kind]()
   }
 
   const NEW_ITEMS = [
@@ -1847,34 +1868,37 @@ export function Home() {
   // ── Plain view ────────────────────────────────────────
 
   function renderGlobalContent() {
-    const now = new Date()
-    const hour = now.getHours()
-    const greetKey =
-      hour < 6
-        ? 'greetEvening'
-        : hour < 12
-          ? 'greetMorning'
-          : hour < 18
-            ? 'greetAfternoon'
-            : 'greetEvening'
-    const cjk = lang === 'zh' || lang === 'zh-TW' || lang === 'ja'
-    const greeting = `${t(greetKey)}${accountName ? (cjk ? '，' : ', ') + accountName : ''}${cjk ? '。' : '. '}`
     return (
       <main className="content">
-        <section className="quick-start" aria-label={t('secQuickStart')}>
-          <div className="home-hero">
-            <h1 className="hero-title">
-              {greeting}
-              <span className="hero-ask">{t(greetAskKey)}</span>
-            </h1>
-          </div>
-          {renderQuickCards()}
-        </section>
+        {view === 'recent' && (
+          <HomeHero
+            name={accountName || undefined}
+            onAsk={(prompt) => void window.aiOffice.ask(prompt)}
+            onStart={startBlank}
+            onOpenFile={() => void window.aiOffice.browse()}
+          />
+        )}
 
         <section
           className="recents"
           aria-label={view === 'recent' ? t('secRecent') : t('secStarred')}
         >
+          <div className="recents-bar">
+            <h2 className="recents-title">
+              {view === 'recent' ? t('secRecent') : t('secStarred')}
+              <span className="recents-count">{listTotal}</span>
+            </h2>
+            <label className="recents-search">
+              <Icon name="search" size={15} />
+              <input
+                type="search"
+                value={query}
+                placeholder={t('searchFiles')}
+                aria-label={t('searchFiles')}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+          </div>
           <div className="recents-toolbar">
             {selectedPaths.length > 0 ? (
               <div className="selection-bar">
@@ -1904,12 +1928,6 @@ export function Home() {
                 onChange={changeFilter}
               />
             )}
-            <div className="recents-heading">
-              <span className="section-label">
-                {view === 'recent' ? t('secRecent') : t('secStarred')}
-              </span>
-              <span className="file-count">{t(fileCountKey(listTotal), { n: listTotal })}</span>
-            </div>
           </div>
 
           {entries.length === 0 ? (
@@ -1975,23 +1993,50 @@ export function Home() {
 
         <nav className="sidebar-nav">
           <button
-            className={`nav-item${view === 'recent' && !selectedProjectId && !cloudMode ? ' active' : ''}`}
+            className={`nav-item${view === 'recent' && !selectedProjectId && !cloudMode && !updatesMode ? ' active' : ''}`}
+            aria-current={
+              view === 'recent' && !selectedProjectId && !cloudMode && !updatesMode
+                ? 'page'
+                : undefined
+            }
             onClick={() => {
               changeView('recent')
               setSelectedProjectId(null)
               setCloudMode(false)
+              setUpdatesMode(false)
             }}
           >
-            <Icon name="clock" size={16} />
-            <span className="nav-label">{t('navRecent')}</span>
+            <Icon name="home" size={16} />
+            <span className="nav-label">{t('navHome')}</span>
             <span className="nav-count">{navCounts.recent}</span>
           </button>
           <button
-            className={`nav-item${view === 'starred' && !selectedProjectId && !cloudMode ? ' active' : ''}`}
+            className={`nav-item${updatesMode && !selectedProjectId ? ' active' : ''}`}
+            aria-current={updatesMode && !selectedProjectId ? 'page' : undefined}
+            onClick={() => {
+              setUpdatesMode(true)
+              setSelectedProjectId(null)
+              setCloudMode(false)
+              setSelected(new Set())
+              setRowMenu(null)
+            }}
+          >
+            <Icon name="refresh" size={16} />
+            <span className="nav-label">{t('navUpdates')}</span>
+            {updatesWaiting > 0 && <span className="nav-count">{updatesWaiting}</span>}
+          </button>
+          <button
+            className={`nav-item${view === 'starred' && !selectedProjectId && !cloudMode && !updatesMode ? ' active' : ''}`}
+            aria-current={
+              view === 'starred' && !selectedProjectId && !cloudMode && !updatesMode
+                ? 'page'
+                : undefined
+            }
             onClick={() => {
               changeView('starred')
               setSelectedProjectId(null)
               setCloudMode(false)
+              setUpdatesMode(false)
             }}
           >
             <Icon name="star" size={16} />
@@ -2024,6 +2069,7 @@ export function Home() {
               selectedId={selectedProjectId}
               onSelect={(id) => {
                 setSelectedProjectId(id)
+                setUpdatesMode(false)
                 // reset list-selection state on any project switch (paths are
                 // shared between the plain view and project views)
                 setSelected(new Set())
@@ -2038,11 +2084,14 @@ export function Home() {
             disabled it shows only a neutral Settings control (no sign-in identity
             and no genspark.ai login flow); the account/credits section is also
             dropped from the settings modal. */}
+        <HomeFoot />
         <AccountEntry onStatusChange={handleAccountStatus} />
       </aside>
 
       {selectedProjectId ? (
         renderProjectContent()
+      ) : updatesMode ? (
+        <UpdatesView />
       ) : CLOUD_ACCOUNT_ENABLED && cloudMode ? (
         <CloudProjectsView />
       ) : (

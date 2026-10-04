@@ -88,6 +88,8 @@ import type {
 
 const api: SlidesApi = {
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
+  // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite
+  consumeAskPrompt: () => ipcRenderer.invoke('app:consume-ask-prompt').catch(() => null),
   onLanguageChanged: (handler) => {
     const listener = (
       _event: IpcRendererEvent,

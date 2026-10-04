@@ -49,6 +49,8 @@ const api: DesktopApi = {
     ipcRenderer.invoke('docs:discard-password-intents', throughRevision),
   consumePendingOpenDocx: () => ipcRenderer.invoke('docs:consume-pending-open'),
   consumeNewBlankDoc: () => ipcRenderer.invoke('docs:consume-new-blank'),
+  // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite
+  consumeAskPrompt: () => ipcRenderer.invoke('app:consume-ask-prompt').catch(() => null),
   consumeAiDocContent: () => ipcRenderer.invoke('docs:consume-ai-doc-content'),
   createDocument: (request) => ipcRenderer.invoke('docs:create-document', request),
   onOpenDocx: (handler) => {

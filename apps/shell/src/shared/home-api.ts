@@ -51,6 +51,8 @@ export interface RecentQuery {
   limit?: number
   /** restrict to one extension ('docx' | 'xlsx' | 'pptx'); omit for all */
   ext?: string
+  /** keep only entries whose file name contains this text (case-insensitive) */
+  q?: string
 }
 
 export interface RecentPage {
@@ -86,6 +88,8 @@ export interface HomeApi {
   newPdf(opts?: { projectId?: string }): Promise<void>
   /** open a blank Hangul (.hwp/.hwpx) editor tab (rhwp-studio) */
   newHangul(opts?: { projectId?: string }): Promise<void>
+  /** Home's composer: open the file the request is about, with Redrob answering it */
+  ask(prompt: string): Promise<void>
   /** drop entries from the recent list (does not touch the files) */
   removeRecent(paths: string[]): Promise<void>
   /** reveal the file in Finder / Explorer */
@@ -310,6 +314,7 @@ export const HOME_CHANNELS = {
   newMarkdown: 'home:new-markdown',
   newPdf: 'home:new-pdf',
   newHangul: 'home:new-hangul',
+  ask: 'home:ask',
   removeRecent: 'home:remove-recent',
   revealPath: 'home:reveal-path',
   renameFile: 'home:rename-file',

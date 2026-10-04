@@ -96,6 +96,9 @@ const homeApi: HomeApi = {
   async newHangul(opts) {
     await ipcRenderer.invoke(HOME_CHANNELS.newHangul, opts)
   },
+  async ask(prompt) {
+    await ipcRenderer.invoke(HOME_CHANNELS.ask, prompt)
+  },
   async removeRecent(paths) {
     await ipcRenderer.invoke(HOME_CHANNELS.removeRecent, paths)
   },
