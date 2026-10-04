@@ -71,3 +71,30 @@ body {
 .hangul-notice {
   max-width: 28rem;
 }
+
+/* ---- the shared editor frame (EditorFrame, @genoffice/ui) ---- */
+
+.hangul-root > .go-frame {
+  flex: 1;
+  min-height: 0;
+}
+
+.go-frame__toolbar > .hangul-toolbar {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.go-frame__page > .hangul-studio-container {
+  height: 100%;
+}
+
+.hangul-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.hangul-panel__body {
+  padding: var(--space-4);
+}

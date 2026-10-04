@@ -76,6 +76,7 @@ export function AiPanel({
   preset,
   onRunDone,
   onClearSelection,
+  hosted = false,
 }: {
   api: PdfAiDeps
   /** Absolute path of the open PDF (chat history is keyed to it) */
@@ -87,6 +88,8 @@ export function AiPanel({
   onRunDone?: () => void
   /** The × on the scope chip: drop the cached selection so runs target the whole document */
   onClearSelection?: () => void
+  /** hosted by the shared EditorFrame, which owns the width and the resize handle */
+  hosted?: boolean
 }): ReactElement {
   const { lang, t } = useI18n()
   const [chat, setChat] = useState<ChatEntry[]>([])
@@ -560,13 +563,15 @@ export function AiPanel({
       className={`copilot${resizing ? ' ai-panel-resizing' : ''}`}
       style={{ width: '100%' }}
     >
-      <div
-        className="ai-panel-resizer"
-        onPointerDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Redrob AI"
-      />
+      {!hosted && (
+        <div
+          className="ai-panel-resizer"
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Redrob AI"
+        />
+      )}
       <AgentPanelHeader
         title="Redrob AI"
         actions={[

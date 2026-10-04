@@ -87,6 +87,9 @@ export function applyStudioTheme(studio: Document, host: Element): void {
   const theme = host.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
   studio.documentElement.dataset.themeEffective = theme
   studio.documentElement.style.colorScheme = theme
+  // a Hangul file is Korean whatever the interface language: Korean line
+  // breaking, and Korean faces (Wanted Sans, Nanum Myeongjo) first in fallback
+  studio.documentElement.lang = 'ko'
 }
 
 /**

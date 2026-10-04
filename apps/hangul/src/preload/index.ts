@@ -1,10 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import { HANGUL_CHANNELS } from '../shared/ipc'
 import type { HangulApi, SaveMode, UiTheme } from '../shared/ipc'
 
 const api: HangulApi = {
+  ...officePrefsBridge(ipcRenderer),
   studioOrigin: () => ipcRenderer.invoke(HANGUL_CHANNELS.studioOrigin),
   consumePending: () => ipcRenderer.invoke(HANGUL_CHANNELS.consumePending),
   readBytes: (path) => ipcRenderer.invoke(HANGUL_CHANNELS.readBytes, path),

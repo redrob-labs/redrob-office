@@ -398,6 +398,11 @@ export const strings = {
     propModified: '修改时间',
   },
   en: {
+    pdfSimpleToolbar: 'Everyday tools',
+    pdfSimpleAsk: 'Ask Redrob',
+    pdfSimpleKeyPoints: 'Key points',
+    pdfSimplePlay: 'Present',
+    pdfUntitled: 'Untitled.pdf',
     ...fillFormStringsFor('en'),
     zoom: 'Zoom',
     aiYou: 'You',
