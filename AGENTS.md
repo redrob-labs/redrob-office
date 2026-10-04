@@ -4,8 +4,9 @@
 
 Redrob Office is a pnpm 9.15 + Turborepo monorepo. The product is `@genoffice/shell`
 (`apps/shell`), which hosts Docs, Sheets, Slides, PDF, Markdown and Hangul editors as
-`WebContentsView` children in one Electron window. Node 22 or newer is required. There is no backend,
-database or broker to start locally.
+`WebContentsView` children in one Electron window. Node 22 or newer is required. The desktop suite needs
+no backend, database or broker to run; the optional sync service in `services/sync` (below) is the
+only server code, and it runs locally and in CI only.
 
 The retired recruiting application is not in this repository at all. Neither the
 `legacy-office-v0.0.0` tag nor the `cursor/legacy-office-v0-0-0-8171` branch exists on `origin`:
@@ -115,6 +116,24 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 - So a rebrand sweep, a file move, or a header cleanup that drops upstream's copyright line fails
   CI. Add your line, never replace theirs: Apache-2.0 section 4(d) is why `NOTICE` must keep
   Mainfunc's.
+
+### Sync service
+
+- `services/sync` is shared files, members and live documents: a Fastify HTTP API and a Hocuspocus
+  WebSocket server over Postgres and any S3 store. It is its own project, outside the pnpm
+  workspace, with its own `pnpm-lock.yaml`. Install it with `pnpm install --ignore-workspace` from
+  that folder, so the root lockfile and the dependency licence gate never see it.
+- It runs locally and in CI only, through `services/sync/docker-compose.yml`: Postgres, a SeaweedFS
+  S3 gateway and the service. MinIO images stopped being published in 2026, so SeaweedFS stands in;
+  the service speaks plain S3. There is no production deployment; do not add one without asking.
+- Every Compose port binds to 127.0.0.1. The stack runs the development issuer
+  (`SYNC_DEV_ISSUER=1`), which mints a token for anyone who asks; the service refuses it when
+  `NODE_ENV=production`. Real identity is Redrob Console tokens checked against Console's JWKS.
+- `.github/workflows/sync.yml` (`sync service (docker compose)`) runs on pull requests that touch
+  `services/sync/**`. It is not a required check and must not be added to the required list.
+- File routes answer 404 to a non-member, so a file's existence is never disclosed. Roles are
+  `owner`, `edit`, `comment` and `view`; below edit, live sessions are read-only, and presence is
+  stamped server-side with the verified person.
 
 ### Packaging and releases
 
