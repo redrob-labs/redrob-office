@@ -1086,3 +1086,46 @@ div.tiptap-mathematics-render {
     transition: none;
   }
 }
+
+/* ---- the shared editor frame (EditorFrame, @genoffice/ui) ---- */
+
+.md-frame-host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.md-frame-host > .go-frame {
+  flex: 1;
+}
+
+.go-frame__page > .app-content {
+  height: 100%;
+}
+
+.go-frame__page .editor-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.go-frame__panel > .copilot {
+  flex: 1;
+  width: 100%;
+}
+
+.md-simple-style {
+  width: 130px;
+}
+
+.md-save-status {
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.status-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}

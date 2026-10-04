@@ -130,3 +130,4 @@ export {
   type FrameLayoutInput,
 } from './frame/layout'
 export { frameCopy, frameStrings, frameT, type FrameStringKey } from './frame/strings'
+export { useFrameState, type FramePrefsSource, type FrameState } from './frame/useFrameState'

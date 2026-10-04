@@ -168,6 +168,10 @@ export const strings = {
     aiToolWebSearchDone: '搜索"{query}" · {count} 条结果',
   },
   en: {
+    mdSimpleSummarize: 'Summarize',
+    mdSimplePolish: 'Polish',
+    mdSimpleTidy: 'Format',
+    mdUntitled: 'Untitled.md',
     aiYou: 'You',
     aiFailedTitle: 'The assistant could not finish',
     aiStepRunning: 'Running',

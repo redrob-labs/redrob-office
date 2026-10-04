@@ -54,6 +54,47 @@ export function normalizeOfficePrefs(raw: unknown, base: OfficePrefs = DEFAULT_O
   }
 }
 
+/** what an editor preload exposes to read and follow the prefs */
+export interface OfficePrefsApi {
+  getOfficePrefs(): Promise<OfficePrefs | null>
+  setOfficePrefs(patch: Partial<OfficePrefs>): Promise<OfficePrefs | null>
+  onOfficePrefsChanged(handler: (prefs: OfficePrefs) => void): () => void
+}
+
+/** the slice of ipcRenderer the bridge needs (kept structural: no Electron import here) */
+export interface IpcRendererLike {
+  invoke(channel: string, ...args: unknown[]): Promise<unknown>
+  on(channel: string, listener: (event: unknown, ...args: unknown[]) => void): unknown
+  removeListener(channel: string, listener: (event: unknown, ...args: unknown[]) => void): unknown
+}
+
+/**
+ * The prefs bridge for an editor preload. The shell owns the store
+ * (`home:get-office-prefs` / `home:set-office-prefs`); outside the suite there
+ * is no handler and every call resolves to null.
+ */
+export function officePrefsBridge(ipc: IpcRendererLike): OfficePrefsApi {
+  return {
+    getOfficePrefs: () =>
+      ipc
+        .invoke('home:get-office-prefs')
+        .then((p) => normalizeOfficePrefs(p))
+        .catch(() => null),
+    setOfficePrefs: (patch) =>
+      ipc
+        .invoke('home:set-office-prefs', patch)
+        .then((p) => normalizeOfficePrefs(p))
+        .catch(() => null),
+    onOfficePrefsChanged: (handler) => {
+      const listener = (_e: unknown, p: unknown) => handler(normalizeOfficePrefs(p))
+      ipc.on(OFFICE_PREFS_CHANGED, listener)
+      return () => {
+        ipc.removeListener(OFFICE_PREFS_CHANGED, listener)
+      }
+    },
+  }
+}
+
 /** apply a partial change from a renderer: only valid fields move */
 export function mergeOfficePrefs(current: OfficePrefs, patch: unknown): OfficePrefs {
   return normalizeOfficePrefs(patch, current)

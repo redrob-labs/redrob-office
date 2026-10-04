@@ -129,6 +129,7 @@ export function AiPanel({
   onQueueClear,
   onQueueFocus,
   onQueueConsume,
+  hosted = false,
 }: {
   deps: MarkdownAiDeps
   filePath: string | null
@@ -141,6 +142,8 @@ export function AiPanel({
   onQueueClear?: () => void
   onQueueFocus?: (qid: string) => void
   onQueueConsume?: (qids: string[]) => void
+  /** hosted by the shared EditorFrame, which owns the width and the resize handle */
+  hosted?: boolean
 }): ReactElement {
   const { lang, t } = useI18n()
   const [chat, setChat] = useState<ChatEntry[]>([])
@@ -585,13 +588,15 @@ export function AiPanel({
       className={`copilot${resizing ? ' ai-panel-resizing' : ''}`}
       style={{ width: '100%' }}
     >
-      <div
-        className="ai-panel-resizer"
-        onPointerDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Redrob AI"
-      />
+      {!hosted && (
+        <div
+          className="ai-panel-resizer"
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Redrob AI"
+        />
+      )}
       <AgentPanelHeader
         title="Redrob AI"
         actions={[
