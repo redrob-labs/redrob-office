@@ -14,6 +14,8 @@ import {
   Icon,
   Markdown,
   RedrobMark,
+  RedrobStatus,
+  useRedrobPrefs,
 } from '@genoffice/ui'
 import { aiLangDirective, t as tGlobal, useI18n } from '../i18n/locale'
 import { createPdfSkill } from './pdf-skill'
@@ -92,6 +94,8 @@ export function AiPanel({
   hosted?: boolean
 }): ReactElement {
   const { lang, t } = useI18n()
+  // Memory and Cross-check from Settings, for the status line under the composer
+  const redrob = useRedrobPrefs(window.pdfApi)
   const [chat, setChat] = useState<ChatEntry[]>([])
   const [prompt, setPrompt] = useState('')
   const [busy, setBusy] = useState(false)
@@ -656,6 +660,14 @@ export function AiPanel({
         <AgentComposer
           value={prompt}
           busy={busy}
+          status={
+            <RedrobStatus
+              lang={lang}
+              memory={redrob.memory}
+              factCheck={redrob.factCheck}
+              challenge={redrob.challenge}
+            />
+          }
           context={
             hasScopeSelection && (
               <div className="ai-scope-row">

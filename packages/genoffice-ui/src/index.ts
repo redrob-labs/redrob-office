@@ -131,3 +131,23 @@ export {
 } from './frame/layout'
 export { frameCopy, frameStrings, frameT, type FrameStringKey } from './frame/strings'
 export { useFrameState, type FramePrefsSource, type FrameState } from './frame/useFrameState'
+export {
+  PlanReply,
+  RedrobModeSwitch,
+  RedrobReceipt,
+  RedrobStatus,
+  crossCheckSummary,
+  parsePlan,
+  planRequest,
+  receiptItems,
+  redrobStatusItems,
+  redrobStrings,
+  redrobT,
+  runPlanRequest,
+  type CrossCheckLevel,
+  type PlanReplyProps,
+  type RedrobMode,
+  type RedrobStatusInput,
+  type RunReport,
+} from './redrob/RedrobParts'
+export { useRedrobPrefs, type RedrobPrefsSource } from './redrob/useRedrobPrefs'

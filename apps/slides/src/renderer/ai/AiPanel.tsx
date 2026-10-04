@@ -51,6 +51,8 @@ import {
   IconButton,
   Markdown,
   RedrobMark,
+  RedrobStatus,
+  useRedrobPrefs,
 } from '@genoffice/ui'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
@@ -363,7 +365,9 @@ export function AiPanel({
   onQueueConsume,
   hosted = false,
 }: AiPanelProps) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  // Memory and Cross-check from Settings, for the status line under the composer
+  const redrob = useRedrobPrefs(window.slidesApi)
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [chat, setChat] = useState<ChatEntry[]>([])
@@ -2198,6 +2202,14 @@ export function AiPanel({
           <AgentComposer
             value={input}
             busy={busy}
+            status={
+              <RedrobStatus
+                lang={lang}
+                memory={redrob.memory}
+                factCheck={redrob.factCheck}
+                challenge={redrob.challenge}
+              />
+            }
             placeholder={t(deckEmpty ? 'aiInputPlaceholderGen' : 'aiInputPlaceholder')}
             label={t(deckEmpty ? 'aiInputPlaceholderGen' : 'aiInputPlaceholder')}
             sendLabel={t('aiSend')}

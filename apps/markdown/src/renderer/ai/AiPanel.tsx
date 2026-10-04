@@ -16,6 +16,16 @@ import {
   IconButton,
   Markdown,
   RedrobMark,
+  PlanReply,
+  RedrobModeSwitch,
+  RedrobReceipt,
+  RedrobStatus,
+  parsePlan,
+  planRequest,
+  runPlanRequest,
+  useRedrobPrefs,
+  type PlanStatus,
+  type RunReport,
 } from '@genoffice/ui'
 import type { Editor } from '@tiptap/core'
 import { aiLangDirective, t as tGlobal, useI18n } from '../i18n/locale'
@@ -70,6 +80,8 @@ interface ToolActivity {
   /** still executing: rendered as a spinner chip, replaced in place when the tool finishes */
   running?: boolean
   isError?: boolean
+  /** the tool changed the document (counted on the receipt) */
+  mutated?: boolean
   output?: string
 }
 
@@ -81,6 +93,10 @@ interface ChatEntry {
   /** the run failed and this user message was rolled back out of the model context */
   undelivered?: boolean
   tools?: ToolActivity[]
+  /** Plan mode: the plan this read-only run wrote */
+  plan?: { request: string; steps: string[]; status: PlanStatus }
+  /** what the run reported, shown as one receipt under the answer */
+  report?: RunReport
 }
 
 /** structured, not the serialized file text: a body starting with `---` must
@@ -146,6 +162,11 @@ export function AiPanel({
   hosted?: boolean
 }): ReactElement {
   const { lang, t } = useI18n()
+  // Plan or Run, Memory and Cross-check, from Settings
+  const redrob = useRedrobPrefs(window.markdownApi)
+  /** the request a running read-only Plan run is planning, and the steps of an approved plan */
+  const planRunRef = useRef<string | null>(null)
+  const planStepsRef = useRef(0)
   const [chat, setChat] = useState<ChatEntry[]>([])
   const [prompt, setPrompt] = useState('')
   const [busy, setBusy] = useState(false)
@@ -262,6 +283,7 @@ export function AiPanel({
             name: call.name,
             summary: execution.summary,
             isError: execution.isError,
+            mutated: !!execution.mutated,
             output: execution.output?.slice(0, TOOL_OUTPUT_MAX_CHARS),
           }
           runToolsRef.current.push(activity)
@@ -286,12 +308,36 @@ export function AiPanel({
           const final = truncated
             ? [base, tGlobal('aiTruncatedNote')].filter(Boolean).join('\n\n')
             : base
-          patchLast((last) => ({
-            streaming: false,
-            text: final || (last.tools?.length ? last.text : tGlobal('aiNoReply')),
-            // A stop mid-tool can leave a running placeholder behind — drop it
-            tools: last.tools?.filter((tl) => !tl.running),
-          }))
+          const planOf = planRunRef.current
+          planRunRef.current = null
+          const planSteps = planStepsRef.current
+          planStepsRef.current = 0
+          const changes = runToolsRef.current.filter((tl) => !tl.isError && tl.mutated).length
+          const s = settingsRef.current
+          const model = s ? s.providers[s.provider]?.model?.trim() : undefined
+          patchLast((last) =>
+            planOf && !cancelled
+              ? {
+                  streaming: false,
+                  text: '',
+                  tools: undefined,
+                  plan: { request: planOf, steps: parsePlan(final), status: 'draft' },
+                }
+              : {
+                  streaming: false,
+                  text: final || (last.tools?.length ? last.text : tGlobal('aiNoReply')),
+                  // A stop mid-tool can leave a running placeholder behind — drop it
+                  tools: last.tools?.filter((tl) => !tl.running),
+                  report: cancelled
+                    ? undefined
+                    : {
+                        model: model || 'Redrob Auto',
+                        chosenBy: model ? 'you' : 'auto',
+                        ...(planSteps > 0 ? { planSteps } : {}),
+                        ...(changes > 0 ? { changes } : {}),
+                      },
+                },
+          )
           persistMessage('assistant', final, runToolsRef.current)
           const editor = depsRef.current.getEditor()
           if (editor) clearAiHighlights(editor)
@@ -405,10 +451,16 @@ export function AiPanel({
     stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
   }
 
-  const send = (text: string, displayText?: string): void => {
+  const send = (
+    text: string,
+    displayText?: string,
+    runOptions?: { planOf?: string; planSteps?: number },
+  ): void => {
     const instruction = text.trim()
     const loop = loopRef.current
     if (!instruction || !loop || loop.busy) return
+    planRunRef.current = runOptions?.planOf ?? null
+    planStepsRef.current = runOptions?.planSteps ?? 0
     stickToBottomRef.current = true
     runInstructionRef.current = instruction
     runDisplayRef.current = displayText ?? instruction
@@ -428,7 +480,8 @@ export function AiPanel({
       try {
         settingsRef.current = await window.markdownApi.getAiSettings()
         if (!mountedRef.current) return
-        await loop.run(instruction)
+        // a Plan run is read-only: no tools are offered, so the file cannot change
+        await loop.run(instruction, undefined, { readOnly: !!runOptions?.planOf })
       } catch (err) {
         if (!mountedRef.current) return
         patchLast({
@@ -440,6 +493,28 @@ export function AiPanel({
       }
     })()
   }
+
+  /** the composer: Plan writes the plan first, Run starts at once */
+  const sendPrompt = (): void => {
+    const text = prompt.trim()
+    if (!text) return
+    if (redrob.mode === 'plan') send(planRequest(text), text, { planOf: text })
+    else send(text)
+  }
+  const runPlan = (entryIdx: number, request: string, steps: string[]): void => {
+    setChat((prev) =>
+      prev.map((e, i) =>
+        i === entryIdx && e.plan ? { ...e, plan: { ...e.plan, steps, status: 'running' } } : e,
+      ),
+    )
+    send(runPlanRequest(request, steps), request, { planSteps: steps.length })
+  }
+  const keepPlan = (entryIdx: number): void =>
+    setChat((prev) =>
+      prev.map((e, i) =>
+        i === entryIdx && e.plan ? { ...e, plan: { ...e.plan, status: 'kept' } } : e,
+      ),
+    )
 
   const stop = (): void => loopRef.current?.cancel()
 
@@ -650,7 +725,7 @@ export function AiPanel({
             )
           }
           const hasTools = (entry.tools?.length ?? 0) > 0
-          if (!entry.text && !entry.streaming && !hasTools) return null
+          if (!entry.text && !entry.streaming && !hasTools && !entry.plan) return null
           const isLast = i === chat.length - 1
           // Action row appears once per completed reply: on the turn's final segment only
           // (mid-turn segments have a following assistant entry; the live turn ends when !busy)
@@ -692,6 +767,19 @@ export function AiPanel({
               )}
               {hasTools && (
                 <AgentSteps steps={entry.tools!} strings={stepStrings(entry.tools!.length)} />
+              )}
+              {entry.plan && (
+                <PlanReply
+                  lang={lang}
+                  request={entry.plan.request}
+                  steps={entry.plan.steps}
+                  status={entry.plan.status}
+                  onRun={(steps) => runPlan(i, entry.plan!.request, steps)}
+                  onKeep={() => keepPlan(i)}
+                />
+              )}
+              {entry.report && !entry.isError && !entry.streaming && turnEnded && (
+                <RedrobReceipt lang={lang} report={entry.report} />
               )}
             </AgentMessage>
           )
@@ -771,8 +859,17 @@ export function AiPanel({
           stopLabel={t('aiStop')}
           textareaRef={inputRef}
           onChange={setPrompt}
-          onSend={() => send(prompt)}
+          onSend={sendPrompt}
           onStop={stop}
+          tools={<RedrobModeSwitch lang={lang} value={redrob.mode} onChange={redrob.setMode} />}
+          status={
+            <RedrobStatus
+              lang={lang}
+              memory={redrob.memory}
+              factCheck={redrob.factCheck}
+              challenge={redrob.challenge}
+            />
+          }
         />
       </div>
     </aside>

@@ -17,7 +17,7 @@ import {
 import type { ChangePlan } from '../../domain/workbook.types'
 import { ATTACHMENT_IMAGE_EXTS, type AttachmentMeta } from '../../shared/desktop-api'
 import { useI18n, type TFunc } from '../i18n/locale'
-import { Markdown, RedrobMark } from '@genoffice/ui'
+import { Markdown, RedrobMark, RedrobStatus, useRedrobPrefs } from '@genoffice/ui'
 import { SHEET_NAV_SCHEME } from './sheet-nav'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
@@ -291,7 +291,9 @@ export function AiChatPanel({
   /** hosted by the shared EditorFrame, which owns the width, the resize handle and hiding it */
   readonly hosted?: boolean | undefined
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  // Memory and Cross-check from Settings, for the status line under the composer
+  const redrob = useRedrobPrefs(window.desktopApi)
   const chatRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const stickToBottomRef = useRef(true)
@@ -705,6 +707,14 @@ export function AiChatPanel({
           </Alert>
         )}
         <AgentComposer
+          status={
+            <RedrobStatus
+              lang={lang}
+              memory={redrob.memory}
+              factCheck={redrob.factCheck}
+              challenge={redrob.challenge}
+            />
+          }
           context={
             (scopeRange !== null || attachments.length > 0) && (
               <>

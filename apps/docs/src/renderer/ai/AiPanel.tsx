@@ -36,7 +36,17 @@ import {
   IconButton,
   Markdown,
   RedrobMark,
+  PlanReply,
+  RedrobModeSwitch,
+  RedrobReceipt,
+  RedrobStatus,
+  parsePlan,
+  planRequest,
+  runPlanRequest,
+  useRedrobPrefs,
   type AgentStepsStrings,
+  type PlanStatus,
+  type RunReport,
 } from '@genoffice/ui'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
@@ -88,6 +98,10 @@ interface ChatEntry {
   snapshot?: PmNode
   /** attachments consumed from the composer by this user message (read-only echo chips) */
   attachments?: AttachmentMeta[]
+  /** Plan mode: the plan this read-only run wrote, shown as a document outside the bubble */
+  plan?: { request: string; steps: string[]; status: PlanStatus }
+  /** what the run reported, shown as one receipt under the answer */
+  report?: RunReport
 }
 
 /** clickable starter prompts for the empty state (fill the input, do not send) —
@@ -434,6 +448,15 @@ export function AiPanel({
   editorRef.current = editor
   const settingsRef = useRef(settings)
   settingsRef.current = settings
+  // Plan or Run for the next message (default from Settings), and the status line's prefs
+  // (outside the suite, and in tests, there is no preload: the defaults stand)
+  const { mode, setMode, ...prefs } = useRedrobPrefs(
+    typeof window === 'undefined' ? undefined : window.desktop,
+  )
+  /** the request a running read-only Plan run is planning (null for a normal run) */
+  const planRunRef = useRef<string | null>(null)
+  /** steps of the approved plan the running run follows */
+  const planStepsRef = useRef(0)
   const blocksRef = useRef(blocks)
   blocksRef.current = blocks
   const numIdFallbackRef = useRef(numIdFallback)
@@ -484,7 +507,14 @@ export function AiPanel({
   /** Tool activity of the whole run (with args/output, accumulated across turns) — for full
       transcript persistence, and so persisting needn't do side effects inside a setState updater */
   const runToolsRef = useRef<
-    Array<{ name: string; summary: string; isError?: boolean; input?: string; output?: string }>
+    Array<{
+      name: string
+      summary: string
+      isError?: boolean
+      mutated?: boolean
+      input?: string
+      output?: string
+    }>
   >([])
 
   // ── Chat-history persistence ────────────────────────────────────────────
@@ -638,6 +668,7 @@ export function AiPanel({
             name: call.name,
             summary: execution.summary,
             isError: execution.isError,
+            mutated: !!execution.mutated,
             input: safeJsonInput(call.input),
             output: execution.output
               ? execution.output.slice(0, PERSIST_TOOL_FIELD_MAX)
@@ -674,14 +705,40 @@ export function AiPanel({
           const finalText = truncated
             ? [baseText, tModule('aiTruncatedNote')].filter(Boolean).join('\n\n')
             : baseText
-          patchLastAssistant((last) => ({
-            streaming: false,
-            turnLimit,
-            text: finalText || (last.tools?.length ? last.text : tModule('aiNoReply')),
-            // A stop mid-tool can leave a running placeholder behind — drop it
-            tools: last.tools?.filter((tl) => !tl.running),
-            snapshot: runSnapshotRef.current ?? undefined,
-          }))
+          const planOf = planRunRef.current
+          planRunRef.current = null
+          const planSteps = planStepsRef.current
+          planStepsRef.current = 0
+          const changes = runToolsRef.current.filter((tl) => !tl.isError && tl.mutated).length
+          const s = settingsRef.current
+          const model = s.providers[s.provider]?.model?.trim()
+          patchLastAssistant((last) =>
+            planOf && !cancelled
+              ? {
+                  // the read-only run wrote a plan: it renders as a document, nothing changed
+                  streaming: false,
+                  text: '',
+                  tools: undefined,
+                  plan: { request: planOf, steps: parsePlan(finalText), status: 'draft' },
+                }
+              : {
+                  streaming: false,
+                  turnLimit,
+                  text: finalText || (last.tools?.length ? last.text : tModule('aiNoReply')),
+                  // A stop mid-tool can leave a running placeholder behind — drop it
+                  tools: last.tools?.filter((tl) => !tl.running),
+                  snapshot: runSnapshotRef.current ?? undefined,
+                  // only what the run itself reports; nothing is invented to fill a row
+                  report: cancelled
+                    ? undefined
+                    : {
+                        model: model || 'Redrob Auto',
+                        chosenBy: model ? 'you' : 'auto',
+                        ...(planSteps > 0 ? { planSteps } : {}),
+                        ...(changes > 0 ? { changes } : {}),
+                      },
+                },
+          )
           setBusy(false)
           // App listens: a run that generated content into a never-saved document
           // triggers a silent first save with a content-derived file name
@@ -789,7 +846,28 @@ export function AiPanel({
     stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
   }
 
-  const run = () => runWith(input.trim())
+  const run = () => {
+    const text = input.trim()
+    if (!text) return
+    if (mode === 'plan') runWith(planRequest(text), text, undefined, { planOf: text })
+    else runWith(text)
+  }
+
+  /** the person approved a plan (possibly edited): run it as a normal run */
+  const runPlan = (entryIdx: number, request: string, steps: string[]) => {
+    setChat((prev) =>
+      prev.map((e, i) =>
+        i === entryIdx && e.plan ? { ...e, plan: { ...e.plan, steps, status: 'running' } } : e,
+      ),
+    )
+    runWith(runPlanRequest(request, steps), request, undefined, { planSteps: steps.length })
+  }
+  const keepPlan = (entryIdx: number) =>
+    setChat((prev) =>
+      prev.map((e, i) =>
+        i === entryIdx && e.plan ? { ...e, plan: { ...e.plan, status: 'kept' } } : e,
+      ),
+    )
 
   /** Image attachments are read as base64 and go multimodal with this user message (≤5MB per image, max 20) */
   const MAX_IMAGES_PER_MESSAGE = 20
@@ -819,6 +897,7 @@ export function AiPanel({
     instruction: string,
     displayInstruction = instruction,
     attachmentsOverride?: AttachmentMeta[],
+    runOptions?: { planOf?: string; planSteps?: number },
   ) => {
     const loop = loopRef.current
     if (!instruction || !loop || loop.busy) return
@@ -837,6 +916,8 @@ export function AiPanel({
     lastAttachmentsRef.current = sentAtts
     instructionRef.current = instruction
     lastInstructionRef.current = instruction
+    planRunRef.current = runOptions?.planOf ?? null
+    planStepsRef.current = runOptions?.planSteps ?? 0
     runToolsRef.current = []
     runSnapshotRef.current = null
     stickToBottomRef.current = true
@@ -859,7 +940,8 @@ export function AiPanel({
         window.setTimeout(() => setAttachNotice(null), 5000)
         return []
       })
-      .then((images) => loop.run(instruction, images))
+      // a Plan run is read-only: the model is offered no tools, so the file cannot change
+      .then((images) => loop.run(instruction, images, { readOnly: !!runOptions?.planOf }))
   }
 
   const cancel = () => loopRef.current?.cancel()
@@ -1119,7 +1201,8 @@ export function AiPanel({
             !entry.text &&
             !entry.streaming &&
             !entry.error &&
-            !entry.tools?.length
+            !entry.tools?.length &&
+            !entry.plan
           ) {
             return null
           }
@@ -1188,6 +1271,19 @@ export function AiPanel({
               )}
               {entry.tools && entry.tools.length > 0 && (
                 <AgentSteps steps={entry.tools} strings={stepStrings(entry.tools)} />
+              )}
+              {entry.plan && (
+                <PlanReply
+                  lang={lang}
+                  request={entry.plan.request}
+                  steps={entry.plan.steps}
+                  status={entry.plan.status}
+                  onRun={(steps) => runPlan(i, entry.plan!.request, steps)}
+                  onKeep={() => keepPlan(i)}
+                />
+              )}
+              {entry.report && !entry.error && !entry.streaming && turnEnded && (
+                <RedrobReceipt lang={lang} report={entry.report} />
               )}
               {entry.error && (
                 // fail-closed: the engine's own message, and sign-in only when auth is the cause
@@ -1327,6 +1423,15 @@ export function AiPanel({
           onSend={run}
           onStop={cancel}
           onPasteFiles={(files) => void onPasteFiles(files)}
+          tools={<RedrobModeSwitch lang={lang} value={mode} onChange={setMode} />}
+          status={
+            <RedrobStatus
+              lang={lang}
+              memory={prefs.memory}
+              factCheck={prefs.factCheck}
+              challenge={prefs.challenge}
+            />
+          }
           leading={
             <>
               <IconButton size="sm" label={t('aiAttachTitle')} onClick={pickAttachments}>

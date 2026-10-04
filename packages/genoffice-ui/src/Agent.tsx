@@ -331,6 +331,8 @@ export interface AgentComposerProps {
   onStop: () => void
   /** Files pasted into the field; text paste stays native. */
   onPasteFiles?: ((files: File[]) => void) | undefined
+  /** Under the field: what will happen to this message (privacy, memory, Cross-check). */
+  status?: ReactNode
 }
 
 /**
@@ -354,6 +356,7 @@ export function AgentComposer({
   onSend,
   onStop,
   onPasteFiles,
+  status,
 }: AgentComposerProps): ReactElement {
   const wrapRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -388,6 +391,7 @@ export function AgentComposer({
         context={context}
         leading={leading ?? null}
         tools={tools}
+        status={status}
         maxRows={7}
         onChange={onChange}
         onSubmit={() => onSend()}
