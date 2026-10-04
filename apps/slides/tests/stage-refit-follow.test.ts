@@ -236,7 +236,9 @@ describe('stage fit-to-window follow', () => {
     await act(async () => FakeResizeObserver.fire(wrap!))
     expect(stageZoom(container!)).toBeCloseTo(0.5, 5)
 
-    // reading view unmounts the editor; returning remounts a fresh .stage-wrap
+    // reading view unmounts the editor; returning remounts a fresh .stage-wrap.
+    // The ribbon is the Classic toolbar in the shared frame, so switch to it first.
+    clickByText(container!, '.go-tbswitch [role="radio"]', /Classic/)
     clickByText(container!, '.ribbon-tabs button', /^(View|视图)$/)
     clickByText(container!, 'button.rb-big', /Reading|阅读/)
     await settle()

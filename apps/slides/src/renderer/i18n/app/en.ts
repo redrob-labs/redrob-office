@@ -2,6 +2,16 @@
 
 export const en = {
   appSlideRail: 'Slides',
+  appSimpleToolbar: 'Everyday tools',
+  appSimpleAsk: 'Ask Redrob',
+  appSimpleCheck: 'Check the figures',
+  appSimpleTighten: 'Tighten',
+  appSimpleTightenPrompt: 'Tighten the text on this slide: fewer words, same meaning, nothing invented.',
+  appSimpleNotes: 'Speaker notes',
+  appSimpleNotesPrompt: 'Write short speaker notes for this slide from what is on it.',
+  appSimplePlay: 'Present',
+  appSaveCopyPptx: 'Save a .pptx copy',
+  appUntitledPptx: 'Untitled.pptx',
   appSlideLabel: 'Slide {n}',
   appPhPromptTitle: 'Click to add title',
   appPhPromptSubtitle: 'Click to add subtitle',

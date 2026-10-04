@@ -50,8 +50,8 @@ import {
   Icon,
   IconButton,
   Markdown,
+  RedrobMark,
 } from '@genoffice/ui'
-import { GensparkMark } from '../components/icons'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
 import fileExcelIcon from '../assets/file-excel.png'
@@ -317,6 +317,8 @@ interface AiPanelProps {
   onQueueFocus?: (key: string) => void
   /** Drop the items a submission finished with (successful and unrunnable alike) */
   onQueueConsume?: (keys: string[]) => void
+  /** hosted by the shared EditorFrame, which owns the width, the resize handle and hiding it */
+  hosted?: boolean
 }
 
 /** Resizable panel width: always opens at the default (drag-resize lasts for
@@ -359,6 +361,7 @@ export function AiPanel({
   onQueueClear,
   onQueueFocus,
   onQueueConsume,
+  hosted = false,
 }: AiPanelProps) {
   const { t } = useI18n()
   const [input, setInput] = useState('')
@@ -1940,7 +1943,7 @@ export function AiPanel({
   }
 
   // collapsed: rail only — after all hooks, so the instance and its state survive
-  if (!open) {
+  if (!open && !hosted) {
     return (
       <button
         className="ai-rail"
@@ -1948,7 +1951,7 @@ export function AiPanel({
         aria-label={t('appAiRailExpand')}
         onClick={onExpand}
       >
-        <GensparkMark size={22} />
+        <RedrobMark size={22} />
       </button>
     )
   }
@@ -1970,13 +1973,15 @@ export function AiPanel({
       }}
       onDrop={onDrop}
     >
-      <div
-        className="ai-panel-resizer"
-        onPointerDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Redrob AI"
-      />
+      {!hosted && (
+        <div
+          className="ai-panel-resizer"
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Redrob AI"
+        />
+      )}
       <AgentPanelHeader
         title={t('aiPanelTitle')}
         actions={[

@@ -1,3 +1,4 @@
+import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { IpcRendererEvent } from 'electron'
 import type { RenderSlide } from '@genoffice/pptx-render'
@@ -87,6 +88,7 @@ import type {
 } from '../shared/ipc'
 
 const api: SlidesApi = {
+  ...officePrefsBridge(ipcRenderer),
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
   // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite
   consumeAskPrompt: () => ipcRenderer.invoke('app:consume-ask-prompt').catch(() => null),

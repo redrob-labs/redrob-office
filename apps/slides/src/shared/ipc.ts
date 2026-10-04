@@ -1,3 +1,4 @@
+import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 /**
  * slides main-process <-> renderer IPC contract (Phase 3: open/save/edit, AI not included yet).
  *
@@ -1159,7 +1160,7 @@ export type MenuCommand =
   | 'copy'
   | 'paste'
 
-export interface SlidesApi {
+export interface SlidesApi extends Partial<OfficePrefsApi> {
   /** a request typed into Home's composer, for the Redrob panel to answer (one-shot) */
   consumeAskPrompt?: () => Promise<string | null>
   /** current UI language (persisted by the shell in app-settings.json) */
