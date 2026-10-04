@@ -44,6 +44,14 @@ import menuHomeIcon1x from './assets/menu-home.png?asset'
 import menuHomeIcon2x from './assets/menu-home@2x.png?asset'
 import { createI18n, isSelectableLang, setUiLang, type Lang } from '@genoffice/i18n'
 import { resolveStartupLang } from './ui-language'
+import { shouldShowLaunch } from './launch'
+import {
+  OFFICE_PREFS_CHANGED,
+  OFFICE_PREFS_KEY,
+  mergeOfficePrefs,
+  normalizeOfficePrefs,
+  type OfficePrefs,
+} from '@genoffice/electron-utils/office-prefs'
 import { cleanAskPrompt, queueAskPrompt, registerAskPromptIpc, routeAsk } from './ask-prompt'
 import {
   DEFAULT_SAVE_DIR_KEY,
@@ -368,6 +376,13 @@ configureHangulRuntime({
 const APP_SETTINGS_PATH = () => join(app.getPath('userData'), 'app-settings.json')
 
 let uiLang: Lang | null = null
+
+/** has the launch screen played in this app session */
+let launchShown = false
+
+function currentOfficePrefs(): OfficePrefs {
+  return normalizeOfficePrefs(readAppSettings(APP_SETTINGS_PATH())[OFFICE_PREFS_KEY])
+}
 
 function currentLang(): Lang {
   if (uiLang) return uiLang
@@ -3289,6 +3304,24 @@ function registerHomeIpc(): void {
     writeAppSetting(APP_SETTINGS_PATH(), 'theme', theme)
     nativeTheme.themeSource = theme
     for (const wc of webContents.getAllWebContents()) wc.send('app:theme-changed', theme)
+  })
+
+  ipcMain.handle(HOME_CHANNELS.getOfficePrefs, (): OfficePrefs => currentOfficePrefs())
+
+  // Toolbar, Plan or Run and the Cross-check levels: persisted with the other app
+  // settings, then pushed to every view so open editors follow at once.
+  ipcMain.handle(HOME_CHANNELS.setOfficePrefs, (_event, patch: unknown): OfficePrefs => {
+    const next = mergeOfficePrefs(currentOfficePrefs(), patch)
+    writeAppSetting(APP_SETTINGS_PATH(), OFFICE_PREFS_KEY, next)
+    for (const wc of webContents.getAllWebContents()) wc.send(OFFICE_PREFS_CHANGED, next)
+    return next
+  })
+
+  // The launch screen runs once per app session, never again on a renderer reload
+  ipcMain.handle(HOME_CHANNELS.takeLaunch, (): boolean => {
+    const show = shouldShowLaunch({ shown: launchShown, env: process.env.GENOFFICE_LAUNCH })
+    launchShown = true
+    return show
   })
 
   ipcMain.handle(HOME_CHANNELS.getAnalyticsEnabled, (): boolean => analyticsEnabled())

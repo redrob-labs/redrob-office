@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Home } from './Home'
-import { Onboarding } from './Onboarding'
+import { Launch } from './Launch'
 import { StarPromptCard } from './StarPromptCard'
 import { TabBar } from './TabBar'
 
 interface AppFrameProps {
-  /** resolved before first paint (main.tsx) so home never flashes under the overlay */
+  /** resolved before first paint (main.tsx) */
   initialOnboardingSeen: boolean
+  /** the launch screen plays this session (main decides: once per app session) */
+  initialLaunch?: boolean
 }
 
-export function AppFrame({ initialOnboardingSeen }: AppFrameProps) {
+export function AppFrame({ initialOnboardingSeen, initialLaunch = false }: AppFrameProps) {
   const [homeActive, setHomeActive] = useState(true)
-  const [showOnboarding, setShowOnboarding] = useState(!initialOnboardingSeen)
+  const [showLaunch, setShowLaunch] = useState(initialLaunch)
   const [starPromptDocOpens, setStarPromptDocOpens] = useState<number | null>(null)
 
   useEffect(() => {
@@ -24,10 +26,9 @@ export function AppFrame({ initialOnboardingSeen }: AppFrameProps) {
   }, [])
 
   // The "star us" invitation is decided (and counted as shown) by the main
-  // process; ask once per session, and never while onboarding is up — a
-  // first-run user can't have met the value threshold anyway.
+  // process; ask once per session, never over the launch screen.
   useEffect(() => {
-    if (showOnboarding) return
+    if (showLaunch) return
     let alive = true
     void window.aiOffice.starPromptShouldShow?.().then((result) => {
       if (alive && result.show) setStarPromptDocOpens(result.docOpens)
@@ -35,31 +36,27 @@ export function AppFrame({ initialOnboardingSeen }: AppFrameProps) {
     return () => {
       alive = false
     }
-  }, [showOnboarding])
+  }, [showLaunch])
 
-  const finishOnboarding = async (): Promise<boolean> => {
-    try {
-      const persisted = await window.aiOffice.setOnboardingSeen()
-      if (!persisted) return false
-      setShowOnboarding(false)
-      return true
-    } catch {
-      return false
-    }
+  const finishLaunch = () => {
+    setShowLaunch(false)
+    // the launch screen is the first-run welcome now; the toolbar tip in the
+    // editor carries what the old onboarding pages said
+    if (!initialOnboardingSeen) void window.aiOffice.setOnboardingSeen().catch(() => false)
   }
 
   return (
     <div className="app-frame">
       <TabBar />
       {/* docs/sheets tabs render as WebContentsView children of this window, positioned
-       * by the main process to cover this area — only Home paints its own content here. */}
+       * by the main process to cover this area; only Home paints its own content here. */}
       <div className="app-frame-content" style={{ visibility: homeActive ? 'visible' : 'hidden' }}>
         <Home />
       </div>
-      {/* editor WebContentsViews paint above ALL shell DOM, so the overlay only
-       * renders while the home tab is active — it comes back when home does */}
-      {showOnboarding && homeActive && <Onboarding onDone={finishOnboarding} />}
-      {starPromptDocOpens !== null && !showOnboarding && homeActive && (
+      {/* editor WebContentsViews paint above ALL shell DOM; the launch screen
+       * plays at startup, before any editor tab exists */}
+      {showLaunch && homeActive && <Launch onDone={finishLaunch} />}
+      {starPromptDocOpens !== null && !showLaunch && homeActive && (
         <StarPromptCard docOpens={starPromptDocOpens} onClose={() => setStarPromptDocOpens(null)} />
       )}
     </div>

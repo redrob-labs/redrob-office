@@ -1,5 +1,8 @@
 import type { AiChatResponse, AiProviderMeta, AiSettings } from '@genoffice/ai-provider'
 import type { UpdateChannel } from './update-api'
+import type { OfficePrefs } from '@genoffice/electron-utils/office-prefs'
+
+export type { OfficePrefs }
 
 /** UI language; kept self-contained here (mirrors Lang in @genoffice/i18n) */
 export type UiLanguage =
@@ -130,6 +133,13 @@ export interface HomeApi {
   getTheme(): Promise<UiTheme>
   /** switch + persist the UI theme; broadcasts 'app:theme-changed' to all web contents */
   setTheme(theme: UiTheme): Promise<void>
+  /** Toolbar, Plan or Run, Cross-check and Memory defaults (every editor follows) */
+  getOfficePrefs(): Promise<OfficePrefs>
+  /** change some of them; returns what was stored */
+  setOfficePrefs(patch: Partial<OfficePrefs>): Promise<OfficePrefs>
+  onOfficePrefsChanged(handler: (prefs: OfficePrefs) => void): () => void
+  /** true the first time it is asked in an app session: play the launch screen */
+  takeLaunch(): Promise<boolean>
   /** whether anonymous usage statistics are enabled (default true in official builds) */
   getAnalyticsEnabled(): Promise<boolean>
   /** persist an explicit analytics opt-in or opt-out */
@@ -334,6 +344,9 @@ export const HOME_CHANNELS = {
   onboardingSeen: 'home:onboarding-seen',
   setOnboardingSeen: 'home:set-onboarding-seen',
   getTheme: 'home:get-theme',
+  getOfficePrefs: 'home:get-office-prefs',
+  setOfficePrefs: 'home:set-office-prefs',
+  takeLaunch: 'home:take-launch',
   setTheme: 'home:set-theme',
   getAnalyticsEnabled: 'home:get-analytics-enabled',
   setAnalyticsEnabled: 'home:set-analytics-enabled',

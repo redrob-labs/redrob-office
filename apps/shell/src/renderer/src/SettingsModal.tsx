@@ -12,9 +12,10 @@ import type { AiSettings } from '@genoffice/ai-provider'
 import { isSelectableLang, languageOptions } from '@genoffice/i18n'
 import { useI18n } from './locale'
 import type { StringKey, TFunc } from './locale'
-import type { AccountStatus, UiTheme } from '../../shared/home-api'
+import type { AccountStatus, OfficePrefs, UiTheme } from '../../shared/home-api'
 import { ProviderLogo } from './provider-logos'
 import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
+import { RedrobPane } from './settings/RedrobPane'
 import './settings.css'
 
 // ── Settings modal (opened from the account menu) ─────────
@@ -61,7 +62,7 @@ type SectionId = 'account' | 'aiModel' | 'general' | 'about'
 // pane and the account/credits pane is unreachable.
 const ALL_SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = [
   { id: 'account', labelKey: 'setSecAccount' },
-  { id: 'aiModel', labelKey: 'setSecAiModel' },
+  { id: 'aiModel', labelKey: 'setSecRedrob' },
   { id: 'general', labelKey: 'setSecGeneral' },
   { id: 'about', labelKey: 'setSecAbout' },
 ]
@@ -395,6 +396,24 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const { lang, setLang, t } = useI18n()
   const [section, setSection] = useState<SectionId>(SECTIONS[0].id)
+  // Toolbar, Plan or Run, Cross-check and Memory: stored by main, followed by every editor
+  const [prefs, setPrefs] = useState<OfficePrefs | null>(null)
+  useEffect(() => {
+    let alive = true
+    void window.aiOffice
+      .getOfficePrefs?.()
+      .then((p) => alive && setPrefs(p))
+      .catch(() => {})
+    const off = window.aiOffice.onOfficePrefsChanged?.((p) => setPrefs(p))
+    return () => {
+      alive = false
+      off?.()
+    }
+  }, [])
+  const changePrefs = (patch: Partial<OfficePrefs>) => {
+    setPrefs((p) => (p ? { ...p, ...patch } : p))
+    void window.aiOffice.setOfficePrefs?.(patch).then(setPrefs).catch(() => {})
+  }
   const [theme, setTheme] = useState<UiTheme>('system')
   const [saveDir, setSaveDir] = useState('')
   const [analyticsOn, setAnalyticsOn] = useState(true)
@@ -516,7 +535,14 @@ export function SettingsModal({
               </div>
             </>
           )}
-          {section === 'aiModel' && <AiModelPane t={t} />}
+          {section === 'aiModel' && prefs && (
+            <RedrobPane
+              t={t}
+              prefs={prefs}
+              onChange={changePrefs}
+              developer={<AiModelPane t={t} />}
+            />
+          )}
           {section === 'general' && (
             <>
               <h3 className="set-pane-title">{t('setSecGeneral')}</h3>
@@ -561,6 +587,32 @@ export function SettingsModal({
                   }}
                 />
               </div>
+              {prefs && (
+                <div className="set-field">
+                  <div className="set-field-text">
+                    <div className="set-field-stack">
+                      <label className="set-field-label" htmlFor="set-toolbar">
+                        {t('setToolbar')}
+                      </label>
+                      <div className="set-field-desc">{t('setToolbarDesc')}</div>
+                    </div>
+                  </div>
+                  <Select
+                    id="set-toolbar"
+                    className="set-select"
+                    size="sm"
+                    value={prefs.toolbar}
+                    options={[
+                      { value: 'simple', label: t('setToolbarSimple') },
+                      { value: 'classic', label: t('setToolbarClassic') },
+                    ]}
+                    onChange={(_event, option) =>
+                      option &&
+                      changePrefs({ toolbar: option.value === 'classic' ? 'classic' : 'simple' })
+                    }
+                  />
+                </div>
+              )}
               <Field
                 label={t('saveLocation')}
                 value={saveDir || '—'}

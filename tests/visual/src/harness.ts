@@ -228,13 +228,19 @@ const STRIPPED_ENV = [
   'XLSX_OPEN_PATH',
 ]
 
-export async function launchShell(profileDir: string): Promise<ElectronApplication> {
+export async function launchShell(
+  profileDir: string,
+  { launchScreen = false }: { launchScreen?: boolean } = {},
+): Promise<ElectronApplication> {
   const env: Record<string, string> = {}
   for (const [k, v] of Object.entries(process.env)) {
     if (v !== undefined && !STRIPPED_ENV.includes(k)) env[k] = v
   }
   env.GENOFFICE_USER_DATA = profileDir
   env.GENOFFICE_LANG = 'en'
+  // the launch screen plays once a session; every capture but its own skips it
+  if (launchScreen) delete env.GENOFFICE_LAUNCH
+  else env.GENOFFICE_LAUNCH = 'skip'
   const app = await electron.launch({
     executablePath: electronBinary(),
     args: ['--force-device-scale-factor=1', SHELL_DIR],

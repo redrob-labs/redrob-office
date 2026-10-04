@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { IpcRendererEvent } from 'electron'
 import type { AiSettings } from '@genoffice/ai-provider'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import { OFFICE_PREFS_CHANGED, normalizeOfficePrefs } from '@genoffice/electron-utils/office-prefs'
 import type {
   AccountLoginEvent,
   AccountStatus,
@@ -204,6 +205,21 @@ const homeApi: HomeApi = {
     }
     ipcRenderer.on('app:theme-changed', listener)
     return () => ipcRenderer.removeListener('app:theme-changed', listener)
+  },
+  async getOfficePrefs() {
+    return normalizeOfficePrefs(await ipcRenderer.invoke(HOME_CHANNELS.getOfficePrefs))
+  },
+  async setOfficePrefs(patch) {
+    return normalizeOfficePrefs(await ipcRenderer.invoke(HOME_CHANNELS.setOfficePrefs, patch))
+  },
+  onOfficePrefsChanged(handler) {
+    const listener = (_event: Electron.IpcRendererEvent, prefs: unknown) =>
+      handler(normalizeOfficePrefs(prefs))
+    ipcRenderer.on(OFFICE_PREFS_CHANGED, listener)
+    return () => ipcRenderer.removeListener(OFFICE_PREFS_CHANGED, listener)
+  },
+  async takeLaunch() {
+    return (await ipcRenderer.invoke(HOME_CHANNELS.takeLaunch)) === true
   },
   async openGenTeam() {
     await ipcRenderer.invoke(HOME_CHANNELS.openGenTeam)

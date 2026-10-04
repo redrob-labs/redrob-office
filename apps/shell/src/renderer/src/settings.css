@@ -230,3 +230,23 @@
   width: 12px;
   height: 12px;
 }
+
+/* ---- Redrob AI pane (handoff 09-settings) ---- */
+
+.set-connected {
+  margin-bottom: var(--space-4);
+}
+
+.set-row {
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.set-row .set-field-desc {
+  max-width: 52ch;
+}
+
+.set-dev {
+  margin-top: var(--space-3);
+}

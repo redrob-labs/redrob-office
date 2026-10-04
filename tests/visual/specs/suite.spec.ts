@@ -110,13 +110,13 @@ for (const theme of THEMES) {
     }
   })
 
-  test(`onboarding (${theme})`, async () => {
-    const profile = createProfile({ name: `onboarding-${theme}`, theme, onboardingSeen: false })
-    const app = await launchShell(profile)
+  test(`launch (${theme})`, async () => {
+    const profile = createProfile({ name: `launch-${theme}`, theme, onboardingSeen: false })
+    const app = await launchShell(profile, { launchScreen: true })
     try {
-      await waitForSelector(app, 'shell', '.onb-overlay')
+      await waitForSelector(app, 'shell', '.launch')
       await freeze(app, 'shell')
-      expect(await captureStable(app, 'shell')).toMatchSnapshot(`onboarding-${theme}.png`)
+      expect(await captureStable(app, 'shell')).toMatchSnapshot(`launch-${theme}.png`)
     } finally {
       await closeShell(app)
       removeDir(profile)
