@@ -36,12 +36,16 @@ import { HomeHero } from './home/HomeHero'
 import './home/home-hero.css'
 import { HomeFoot } from './home/HomeFoot'
 import { UpdatesView } from './home/UpdatesView'
+import { useFacts } from './home/useFacts'
+import { waitingFiles } from '@genoffice/facts'
+import type { FactsApi } from '../../shared/facts-api'
 import type { StartKind } from './home/formats'
 
 declare global {
   interface Window {
     aiOffice: HomeApi
     aiOfficeProject?: ProjectHomeApi
+    aiOfficeFacts?: FactsApi
   }
 }
 
@@ -1033,8 +1037,9 @@ export function Home() {
   const [cloudMode, setCloudMode] = useState(false)
   // Updates takes over the content area like a selected project
   const [updatesMode, setUpdatesMode] = useState(false)
-  // files waiting in Updates; the linked-figure store reports it (0 until it exists)
-  const updatesWaiting = 0
+  // files waiting in Updates, from the linked-figure store in the main process
+  const facts = useFacts()
+  const updatesWaiting = facts.state ? waitingFiles(facts.state).length : 0
   const [filter, setFilter] = useState('all')
   // modified-column sort (WPS-style header popover), shared by the global and project tables
   const [fileSort, setFileSort] = useState<'recent' | 'oldest'>('recent')
@@ -2091,7 +2096,7 @@ export function Home() {
       {selectedProjectId ? (
         renderProjectContent()
       ) : updatesMode ? (
-        <UpdatesView />
+        <UpdatesView facts={facts} openPath={(path) => void window.aiOffice.openPath(path)} />
       ) : CLOUD_ACCOUNT_ENABLED && cloudMode ? (
         <CloudProjectsView />
       ) : (

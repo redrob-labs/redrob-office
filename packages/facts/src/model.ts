@@ -43,11 +43,19 @@ export interface FactSource {
   ref: string
 }
 
+/** How a value reads, e.g. `{ prefix: '₩', suffix: 'bn', decimals: 2 }` for ₩3.86bn. */
+export interface FactDisplay {
+  prefix?: string
+  suffix?: string
+  decimals?: number
+}
+
 export interface FactDef {
   id: FactId
   label: string
   source: FactSource
   bands?: SentenceBand[]
+  display?: FactDisplay
 }
 
 export type FactUseKind = 'value' | 'derived' | 'sentence'
@@ -121,6 +129,17 @@ export function bandOf(fact: FactDef | undefined, value: number): number {
 export function sentenceFor(fact: FactDef | undefined, value: number): string | null {
   const i = bandOf(fact, value)
   return i < 0 ? null : fact!.bands![i]!.words
+}
+
+/** A value as the fact displays it; plain numbers keep up to 2 decimals. */
+export function formatFact(fact: FactDef | undefined, value: number): string {
+  const d = fact?.display
+  const decimals = d?.decimals
+  const n =
+    decimals !== undefined && Number.isInteger(decimals) && decimals >= 0 && decimals <= 10
+      ? value.toFixed(decimals)
+      : String(Math.round(value * 100) / 100)
+  return `${d?.prefix ?? ''}${n}${d?.suffix ?? ''}`
 }
 
 export function fileUsesFact(state: FactsState, file: FileId, fact: FactId): boolean {

@@ -26,6 +26,7 @@
     "@genoffice/docs": "workspace:*",
     "@genoffice/docx-engine": "workspace:*",
     "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/facts": "workspace:*",
     "@genoffice/hangul": "workspace:*",
     "@genoffice/i18n": "workspace:*",
     "@genoffice/pptx-engine": "workspace:*",

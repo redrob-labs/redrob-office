@@ -212,6 +212,156 @@
   margin-top: var(--space-8);
 }
 
+.updates-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 880px;
+  margin-top: var(--space-6);
+}
+
+.upd {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-base);
+  overflow: hidden;
+}
+
+.upd--old {
+  background: var(--surface-raised);
+}
+
+.upd__h {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.upd__k {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.upd__t {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 4px 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.upd del,
+.updf del {
+  color: var(--ink-secondary);
+}
+
+.upd ins,
+.updf ins {
+  text-decoration: none;
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.upd__m {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-secondary);
+}
+
+.upd__files {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.updf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 14px 20px;
+}
+
+.updf + .updf {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.updf__h {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.updf__n {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.updf__dir {
+  font-size: 13px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.updf__s {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+}
+
+.updf__s--wait {
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
+}
+
+.updf__tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.updf__tbl th {
+  padding: 4px 0;
+  text-align: left;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.updf__tbl td {
+  padding: 4px 0;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--ink-primary);
+}
+
+.updf__tbl .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.updf__act {
+  display: flex;
+  gap: var(--space-2);
+}
+
 @media (max-width: 520px) {
   .recents-bar {
     flex-wrap: wrap;

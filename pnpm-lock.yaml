@@ -546,6 +546,9 @@ importers:
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
+      '@genoffice/facts':
+        specifier: workspace:*
+        version: link:../../packages/facts
       '@genoffice/hangul':
         specifier: workspace:*
         version: link:../hangul

@@ -21,6 +21,9 @@ import type {
 import { HOME_CHANNELS, PROJECT_CHANNELS } from '../shared/home-api'
 import type { TabsApi, TabSummary } from '../shared/tabs-api'
 import { TABS_CHANNELS } from '../shared/tabs-api'
+import { normalizeFactsState } from '@genoffice/facts'
+import type { FactsApi } from '../shared/facts-api'
+import { FACTS_CHANNELS } from '../shared/facts-api'
 
 const UI_LANGUAGES: readonly UiLanguage[] = [
   'zh',
@@ -392,6 +395,23 @@ const tabsApi: TabsApi = {
 }
 
 contextBridge.exposeInMainWorld('aiOfficeTabs', tabsApi)
+
+// Linked figures: the state is re-read defensively on every crossing
+const factsApi: FactsApi = {
+  async get() {
+    return normalizeFactsState(await ipcRenderer.invoke(FACTS_CHANNELS.get))
+  },
+  async command(cmd) {
+    return normalizeFactsState(await ipcRenderer.invoke(FACTS_CHANNELS.command, cmd))
+  },
+  onChanged(handler) {
+    const listener = (_event: IpcRendererEvent, state: unknown) => handler(normalizeFactsState(state))
+    ipcRenderer.on(FACTS_CHANNELS.changed, listener)
+    return () => ipcRenderer.removeListener(FACTS_CHANNELS.changed, listener)
+  },
+}
+
+contextBridge.exposeInMainWorld('aiOfficeFacts', factsApi)
 
 // open documents dragged from the OS anywhere over Home or the tab strip
 installDropOpenBridge()

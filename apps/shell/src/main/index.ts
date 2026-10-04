@@ -99,6 +99,12 @@ import {
   syncCloudProjects,
 } from './cloud-projects'
 import { handleDroppedFiles } from './dropped-files'
+import { FactsStore } from '@genoffice/facts'
+import { JsonFileFactsRepository } from '@genoffice/facts/json-repository'
+import { registerFactsIpc } from './facts-service'
+import { FACTS_CHANNELS } from '../shared/facts-api'
+import { randomUUID } from 'node:crypto'
+import { userInfo } from 'node:os'
 import { ProjectStore } from '@genoffice/project-store'
 import {
   ensureGenofficeLogin,
@@ -4472,6 +4478,25 @@ registerAskPromptIpc()
 registerEngineIpc()
 registerTabsIpc()
 registerDroppedFilesIpc()
+
+// Linked figures: one index for the app in userData; every change goes to every view.
+registerFactsIpc(ipcMain, {
+  store: new FactsStore(
+    new JsonFileFactsRepository(join(app.getPath('userData'), 'linked-figures.json')),
+  ),
+  broadcast: (state) => {
+    for (const wc of webContents.getAllWebContents()) wc.send(FACTS_CHANNELS.changed, state)
+  },
+  author: () => {
+    try {
+      return userInfo().username || 'This computer'
+    } catch {
+      return 'This computer'
+    }
+  },
+  now: () => new Date(),
+  newId: () => randomUUID(),
+})
 
 // sheets' project:resolveChat goes through the handler registered by docs-main; the sessionId reverse lookup hooks in here
 setSessionPathResolver(resolveSheetsSessionPath)

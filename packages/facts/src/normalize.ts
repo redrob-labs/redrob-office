@@ -22,12 +22,29 @@ function band(v: unknown): SentenceBand | null {
   return isNum(v.below) ? { below: v.below, words: v.words } : { words: v.words }
 }
 
+/** A fact definition from untrusted input, or null. */
+export function normalizeFactDef(v: unknown): FactDef | null {
+  return isObj(v) && isStr(v.id) ? fact(v.id, v) : null
+}
+
+/** A use from untrusted input, or null. */
+export function normalizeFactUse(v: unknown): FactUse | null {
+  return use(v)
+}
+
 function fact(id: string, v: unknown): FactDef | null {
   if (!isObj(v) || !isStr(v.label) || !isObj(v.source) || !isStr(v.source.file) || typeof v.source.ref !== 'string') return null
   const out: FactDef = { id, label: v.label, source: { file: v.source.file, ref: v.source.ref } }
   if (Array.isArray(v.bands)) {
     const bands = v.bands.map(band).filter((b): b is SentenceBand => b !== null)
     if (bands.length) out.bands = bands
+  }
+  if (isObj(v.display)) {
+    const d: NonNullable<FactDef['display']> = {}
+    if (typeof v.display.prefix === 'string') d.prefix = v.display.prefix
+    if (typeof v.display.suffix === 'string') d.suffix = v.display.suffix
+    if (isNum(v.display.decimals) && Number.isInteger(v.display.decimals)) d.decimals = v.display.decimals
+    out.display = d
   }
   return out
 }

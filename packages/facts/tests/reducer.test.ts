@@ -4,6 +4,7 @@ import {
   factsReducer,
   figState,
   filesUsing,
+  formatFact,
   normalizeFactsState,
   openUpdates,
   pending,
@@ -192,5 +193,22 @@ describe('normalizeFactsState', () => {
     expect(s.uses.deck).toHaveLength(1)
     expect(s.updates).toEqual([])
     expect(s.kept[REV]!.deck).toBeUndefined()
+  })
+})
+
+describe('formatFact', () => {
+  it('reads with the fact display, or as a plain number', () => {
+    const def = { id: 'r', label: 'R', source: { file: 'f', ref: 'A1' }, display: { prefix: '₩', suffix: 'bn', decimals: 2 } }
+    expect(formatFact(def, 3.9)).toBe('₩3.90bn')
+    expect(formatFact(undefined, 3.14159)).toBe('3.14')
+  })
+
+  it('keeps the display through normalising', () => {
+    const s = factsReducer(boardState(), {
+      type: 'defineFact',
+      value: 0,
+      fact: { id: 'x', label: 'X', source: { file: 'f', ref: 'A1' }, display: { suffix: '%', decimals: 1 } },
+    })
+    expect(normalizeFactsState(JSON.parse(JSON.stringify(s))).facts.x!.display).toEqual({ suffix: '%', decimals: 1 })
   })
 })
