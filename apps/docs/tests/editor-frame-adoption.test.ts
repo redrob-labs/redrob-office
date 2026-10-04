@@ -106,7 +106,8 @@ describe('App wiring', () => {
 
   it('puts the Redrob panel in the frame on the right, no longer the left dock', () => {
     expect(app).not.toContain('className={`ai-dock')
-    expect(app).toMatch(/panel=\{\s*doc \? \(\s*<AiPanel/)
+    // the panel slot holds the catch-up (when there is one) above the Redrob panel
+    expect(app).toMatch(/panel=\{\s*doc \? \(\s*<div className="doc-panel-stack">[\s\S]{0,400}?<AiPanel/)
     expect(app).toContain('hosted')
   })
 

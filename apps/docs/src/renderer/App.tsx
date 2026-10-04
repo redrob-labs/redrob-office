@@ -28,6 +28,12 @@ import {
 import { SimpleToolbar, docsCommands, docsTools } from './components/SimpleToolbar'
 import { useLinkedFigures } from './linked/useLinkedFigures'
 import { MENTION_STRINGS, mentionPeople, mentionsRedrob, redrobCommentPrompt } from './comments/mentions'
+import { catchUpItems, type CatchUpItem } from '@genoffice/versions'
+import { VersionHistory } from './versions/VersionHistory'
+import { CatchUp } from './versions/CatchUp'
+import { collectRevisions as catchUpRevisions } from './versions/revisions'
+import './versions/versions.css'
+import { verT } from './versions/strings'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
   BLANK_BULLET_NUM_ID,
@@ -4296,6 +4302,46 @@ export function App() {
     editable: hasDoc && formatState.editable && !viewing,
     setStatus,
   })
+  // version history (behind the save status) and the catch-up on open
+  const [versionsOpen, setVersionsOpen] = useState(false)
+  const [catchUp, setCatchUp] = useState<{ since: string; items: CatchUpItem[] } | null>(null)
+  const visitedPath = useRef<string | null>(null)
+  const waitingFiguresRef = useRef(0)
+  waitingFiguresRef.current = linked.waitingCount
+  useEffect(() => {
+    const path = doc?.filePath ?? null
+    if (!path || !editor || visitedPath.current === path || !window.desktop?.markVisit) return
+    visitedPath.current = path
+    setCatchUp(null)
+    void window.desktop.markVisit(path).then((since) => {
+      if (!since || visitedPath.current !== path) return
+      const items = catchUpItems({
+        since,
+        me: null,
+        comments: commentsLiveRef.current,
+        revisions: catchUpRevisions(editor.state.doc),
+        waitingFigures: waitingFiguresRef.current,
+      })
+      if (items.length === 0) return
+      setCatchUp({ since, items })
+      setShowAi(true)
+    })
+  }, [doc?.filePath, editor])
+  const showCatchUpItem = (item: CatchUpItem) => {
+    if (!editor) return
+    if (item.kind === 'comment') {
+      setShowComments(true)
+      const span = [...document.querySelectorAll<HTMLElement>('.ProseMirror .doc-comment')].find((s) =>
+        (s.dataset.commentIds ?? '').split(' ').includes(item.commentId),
+      )
+      span?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else if (item.kind === 'suggestion') {
+      const at = Math.min(item.at, editor.state.doc.content.size)
+      editor.chain().focus().setTextSelection(at).scrollIntoView().run()
+    } else {
+      linked.openSources()
+    }
+  }
   // Undo/redo availability: refreshed on every transaction so the QAT buttons grey out when empty
   const [histState, setHistState] = useState({ canUndo: false, canRedo: false })
   useEffect(() => {
@@ -4521,6 +4567,15 @@ export function App() {
       {docCss && <style data-doc-css="">{docCss}</style>}
       {linked.css && <style data-linked-figures="">{linked.css}</style>}
       {hasDoc && linked.overlay}
+      {hasDoc && (
+        <VersionHistory
+          open={versionsOpen}
+          onClose={() => setVersionsOpen(false)}
+          path={doc?.filePath ?? null}
+          fileName={doc?.filePath ? (doc.filePath.split(/[\\/]/).pop() ?? '') : ''}
+          api={window.desktop}
+        />
+      )}
       {doc && liveDocCjk != null && (
         <style data-doc-css="">{`.doc-page { --doc-line-factor:${docLineFactor(doc.parsed, liveDocCjk)} }`}</style>
       )}
@@ -4560,9 +4615,15 @@ export function App() {
         canRedo={hasDoc && histState.canRedo}
         saveStatus={
           hasDoc ? (
-            <span className="docs-save-status">
+            <button
+              type="button"
+              className="docs-save-status"
+              aria-haspopup="dialog"
+              title={verT('verOpen')}
+              onClick={() => setVersionsOpen(true)}
+            >
               {hasUnsavedChanges ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}
-            </span>
+            </button>
           ) : undefined
         }
         search={{ tools: frameTools, strings: frameText.search, onAsk: askRedrob }}
@@ -4651,6 +4712,15 @@ export function App() {
         }
         panel={
           doc ? (
+            <div className="doc-panel-stack">
+            {catchUp && (
+              <CatchUp
+                since={catchUp.since}
+                items={catchUp.items}
+                onShow={showCatchUpItem}
+                onDismiss={() => setCatchUp(null)}
+              />
+            )}
             <AiPanel
               key={aiPanelKey}
               editor={editor}
@@ -4675,6 +4745,7 @@ export function App() {
               commentsAccess={aiCommentsAccess}
               hfAccess={aiHfAccess}
             />
+            </div>
           ) : undefined
         }
         panelOpen={showAi}

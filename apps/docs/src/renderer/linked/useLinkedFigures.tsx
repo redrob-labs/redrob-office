@@ -2,8 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } 
 import type { Editor } from '@tiptap/core'
 import type { FrameTool } from '@genoffice/ui'
 import { isLinkedFigureId } from '@genoffice/docx-engine'
-import type { FigurePart } from '@genoffice/facts'
-import { collectFigures, figureCss, figureRewrites, figureUse, keptText, syncUsesCommands, type DocFigure } from './figures'
+import { figState, type FigurePart } from '@genoffice/facts'
+import {
+  collectFigures,
+  figureCss,
+  figureLook,
+  figureRewrites,
+  figureUse,
+  keptText,
+  syncUsesCommands,
+  type DocFigure,
+} from './figures'
 import { FigureCard } from './FigureCard'
 import { InsertFigureDialog } from './InsertFigureDialog'
 import { SourcesRail } from './SourcesRail'
@@ -29,6 +38,9 @@ export interface LinkedFigures {
   /** the card and the insert dialog */
   overlay: ReactElement
   tools: FrameTool[]
+  /** figures in this document with an update waiting */
+  waitingCount: number
+  openSources: () => void
 }
 
 interface CardAt {
@@ -200,5 +212,10 @@ export function useLinkedFigures({ editor, filePath, clean, editable, setStatus 
       {inserting && <InsertFigureDialog state={facts.state} onInsert={insert} onClose={() => setInserting(false)} />}
     </>
   )
-  return { css, rail, overlay, tools }
+  const waitingCount =
+    facts.state && filePath
+      ? figures.filter((f) => figureLook(figState(facts.state!, f.fact, filePath, f.part)) === 'wait').length
+      : 0
+  const openSources = useCallback(() => setRailOpen(true), [])
+  return { css, rail, overlay, tools, waitingCount, openSources }
 }

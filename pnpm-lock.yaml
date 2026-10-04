@@ -50,6 +50,9 @@ importers:
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../../packages/pptx-render
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       electron-updater:
         specifier: ^6.8.9
         version: 6.8.9
@@ -579,6 +582,9 @@ importers:
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17
@@ -1033,6 +1039,18 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  packages/versions:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
   tests/visual:
     devDependencies:

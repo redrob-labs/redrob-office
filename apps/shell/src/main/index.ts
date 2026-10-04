@@ -102,6 +102,8 @@ import { handleDroppedFiles } from './dropped-files'
 import { FactsStore } from '@genoffice/facts'
 import { JsonFileFactsRepository } from '@genoffice/facts/json-repository'
 import { registerFactsIpc } from './facts-service'
+import { VersionStore } from '@genoffice/versions/store'
+import { isHistoryPath, registerVersionsIpc } from './versions-service'
 import { FACTS_CHANNELS } from '../shared/facts-api'
 import { randomUUID } from 'node:crypto'
 import { userInfo } from 'node:os'
@@ -142,6 +144,7 @@ import {
   setDocsShellWindow,
   setDocsFileSavedHook,
   setDocsFileOpenedHook,
+  setDocSavedHook,
   setSessionPathResolver,
   defaultSaveDir,
   uniquePathIn,
@@ -4478,6 +4481,20 @@ registerAskPromptIpc()
 registerEngineIpc()
 registerTabsIpc()
 registerDroppedFilesIpc()
+
+// Version history: every Docs save is kept on this computer; restores open as a copy.
+const versionStore = new VersionStore({ root: join(app.getPath('userData'), 'versions') })
+registerVersionsIpc(ipcMain, { store: versionStore, openPath: (p) => void openDocumentPath(p) })
+setDocSavedHook((path, bytes, auto) => {
+  if (!isHistoryPath(path)) return
+  let by = 'This computer'
+  try {
+    by = userInfo().username || by
+  } catch {
+    // keep the generic name
+  }
+  void versionStore.record(path, bytes, { by, auto }).catch(() => undefined)
+})
 
 // Linked figures: one index for the app in userData; every change goes to every view.
 registerFactsIpc(ipcMain, {

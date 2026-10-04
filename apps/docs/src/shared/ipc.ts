@@ -1,5 +1,6 @@
 import type { OfficePrefs } from '@genoffice/electron-utils/office-prefs'
 import type { FactsCommand, FactsState } from '@genoffice/facts'
+import type { VersionsApi } from '@genoffice/versions'
 
 export interface OpenFileResult {
   path: string
@@ -222,6 +223,11 @@ export interface DesktopApi {
   getOfficePrefs?(): Promise<OfficePrefs | null>
   setOfficePrefs?(patch: Partial<OfficePrefs>): Promise<OfficePrefs | null>
   onOfficePrefsChanged?(handler: (prefs: OfficePrefs) => void): () => void
+  /** Version history and last visits, owned by the shell (empty / null outside it) */
+  listVersions?: VersionsApi['listVersions']
+  nameVersion?: VersionsApi['nameVersion']
+  restoreVersion?: VersionsApi['restoreVersion']
+  markVisit?: VersionsApi['markVisit']
   /** The shell's linked-figure index (null outside the suite or when it failed to read) */
   getFacts?(): Promise<FactsState | null>
   /** Rejects when the shell refused or could not save the command */
