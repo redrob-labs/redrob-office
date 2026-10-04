@@ -385,6 +385,9 @@ importers:
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
+      '@genoffice/facts':
+        specifier: workspace:*
+        version: link:../../packages/facts
       '@genoffice/file-parse':
         specifier: workspace:*
         version: link:../../packages/file-parse

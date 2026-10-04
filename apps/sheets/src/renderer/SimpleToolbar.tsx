@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { Icon, Toolbar, ToolbarButton, ToolbarGroup, ToolbarSpacer, type FrameTool } from '@genoffice/ui'
 import { useI18n, type TFunc } from './i18n/locale'
+import { LINKED_CELL_STRINGS } from './linked-cells'
 
 export interface SheetsActions {
   /** a ribbon command, the same strings the classic ribbon sends */
@@ -48,6 +49,13 @@ export function sheetsTools(t: TFunc, a: SheetsActions, canEdit: boolean): Frame
       run: () => a.command(c.command),
       disabled: !canEdit,
     })),
+    {
+      id: 'link-cell',
+      label: LINKED_CELL_STRINGS.tool,
+      keywords: ['linked', 'figure', 'fact', 'source'],
+      run: () => a.command('link-cell'),
+      disabled: !canEdit,
+    },
     ...PROMPTS.map((p) => ({
       id: p.id,
       label: t(p.label),

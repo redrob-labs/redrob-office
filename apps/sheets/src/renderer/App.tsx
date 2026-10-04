@@ -1,3 +1,4 @@
+import { useLinkedCells } from './useLinkedCells'
 import {
   absRangeRef,
   activateFormulaClosure,
@@ -580,6 +581,8 @@ export function App(): React.JSX.Element {
     [],
   )
   const [message, setMessage] = useState(t('appReadyInitial'))
+  // linked cells: a cell here can be the source of a figure other files use
+  const linkedCells = useLinkedCells(univerRef, workbookFile?.path, setMessage)
   /// Zoom of the active sheet in percent, echoed by the status-bar slider.
   const [zoomPercent, setZoomPercent] = useState(100)
   const [selectionFormat, setSelectionFormat] = useState<SelectionFormat | null>(null)
@@ -4490,6 +4493,10 @@ export function App(): React.JSX.Element {
   }, [])
 
   function handleRibbonCommand(command: string): void {
+    if (command === 'link-cell') {
+      linkedCells.linkActiveCell()
+      return
+    }
     if (command === 'watch-window') {
       setWatchOpen((open) => !open)
       return

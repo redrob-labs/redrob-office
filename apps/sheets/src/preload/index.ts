@@ -8,6 +8,7 @@ import type {
 } from '@genoffice/ai-provider'
 import type { ProjectApi } from '@genoffice/project-store'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
+import { factsBridge } from '@genoffice/facts'
 import type {
   AttachmentAddResult,
   AttachmentImageResult,
@@ -55,6 +56,8 @@ import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 
 const desktopApi: DesktopApi = {
   ...officePrefsBridge(ipcRenderer),
+  // shell-owned linked figures (apps/shell/src/main/facts-service.ts)
+  ...factsBridge(ipcRenderer),
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
   onLanguageChanged(handler) {
     const listener = (
