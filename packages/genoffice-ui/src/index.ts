@@ -39,6 +39,19 @@ export {
   type AgentUndeliveredProps,
 } from './Agent'
 export {
+  ComposerMode,
+  Opinion,
+  PlanDocument,
+  type ComposerModeOption,
+  type ComposerModeProps,
+  type OpinionProps,
+  type PlanDocumentProps,
+  type PlanItem,
+  type PlanSection,
+  type PlanStatus,
+  type PlanTodo,
+} from './Plan'
+export {
   ColorPicker,
   THEME_COLORS,
   THEME_COLOR_SHADES,

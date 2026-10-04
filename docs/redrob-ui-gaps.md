@@ -13,6 +13,7 @@ would close each gap. Upstream fixes belong in `redrob-labs/redrob-ui`.
 | The kit `ModelPicker` expects its own model data shape. | Office's model list comes from the engine in a different shape, so model choice keeps an Office control and the kit picker is not used. | An adapter, or a looser `ModelPicker` item type.                    |
 | The kit has no dense menu dropdown or hover ScreenTip.  | `Dropdown` and `installScreenTips` stay as Office components, restyled with kit tokens.                                                 | Kit `Menu` density and a tooltip with a delay and rich body.        |
 | Some i18n strings are not props on the kit component.   | The kit's CSS-class form is used, or the component is wrapped so every string comes from `@genoffice/i18n`.                             | String props on every user-visible label.                           |
+| The design system defines `ComposerMode`, `PlanDocument` and `Opinion`, but kit 1.0.2 does not ship them. | `@genoffice/ui` builds them in `src/Plan.tsx` and `src/plan.css` with the design system's anatomy (`go-cmode`, `go-plandoc`) on kit tokens. `Opinion` composes the kit's own `Disputed` and `OpinionAdded`. Every label is a prop. | Ship the three in the kit with the same props, then delete `Plan.tsx` and `plan.css`. |
 
 ## Office surfaces still short of the kit pattern
 

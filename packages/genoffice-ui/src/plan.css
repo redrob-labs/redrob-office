@@ -1,0 +1,246 @@
+/* ComposerMode and PlanDocument (Plan.tsx): the design system's rr-cmode and
+ * rr-plandoc anatomy, rebuilt on kit tokens until the kit ships them.
+ * Opinion uses the kit's own rr-dispute / rr-opadd styles. */
+
+.go-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── ComposerMode ── */
+
+.go-cmode {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+}
+
+.go-cmode__o {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.go-cmode__o:hover {
+  color: var(--ink-primary);
+}
+
+.go-cmode__o[aria-checked='true'] {
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+
+.go-cmode__o:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.go-cmode__o svg {
+  flex: none;
+}
+
+.go-cmode--compact .go-cmode__l {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.go-cmode--compact .go-cmode__o {
+  padding: 0 8px;
+}
+
+/* ── PlanDocument ── */
+
+.go-plandoc {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-base);
+  font-family: var(--font-sans);
+}
+
+.go-plandoc__h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+}
+
+.go-plandoc__file {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.go-plandoc__file svg {
+  flex: none;
+  color: var(--ink-secondary);
+}
+
+.go-plandoc__state {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-secondary);
+}
+
+.go-plandoc__state--running,
+.go-plandoc__state--done {
+  color: var(--ink-brand);
+  font-weight: 600;
+}
+
+.go-plandoc__b {
+  max-width: 76ch;
+  padding: var(--space-2) var(--space-4) var(--space-5);
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--ink-primary);
+}
+
+.go-plandoc__title {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.go-plandoc__b p {
+  margin: 0 0 var(--space-2);
+}
+
+.go-plandoc__sec h3 {
+  margin: 18px 0 6px;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.go-plandoc__sec ul,
+.go-plandoc__sec ol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.go-plandoc__sec li b {
+  font-weight: 600;
+}
+
+.go-plandoc__muted,
+.go-plandoc__who {
+  color: var(--ink-secondary);
+}
+
+.go-plandoc__ed {
+  border-radius: var(--radius-xs);
+  outline: 1px dashed transparent;
+  outline-offset: 2px;
+}
+
+.go-plandoc__ed:hover {
+  outline-color: var(--border-strong);
+  cursor: text;
+}
+
+.go-plandoc__ed:focus {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  background: var(--surface-brand-subtle);
+}
+
+.go-plandoc ul.go-plandoc__todo {
+  list-style: none;
+  padding-left: 0;
+}
+
+.go-plandoc__todo li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.go-plandoc__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  transform: translateY(1px);
+}
+
+.go-plandoc__todo li.is-done .go-plandoc__box {
+  border-color: var(--status-success);
+  background: var(--status-success);
+  color: var(--surface-base);
+}
+
+.go-plandoc__todo li.is-done .go-plandoc__task {
+  color: var(--ink-secondary);
+  text-decoration: line-through;
+}
+
+.go-plandoc__who {
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.go-plandoc__note {
+  margin-top: var(--space-5) !important;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-secondary);
+}
+
+.go-plandoc__f {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+}
+
+.go-plandoc__hint {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-secondary);
+}
