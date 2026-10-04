@@ -2671,6 +2671,65 @@ th.cell-rev-del {
   justify-content: flex-end;
 }
 
+/* @mentions: the list opens under the textarea as the person types after "@" */
+.comment-mention {
+  position: relative;
+}
+
+.comment-mention > textarea {
+  display: block;
+}
+
+.comment-mention-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.comment-mention-list[hidden] {
+  display: none;
+}
+
+.comment-mention-option {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  color: var(--ink-primary);
+  cursor: pointer;
+}
+
+.comment-mention-option.is-active {
+  background: var(--surface-brand-subtle);
+}
+
+.comment-mention-option.is-redrob .comment-mention-name {
+  color: var(--ink-brand);
+  font-weight: 600;
+}
+
+.comment-mention-hint {
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.comment-mention-tip {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
 .comment-compose-actions button {
   border: 1px solid var(--border-control);
   background: var(--surface-base);

@@ -165,6 +165,16 @@ export interface Run {
 }
 
 /** One comment from word/comments.xml (read-only display model). */
+/** A w15:person from word/people.xml: who wrote comments and tracked changes. */
+export interface PersonInfo {
+  /** the name comments and revisions carry in w:author */
+  author: string
+  /** w15:presenceInfo w15:providerId, e.g. "Redrob" or "AD" */
+  providerId?: string
+  /** w15:presenceInfo w15:userId */
+  userId?: string
+}
+
 export interface CommentInfo {
   id: string
   author: string
@@ -1628,6 +1638,8 @@ export interface ParsedDoc {
   blocks: Block[]
   /** comments from word/comments.xml, in file order */
   comments: CommentInfo[]
+  /** people from word/people.xml (comment and revision authors Word recorded), file order */
+  people?: PersonInfo[]
   /** footnotes from word/footnotes.xml (separators excluded), file order */
   footnotes: NoteInfo[]
   /** endnotes from word/endnotes.xml (separators excluded), file order */

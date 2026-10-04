@@ -27,6 +27,7 @@ import {
 } from '@genoffice/ui'
 import { SimpleToolbar, docsCommands, docsTools } from './components/SimpleToolbar'
 import { useLinkedFigures } from './linked/useLinkedFigures'
+import { MENTION_STRINGS, mentionPeople, mentionsRedrob, redrobCommentPrompt } from './comments/mentions'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
   BLANK_BULLET_NUM_ID,
@@ -1832,13 +1833,26 @@ export function App() {
 
   const cancelNewComment = useCallback(() => cancelNewCommentImpl(reviewCtxRef.current), [])
   const startNewComment = useCallback(() => startNewCommentImpl(reviewCtxRef.current), [])
+  // @Redrob in a comment: the panel answers in that thread (reply_comment), without editing
+  const askRedrobInThread = useCallback((threadId: string, text: string) => {
+    setShowAi(true)
+    setAiPreset({ text: redrobCommentPrompt(threadId, text), nonce: Date.now(), autoRun: true })
+    setStatus(MENTION_STRINGS.asked)
+  }, [])
   const submitNewComment = useCallback(
-    (text: string) => submitNewCommentImpl(reviewCtxRef.current, text),
-    [],
+    (text: string) => {
+      const id = submitNewCommentImpl(reviewCtxRef.current, text)
+      if (id && mentionsRedrob(text)) askRedrobInThread(id, text)
+    },
+    [askRedrobInThread],
   )
   const replyToComment = useCallback(
-    (parentId: string, text: string) => replyToCommentImpl(reviewCtxRef.current, parentId, text),
-    [],
+    (parentId: string, text: string) => {
+      const ok = replyToCommentImpl(reviewCtxRef.current, parentId, text)
+      if (ok && mentionsRedrob(text)) askRedrobInThread(parentId, text)
+      return ok
+    },
+    [askRedrobInThread],
   )
   const resolveComment = useCallback(
     (id: string, done: boolean) => resolveCommentImpl(reviewCtxRef.current, id, done),
@@ -4876,6 +4890,7 @@ export function App() {
             )}
             {doc && showComments && (
               <CommentsPanel
+                people={mentionPeople(doc.parsed.people ?? [], comments.map((c) => c.author), null)}
                 comments={comments}
                 docNode={editor.state.doc}
                 composing={commentComposing}

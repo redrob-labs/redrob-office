@@ -67,6 +67,7 @@ import { setDocFontTable } from './line-metrics'
 import { defaultEastAsiaFontFor } from './font-list'
 import { hasPrintableHeaderFooter } from './pagination'
 import { showToast } from './components/toast-bus'
+import { commentPeople } from './comments/mentions'
 
 /** An export waiting for the pagination preview to mount; resolve settles the caller's exportPdf promise. */
 export type PendingPdfExport = { outPath?: string; resolve: (ok: boolean) => void }
@@ -580,6 +581,8 @@ export async function buildDocBytes(ctx: FileActionContext): Promise<Uint8Array 
     partXml: Object.keys(partXml).length > 0 ? partXml : undefined,
     partBinary: Object.keys(partBinary).length > 0 ? partBinary : undefined,
     comments: ctx.commentsDirty ? ctx.comments : undefined,
+    // comment authors join word/people.xml, as Word records them
+    people: ctx.commentsDirty ? commentPeople(ctx.comments) : undefined,
     protection: ctx.protectionDirty ? ctx.protection : undefined,
     writeProtection: ctx.writeProtectionDirty ? ctx.writeProtection : undefined,
     removePersonalInfo: ctx.removePersonalInfoDirty ? ctx.removePersonalInfo : undefined,

@@ -132,14 +132,15 @@ export function startNewComment(ctx: ReviewContext): void {
   ctx.setCommentComposing(true)
 }
 
-export function submitNewComment(ctx: ReviewContext, text: string): void {
-  if (!ctx.editor) return
+/** Adds the comment to the selection; returns its id, or null when the selection was lost. */
+export function submitNewComment(ctx: ReviewContext, text: string): string | null {
+  if (!ctx.editor) return null
   setPendingCommentRange(ctx, null)
   const id = nextCommentId(ctx.comments)
   if (!addCommentToSelection(ctx.editor, id)) {
     ctx.setStatus(t('appCommentSelectionLost'))
     ctx.setCommentComposing(false)
-    return
+    return null
   }
   const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
   ctx.setComments((prev) => [...prev, { id, author: 'User', date: now, text }])
@@ -147,6 +148,7 @@ export function submitNewComment(ctx: ReviewContext, text: string): void {
   ctx.setCommentComposing(false)
   ctx.dirtyRef.current = true
   ctx.setStatus(t('appCommentAdded'))
+  return id
 }
 
 /** Reply to a comment: the new entry carries parentId; the anchor shares the parent comment's range */

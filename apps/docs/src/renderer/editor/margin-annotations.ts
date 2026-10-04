@@ -83,12 +83,22 @@ function makeBubble(root: CommentInfo, replies: CommentInfo[], onJump: () => voi
   return bubble
 }
 
-function makeRevBubble(kind: 'del' | 'fmt', text: string): HTMLElement {
+/** "Inserted" has no table entry yet; English is the master and the fallback for every language. */
+const REV_INSERTED = 'Inserted'
+
+function makeRevBubble(kind: RevKind, text: string, author?: string): HTMLElement {
   const bubble = document.createElement('div')
   bubble.className = `comment-bubble rev-bubble rev-bubble-${kind}`
+  // a suggestion says whose it is, as a comment does
+  if (author) {
+    const who = document.createElement('div')
+    who.className = 'comment-bubble-author rev-bubble-author'
+    who.textContent = author
+    bubble.appendChild(who)
+  }
   const label = document.createElement('span')
   label.className = 'rev-bubble-label'
-  label.textContent = `${t(kind === 'del' ? 'editorRevDeleted' : 'editorRevFormatted')}: `
+  label.textContent = `${kind === 'ins' ? REV_INSERTED : t(kind === 'del' ? 'editorRevDeleted' : 'editorRevFormatted')}: `
   const body = document.createElement('span')
   body.className = 'rev-bubble-text'
   body.textContent = text.length > REV_TEXT_MAX ? `${text.slice(0, REV_TEXT_MAX)}…` : text
@@ -118,7 +128,8 @@ function fmtDesc(old: Record<string, unknown>, marks: readonly PmMark[]): string
   return parts.join(', ') || t('editorFormatRevision')
 }
 
-type RevItem = { kind: 'del' | 'fmt'; from: number; to: number; text: string }
+type RevKind = 'del' | 'ins' | 'fmt'
+type RevItem = { kind: RevKind; from: number; to: number; text: string; author?: string }
 
 /**
  * Tracked revisions that live in balloons, in document order, merged over
@@ -140,8 +151,17 @@ function revGroupsOf(view: EditorView): RevItem[] {
       return true
     }
     if (!node.isText) return true
-    if (node.marks.some((m) => m.type.name === 'del')) {
-      items.push({ kind: 'del', from: pos, to: pos + node.nodeSize, text: node.text ?? '' })
+    const del = node.marks.find((m) => m.type.name === 'del')
+    if (del) {
+      const author = String(del.attrs.author ?? '') || undefined
+      items.push({ kind: 'del', from: pos, to: pos + node.nodeSize, text: node.text ?? '', ...(author ? { author } : {}) })
+      return true
+    }
+    // Suggesting: insertions stay in the text and get a balloon saying whose they are
+    const ins = node.marks.find((m) => m.type.name === 'ins')
+    if (ins) {
+      const author = String(ins.attrs.author ?? '') || undefined
+      items.push({ kind: 'ins', from: pos, to: pos + node.nodeSize, text: node.text ?? '', ...(author ? { author } : {}) })
       return true
     }
     const rpr = node.marks.find((m) => m.type.name === 'rprChange')
@@ -163,10 +183,11 @@ function revGroupsOf(view: EditorView): RevItem[] {
       last &&
       last.kind === it.kind &&
       it.from <= last.to &&
-      (it.kind === 'del' || it.text === last.text)
+      last.author === it.author &&
+      (it.kind !== 'fmt' || it.text === last.text)
     ) {
       last.to = Math.max(last.to, it.to)
-      if (it.kind === 'del') last.text += it.text
+      if (it.kind !== 'fmt') last.text += it.text
     } else {
       groups.push({ ...it })
     }
@@ -337,7 +358,7 @@ export function syncMarginAnnotations(
         top: (p.top - wrapRect.top) / f,
         y: (p.bottom - wrapRect.top) / f - 1,
         x: (p.left - wrapRect.left) / f,
-        make: () => makeRevBubble(g.kind, g.text),
+        make: () => makeRevBubble(g.kind, g.text, g.author),
       })
     }
   }

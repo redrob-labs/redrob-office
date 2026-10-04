@@ -143,6 +143,7 @@ import {
   txbxHasStructuredContent,
 } from './parse-props'
 import { parseLinkedFigureInstr } from './linked-figure'
+import { PEOPLE_PART, parsePeopleXml } from './people'
 import {
   parseComments,
   parseNumbering,
@@ -271,6 +272,8 @@ export async function parseDocx(bytes: Uint8Array): Promise<ParsedDoc & { extras
   const rels = await parseRels(zip, docPath.replace(/([^/]+)$/, '_rels/$1.rels'))
   const { formats: numFormats, defs: numbering } = await parseNumbering(zip)
   const comments = await parseComments(zip)
+  const peopleFile = zip.file(PEOPLE_PART)
+  const people = peopleFile ? parsePeopleXml(await peopleFile.async('string')) : []
   const protection = await parseProtection(zip)
   const writeProtection = await parseWriteProtection(zip)
   const removePersonalInfo = await parseRemovePersonalInfo(zip)
@@ -476,6 +479,7 @@ export async function parseDocx(bytes: Uint8Array): Promise<ParsedDoc & { extras
   return {
     blocks,
     comments,
+    ...(people.length > 0 ? { people } : {}),
     protection,
     writeProtection,
     removePersonalInfo,

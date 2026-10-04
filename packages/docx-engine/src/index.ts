@@ -91,6 +91,7 @@ export {
 } from './section'
 export { nextNoteId, parseNotesXml, type NoteKind } from './notes'
 export { readWatermarkText } from './watermark'
+export { buildPeopleXml, parsePeopleXml, PEOPLE_PART } from './people'
 export {
   isLinkedFigureId,
   linkedFigureInstr,
