@@ -1,0 +1,22 @@
+{
+  "name": "@genoffice/facts",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "Linked figures: the facts reducer, what each file has kept, the updates waiting for a person, and a local JSON store (no Electron dependency)",
+  "exports": {
+    ".": "./src/index.ts",
+    "./json-repository": "./src/json-repository.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.0"
+  }
+}
