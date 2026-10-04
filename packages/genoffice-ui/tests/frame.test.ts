@@ -311,3 +311,27 @@ describe('frame.css', () => {
     expect(readFileSync(join(process.cwd(), 'src/theme.css'), 'utf8')).toContain("@import './frame/frame.css'")
   })
 })
+
+describe('frame copy and the older-format banner', () => {
+  it('builds every prop bundle in English, filling placeholders', async () => {
+    const { frameCopy, frameT } = await import('../src/index')
+    const copy = frameCopy('en')
+    expect(copy.search.ask('polish')).toBe('Ask Redrob: "polish"')
+    expect(copy.toolbar.label).toBe('Toolbar')
+    expect(copy.mode.suggesting).toBe('Suggesting')
+    expect(frameT('ko', 'online')).toBe('Online')
+    expect(frameT('en', 'pageOf', { current: 1, total: 3 })).toBe('Page 1 of 3')
+  })
+
+  it('shows only for an older format, and offers the copy', async () => {
+    const { OldFormatBanner } = await import('../src/index')
+    const onSaveCopy = vi.fn()
+    const base = { title: 'An older Word 97-2003 file', body: 'It opens as it is.', saveLabel: 'Save a .docx copy', keepLabel: 'Keep .doc', onSaveCopy, onKeep: vi.fn() }
+    render(createElement(OldFormatBanner, { ...base, file: 'Contract.docx' }))
+    expect($('.go-oldfmt')).toBeNull()
+    render(createElement(OldFormatBanner, { ...base, file: 'Contract.doc' }))
+    expect($('.go-oldfmt')!.getAttribute('aria-label')).toBe('An older Word 97-2003 file')
+    act(() => $$<HTMLButtonElement>('.go-oldfmt button')[0]!.click())
+    expect(onSaveCopy).toHaveBeenCalledOnce()
+  })
+})

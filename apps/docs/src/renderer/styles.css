@@ -8232,3 +8232,55 @@ tr > .page-gap-cut {
 .doc-ea-quotes {
   font-family: 'Noto Serif CJK SC';
 }
+
+/* ---- the shared editor frame (EditorFrame, @genoffice/ui) ---- */
+
+.app > .go-frame {
+  flex: 1;
+  min-height: 0;
+}
+
+.go-frame__page > .app-content {
+  height: 100%;
+}
+
+/* the frame owns the panel's width and its left-edge hairline */
+.go-frame__panel > .ai-panel {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border-right: 0;
+}
+
+/* the ribbon's own quick-access row duplicates the title bar's undo and redo */
+.go-frame__toolbar .ribbon {
+  border-bottom: 0;
+}
+
+.docs-simple-toolbar {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.docs-simple-font {
+  width: 150px;
+}
+
+.docs-simple-size {
+  width: 64px;
+}
+
+.docs-simple-style {
+  width: 130px;
+}
+
+.docs-save-status {
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.status-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}

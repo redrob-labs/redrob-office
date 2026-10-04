@@ -1,3 +1,5 @@
+import type { OfficePrefs } from '@genoffice/electron-utils/office-prefs'
+
 export interface OpenFileResult {
   path: string
   name: string
@@ -215,6 +217,10 @@ export interface DesktopApi {
   /** AI-authored content queued for this tab by create_document; one-shot, null when none */
   /** a request typed into Home's composer, for the Redrob panel to answer (one-shot) */
   consumeAskPrompt(): Promise<string | null>
+  /** Toolbar, Plan or Run and Cross-check defaults, owned by the shell (null outside it) */
+  getOfficePrefs?(): Promise<OfficePrefs | null>
+  setOfficePrefs?(patch: Partial<OfficePrefs>): Promise<OfficePrefs | null>
+  onOfficePrefsChanged?(handler: (prefs: OfficePrefs) => void): () => void
   consumeAiDocContent(): Promise<AiDocContent | null>
   /** AI create_document: build a new standalone file and open it in a new tab */
   createDocument(request: CreateDocumentRequest): Promise<CreateDocumentResult>

@@ -224,9 +224,9 @@ export function EditorFrame(props: EditorFrameProps): ReactElement {
             {props.rail}
           </aside>
         ) : null}
-        <main className="go-frame__page" style={{ minWidth: Math.min(460, layout.page || 460) }}>
+        <div className="go-frame__page" style={{ minWidth: Math.min(460, layout.page || 460) }}>
           {props.children}
-        </main>
+        </div>
         {/* the panel stays mounted while closed, so a run and its history survive */}
         {hasPanel ? (
           <aside

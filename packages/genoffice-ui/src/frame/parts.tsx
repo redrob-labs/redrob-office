@@ -296,6 +296,47 @@ export function FormatChip({ file }: FormatChipProps): ReactElement | null {
   )
 }
 
+/* ── the older-format banner ────────────────────────────────────────────── */
+
+export interface OldFormatBannerProps {
+  /** the open file's name */
+  file: string
+  title: string
+  body: string
+  saveLabel: string
+  keepLabel: string
+  /** save a copy in the newer format; the original is never overwritten */
+  onSaveCopy?: (() => void) | undefined
+  onKeep: () => void
+}
+
+/**
+ * Shown when an older format opens (.doc .xls .ppt .hwp): it opens as it is,
+ * and a copy in the newer format is one click away. Renders nothing for a
+ * current format.
+ */
+export function OldFormatBanner(props: OldFormatBannerProps): ReactElement | null {
+  const info = formatOf(props.file)
+  if (!info || info.tone !== 'old') return null
+  return (
+    <div className="go-oldfmt" role="region" aria-label={props.title}>
+      {glyph('alert', 16)}
+      <div className="go-oldfmt__text">
+        <p className="go-oldfmt__title">{props.title}</p>
+        <p className="go-oldfmt__body">{props.body}</p>
+      </div>
+      {props.onSaveCopy ? (
+        <Button size="sm" variant="primary" onClick={props.onSaveCopy}>
+          {props.saveLabel}
+        </Button>
+      ) : null}
+      <Button size="sm" variant="ghost" onClick={props.onKeep}>
+        {props.keepLabel}
+      </Button>
+    </div>
+  )
+}
+
 /* ── the status bar ─────────────────────────────────────────────────────── */
 
 export interface StatusBarProps {

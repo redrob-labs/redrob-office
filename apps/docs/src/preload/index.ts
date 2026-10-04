@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { IpcRendererEvent } from 'electron'
+import { OFFICE_PREFS_CHANGED, normalizeOfficePrefs } from '@genoffice/electron-utils/office-prefs'
 import type {
   AiChatRequest,
   AiSettings,
@@ -51,6 +52,22 @@ const api: DesktopApi = {
   consumeNewBlankDoc: () => ipcRenderer.invoke('docs:consume-new-blank'),
   // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite
   consumeAskPrompt: () => ipcRenderer.invoke('app:consume-ask-prompt').catch(() => null),
+  // shell-owned prefs (apps/shell/src/main/index.ts); outside the suite there is no handler
+  getOfficePrefs: () =>
+    ipcRenderer
+      .invoke('home:get-office-prefs')
+      .then((p: unknown) => normalizeOfficePrefs(p))
+      .catch(() => null),
+  setOfficePrefs: (patch: unknown) =>
+    ipcRenderer
+      .invoke('home:set-office-prefs', patch)
+      .then((p: unknown) => normalizeOfficePrefs(p))
+      .catch(() => null),
+  onOfficePrefsChanged: (handler: (prefs: ReturnType<typeof normalizeOfficePrefs>) => void) => {
+    const listener = (_e: unknown, p: unknown) => handler(normalizeOfficePrefs(p))
+    ipcRenderer.on(OFFICE_PREFS_CHANGED, listener)
+    return () => ipcRenderer.removeListener(OFFICE_PREFS_CHANGED, listener)
+  },
   consumeAiDocContent: () => ipcRenderer.invoke('docs:consume-ai-doc-content'),
   createDocument: (request) => ipcRenderer.invoke('docs:create-document', request),
   onOpenDocx: (handler) => {

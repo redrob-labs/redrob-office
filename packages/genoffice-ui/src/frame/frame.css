@@ -410,3 +410,36 @@
 .go-statusbar__conn--off .go-statusbar__dot {
   background: var(--ink-muted);
 }
+
+/* -- older-format banner -- */
+
+.go-oldfmt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+}
+
+.go-oldfmt > svg {
+  flex: none;
+  color: var(--status-warning);
+}
+
+.go-oldfmt__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.go-oldfmt__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.go-oldfmt__body {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}

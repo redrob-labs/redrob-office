@@ -104,6 +104,7 @@ export {
 export {
   FormatChip,
   ModeMenu,
+  OldFormatBanner,
   StatusBar,
   ToolbarSwitch,
   TOOLBAR_TIP_KEY,
@@ -111,6 +112,7 @@ export {
   type FormatChipProps,
   type ModeMenuProps,
   type ModeMenuStrings,
+  type OldFormatBannerProps,
   type StatusBarProps,
   type ToolbarChoice,
   type ToolbarSwitchProps,
@@ -127,3 +129,4 @@ export {
   type FrameLayout,
   type FrameLayoutInput,
 } from './frame/layout'
+export { frameCopy, frameStrings, frameT, type FrameStringKey } from './frame/strings'

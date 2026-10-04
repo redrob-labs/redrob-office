@@ -12,7 +12,20 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import type { Editor } from '@tiptap/core'
 import { DOMParser as PmDOMParser, type Mark as PmMark } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
-import { Dropdown } from '@genoffice/ui'
+import {
+  Dropdown,
+  EditorFrame,
+  OldFormatBanner,
+  PANEL_DEFAULT,
+  StatusBar,
+  clampPanelWidth,
+  formatOf,
+  frameCopy,
+  frameT,
+  type EditMode,
+  type ToolbarChoice,
+} from '@genoffice/ui'
+import { SimpleToolbar, docsCommands, docsTools } from './components/SimpleToolbar'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
   BLANK_BULLET_NUM_ID,
@@ -253,6 +266,17 @@ function hashStr(str: string): number {
 }
 
 const EMPTY_BLOCKS: Block[] = []
+
+/** the Redrob panel's width in the shared frame (320 to 720px), kept per window */
+const FRAME_PANEL_WIDTH_KEY = 'docs-frame-panel-width'
+function loadFramePanelWidth(): number {
+  try {
+    const saved = Number(localStorage.getItem(FRAME_PANEL_WIDTH_KEY))
+    return Number.isFinite(saved) && saved > 0 ? clampPanelWidth(saved) : PANEL_DEFAULT
+  } catch {
+    return PANEL_DEFAULT
+  }
+}
 
 // O(doc) derivations cached by PM doc reference: caret moves and unrelated
 // state updates reuse the last result instead of re-walking the whole document
@@ -671,6 +695,48 @@ export function App() {
   const [showNav, setShowNav] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('print')
   const [readMode, setReadMode] = useState(false)
+  // ── shared editor frame (EditorFrame) ──
+  /** Viewing: read and comment only (Editing / Suggesting / Viewing in the title bar) */
+  const [viewing, setViewing] = useState(false)
+  /** Simple or Classic, from Settings; the switch and Ctrl+F1 change it for every file */
+  const [toolbarChoice, setToolbarChoice] = useState<ToolbarChoice>('simple')
+  const [panelWidth, setPanelWidth] = useState(() => loadFramePanelWidth())
+  const [oldFormatDismissed, setOldFormatDismissed] = useState(false)
+  const [online, setOnline] = useState(() => navigator.onLine)
+  useEffect(() => {
+    let live = true
+    void window.desktop
+      .getOfficePrefs?.()
+      .then((p) => {
+        if (live && p) setToolbarChoice(p.toolbar)
+      })
+      .catch(() => {})
+    const off = window.desktop.onOfficePrefsChanged?.((p) => setToolbarChoice(p.toolbar))
+    const up = () => setOnline(true)
+    const down = () => setOnline(false)
+    window.addEventListener('online', up)
+    window.addEventListener('offline', down)
+    return () => {
+      live = false
+      off?.()
+      window.removeEventListener('online', up)
+      window.removeEventListener('offline', down)
+    }
+  }, [])
+  const changeToolbar = useCallback((next: ToolbarChoice) => {
+    setToolbarChoice(next)
+    // outside the suite there is no shell to store it: the choice lasts this window
+    void window.desktop.setOfficePrefs?.({ toolbar: next }).catch(() => {})
+  }, [])
+  const changePanelWidth = useCallback((w: number) => {
+    const next = clampPanelWidth(w)
+    setPanelWidth(next)
+    try {
+      localStorage.setItem(FRAME_PANEL_WIDTH_KEY, String(next))
+    } catch {
+      /* private storage: the width lasts this window */
+    }
+  }, [])
   const [showGrid, setShowGrid] = useState(false)
   const [splitView, setSplitView] = useState(false)
   const [showPagePreview, setShowPagePreview] = useState(false)
@@ -1016,14 +1082,14 @@ export function App() {
   // Read Mode / Protect Document: the document becomes read-only; Esc leaves Read Mode
   useEffect(() => {
     if (!editor) return
-    editor.setEditable(!readMode && !isProtected)
+    editor.setEditable(!readMode && !isProtected && !viewing)
     if (!readMode) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setReadMode(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [editor, readMode, isProtected])
+  }, [editor, readMode, isProtected, viewing])
 
   // Track Changes: the recorder plugin reads its toggle from extension storage
   useEffect(() => {
@@ -4269,6 +4335,100 @@ export function App() {
 
   const wordCount = wordCountOfDoc(editor.state.doc)
 
+  // ── the shared editor frame: title bar, toolbar switch, panel, status bar ──
+  const frameText = frameCopy(lang)
+  const frameFileName = doc?.filePath
+    ? (doc.filePath.split(/[\\/]/).pop() ?? doc.filePath)
+    : t('appUntitledDocx')
+  const editMode: EditMode = viewing ? 'viewing' : trackChanges ? 'suggesting' : 'editing'
+  const changeEditMode = (next: EditMode) => {
+    setViewing(next === 'viewing')
+    // Suggesting is Track Changes with the current author; a protected file that
+    // forces tracking stays in Suggesting
+    if (next === 'suggesting') setTrackChanges(true)
+    else if (!trackChangesForced) setTrackChanges(false)
+  }
+  const runInPanel = (prompt: string) => {
+    setShowAi(true)
+    setAiPreset({ text: prompt, nonce: Date.now(), autoRun: true })
+  }
+  const askRedrob = (q: string) => runInPanel(q)
+  const redrobActions = {
+    ask: () => setShowAi(true),
+    run: runInPanel,
+    comment: startNewComment,
+  }
+  const docsCmd = docsCommands(editor, allocateListNumId, doc?.parsed.blocks ?? EMPTY_BLOCKS)
+  const frameTools = docsTools(t, docsCmd, redrobActions, hasDoc && formatState.editable)
+  const openComments = comments.filter((c) => !c.parentId && c.done !== true).length
+  const docsStatusBar = (
+    <StatusBar
+      label={frameT(lang, 'status')}
+      items={[
+        doc ? frameT(lang, 'pageOf', { current: pageInfo.current, total: pageInfo.total }) : t('appReady'),
+        doc ? (
+          <button
+            key="words"
+            type="button"
+            className="status-item status-wordcount"
+            data-tip={t('appWordCountTitle')}
+            onClick={openStats}
+          >
+            {frameT(lang, 'words', { n: wordCount })}
+          </button>
+        ) : null,
+        doc ? frameText.mode[editMode] : null,
+        doc && openComments > 0 ? (
+          <button
+            key="comments"
+            type="button"
+            className="status-item"
+            onClick={() => setShowComments(true)}
+          >
+            {frameT(lang, 'comments', { n: openComments })}
+          </button>
+        ) : null,
+        status ? <span className="status-msg">{status}</span> : null,
+      ]}
+      connection={{
+        online,
+        onlineLabel: frameT(lang, 'online'),
+        offlineLabel: frameT(lang, 'offline'),
+      }}
+      zoom={
+        <span className="status-zoom">
+          <button
+            type="button"
+            className="zoom-btn"
+            aria-label={frameT(lang, 'zoomOut')}
+            onClick={() => setZoom((z) => Math.max(50, Math.round(z) - 10))}
+          >
+            -
+          </button>
+          <input
+            className="zoom-slider"
+            type="range"
+            aria-label={frameT(lang, 'zoom')}
+            min={50}
+            max={200}
+            step={10}
+            value={Math.round(zoom)}
+            onChange={(e) => setZoom(Number(e.target.value))}
+          />
+          <button
+            type="button"
+            className="zoom-btn"
+            aria-label={frameT(lang, 'zoomIn')}
+            onClick={() => setZoom((z) => Math.min(200, Math.round(z) + 10))}
+          >
+            +
+          </button>
+          <span className="zoom-value">{Math.round(zoom)}%</span>
+        </span>
+      }
+    />
+  )
+
   // canvas geometry is anchored to the first section (stable across cursor moves);
   // sections with a different content width carry per-block width decorations
   const canvasSection = sections[0]?.settings ?? section
@@ -4366,61 +4526,106 @@ export function App() {
         <style>{`.editor-scroll .doc-page { column-count: ${colFlow.cols}; column-gap: ${colFlow.gapPx}px; column-fill: balance; }
 .editor-scroll .doc-page.measuring-columns { column-count: auto; width: ${colFlow.colWidthPx + twipsToPx(canvasSection?.marginLeft ?? section?.marginLeft ?? 0) + twipsToPx(canvasSection?.marginRight ?? section?.marginRight ?? 0)}px; }`}</style>
       )}
-      <Ribbon
-        actionsRef={ribbonActionsRef}
-        quickActions={quickActions}
-        editor={editor}
-        formatState={formatState}
-        hasDoc={!!doc}
-        blocks={doc?.parsed.blocks ?? EMPTY_BLOCKS}
-        styles={ribbonStyles}
-        docDefaults={doc?.parsed.docDefaults}
-        showAi={showAi}
-        section={sections[activeSection]?.settings ?? section}
-        activeSection={sections.length > 1 ? activeSection : null}
-        pageColor={pageColor}
-        watermark={watermark}
-        themeFonts={themeFonts}
-        themeColors={themeColors}
-        inkTool={inkTool}
-        inkPen={inkPen}
-        inkHighlighter={inkHighlighter}
-        inkCount={inkAnnotations.length}
-        sources={sources}
-        zoom={Math.round(zoom)}
-        darkCanvas={darkCanvas}
-        tabRequest={ribbonTabRequest}
-        header={header}
-        footer={footer}
-        titlePg={titlePg}
-        evenOddHf={evenOddHf}
-        showMarks={showMarks}
-        showRuler={showRuler}
-        showNav={showNav}
-        commentCount={comments.length}
-        openCommentCount={comments.filter((c) => !c.parentId && c.done !== true).length}
-        canComment={!editor.state.selection.empty}
-        trackChanges={trackChanges}
-        revisionDisplay={revisionDisplay}
-        revisionCount={revisionCount}
-        isProtected={isProtected}
-        commentsAllowed={commentsAllowed}
-        trackChangesForced={trackChangesForced}
-        protectActive={
-          isProtected || trackChangesForced || (doc?.encrypted ?? false) || !!writeProtection?.hash
+      <EditorFrame
+        strings={frameText.frame}
+        fileName={frameFileName}
+        onUndo={hasDoc ? () => editor.chain().focus().undo().run() : undefined}
+        onRedo={hasDoc ? () => editor.chain().focus().redo().run() : undefined}
+        canUndo={hasDoc && histState.canUndo}
+        canRedo={hasDoc && histState.canRedo}
+        saveStatus={
+          hasDoc ? (
+            <span className="docs-save-status">
+              {hasUnsavedChanges ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}
+            </span>
+          ) : undefined
         }
-        filePath={doc?.filePath ?? null}
-        viewMode={viewMode}
-        readMode={readMode}
-        showGrid={showGrid}
-        splitView={splitView}
-        {...ribbonActions}
-      />
-
-      <div className="app-main">
-        {doc && (
-          <div className={`ai-dock${showAi ? '' : ' collapsed'}`}>
-            {/* always mounted: collapse must not drop state or in-flight runs */}
+        search={{ tools: frameTools, strings: frameText.search, onAsk: askRedrob }}
+        mode={{
+          value: editMode,
+          onChange: changeEditMode,
+          strings: frameText.mode,
+          unavailable: trackChangesForced ? ['editing'] : [],
+        }}
+        toolbar={toolbarChoice}
+        onToolbarChange={changeToolbar}
+        toolbarStrings={frameText.toolbar}
+        banner={
+          doc && !oldFormatDismissed ? (
+            <OldFormatBanner
+              file={frameFileName}
+              title={frameT(lang, 'oldFormatTitle', { fmt: formatOf(frameFileName)?.label ?? '' })}
+              body={frameT(lang, 'oldFormatBody')}
+              saveLabel={t('appSaveCopyDocx')}
+              keepLabel={frameT(lang, 'oldFormatKeep', { fmt: formatOf(frameFileName)?.ext ?? '' })}
+              onSaveCopy={() => void save(true)}
+              onKeep={() => setOldFormatDismissed(true)}
+            />
+          ) : undefined
+        }
+        simpleToolbar={
+          <SimpleToolbar
+            fs={formatState}
+            cmd={docsCmd}
+            redrob={redrobActions}
+            canEdit={hasDoc && formatState.editable}
+            hasSelection={!editor.state.selection.empty}
+          />
+        }
+        classicToolbar={
+          <Ribbon
+            actionsRef={ribbonActionsRef}
+            quickActions={quickActions}
+            editor={editor}
+            formatState={formatState}
+            hasDoc={!!doc}
+            blocks={doc?.parsed.blocks ?? EMPTY_BLOCKS}
+            styles={ribbonStyles}
+            docDefaults={doc?.parsed.docDefaults}
+            showAi={showAi}
+            section={sections[activeSection]?.settings ?? section}
+            activeSection={sections.length > 1 ? activeSection : null}
+            pageColor={pageColor}
+            watermark={watermark}
+            themeFonts={themeFonts}
+            themeColors={themeColors}
+            inkTool={inkTool}
+            inkPen={inkPen}
+            inkHighlighter={inkHighlighter}
+            inkCount={inkAnnotations.length}
+            sources={sources}
+            zoom={Math.round(zoom)}
+            darkCanvas={darkCanvas}
+            tabRequest={ribbonTabRequest}
+            header={header}
+            footer={footer}
+            titlePg={titlePg}
+            evenOddHf={evenOddHf}
+            showMarks={showMarks}
+            showRuler={showRuler}
+            showNav={showNav}
+            commentCount={comments.length}
+            openCommentCount={comments.filter((c) => !c.parentId && c.done !== true).length}
+            canComment={!editor.state.selection.empty}
+            trackChanges={trackChanges}
+            revisionDisplay={revisionDisplay}
+            revisionCount={revisionCount}
+            isProtected={isProtected}
+            commentsAllowed={commentsAllowed}
+            trackChangesForced={trackChangesForced}
+            protectActive={
+              isProtected || trackChangesForced || (doc?.encrypted ?? false) || !!writeProtection?.hash
+            }
+            filePath={doc?.filePath ?? null}
+            viewMode={viewMode}
+            readMode={readMode}
+            showGrid={showGrid}
+            splitView={splitView}
+            {...ribbonActions}
+          />
+        }
+        panel={
+          doc ? (
             <AiPanel
               key={aiPanelKey}
               editor={editor}
@@ -4434,6 +4639,7 @@ export function App() {
               open={showAi}
               onExpand={() => setShowAi(true)}
               onCollapse={() => setShowAi(false)}
+              hosted
               filePath={doc?.filePath ?? null}
               editQueue={editQueue}
               onQueueEditInstruction={queueUpdate}
@@ -4444,8 +4650,14 @@ export function App() {
               commentsAccess={aiCommentsAccess}
               hfAccess={aiHfAccess}
             />
-          </div>
-        )}
+          ) : undefined
+        }
+        panelOpen={showAi}
+        onPanelOpenChange={setShowAi}
+        panelWidth={panelWidth}
+        onPanelWidthChange={changePanelWidth}
+        status={docsStatusBar}
+      >
         <div className="app-content">
           <div className={`workspace ${darkCanvas ? 'workspace-dark' : ''}`}>
             {doc && showFind && (
@@ -4670,53 +4882,8 @@ export function App() {
               />
             )}
           </div>
-
-          <footer className="status-bar">
-            <div className="status-left">
-              {doc && (
-                <>
-                  <span className="status-item">
-                    {t('appPageOf', { current: pageInfo.current, total: pageInfo.total })}
-                  </span>
-                  <button
-                    className="status-item status-wordcount"
-                    data-tip={t('appWordCountTitle')}
-                    onClick={openStats}
-                  >
-                    {t('appWordCountN', { n: wordCount })}
-                  </button>
-                </>
-              )}
-              {!doc && t('appReady')}
-              {status && <span className="status-msg"> - {status}</span>}
-            </div>
-            <div className="status-right">
-              <button
-                className="zoom-btn"
-                onClick={() => setZoom((z) => Math.max(50, Math.round(z) - 10))}
-              >
-                −
-              </button>
-              <input
-                className="zoom-slider"
-                type="range"
-                min={50}
-                max={200}
-                step={10}
-                value={Math.round(zoom)}
-                onChange={(e) => setZoom(Number(e.target.value))}
-              />
-              <button
-                className="zoom-btn"
-                onClick={() => setZoom((z) => Math.min(200, Math.round(z) + 10))}
-              >
-                +
-              </button>
-              <span className="zoom-value">{Math.round(zoom)}%</span>
-            </div>
-          </footer>
         </div>
-      </div>
+      </EditorFrame>
 
       {showShortcuts && <ShortcutsDialog onClose={() => setShowShortcuts(false)} />}
       {showLinkModal && <LinkInsertModal editor={editor} onClose={() => setShowLinkModal(false)} />}

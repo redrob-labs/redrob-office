@@ -35,9 +35,9 @@ import {
   Icon,
   IconButton,
   Markdown,
+  RedrobMark,
   type AgentStepsStrings,
 } from '@genoffice/ui'
-import { GensparkMark } from '../components/icons'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
 import fileExcelIcon from '../assets/file-excel.png'
@@ -291,6 +291,12 @@ interface AiPanelProps {
   commentsAccess?: AiCommentsAccess
   /** header/footer state for the set_header_footer tool and per-turn context */
   hfAccess?: AiHeaderFooterAccess
+  /**
+   * Hosted by the shared EditorFrame: the frame owns the panel's width, its
+   * resize handle and hiding it, so the panel draws neither a resizer nor the
+   * collapsed rail.
+   */
+  hosted?: boolean
 }
 
 export function AiPanel({
@@ -312,6 +318,7 @@ export function AiPanel({
   onQueueConsume,
   commentsAccess,
   hfAccess,
+  hosted = false,
 }: AiPanelProps) {
   const { t, lang } = useI18n()
   // Panel chrome follows the UI language; message text follows its own content (dir=auto below)
@@ -998,7 +1005,7 @@ export function AiPanel({
   }
 
   // collapsed: rail only — after all hooks, so the instance and its state survive
-  if (!open) {
+  if (!open && !hosted) {
     return (
       <button
         className="ai-rail"
@@ -1006,7 +1013,7 @@ export function AiPanel({
         aria-label={t('appExpandAiPanel')}
         onClick={onExpand}
       >
-        <GensparkMark size={22} />
+        <RedrobMark size={22} />
       </button>
     )
   }
@@ -1037,13 +1044,15 @@ export function AiPanel({
       }}
       onDrop={onDrop}
     >
-      <div
-        className="ai-panel-resizer"
-        onPointerDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={t('aiPanelTitle')}
-      />
+      {!hosted && (
+        <div
+          className="ai-panel-resizer"
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t('aiPanelTitle')}
+        />
+      )}
       <AgentPanelHeader
         title={t('aiPanelTitle')}
         actions={[
