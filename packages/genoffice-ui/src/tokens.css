@@ -45,6 +45,19 @@
   --success-bg: var(--accent-green-1);
   --success-border: var(--accent-green-2);
   --color-error-hover: var(--accent-red-5);
+  /* people in a shared file (title-bar faces); one pair per seat, cycling */
+  --office-peer-1-bg: var(--accent-teal-1);
+  --office-peer-1-ink: var(--accent-teal-5);
+  --office-peer-2-bg: var(--accent-violet-1);
+  --office-peer-2-ink: var(--accent-violet-5);
+  --office-peer-3-bg: var(--accent-orange-1);
+  --office-peer-3-ink: var(--accent-orange-5);
+  --office-peer-4-bg: var(--accent-pink-1);
+  --office-peer-4-ink: var(--accent-pink-5);
+  --office-peer-5-bg: var(--accent-sky-1);
+  --office-peer-5-ink: var(--accent-sky-5);
+  --office-peer-6-bg: var(--accent-lime-1);
+  --office-peer-6-ink: var(--accent-lime-5);
 }
 
 /* picked from the kit's ramps: dark */
@@ -62,6 +75,18 @@
   --success-bg: var(--accent-green-5);
   --success-border: var(--accent-green-4);
   --color-error-hover: var(--accent-red-2);
+  --office-peer-1-bg: var(--accent-teal-5);
+  --office-peer-1-ink: var(--accent-teal-1);
+  --office-peer-2-bg: var(--accent-violet-5);
+  --office-peer-2-ink: var(--accent-violet-1);
+  --office-peer-3-bg: var(--accent-orange-5);
+  --office-peer-3-ink: var(--accent-orange-1);
+  --office-peer-4-bg: var(--accent-pink-5);
+  --office-peer-4-ink: var(--accent-pink-1);
+  --office-peer-5-bg: var(--accent-sky-5);
+  --office-peer-5-ink: var(--accent-sky-1);
+  --office-peer-6-bg: var(--accent-lime-5);
+  --office-peer-6-ink: var(--accent-lime-1);
 }
 
 /* The kit tints every list marker with --ink-secondary. A marker inside a

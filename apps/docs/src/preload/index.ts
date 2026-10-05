@@ -14,7 +14,7 @@ import type { ProjectApi } from '@genoffice/project-store'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 import { FACTS_CHANNELS, normalizeFactsState } from '@genoffice/facts'
 import { versionsBridge } from '@genoffice/versions'
-import { shareBridge } from '@genoffice/sync-client'
+import { liveBridge, shareBridge } from '@genoffice/sync-client'
 
 const api: DesktopApi = {
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
@@ -75,6 +75,8 @@ const api: DesktopApi = {
   ...versionsBridge(ipcRenderer),
   // shell-owned sharing (apps/shell/src/main/share-service.ts)
   ...shareBridge(ipcRenderer),
+  // shell-owned live documents (apps/shell/src/main/live-service.ts)
+  ...liveBridge(ipcRenderer),
   // shell-owned linked figures (apps/shell/src/main/facts-service.ts)
   getFacts: () =>
     ipcRenderer

@@ -111,6 +111,9 @@ import { DEFAULT_SYNC_URL, IdentityService, chooseProvider } from './identity-se
 import { SyncClient } from '@genoffice/sync-client'
 import { SharedIndex } from '@genoffice/sync-client/node'
 import { ShareService } from './share-service'
+import { LiveHub } from '@genoffice/sync-client/live'
+import { hocuspocusRooms, liveUrlFor } from '@genoffice/sync-client/live-provider'
+import { LiveService } from './live-service'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { FACTS_CHANNELS } from '../shared/facts-api'
 import { randomUUID } from 'node:crypto'
@@ -4524,6 +4527,8 @@ const identityService = new IdentityService({
     },
   ),
   broadcast: (identity) => {
+    // signed out: nobody is in a shared file from this computer any more
+    if (!identity.signedIn) liveHub?.closeAll()
     for (const wc of webContents.getAllWebContents()) wc.send(IDENTITY_CHANNELS.changed, identity)
   },
   openExternal: (url) => {
@@ -4540,11 +4545,12 @@ registerVersionsIpc(ipcMain, { store: versionStore, openPath: (p) => void openDo
 // A packaged build has no sync service until one is deployed; a development
 // build talks to the local Compose stack unless REDROB_SYNC_URL says otherwise.
 const syncUrl = process.env.REDROB_SYNC_URL || (app.isPackaged ? null : DEFAULT_SYNC_URL)
+const sharedIndex = new SharedIndex(join(app.getPath('userData'), 'shared-files.json'))
 const shareService = new ShareService({
   client: syncUrl
     ? new SyncClient({ baseUrl: syncUrl, token: () => identityService.token(), fetch: (url, init) => net.fetch(url, init) })
     : null,
-  index: new SharedIndex(join(app.getPath('userData'), 'shared-files.json')),
+  index: sharedIndex,
   signedIn: async () => (await identityService.status()).signedIn,
   readFile: async (p) => new Uint8Array(await readFile(p)),
   saveDownload: async (name, bytes) => {
@@ -4562,6 +4568,16 @@ const shareService = new ShareService({
   log: (m) => console.warn(m),
 })
 shareService.register(ipcMain)
+
+// Live documents: one room per shared file, on the sync service's live server.
+const liveUrl = syncUrl ? liveUrlFor(syncUrl, process.env.REDROB_SYNC_LIVE_URL) : null
+const liveHub = liveUrl ? new LiveHub(hocuspocusRooms({ url: liveUrl, token: () => identityService.token() })) : null
+new LiveService({
+  hub: liveHub,
+  index: sharedIndex,
+  signedIn: async () => (await identityService.status()).signedIn,
+  log: (m) => console.warn(m),
+}).register(ipcMain)
 
 setDocSavedHook((path, bytes, auto) => {
   void shareService.saved(path, bytes)

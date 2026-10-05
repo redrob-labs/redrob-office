@@ -97,6 +97,7 @@
     "@genoffice/font-metrics": "workspace:*",
     "@genoffice/sync-client": "workspace:*",
     "@genoffice/versions": "workspace:*",
+    "yjs": "13.6.33",
     "electron-updater": "^6.8.9",
     "pdf-lib": "^1.17.1",
     "@genoffice/pptx-render": "workspace:*"

@@ -120,6 +120,13 @@ export {
 } from './frame/parts'
 export { FORMATS, formatOf, type FormatInfo, type FormatTone } from './frame/formats'
 export {
+  PresenceFaces,
+  initialsOf,
+  seatOf,
+  type PresenceFacesStrings,
+  type PresencePerson,
+} from './frame/PresenceFaces'
+export {
   PAGE_MIN,
   PANEL_DEFAULT,
   PANEL_MAX,

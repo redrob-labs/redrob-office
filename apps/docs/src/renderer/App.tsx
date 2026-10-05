@@ -18,6 +18,7 @@ import {
   EditorFrame,
   OldFormatBanner,
   PANEL_DEFAULT,
+  PresenceFaces,
   StatusBar,
   clampPanelWidth,
   formatOf,
@@ -37,6 +38,7 @@ import './versions/versions.css'
 import type { ShareApi } from '@genoffice/sync-client'
 import { SHARE_STRINGS, ShareDialog } from './share/ShareDialog'
 import './share/share.css'
+import { LIVE_STRINGS, useLive } from './live/useLive'
 import { verT } from './versions/strings'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
@@ -717,6 +719,7 @@ export function App() {
   /** Share dialog; sharing exists only inside the suite, where the shell holds the sync client */
   const [shareOpen, setShareOpen] = useState(false)
   const shareApi: ShareApi | undefined = window.desktop?.shareStatus ? (window.desktop as ShareApi) : undefined
+  const liveApi = window.desktop?.liveJoin ? window.desktop : undefined
   const [online, setOnline] = useState(() => navigator.onLine)
   useEffect(() => {
     let live = true
@@ -4350,6 +4353,8 @@ export function App() {
     }
   }
   // Undo/redo availability: refreshed on every transaction so the QAT buttons grey out when empty
+  // a shared file's live room: who else is in it, and (later) the shared text
+  const live = useLive({ api: liveApi, path: doc?.filePath ?? null, editor })
   const [histState, setHistState] = useState({ canUndo: false, canRedo: false })
   useEffect(() => {
     if (!editor) return
@@ -4640,6 +4645,14 @@ export function App() {
             >
               {hasUnsavedChanges ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}
             </button>
+          ) : undefined
+        }
+        faces={
+          hasDoc ? (
+            <PresenceFaces
+              people={live.faces}
+              strings={{ label: LIVE_STRINGS.facesLabel, person: LIVE_STRINGS.person, personHere: LIVE_STRINGS.personHere, more: LIVE_STRINGS.more }}
+            />
           ) : undefined
         }
         share={
