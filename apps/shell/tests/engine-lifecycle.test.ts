@@ -19,7 +19,7 @@ vi.mock('electron', () => ({
 }))
 vi.mock('../src/main/managed-engine', () => ({ startEngine }))
 
-const { ensureEngine, engineStatus, resetEngineStateForTests, teardownEngine, engineBinaryPath } = await import(
+const { ensureEngine, engineStatus, getEngineTarget, resetEngineStateForTests, teardownEngine, engineBinaryPath } = await import(
   '../src/main/engine-lifecycle'
 )
 
@@ -134,6 +134,24 @@ describe('engine lifecycle', () => {
 
   it('teardown is safe when nothing is running', async () => {
     await expect(teardownEngine()).resolves.toBeUndefined()
+  })
+
+  it('passes the Office agent inline instead of rewriting the shared engine config file', async () => {
+    startEngine.mockResolvedValue(fakeEngine())
+    await ensureEngine('/proj')
+    const { env } = startEngine.mock.calls[0]![0] as { env: Record<string, string> }
+    const config = JSON.parse(env.REDROB_CONFIG_CONTENT!) as { agent: Record<string, { tools: Record<string, boolean> }> }
+    expect(config.agent.office!.tools.bash).toBe(false)
+  })
+
+  it('gives main-process callers the target, scoped to a directory', async () => {
+    startEngine.mockResolvedValue(fakeEngine())
+    expect(await getEngineTarget('/docs')).toEqual({
+      baseUrl: 'http://127.0.0.1:41234',
+      username: 'u',
+      password: 'p',
+      directory: '/docs',
+    })
   })
 
   it('resolves the dev binary path from the app path', () => {

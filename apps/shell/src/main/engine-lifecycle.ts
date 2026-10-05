@@ -15,8 +15,10 @@
  * two ports. Without that, opening two editor windows at once would spawn two engines
  * and the second would leak.
  */
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
+import { officeEngineConfig, type EngineTarget } from '@genoffice/ai-provider'
 import { app, ipcMain } from 'electron'
 
 import { startEngine, type ManagedEngine } from './managed-engine'
@@ -26,9 +28,13 @@ export function engineBinaryPath(): string {
   const exe = process.platform === 'win32' ? 'redrob-code.exe' : 'redrob-code'
   // Packaged: extraResources copies it to resources/native. Dev: the build output the
   // packaging step asserts is present.
-  return app.isPackaged
-    ? join(process.resourcesPath, 'native', exe)
-    : join(app.getAppPath(), 'build', exe)
+  if (app.isPackaged) return join(process.resourcesPath, 'native', exe)
+  const built = join(app.getAppPath(), 'build', exe)
+  // A development checkout rarely has the sidecar built. REDROB_ENGINE_BINARY points at
+  // one explicitly; a packaged app never reads it, so it cannot redirect a release build.
+  const override = process.env.REDROB_ENGINE_BINARY
+  if (override && !existsSync(built) && existsSync(override)) return override
+  return built
 }
 
 type State =
@@ -70,7 +76,13 @@ export function ensureEngine(cwd: string): Promise<ManagedEngine> {
   if (state.status === 'running' && state.engine.isAlive()) return Promise.resolve(state.engine)
   if (state.status === 'starting') return state.promise
 
-  const promise = startEngine({ binary: engineBinaryPath(), cwd })
+  const promise = startEngine({
+    binary: engineBinaryPath(),
+    cwd,
+    // Office's agent and settings travel inline so the person's own engine config file,
+    // shared with Redrob Code, is never rewritten (docs/engine-api.md).
+    env: { REDROB_CONFIG_CONTENT: JSON.stringify(officeEngineConfig()) },
+  })
     .then((engine) => {
       state = { status: 'running', engine }
       return engine
@@ -83,6 +95,24 @@ export function ensureEngine(cwd: string): Promise<ManagedEngine> {
 
   state = { status: 'starting', promise }
   return promise
+}
+
+/**
+ * The engine's address and credentials, for main-process callers only.
+ *
+ * Editor mains run in this same process (the shell hosts them), so they reach the engine
+ * through this function rather than over IPC. It must never be exposed to a renderer:
+ * the password drives an engine that holds every provider key. `directory` scopes
+ * location-aware routes to the person's document folder.
+ */
+export async function getEngineTarget(directory?: string): Promise<EngineTarget> {
+  const engine = await ensureEngine(app.getPath('userData'))
+  return {
+    baseUrl: engine.baseUrl,
+    username: engine.username,
+    password: engine.password,
+    ...(directory ? { directory } : {}),
+  }
 }
 
 /**

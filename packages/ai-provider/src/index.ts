@@ -85,5 +85,19 @@ export {
 export type {
   EngineIntegration,
   EngineTarget,
+  IntegrationConnection,
   IntegrationMethod,
+  IntegrationPrompt,
+  OAuthAttempt,
+  OAuthAttemptStatus,
 } from './engine-integration'
+export {
+  ENGINE_BUILTIN_TOOLS,
+  EngineClient,
+  EngineError,
+  OFFICE_AGENT,
+  officeEngineConfig,
+  splitModelId,
+  toEngineModel,
+} from './engine-client'
+export type { EngineEvent, EngineModel, EnginePromptBody, EnginePromptPart } from './engine-client'
