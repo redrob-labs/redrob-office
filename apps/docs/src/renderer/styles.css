@@ -124,6 +124,15 @@
   --docs-paper-fig-wait-bg: rgb(59 130 246 / 14%);
   --docs-paper-fig-wait-line: #2563eb;
   --docs-paper-fig-stale-line: #d97706;
+  /* other people's carets and selections on the paper, one per seat (the
+   * same seats as the title-bar faces) */
+  --docs-paper-peer-1: #0d9488;
+  --docs-paper-peer-2: #7c3aed;
+  --docs-paper-peer-3: #ea580c;
+  --docs-paper-peer-4: #db2777;
+  --docs-paper-peer-5: #0284c7;
+  --docs-paper-peer-6: #65a30d;
+  --docs-paper-peer-ink: #ffffff;
   --docs-paper-watermark: rgb(128 128 128 / 18%);
   --docs-paper-rev-ink: #b91c1c;
   --docs-paper-ins-bg: rgb(22 163 74 / 8%);

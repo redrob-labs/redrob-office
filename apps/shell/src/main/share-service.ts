@@ -44,6 +44,8 @@ export interface ShareServiceDeps {
   /** writes a downloaded shared file somewhere new and returns its path */
   saveDownload: (name: string, bytes: Uint8Array) => Promise<string>
   openPath: (path: string) => void | Promise<void>
+  /** a new version of a shared file reached the service (live rooms rebase on it) */
+  uploaded?: (fileId: string, version: number) => void
   log?: (message: string) => void
 }
 
@@ -218,8 +220,28 @@ export class ShareService {
       if (!(await this.deps.signedIn())) return
       const v = await client.upload(link.fileId, bytes)
       await this.deps.index.set(path, { ...link, version: v.version })
+      this.deps.uploaded?.(link.fileId, v.version)
     } catch (e) {
       this.deps.log?.(`[share] upload after save failed: ${messageOf(e)}`)
+    }
+  }
+
+  /**
+   * The latest shared bytes of a file this computer has, for a live view to
+   * rebase on. The file on disk is left alone: the view saves it as usual.
+   */
+  async pull(path: unknown): Promise<{ bytes: Uint8Array; version: number } | null> {
+    const client = this.deps.client
+    if (!client || !isShareablePath(path)) return null
+    try {
+      if (!(await this.deps.signedIn())) return null
+      const link = await this.deps.index.get(path)
+      if (!link) return null
+      // the index keeps the version on disk; the view tracks the one it rebased on
+      return await client.download(link.fileId)
+    } catch (e) {
+      this.deps.log?.(`[share] pull failed: ${messageOf(e)}`)
+      return null
     }
   }
 

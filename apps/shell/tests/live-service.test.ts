@@ -29,7 +29,7 @@ function hub(opts: { fail?: boolean; readOnly?: boolean } = {}) {
     update: vi.fn(),
     presence: vi.fn(),
     leave: vi.fn(),
-    has: vi.fn(() => true),
+    has: vi.fn((_view: number, _file: string) => true),
   }
 }
 
@@ -52,7 +52,7 @@ describe('LiveService', () => {
     const s = sender()
     const svc = new LiveService({ hub: h, index: index({ fileId: ID, role: 'edit', version: 1 }), signedIn: async () => true })
     const r = await svc.join(s, FILE)
-    expect(r).toEqual({ ok: true, fileId: ID, role: 'edit', readOnly: false, state: new Uint8Array([1, 2]), peers: [] })
+    expect(r).toEqual({ ok: true, fileId: ID, role: 'edit', readOnly: false, version: 1, state: new Uint8Array([1, 2]), peers: [] })
     expect(s.sent).toEqual([[LIVE_CHANNELS.remote, ID, new Uint8Array([5])]])
 
     const viewer = new LiveService({ hub: hub(), index: index({ fileId: ID, role: 'comment', version: 1 }), signedIn: async () => true })
@@ -76,12 +76,25 @@ describe('LiveService', () => {
     expect(h.leave).toHaveBeenCalledWith(7)
   })
 
+  it('pulls the latest shared bytes only for a file this view joined', async () => {
+    const h = hub()
+    const pull = vi.fn(async () => ({ bytes: new Uint8Array([7]), version: 3 }))
+    const svc = new LiveService({ hub: h, index: index({ fileId: ID, role: 'edit', version: 1 }), signedIn: async () => true, pull })
+    h.has.mockReturnValueOnce(false)
+    expect(await svc.pull(sender(), FILE)).toEqual({ ok: false })
+    expect(pull).not.toHaveBeenCalled()
+    expect(await svc.pull(sender(), FILE)).toEqual({ ok: true, bytes: new Uint8Array([7]), version: 3 })
+    expect(await svc.pull(sender(), 'relative.docx')).toEqual({ ok: false })
+  })
+
   it('registers every live channel', () => {
     const handled: string[] = []
     new LiveService({ hub: null, index: index(null), signedIn: async () => true }).register({
       handle: (c) => void handled.push(c),
       on: (c) => void handled.push(c),
     })
-    expect(handled.sort()).toEqual([LIVE_CHANNELS.join, LIVE_CHANNELS.leave, LIVE_CHANNELS.presence, LIVE_CHANNELS.update].sort())
+    expect(handled.sort()).toEqual(
+      [LIVE_CHANNELS.join, LIVE_CHANNELS.pull, LIVE_CHANNELS.leave, LIVE_CHANNELS.presence, LIVE_CHANNELS.update].sort(),
+    )
   })
 })

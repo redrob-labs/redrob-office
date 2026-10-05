@@ -231,6 +231,31 @@ function resetEditorHistory(editor: Editor): void {
   editor.registerPlugin(history((plugin.spec as { config?: object }).config))
 }
 
+/**
+ * Live file: another person saved, so the shared text's docxIndex anchors
+ * now point into their bytes. Re-parse those bytes as this view's original
+ * (what the next save patches) without touching the editor's content, which
+ * comes from the shared text. False when the bytes do not parse.
+ */
+export async function rebaseParsed(ctx: FileActionContext, bytes: Uint8Array): Promise<boolean> {
+  const { editor } = ctx
+  if (!editor || !ctx.doc) return false
+  let parsed: ParsedDocFull
+  try {
+    parsed = await parseDocx(bytes)
+  } catch {
+    return false
+  }
+  setDocFontTable(parsed.fontTable)
+  editor.storage.listNumbering.styles = parsed.styles
+  editor.storage.listNumbering.docDefaults = parsed.docDefaults
+  editor.storage.listNumbering.defs = parsed.numbering
+  applyDocLayoutSettings(editor, parsed)
+  ctx.setDocCss(docStyleCss(parsed))
+  ctx.setDoc((prev) => (prev ? { ...prev, parsed } : prev))
+  return true
+}
+
 /** doc-level layout inputs living outside CSS: default tab grid + hyphenation lang */
 function applyDocLayoutSettings(editor: Editor, parsed: ParsedDocFull): void {
   editor.storage.tabStops.defaultTabStopTwips = parsed.defaultTabStopTwips ?? null

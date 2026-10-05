@@ -237,6 +237,7 @@ export interface DesktopApi {
   openShared?: ShareApi['openShared']
   /** Live documents through the shell (absent outside the suite) */
   liveJoin?: LiveApi['liveJoin']
+  livePull?: LiveApi['livePull']
   liveUpdate?: LiveApi['liveUpdate']
   livePresence?: LiveApi['livePresence']
   liveLeave?: LiveApi['liveLeave']

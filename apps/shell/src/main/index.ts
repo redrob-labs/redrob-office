@@ -4565,6 +4565,8 @@ const shareService = new ShareService({
     return target
   },
   openPath: (p) => void openDocumentPath(p),
+  // a new version is the base live views rebase on (liveHub is set below, before any save)
+  uploaded: (fileId, version) => liveHub?.setBase(fileId, version),
   log: (m) => console.warn(m),
 })
 shareService.register(ipcMain)
@@ -4576,6 +4578,7 @@ new LiveService({
   hub: liveHub,
   index: sharedIndex,
   signedIn: async () => (await identityService.status()).signedIn,
+  pull: (p) => shareService.pull(p),
   log: (m) => console.warn(m),
 }).register(ipcMain)
 

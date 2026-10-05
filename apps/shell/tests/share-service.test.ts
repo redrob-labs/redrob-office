@@ -126,6 +126,27 @@ describe('ShareService', () => {
     expect((await index.get(FILE))?.version).toBe(1)
   })
 
+  it('an upload after save announces the new version, and pull fetches the latest bytes without touching the index', async () => {
+    const client = fakeClient()
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'edit', version: 1 })
+    const uploaded = vi.fn()
+    const svc = new ShareService({
+      client,
+      index,
+      signedIn: async () => true,
+      readFile: async () => new Uint8Array(),
+      saveDownload: async () => '',
+      openPath: () => undefined,
+      uploaded,
+    })
+    await svc.saved(FILE, new Uint8Array([1]))
+    expect(uploaded).toHaveBeenCalledWith(ID, 1)
+    expect(await svc.pull(FILE)).toEqual({ bytes: new Uint8Array([1, 2, 3]), version: 4 })
+    expect((await index.get(FILE))?.version).toBe(1)
+    expect(await svc.pull('relative.docx')).toBeNull()
+  })
+
   it('a failed upload after save never throws', async () => {
     const client = fakeClient({
       upload: vi.fn(async () => {

@@ -16,14 +16,17 @@ export const LIVE_STRINGS = {
   person: '{name}, near "{where}"',
   personHere: '{name} is here',
   more: '+{n}',
-  readOnly: 'You can view this shared file. Changes you make stay on this computer.',
+  readOnly: 'You can view this shared file. Other people\'s changes show as they type.',
+  liveOn: 'Editing together',
+  rebased: 'Updated to the latest shared version.',
+  rebaseFailed: 'The latest shared version could not be fetched. Your view may be behind until the next save.',
 } as const
 
 export type LiveState =
   | { kind: 'off' }
   | { kind: 'joining' }
   | { kind: 'unavailable'; reason: 'signed-out' | 'unreachable' }
-  | { kind: 'live'; fileId: string; role: Role; readOnly: boolean; doc: Y.Doc }
+  | { kind: 'live'; fileId: string; role: Role; readOnly: boolean; version: number; doc: Y.Doc }
 
 /** marks updates that came from the room, so they are not sent back */
 export const FROM_ROOM = Symbol('from-room')
@@ -91,7 +94,7 @@ export function useLive({ api, path, editor }: { api: Partial<LiveApi> | undefin
       })
       fileIdRef.current = r.fileId
       setPeers(r.peers)
-      setState({ kind: 'live', fileId: r.fileId, role: r.role, readOnly: r.readOnly, doc })
+      setState({ kind: 'live', fileId: r.fileId, role: r.role, readOnly: r.readOnly, version: r.version, doc })
       cleanup = () => {
         doc.off('update', send)
         offUpdate?.()

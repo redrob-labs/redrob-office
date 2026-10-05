@@ -132,6 +132,22 @@ describe('LiveHub', () => {
   })
 })
 
+describe('LiveHub base version', () => {
+  it('records a new base for every view and only moves forward', async () => {
+    const { factory, made } = fakeRooms()
+    const hub = new LiveHub(factory)
+    const a = sink()
+    await hub.join(1, FILE, a)
+    hub.setBase(FILE, 4)
+    expect(made[0]!.doc.getMap('meta').get('base')).toBe(4)
+    expect(a.updates).toHaveLength(1)
+    hub.setBase(FILE, 3)
+    expect(made[0]!.doc.getMap('meta').get('base')).toBe(4)
+    hub.setBase('99999999-2222-4333-8444-555555555555', 9)
+    expect(made).toHaveLength(1)
+  })
+})
+
 describe('live helpers', () => {
   it('derives the live address next to the HTTP service', () => {
     expect(liveUrlFor('http://127.0.0.1:8787')).toBe('ws://127.0.0.1:8788')

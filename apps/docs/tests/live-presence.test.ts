@@ -50,6 +50,7 @@ function fakeApi(join: LiveJoin) {
   const handlers: { update?: (f: string, u: Uint8Array) => void; peers?: (f: string, p: LivePeer[]) => void } = {}
   const api = {
     liveJoin: vi.fn(async () => join),
+    livePull: vi.fn(async () => ({ ok: false as const })),
     liveUpdate: vi.fn(),
     livePresence: vi.fn(),
     liveLeave: vi.fn(),
@@ -107,7 +108,7 @@ describe('useLive', () => {
   it('joins a shared file, mirrors updates both ways, lists peers and tells the room where this person is', async () => {
     const room = new Y.Doc()
     room.getText('t').insert(0, 'from the room')
-    const { api, handlers } = fakeApi({ ok: true, fileId: FILE, role: 'edit', readOnly: false, state: Y.encodeStateAsUpdate(room), peers: [kim] })
+    const { api, handlers } = fakeApi({ ok: true, fileId: FILE, role: 'edit', readOnly: false, version: 1, state: Y.encodeStateAsUpdate(room), peers: [kim] })
     const editor = makeEditor()
     act(() => root.render(createElement(Probe, { api, path: 'C:\\x\\Plan.docx', editor })))
     await flush()

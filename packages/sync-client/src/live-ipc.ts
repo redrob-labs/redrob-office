@@ -26,7 +26,16 @@ export interface LivePeer {
 }
 
 export type LiveJoin =
-  | { ok: true; fileId: string; role: 'owner' | 'edit' | 'comment' | 'view'; readOnly: boolean; state: Uint8Array; peers: LivePeer[] }
+  | {
+      ok: true
+      fileId: string
+      role: 'owner' | 'edit' | 'comment' | 'view'
+      readOnly: boolean
+      /** the shared version this computer's copy of the file is at */
+      version: number
+      state: Uint8Array
+      peers: LivePeer[]
+    }
   | { ok: false; reason: 'not-shared' | 'no-service' | 'signed-out' | 'unreachable' }
 
 export interface LivePresence {
@@ -39,12 +48,21 @@ export const LIVE_CHANNELS = {
   update: 'live:update',
   presence: 'live:presence',
   leave: 'live:leave',
+  pull: 'live:pull',
   remote: 'live:remote',
   peers: 'live:peers',
 } as const
 
+/** the latest shared bytes of a file, for rebasing a live view; the file on disk is not touched */
+export type LivePull = { ok: true; bytes: Uint8Array; version: number } | { ok: false }
+
+/** the shared Y.Doc's map that carries the version the shared text is based on */
+export const LIVE_META = 'meta'
+export const LIVE_BASE_KEY = 'base'
+
 export interface LiveApi {
   liveJoin(path: string): Promise<LiveJoin>
+  livePull(path: string): Promise<LivePull>
   liveUpdate(fileId: string, update: Uint8Array): void
   livePresence(fileId: string, presence: LivePresence): void
   liveLeave(fileId: string): void
@@ -94,6 +112,14 @@ export function liveBridge(ipc: LiveIpcLike): LiveApi {
       ipc.invoke(LIVE_CHANNELS.join, path).then(
         (r) => (r as LiveJoin) ?? { ok: false, reason: 'no-service' },
         () => ({ ok: false as const, reason: 'no-service' as const }),
+      ),
+    livePull: (path) =>
+      ipc.invoke(LIVE_CHANNELS.pull, path).then(
+        (r) => {
+          const x = r as LivePull | null
+          return x && x.ok && x.bytes instanceof Uint8Array && Number.isInteger(x.version) ? x : { ok: false as const }
+        },
+        () => ({ ok: false as const }),
       ),
     liveUpdate: (fileId, update) => ipc.send(LIVE_CHANNELS.update, fileId, update),
     livePresence: (fileId, presence) => ipc.send(LIVE_CHANNELS.presence, fileId, presence),

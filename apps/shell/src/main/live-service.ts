@@ -2,7 +2,7 @@
 /// token); a view joins a shared file it has open, mirrors the Y.Doc over
 /// IPC, and hears who else is in it. Kept apart from index.ts so the rules
 /// are testable without Electron.
-import { LIVE_CHANNELS, type LiveJoin, type LivePeer, type Role } from '@genoffice/sync-client'
+import { LIVE_CHANNELS, type LiveJoin, type LivePeer, type LivePull, type Role } from '@genoffice/sync-client'
 import type { LiveHub } from '@genoffice/sync-client/live'
 import type { SharedLink } from '@genoffice/sync-client/node'
 import { isShareablePath } from './share-service'
@@ -12,6 +12,8 @@ export interface LiveServiceDeps {
   hub: Pick<LiveHub, 'join' | 'update' | 'presence' | 'leave' | 'has'> | null
   index: { get(path: string): Promise<SharedLink | null> }
   signedIn: () => Promise<boolean>
+  /** the latest shared bytes of a file (ShareService.pull) */
+  pull?: (path: string) => Promise<{ bytes: Uint8Array; version: number } | null>
   log?: (message: string) => void
 }
 
@@ -58,7 +60,7 @@ export class LiveService {
       const role: Role = link.role
       // the service decides read-only; a view or comment role never types into the shared text
       const readOnly = r.readOnly || role === 'view' || role === 'comment'
-      return { ok: true, fileId: link.fileId, role, readOnly, state: r.state, peers: r.peers }
+      return { ok: true, fileId: link.fileId, role, readOnly, version: link.version, state: r.state, peers: r.peers }
     } catch (e) {
       this.deps.log?.(`[live] join failed: ${e instanceof Error ? e.message : String(e)}`)
       return { ok: false, reason: 'unreachable' }
@@ -73,6 +75,15 @@ export class LiveService {
       this.watched.delete(id)
       this.deps.hub?.leave(id)
     })
+  }
+
+  /** The latest shared bytes, only for a file this view has joined live. */
+  async pull(sender: LiveSender, path: unknown): Promise<LivePull> {
+    if (!this.deps.hub || !this.deps.pull || !isShareablePath(path)) return { ok: false }
+    const link = await this.deps.index.get(path)
+    if (!link || !this.deps.hub.has(sender.id, link.fileId)) return { ok: false }
+    const got = await this.deps.pull(path)
+    return got ? { ok: true, bytes: got.bytes, version: got.version } : { ok: false }
   }
 
   update(sender: LiveSender, fileId: unknown, update: unknown): void {
@@ -98,6 +109,7 @@ export class LiveService {
 
   register(ipc: LiveIpcLike): void {
     ipc.handle(LIVE_CHANNELS.join, (e, path) => this.join(e.sender, path))
+    ipc.handle(LIVE_CHANNELS.pull, (e, path) => this.pull(e.sender, path))
     ipc.on(LIVE_CHANNELS.update, (e, fileId, update) => this.update(e.sender, fileId, update))
     ipc.on(LIVE_CHANNELS.presence, (e, fileId, presence) => this.presence(e.sender, fileId, presence))
     ipc.on(LIVE_CHANNELS.leave, (e, fileId) => this.leave(e.sender, fileId))

@@ -39,6 +39,9 @@ import type { ShareApi } from '@genoffice/sync-client'
 import { SHARE_STRINGS, ShareDialog } from './share/ShareDialog'
 import './share/share.css'
 import { LIVE_STRINGS, useLive } from './live/useLive'
+import { useLiveText } from './live/useLiveText'
+import { historyCan, historyRedo, historyUndo, isRemoteChange } from './live/collab'
+import './live/live.css'
 import { verT } from './versions/strings'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
@@ -238,6 +241,7 @@ import {
   loadFile as loadFileImpl,
   newFile as newFileImpl,
   printDoc as printDocImpl,
+  rebaseParsed as rebaseParsedImpl,
   save as saveImpl,
   writeRecoveryCopy as writeRecoveryCopyImpl,
   type FileActionContext,
@@ -1034,8 +1038,9 @@ export function App() {
     onSelectionUpdate: () => forceRender(),
     // typing in the main document takes ribbon routing back from any textbox
     onFocus: () => setActiveSubEditor(null),
-    onUpdate: () => {
-      dirtyRef.current = true
+    onUpdate: ({ transaction }) => {
+      // someone else's typing in a live file is theirs to save, not this view's change
+      if (!isRemoteChange(transaction)) dirtyRef.current = true
       forceRender()
     },
   })
@@ -3843,10 +3848,10 @@ export function App() {
           void save(true)
           break
         case 'undo':
-          editor?.chain().focus().undo().run()
+          if (editor) historyUndo(editor)
           break
         case 'redo':
-          editor?.chain().focus().redo().run()
+          if (editor) historyRedo(editor)
           break
         case 'zoom-in':
           setZoom((z) => Math.min(200, Math.round(z) + 10))
@@ -4353,13 +4358,52 @@ export function App() {
     }
   }
   // Undo/redo availability: refreshed on every transaction so the QAT buttons grey out when empty
-  // a shared file's live room: who else is in it, and (later) the shared text
+  // a shared file's live room: who else is in it, and the shared text and comments
   const live = useLive({ api: liveApi, path: doc?.filePath ?? null, editor })
+  const liveLoadBytes = useCallback(async (bytes: Uint8Array) => {
+    const cur = fileCtxRef.current.doc
+    if (!cur?.filePath) return false
+    const data = bytes.slice().buffer as ArrayBuffer
+    const outcome = await loadFileImpl(fileCtxRef.current, {
+      path: cur.filePath,
+      name: cur.fileName,
+      data,
+      hash: cur.hash,
+      encrypted: cur.encrypted,
+    })
+    if (outcome !== 'ok') return false
+    // the newer shared content is not on disk yet
+    dirtyRef.current = true
+    return true
+  }, [])
+  const liveRebase = useCallback((bytes: Uint8Array) => rebaseParsedImpl(fileCtxRef.current, bytes), [])
+  const liveText = useLiveText({
+    editor,
+    live: live.state,
+    peers: live.peers,
+    api: liveApi,
+    path: doc?.filePath ?? null,
+    loadBytes: liveLoadBytes,
+    rebaseParsed: liveRebase,
+    comments: {
+      get: () => commentsLiveRef.current,
+      set: (list) => setComments(list),
+      markDirty: () => setCommentsDirty(true),
+    },
+    setStatus,
+  })
+  const pushLiveComments = liveText.pushComments
+  useEffect(() => {
+    pushLiveComments(comments)
+  }, [comments, pushLiveComments])
+  const liveReadOnly = live.state.kind === 'live' && live.state.readOnly && liveText.status === 'on'
+  useEffect(() => {
+    if (liveReadOnly) setStatus(LIVE_STRINGS.readOnly)
+  }, [liveReadOnly])
   const [histState, setHistState] = useState({ canUndo: false, canRedo: false })
   useEffect(() => {
     if (!editor) return
-    const refresh = () =>
-      setHistState({ canUndo: editor.can().undo(), canRedo: editor.can().redo() })
+    const refresh = () => setHistState(historyCan(editor))
     refresh()
     editor.on('transaction', refresh)
     return () => {
@@ -4383,7 +4427,7 @@ export function App() {
           data-tip={t('appUndo')}
           aria-label={t('appUndo')}
           disabled={!hasDoc || !histState.canUndo}
-          onClick={() => editor?.chain().focus().undo().run()}
+          onClick={() => editor && historyUndo(editor)}
         >
           <IconUndo size={16} />
         </button>
@@ -4392,7 +4436,7 @@ export function App() {
           data-tip={t('appRedo')}
           aria-label={t('appRedo')}
           disabled={!hasDoc || !histState.canRedo}
-          onClick={() => editor?.chain().focus().redo().run()}
+          onClick={() => editor && historyRedo(editor)}
         >
           <IconRedo size={16} />
         </button>
@@ -4630,8 +4674,8 @@ export function App() {
       <EditorFrame
         strings={frameText.frame}
         fileName={frameFileName}
-        onUndo={hasDoc ? () => editor.chain().focus().undo().run() : undefined}
-        onRedo={hasDoc ? () => editor.chain().focus().redo().run() : undefined}
+        onUndo={hasDoc ? () => void historyUndo(editor) : undefined}
+        onRedo={hasDoc ? () => void historyRedo(editor) : undefined}
         canUndo={hasDoc && histState.canUndo}
         canRedo={hasDoc && histState.canRedo}
         saveStatus={

@@ -6,7 +6,7 @@
  */
 import * as Y from 'yjs'
 import type { Awareness } from 'y-protocols/awareness'
-import { cleanPresence, type LivePeer, type LivePresence } from './live-ipc'
+import { LIVE_BASE_KEY, LIVE_META, cleanPresence, type LivePeer, type LivePresence } from './live-ipc'
 
 export interface LiveRoom {
   doc: Y.Doc
@@ -128,6 +128,19 @@ export class LiveHub {
     const p = cleanPresence(raw)
     if ('at' in p) entry.room.awareness.setLocalStateField('at', p.at)
     if ('cursor' in p) entry.room.awareness.setLocalStateField('cursor', p.cursor)
+  }
+
+  /**
+   * A new version of the file was uploaded: record it as the base the shared
+   * text now matches, so every view rebases onto those bytes. Only moves forward.
+   */
+  setBase(fileId: string, version: number): void {
+    const entry = this.rooms.get(fileId)
+    if (!entry || !Number.isInteger(version)) return
+    const meta = entry.room.doc.getMap<number>(LIVE_META)
+    const was = meta.get(LIVE_BASE_KEY)
+    if (typeof was === 'number' && was >= version) return
+    meta.set(LIVE_BASE_KEY, version)
   }
 
   /** Leaves one room, or every room when no file is named (the view closed). */
