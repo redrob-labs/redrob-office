@@ -40,6 +40,8 @@ import { useFacts } from './home/useFacts'
 import { waitingFiles } from '@genoffice/facts'
 import type { FactsApi } from '../../shared/facts-api'
 import type { IdentityApi } from '@genoffice/identity'
+import type { ShareApi } from '@genoffice/sync-client'
+import { SharedView } from './home/SharedView'
 import type { StartKind } from './home/formats'
 
 declare global {
@@ -48,6 +50,7 @@ declare global {
     aiOfficeProject?: ProjectHomeApi
     aiOfficeFacts?: FactsApi
     aiOfficeIdentity?: IdentityApi
+    aiOfficeShare?: ShareApi
   }
 }
 
@@ -1037,8 +1040,11 @@ export function Home() {
   const [view, setView] = useState<'recent' | 'starred'>('recent')
   // Genspark web projects take over the content area (like a selected project)
   const [cloudMode, setCloudMode] = useState(false)
-  // Updates takes over the content area like a selected project
-  const [updatesMode, setUpdatesMode] = useState(false)
+  // Updates and Shared with you take over the content area like a selected project
+  const [pane, setPane] = useState<'updates' | 'shared' | null>(null)
+  const updatesMode = pane === 'updates'
+  const sharedMode = pane === 'shared'
+  const setUpdatesMode = (on: boolean) => setPane(on ? 'updates' : null)
   // files waiting in Updates, from the linked-figure store in the main process
   const facts = useFacts()
   const updatesWaiting = facts.state ? waitingFiles(facts.state).length : 0
@@ -2000,9 +2006,9 @@ export function Home() {
 
         <nav className="sidebar-nav">
           <button
-            className={`nav-item${view === 'recent' && !selectedProjectId && !cloudMode && !updatesMode ? ' active' : ''}`}
+            className={`nav-item${view === 'recent' && !selectedProjectId && !cloudMode && !pane ? ' active' : ''}`}
             aria-current={
-              view === 'recent' && !selectedProjectId && !cloudMode && !updatesMode
+              view === 'recent' && !selectedProjectId && !cloudMode && !pane
                 ? 'page'
                 : undefined
             }
@@ -2033,9 +2039,9 @@ export function Home() {
             {updatesWaiting > 0 && <span className="nav-count">{updatesWaiting}</span>}
           </button>
           <button
-            className={`nav-item${view === 'starred' && !selectedProjectId && !cloudMode && !updatesMode ? ' active' : ''}`}
+            className={`nav-item${view === 'starred' && !selectedProjectId && !cloudMode && !pane ? ' active' : ''}`}
             aria-current={
-              view === 'starred' && !selectedProjectId && !cloudMode && !updatesMode
+              view === 'starred' && !selectedProjectId && !cloudMode && !pane
                 ? 'page'
                 : undefined
             }
@@ -2049,6 +2055,20 @@ export function Home() {
             <Icon name="star" size={16} />
             <span className="nav-label">{t('navStarred')}</span>
             <span className="nav-count">{navCounts.starred}</span>
+          </button>
+          <button
+            className={`nav-item${sharedMode && !selectedProjectId ? ' active' : ''}`}
+            aria-current={sharedMode && !selectedProjectId ? 'page' : undefined}
+            onClick={() => {
+              setPane('shared')
+              setSelectedProjectId(null)
+              setCloudMode(false)
+              setSelected(new Set())
+              setRowMenu(null)
+            }}
+          >
+            <Icon name="users" size={16} />
+            <span className="nav-label">{t('navShared')}</span>
           </button>
           {CLOUD_ACCOUNT_ENABLED && loggedIn && (
             <button
@@ -2099,6 +2119,8 @@ export function Home() {
         renderProjectContent()
       ) : updatesMode ? (
         <UpdatesView facts={facts} openPath={(path) => void window.aiOffice.openPath(path)} />
+      ) : sharedMode ? (
+        <SharedView />
       ) : CLOUD_ACCOUNT_ENABLED && cloudMode ? (
         <CloudProjectsView />
       ) : (

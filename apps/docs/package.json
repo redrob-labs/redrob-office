@@ -95,6 +95,7 @@
     "@genoffice/electron-utils": "workspace:*",
     "@genoffice/facts": "workspace:*",
     "@genoffice/font-metrics": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
     "@genoffice/versions": "workspace:*",
     "electron-updater": "^6.8.9",
     "pdf-lib": "^1.17.1",

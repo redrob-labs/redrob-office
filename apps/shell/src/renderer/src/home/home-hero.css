@@ -370,3 +370,30 @@
     width: 100%;
   }
 }
+
+/* ---- Shared with you ---- */
+
+.shared-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-base);
+}
+
+.shared-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: 12px 20px;
+}
+
+.shared-row + .shared-row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.shared-list:empty {
+  display: none;
+}

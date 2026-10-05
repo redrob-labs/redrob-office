@@ -36,6 +36,7 @@
     "@genoffice/project-store": "workspace:*",
     "@genoffice/sheets": "workspace:*",
     "@genoffice/slides": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

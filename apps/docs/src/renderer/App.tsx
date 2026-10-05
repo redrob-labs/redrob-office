@@ -13,6 +13,7 @@ import type { Editor } from '@tiptap/core'
 import { DOMParser as PmDOMParser, type Mark as PmMark } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
 import {
+  Button,
   Dropdown,
   EditorFrame,
   OldFormatBanner,
@@ -33,6 +34,9 @@ import { VersionHistory } from './versions/VersionHistory'
 import { CatchUp } from './versions/CatchUp'
 import { collectRevisions as catchUpRevisions } from './versions/revisions'
 import './versions/versions.css'
+import type { ShareApi } from '@genoffice/sync-client'
+import { SHARE_STRINGS, ShareDialog } from './share/ShareDialog'
+import './share/share.css'
 import { verT } from './versions/strings'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
@@ -710,6 +714,9 @@ export function App() {
   const [toolbarChoice, setToolbarChoice] = useState<ToolbarChoice>('simple')
   const [panelWidth, setPanelWidth] = useState(() => loadFramePanelWidth())
   const [oldFormatDismissed, setOldFormatDismissed] = useState(false)
+  /** Share dialog; sharing exists only inside the suite, where the shell holds the sync client */
+  const [shareOpen, setShareOpen] = useState(false)
+  const shareApi: ShareApi | undefined = window.desktop?.shareStatus ? (window.desktop as ShareApi) : undefined
   const [online, setOnline] = useState(() => navigator.onLine)
   useEffect(() => {
     let live = true
@@ -4576,6 +4583,15 @@ export function App() {
           api={window.desktop}
         />
       )}
+      {hasDoc && (
+        <ShareDialog
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          path={doc?.filePath ?? null}
+          fileName={frameFileName}
+          api={shareApi}
+        />
+      )}
       {doc && liveDocCjk != null && (
         <style data-doc-css="">{`.doc-page { --doc-line-factor:${docLineFactor(doc.parsed, liveDocCjk)} }`}</style>
       )}
@@ -4624,6 +4640,13 @@ export function App() {
             >
               {hasUnsavedChanges ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}
             </button>
+          ) : undefined
+        }
+        share={
+          hasDoc && shareApi ? (
+            <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>
+              {SHARE_STRINGS.button}
+            </Button>
           ) : undefined
         }
         search={{ tools: frameTools, strings: frameText.search, onAsk: askRedrob }}

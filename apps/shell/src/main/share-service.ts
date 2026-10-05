@@ -1,0 +1,233 @@
+/// Sharing a local file through the sync service. The shell owns the client
+/// (and so the token); editors and Home only ask over IPC. Kept apart from
+/// index.ts so the rules are testable without Electron.
+import { basename, extname, isAbsolute } from 'node:path'
+import {
+  SHARE_CHANNELS,
+  SyncError,
+  isRole,
+  type RemoteFile,
+  type RemoteMember,
+  type RemoteVersion,
+  type Role,
+  type ShareResult,
+  type ShareStatus,
+  type SharedWithMe,
+} from '@genoffice/sync-client'
+import type { SharedLink } from '@genoffice/sync-client/node'
+
+/** the parts of SyncClient this service uses */
+export interface ShareClient {
+  listFiles(): Promise<RemoteFile[]>
+  createFile(name: string): Promise<RemoteFile>
+  upload(fileId: string, bytes: Uint8Array): Promise<RemoteVersion>
+  download(fileId: string): Promise<{ bytes: Uint8Array; version: number }>
+  members(fileId: string): Promise<RemoteMember[]>
+  setMember(fileId: string, sub: string, role: Role, name: string): Promise<RemoteMember[]>
+  removeMember(fileId: string, sub: string): Promise<void>
+}
+
+/** the parts of SharedIndex this service uses */
+export interface ShareIndex {
+  get(path: string): Promise<SharedLink | null>
+  pathOf(fileId: string): Promise<string | null>
+  set(path: string, link: SharedLink): Promise<void>
+  remove(path: string): Promise<void>
+}
+
+export interface ShareServiceDeps {
+  /** null when this build has no sync service */
+  client: ShareClient | null
+  index: ShareIndex
+  signedIn: () => Promise<boolean>
+  readFile: (path: string) => Promise<Uint8Array>
+  /** writes a downloaded shared file somewhere new and returns its path */
+  saveDownload: (name: string, bytes: Uint8Array) => Promise<string>
+  openPath: (path: string) => void | Promise<void>
+  log?: (message: string) => void
+}
+
+export interface IpcLike {
+  handle(channel: string, listener: (event: unknown, ...args: unknown[]) => unknown): void
+}
+
+const SHAREABLE = new Set(['.docx', '.xlsx', '.pptx', '.pdf', '.md', '.hwp', '.hwpx'])
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export const SHARE_MESSAGES = {
+  noService: 'Sharing is not available in this build yet. Files stay on this computer.',
+  signedOut: 'Sign in to Redrob in Settings, Sharing, to share files.',
+  unreachable: 'The sync service could not be reached. Nothing changed.',
+  notShareable: 'This file cannot be shared.',
+  badAccount: 'Enter the Redrob account to share with.',
+  badRole: 'Choose edit, comment or view.',
+  notOwner: 'Only the owner can change who has this file.',
+  gone: 'That file is no longer shared with you.',
+} as const
+
+/** An absolute path to a saved document of a kind the suite edits. */
+export function isShareablePath(path: unknown): path is string {
+  return typeof path === 'string' && path.length < 4096 && isAbsolute(path) && SHAREABLE.has(extname(path).toLowerCase())
+}
+
+/** The account as typed, trimmed; null when it is empty, too long, or holds spaces or control characters. */
+export function cleanAccount(account: unknown): string | null {
+  if (typeof account !== 'string') return null
+  const a = account.trim()
+  if (!a || a.length > 200 || /[\s\u0000-\u001f\u007f]/.test(a)) return null
+  return a
+}
+
+const fail = (error: string): ShareResult => ({ ok: false, error })
+
+function messageOf(e: unknown): string {
+  if (e instanceof SyncError) return e.status === 0 ? SHARE_MESSAGES.unreachable : e.message
+  return e instanceof Error ? e.message : String(e)
+}
+
+export class ShareService {
+  constructor(private readonly deps: ShareServiceDeps) {}
+
+  /** why sharing cannot happen right now, or null when it can */
+  private async unavailable(): Promise<'no-service' | 'signed-out' | null> {
+    if (!this.deps.client) return 'no-service'
+    if (!(await this.deps.signedIn())) return 'signed-out'
+    return null
+  }
+
+  private reasonMessage(r: 'no-service' | 'signed-out') {
+    return r === 'no-service' ? SHARE_MESSAGES.noService : SHARE_MESSAGES.signedOut
+  }
+
+  async status(path: unknown): Promise<ShareStatus> {
+    const why = await this.unavailable()
+    if (why) return { available: false, reason: why }
+    if (!isShareablePath(path)) return { available: true, shared: false }
+    const link = await this.deps.index.get(path)
+    if (!link) return { available: true, shared: false }
+    try {
+      const members = await this.deps.client!.members(link.fileId)
+      return { available: true, shared: true, role: link.role, members }
+    } catch (e) {
+      if (e instanceof SyncError && e.status === 404) {
+        // the shared file is gone or this person was removed; the local copy stays
+        await this.deps.index.remove(path)
+        return { available: true, shared: false }
+      }
+      if (e instanceof SyncError && e.status === 401) return { available: false, reason: 'signed-out' }
+      return { available: false, reason: 'unreachable' }
+    }
+  }
+
+  /** Shares the file if it is not yet (creating and uploading it), then gives `account` the role. */
+  async invite(path: unknown, account: unknown, role: unknown): Promise<ShareResult> {
+    const why = await this.unavailable()
+    if (why) return fail(this.reasonMessage(why))
+    if (!isShareablePath(path)) return fail(SHARE_MESSAGES.notShareable)
+    const who = cleanAccount(account)
+    if (!who) return fail(SHARE_MESSAGES.badAccount)
+    if (!isRole(role) || role === 'owner') return fail(SHARE_MESSAGES.badRole)
+    const client = this.deps.client!
+    try {
+      let link = await this.deps.index.get(path)
+      if (!link) {
+        const bytes = await this.deps.readFile(path)
+        const file = await client.createFile(basename(path))
+        const v = await client.upload(file.id, bytes)
+        link = { fileId: file.id, role: 'owner', version: v.version }
+        await this.deps.index.set(path, link)
+      }
+      if (link.role !== 'owner') return fail(SHARE_MESSAGES.notOwner)
+      const members = await client.setMember(link.fileId, who, role, who)
+      return { ok: true, status: { available: true, shared: true, role: link.role, members } }
+    } catch (e) {
+      return fail(messageOf(e))
+    }
+  }
+
+  async remove(path: unknown, account: unknown): Promise<ShareResult> {
+    const why = await this.unavailable()
+    if (why) return fail(this.reasonMessage(why))
+    if (!isShareablePath(path)) return fail(SHARE_MESSAGES.notShareable)
+    const who = cleanAccount(account)
+    if (!who) return fail(SHARE_MESSAGES.badAccount)
+    const link = await this.deps.index.get(path)
+    if (!link) return { ok: true, status: { available: true, shared: false } }
+    if (link.role !== 'owner') return fail(SHARE_MESSAGES.notOwner)
+    try {
+      await this.deps.client!.removeMember(link.fileId, who)
+      const members = await this.deps.client!.members(link.fileId)
+      return { ok: true, status: { available: true, shared: true, role: link.role, members } }
+    } catch (e) {
+      return fail(messageOf(e))
+    }
+  }
+
+  /** Files other people shared with this person, and whether each is already here. */
+  async sharedWithMe(): Promise<SharedWithMe[] | { error: string }> {
+    const why = await this.unavailable()
+    if (why) return { error: this.reasonMessage(why) }
+    try {
+      const files = await this.deps.client!.listFiles()
+      const out: SharedWithMe[] = []
+      for (const f of files) {
+        if (f.role === 'owner') continue
+        out.push({ id: f.id, name: f.name, role: f.role, localPath: await this.deps.index.pathOf(f.id) })
+      }
+      return out
+    } catch (e) {
+      return { error: messageOf(e) }
+    }
+  }
+
+  /** Opens a shared file, downloading it into the Shared folder the first time. */
+  async open(fileId: unknown): Promise<{ ok: true; path: string } | { ok: false; error: string }> {
+    const why = await this.unavailable()
+    if (why) return { ok: false, error: this.reasonMessage(why) }
+    if (typeof fileId !== 'string' || !UUID.test(fileId)) return { ok: false, error: SHARE_MESSAGES.gone }
+    const client = this.deps.client!
+    try {
+      const here = await this.deps.index.pathOf(fileId)
+      if (here) {
+        await this.deps.openPath(here)
+        return { ok: true, path: here }
+      }
+      const f = (await client.listFiles()).find((x) => x.id === fileId)
+      if (!f) return { ok: false, error: SHARE_MESSAGES.gone }
+      const { bytes, version } = await client.download(fileId)
+      const path = await this.deps.saveDownload(basename(f.name), bytes)
+      await this.deps.index.set(path, { fileId, role: f.role, version })
+      await this.deps.openPath(path)
+      return { ok: true, path }
+    } catch (e) {
+      return { ok: false, error: messageOf(e) }
+    }
+  }
+
+  /**
+   * After a local save: a shared file this person may edit is uploaded as a
+   * new version. Never throws; a failed upload is logged and retried on the
+   * next save.
+   */
+  async saved(path: string, bytes: Uint8Array): Promise<void> {
+    const client = this.deps.client
+    if (!client || !isShareablePath(path)) return
+    try {
+      const link = await this.deps.index.get(path)
+      if (!link || (link.role !== 'owner' && link.role !== 'edit')) return
+      if (!(await this.deps.signedIn())) return
+      const v = await client.upload(link.fileId, bytes)
+      await this.deps.index.set(path, { ...link, version: v.version })
+    } catch (e) {
+      this.deps.log?.(`[share] upload after save failed: ${messageOf(e)}`)
+    }
+  }
+
+  register(ipc: IpcLike): void {
+    ipc.handle(SHARE_CHANNELS.status, (_e, path) => this.status(path))
+    ipc.handle(SHARE_CHANNELS.invite, (_e, path, account, role) => this.invite(path, account, role))
+    ipc.handle(SHARE_CHANNELS.remove, (_e, path, account) => this.remove(path, account))
+    ipc.handle(SHARE_CHANNELS.sharedWithMe, () => this.sharedWithMe())
+    ipc.handle(SHARE_CHANNELS.open, (_e, fileId) => this.open(fileId))
+  }
+}

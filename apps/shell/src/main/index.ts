@@ -107,8 +107,11 @@ import { registerFactsIpc } from './facts-service'
 import { VersionStore } from '@genoffice/versions/store'
 import { isHistoryPath, registerVersionsIpc } from './versions-service'
 import { IDENTITY_CHANNELS, SessionStore } from '@genoffice/identity'
-import { IdentityService, chooseProvider } from './identity-service'
-import { readFile, rm, writeFile } from 'node:fs/promises'
+import { DEFAULT_SYNC_URL, IdentityService, chooseProvider } from './identity-service'
+import { SyncClient } from '@genoffice/sync-client'
+import { SharedIndex } from '@genoffice/sync-client/node'
+import { ShareService } from './share-service'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { FACTS_CHANNELS } from '../shared/facts-api'
 import { randomUUID } from 'node:crypto'
 import { userInfo } from 'node:os'
@@ -4533,7 +4536,35 @@ identityService.register(ipcMain)
 // Version history: every Docs save is kept on this computer; restores open as a copy.
 const versionStore = new VersionStore({ root: join(app.getPath('userData'), 'versions') })
 registerVersionsIpc(ipcMain, { store: versionStore, openPath: (p) => void openDocumentPath(p) })
+// Sharing: the shell holds the sync client (and the token through identityService).
+// A packaged build has no sync service until one is deployed; a development
+// build talks to the local Compose stack unless REDROB_SYNC_URL says otherwise.
+const syncUrl = process.env.REDROB_SYNC_URL || (app.isPackaged ? null : DEFAULT_SYNC_URL)
+const shareService = new ShareService({
+  client: syncUrl
+    ? new SyncClient({ baseUrl: syncUrl, token: () => identityService.token(), fetch: (url, init) => net.fetch(url, init) })
+    : null,
+  index: new SharedIndex(join(app.getPath('userData'), 'shared-files.json')),
+  signedIn: async () => (await identityService.status()).signedIn,
+  readFile: async (p) => new Uint8Array(await readFile(p)),
+  saveDownload: async (name, bytes) => {
+    const dir = join(app.getPath('documents'), 'Redrob Office', 'Shared')
+    await mkdir(dir, { recursive: true })
+    const safe = name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim() || 'Shared file'
+    const ext = extname(safe)
+    const stem = safe.slice(0, safe.length - ext.length)
+    let target = join(dir, safe)
+    for (let n = 2; existsSync(target); n++) target = join(dir, `${stem} (${n})${ext}`)
+    await writeFile(target, bytes, { flag: 'wx' })
+    return target
+  },
+  openPath: (p) => void openDocumentPath(p),
+  log: (m) => console.warn(m),
+})
+shareService.register(ipcMain)
+
 setDocSavedHook((path, bytes, auto) => {
+  void shareService.saved(path, bytes)
   if (!isHistoryPath(path)) return
   let by = 'This computer'
   try {

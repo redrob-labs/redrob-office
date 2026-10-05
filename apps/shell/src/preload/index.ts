@@ -23,6 +23,7 @@ import type { TabsApi, TabSummary } from '../shared/tabs-api'
 import { TABS_CHANNELS } from '../shared/tabs-api'
 import { normalizeFactsState } from '@genoffice/facts'
 import { IDENTITY_CHANNELS, type IdentityApi } from '@genoffice/identity'
+import { shareBridge } from '@genoffice/sync-client'
 import type { FactsApi } from '../shared/facts-api'
 import { FACTS_CHANNELS } from '../shared/facts-api'
 
@@ -457,6 +458,9 @@ const identityApi: IdentityApi = {
 }
 
 contextBridge.exposeInMainWorld('aiOfficeIdentity', identityApi)
+
+// Sharing: invites, people and "Shared with you" go through the shell's sync client
+contextBridge.exposeInMainWorld('aiOfficeShare', shareBridge(ipcRenderer))
 
 // open documents dragged from the OS anywhere over Home or the tab strip
 installDropOpenBridge()

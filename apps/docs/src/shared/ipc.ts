@@ -1,6 +1,7 @@
 import type { OfficePrefs } from '@genoffice/electron-utils/office-prefs'
 import type { FactsCommand, FactsState } from '@genoffice/facts'
 import type { VersionsApi } from '@genoffice/versions'
+import type { ShareApi } from '@genoffice/sync-client'
 
 export interface OpenFileResult {
   path: string
@@ -228,6 +229,12 @@ export interface DesktopApi {
   nameVersion?: VersionsApi['nameVersion']
   restoreVersion?: VersionsApi['restoreVersion']
   markVisit?: VersionsApi['markVisit']
+  /** Sharing through the shell's sync client (absent outside the suite) */
+  shareStatus?: ShareApi['shareStatus']
+  shareInvite?: ShareApi['shareInvite']
+  shareRemove?: ShareApi['shareRemove']
+  sharedWithMe?: ShareApi['sharedWithMe']
+  openShared?: ShareApi['openShared']
   /** The shell's linked-figure index (null outside the suite or when it failed to read) */
   getFacts?(): Promise<FactsState | null>
   /** Rejects when the shell refused or could not save the command */

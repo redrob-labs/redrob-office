@@ -1,0 +1,66 @@
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SyncClient, SyncError, shareBridge } from '../src'
+import { SharedIndex } from '../src/shared-index'
+
+const ID = '5f0c3f4e-1c2d-4e5f-8a9b-0c1d2e3f4a5b'
+
+describe('SyncClient', () => {
+  it('needs a token before any request', async () => {
+    const fetch = vi.fn()
+    const c = new SyncClient({ baseUrl: 'http://127.0.0.1:8787', token: async () => null, fetch })
+    await expect(c.listFiles()).rejects.toMatchObject({ status: 401 })
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('sends the bearer token and reads the service errors', async () => {
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      expect((init?.headers as Record<string, string>).authorization).toBe('Bearer t1')
+      if (url.endsWith('/files')) return new Response(JSON.stringify({ files: [{ id: ID, name: 'NDA.docx', ownerSub: 'jae', createdAt: 'x', role: 'comment' }, { id: 'bad', role: 'edit' }] }))
+      return new Response(JSON.stringify({ error: 'Your role on this file does not allow that.' }), { status: 403 })
+    })
+    const c = new SyncClient({ baseUrl: 'http://127.0.0.1:8787/', token: async () => 't1', fetch })
+    expect((await c.listFiles()).map((f) => f.id)).toEqual([ID])
+    await expect(c.upload(ID, new Uint8Array([1]))).rejects.toEqual(new SyncError(403, 'Your role on this file does not allow that.'))
+    expect(fetch).toHaveBeenCalledWith(`http://127.0.0.1:8787/files/${ID}/content`, expect.objectContaining({ method: 'PUT' }))
+  })
+
+  it('refuses a malformed file id without a request, and says when the service is down', async () => {
+    const fetch = vi.fn(async () => Promise.reject(new Error('ECONNREFUSED')))
+    const c = new SyncClient({ baseUrl: 'http://127.0.0.1:8787', token: async () => 't', fetch })
+    await expect(c.download('../etc')).rejects.toMatchObject({ status: 404 })
+    expect(fetch).not.toHaveBeenCalled()
+    await expect(c.listFiles()).rejects.toMatchObject({ status: 0 })
+  })
+})
+
+describe('SharedIndex', () => {
+  let dir = ''
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'rr-shared-'))
+  })
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('links a local file to a shared one, by path regardless of case, across instances', async () => {
+    const file = join(dir, 'shared.json')
+    const a = new SharedIndex(file)
+    await a.set('C:\\Docs\\NDA.docx', { fileId: ID, role: 'owner', version: 1 })
+    const b = new SharedIndex(file)
+    expect(await b.get('c:\\docs\\nda.docx')).toEqual({ fileId: ID, role: 'owner', version: 1 })
+    expect(await b.pathOf(ID)).toBe('C:\\Docs\\NDA.docx')
+    await b.remove('C:\\Docs\\NDA.docx')
+    expect(await new SharedIndex(file).get('C:\\Docs\\NDA.docx')).toBeNull()
+  })
+})
+
+describe('shareBridge', () => {
+  it('degrades to unavailable when the shell has no handler', async () => {
+    const bridge = shareBridge({ invoke: async () => Promise.reject(new Error('No handler')) })
+    expect(await bridge.shareStatus('C:\\a.docx')).toEqual({ available: false, reason: 'no-service' })
+    expect(await bridge.shareInvite('C:\\a.docx', 'jae', 'edit')).toEqual({ ok: false, error: 'Sharing is not available here.' })
+  })
+})
