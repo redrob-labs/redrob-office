@@ -16,6 +16,8 @@ export const LIVE_STRINGS = {
   person: '{name}, near "{where}"',
   personHere: '{name} is here',
   more: '+{n}',
+  joined: '{name} opened this file',
+  left: '{name} left',
   readOnly: 'You can view this shared file. Other people\'s changes show as they type.',
   liveOn: 'Editing together',
   rebased: 'Updated to the latest shared version.',

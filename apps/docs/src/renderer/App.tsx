@@ -4695,7 +4695,14 @@ export function App() {
           hasDoc ? (
             <PresenceFaces
               people={live.faces}
-              strings={{ label: LIVE_STRINGS.facesLabel, person: LIVE_STRINGS.person, personHere: LIVE_STRINGS.personHere, more: LIVE_STRINGS.more }}
+              strings={{
+                label: LIVE_STRINGS.facesLabel,
+                person: LIVE_STRINGS.person,
+                personHere: LIVE_STRINGS.personHere,
+                more: LIVE_STRINGS.more,
+                joined: LIVE_STRINGS.joined,
+                left: LIVE_STRINGS.left,
+              }}
             />
           ) : undefined
         }

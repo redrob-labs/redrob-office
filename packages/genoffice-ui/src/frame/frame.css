@@ -44,6 +44,16 @@
 }
 
 /* people in a shared file */
+.go-faces-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.go-faces-wrap:not(:has(.go-faces)) {
+  display: contents;
+}
+
 .go-faces {
   display: flex;
   align-items: center;

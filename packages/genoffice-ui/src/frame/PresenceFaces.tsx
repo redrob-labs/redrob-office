@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 
 export interface PresencePerson {
   /** stable per person (the account id); picks the colour */
@@ -17,6 +17,10 @@ export interface PresenceFacesStrings {
   personHere: string
   /** the overflow chip; {n} */
   more: string
+  /** said to a screen reader when someone opens the file; {name} */
+  joined?: string | undefined
+  /** said when they leave; {name} */
+  left?: string | undefined
 }
 
 /** One or two letters for a face. */
@@ -50,26 +54,50 @@ export function PresenceFaces({
   people: readonly PresencePerson[]
   strings: PresenceFacesStrings
   max?: number
-}): ReactElement | null {
-  if (people.length === 0) return null
+}): ReactElement {
+  // who came and went, said once to a screen reader (the live region is
+  // always rendered, so it is in place before the first person arrives)
+  const before = useRef<Map<string, string> | null>(null)
+  const [said, setSaid] = useState('')
+  const keys = people.map((p) => `${p.key}\u0000${p.name}`).join('\u0001')
+  useEffect(() => {
+    const now = new Map(people.map((p) => [p.key, p.name]))
+    const was = before.current
+    before.current = now
+    if (!was || (!strings.joined && !strings.left)) return
+    const lines: string[] = []
+    for (const [k, name] of now) if (!was.has(k) && strings.joined) lines.push(fill(strings.joined, { name }))
+    for (const [k, name] of was) if (!now.has(k) && strings.left) lines.push(fill(strings.left, { name }))
+    if (lines.length) setSaid(lines.join('. '))
+    // keyed on who is here, not on where they are
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keys])
+
   const shown = people.length > max ? people.slice(0, max - 1) : people
   const rest = people.slice(shown.length)
   const nameOf = (p: PresencePerson) =>
     p.where ? fill(strings.person, { name: p.name, where: p.where }) : fill(strings.personHere, { name: p.name })
   return (
-    <ul className="go-faces" aria-label={strings.label}>
-      {shown.map((p) => (
-        <li key={p.key} className={`go-face go-face--${seatOf(p.key)}`} title={nameOf(p)}>
-          <span aria-hidden="true">{initialsOf(p.name)}</span>
-          <span className="go-face__sr">{nameOf(p)}</span>
-        </li>
-      ))}
-      {rest.length > 0 && (
-        <li className="go-face go-face--more" title={rest.map(nameOf).join('\n')}>
-          <span aria-hidden="true">{fill(strings.more, { n: String(rest.length) })}</span>
-          <span className="go-face__sr">{rest.map(nameOf).join(', ')}</span>
-        </li>
+    <div className="go-faces-wrap">
+      <span className="go-face__sr" role="status" aria-live="polite">
+        {said}
+      </span>
+      {people.length > 0 && (
+        <ul className="go-faces" aria-label={strings.label}>
+          {shown.map((p) => (
+            <li key={p.key} className={`go-face go-face--${seatOf(p.key)}`} title={nameOf(p)}>
+              <span aria-hidden="true">{initialsOf(p.name)}</span>
+              <span className="go-face__sr">{nameOf(p)}</span>
+            </li>
+          ))}
+          {rest.length > 0 && (
+            <li className="go-face go-face--more" title={rest.map(nameOf).join('\n')}>
+              <span aria-hidden="true">{fill(strings.more, { n: String(rest.length) })}</span>
+              <span className="go-face__sr">{rest.map(nameOf).join(', ')}</span>
+            </li>
+          )}
+        </ul>
       )}
-    </ul>
+    </div>
   )
 }

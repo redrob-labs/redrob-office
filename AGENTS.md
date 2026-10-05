@@ -82,6 +82,20 @@ install. Neither job is a required check, so today they inform rather than block
   shared UI/runtime infrastructure.
 - `packages/docx-engine`, `packages/pptx-engine`, `packages/pptx-render`, `packages/rhwp-editor`:
   document format engines.
+- `packages/facts`: linked figures. It holds the reducer, the selectors and the `FactsStore` behind
+  the shell's one index in userData (`linked-figures.json`), plus the `FACTS_CHANNELS` IPC contract
+  and `factsBridge`. The main process stamps the author, time and id of every edit. In a DOCX file a
+  figure is a `DOCVARIABLE RedrobFact_<id>` field (`RedrobFactWords_<id>` for its sentence), and the
+  kept value is the field's cached result.
+- `packages/versions`: version history kept on this computer (`VersionStore`), last visits and
+  `catchUpItems`. Every Docs save is recorded through `setDocSavedHook`, and an encrypted file's
+  versions stay encrypted. A restore writes a copy beside the file and never overwrites it.
+- `packages/identity`: who is signed in for sharing. It has a Console OIDC device-flow provider, a
+  development issuer and a `SessionStore`. See "Sharing and live documents".
+- `packages/sync-client`: the desktop side of `services/sync`. It holds the HTTP client
+  (`SyncClient`), the index of which local files are shared (`./node`), live rooms (`./live`,
+  `./live-provider`), and the Share and Live IPC contracts (`shareBridge`, `liveBridge`). The
+  package root has no Node or Electron dependency, so preloads and renderers may import it.
 
 Docs' AI panel is a real editing agent, not a prose-only chat. `apps/docs/src/renderer/ai/AiPanel.tsx`
 uses `AgentLoop`, `createDocsSkill`, `createFilesSkill`, and local document tools. Keep the fail-closed
@@ -134,6 +148,42 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 - File routes answer 404 to a non-member, so a file's existence is never disclosed. Roles are
   `owner`, `edit`, `comment` and `view`; below edit, live sessions are read-only, and presence is
   stamped server-side with the verified person.
+
+### Sharing and live documents
+
+- **The token never leaves the shell's main process.** `identity-service.ts` holds the session and
+  persists it only through `safeStorage`; without the OS keychain the session lives in memory only.
+  Renderers get the person's name, never the token. The sync client, the share service and the live
+  rooms all run in main, and editors ask over IPC (`share:*`, `live:*`). Do not hand a token to a
+  renderer to open a WebSocket from there.
+- **Identity.**
+  - Console, through OpenID discovery at `https://console.redrob.ai`, with client `redrob-office`
+    and audience `redrob-office-sync`. An endpoint outside Console's origin is refused.
+  - The development issuer is used only when `REDROB_IDENTITY=dev`, with a loopback sync URL, and
+    never in a packaged app.
+  - Settings shows this as the **Sharing** section. The words "Account" and "Sign in" are kept out
+    of that pane because `cloud-account-hidden.test.ts` guards the retired cloud account.
+- **Where the service is.**
+  - `REDROB_SYNC_URL` if set. Otherwise a development build uses the local Compose stack
+    (`http://127.0.0.1:8787`), and a packaged build has none, so Share says it is not available yet.
+  - The live server is the same host on port 8788 (`REDROB_SYNC_LIVE_URL` overrides it).
+- **Sharing.**
+  - The first invite uploads the saved file.
+  - A Docs save by an owner or editor uploads a new version (through `setDocSavedHook`).
+  - Home's "Shared with you" downloads a file into `Documents/Redrob Office/Shared` on open.
+  - `shared-files.json` in userData maps local paths to shared files, with the version on disk.
+- **Live documents (Docs only).**
+  - One room per shared file lives in the shell (`LiveHub`). Each view mirrors the Y.Doc over IPC.
+  - While live, the editor is bound with y-prosemirror (`apps/docs/src/renderer/live/collab.ts`).
+    The editor's own history is off, and undo is Yjs's, scoped to the person.
+  - Comments live in the shared `comments` map, with random nine-digit ids.
+  - Someone else's typing never marks a view unsaved.
+  - View and comment roles are read-only live.
+- **Every live view patches the same original bytes.** A Docs save patches the bytes it opened,
+  using each block's `docxIndex`, so the shared `meta.base` key records which version the shared
+  text is based on. After an upload the shell moves the base forward (`LiveHub.setBase`). Other
+  views then re-parse that version from `live:pull`. The file on disk is never written behind an
+  open editor. A change to Docs' save or load path must keep this rule.
 
 ### Packaging and releases
 

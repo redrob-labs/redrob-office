@@ -98,6 +98,29 @@ describe('presence helpers', () => {
   })
 })
 
+describe('PresenceFaces announcements', () => {
+  it('tells a screen reader who opened the file and who left, not every move', async () => {
+    const strings = {
+      label: LIVE_STRINGS.facesLabel,
+      person: LIVE_STRINGS.person,
+      personHere: LIVE_STRINGS.personHere,
+      more: LIVE_STRINGS.more,
+      joined: LIVE_STRINGS.joined,
+      left: LIVE_STRINGS.left,
+    }
+    const status = () => host.querySelector('[role="status"]')!.textContent
+    act(() => root.render(createElement(PresenceFaces, { people: [], strings })))
+    expect(status()).toBe('')
+    act(() => root.render(createElement(PresenceFaces, { people: [{ key: 'kim', name: 'Kim' }], strings })))
+    expect(status()).toBe('Kim opened this file')
+    act(() => root.render(createElement(PresenceFaces, { people: [{ key: 'kim', name: 'Kim', where: 'Payment terms' }], strings })))
+    expect(status()).toBe('Kim opened this file')
+    act(() => root.render(createElement(PresenceFaces, { people: [], strings })))
+    expect(status()).toBe('Kim left')
+    expect(host.querySelector('ul.go-faces')).toBeNull()
+  })
+})
+
 describe('useLive', () => {
   let seen: ReturnType<typeof useLive> | null = null
   function Probe(props: Parameters<typeof useLive>[0]) {
