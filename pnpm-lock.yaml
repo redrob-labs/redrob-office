@@ -564,6 +564,9 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/identity':
+        specifier: workspace:*
+        version: link:../../packages/identity
       '@genoffice/pptx-engine':
         specifier: workspace:*
         version: link:../../packages/pptx-engine
@@ -918,6 +921,18 @@ importers:
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
   packages/i18n:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  packages/identity:
     devDependencies:
       typescript:
         specifier: ^5.9.3

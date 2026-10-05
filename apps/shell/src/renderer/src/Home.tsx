@@ -39,6 +39,7 @@ import { UpdatesView } from './home/UpdatesView'
 import { useFacts } from './home/useFacts'
 import { waitingFiles } from '@genoffice/facts'
 import type { FactsApi } from '../../shared/facts-api'
+import type { IdentityApi } from '@genoffice/identity'
 import type { StartKind } from './home/formats'
 
 declare global {
@@ -46,6 +47,7 @@ declare global {
     aiOffice: HomeApi
     aiOfficeProject?: ProjectHomeApi
     aiOfficeFacts?: FactsApi
+    aiOfficeIdentity?: IdentityApi
   }
 }
 

@@ -22,6 +22,7 @@ import { HOME_CHANNELS, PROJECT_CHANNELS } from '../shared/home-api'
 import type { TabsApi, TabSummary } from '../shared/tabs-api'
 import { TABS_CHANNELS } from '../shared/tabs-api'
 import { normalizeFactsState } from '@genoffice/facts'
+import { IDENTITY_CHANNELS, type IdentityApi } from '@genoffice/identity'
 import type { FactsApi } from '../shared/facts-api'
 import { FACTS_CHANNELS } from '../shared/facts-api'
 
@@ -412,6 +413,50 @@ const factsApi: FactsApi = {
 }
 
 contextBridge.exposeInMainWorld('aiOfficeFacts', factsApi)
+
+// Who is signed in: the name only; the token never leaves the main process
+const identityApi: IdentityApi = {
+  async identityStatus() {
+    const r = (await ipcRenderer.invoke(IDENTITY_CHANNELS.status)) as Record<string, unknown> | null
+    const signedIn = r?.signedIn === true
+    return {
+      signedIn,
+      persistent: r?.persistent === true,
+      ...(signedIn && (r?.provider === 'console' || r?.provider === 'dev') ? { provider: r.provider } : {}),
+      ...(signedIn && typeof r?.name === 'string' ? { name: r.name } : {}),
+      ...(signedIn && typeof r?.email === 'string' ? { email: r.email } : {}),
+    }
+  },
+  async startSignIn() {
+    const r = (await ipcRenderer.invoke(IDENTITY_CHANNELS.start)) as Record<string, unknown> | null
+    if (!r || typeof r.id !== 'string') return { status: 'unavailable' as const }
+    return {
+      id: r.id,
+      userCode: typeof r.userCode === 'string' ? r.userCode : null,
+      verificationUri: typeof r.verificationUri === 'string' ? r.verificationUri : null,
+      expiresIn: typeof r.expiresIn === 'number' ? r.expiresIn : 0,
+    }
+  },
+  async awaitSignIn(id) {
+    return (await ipcRenderer.invoke(IDENTITY_CHANNELS.await, id)) as Awaited<ReturnType<IdentityApi['awaitSignIn']>>
+  },
+  async cancelSignIn(id) {
+    await ipcRenderer.invoke(IDENTITY_CHANNELS.cancel, id)
+  },
+  async signOut() {
+    await ipcRenderer.invoke(IDENTITY_CHANNELS.signOut)
+  },
+  onIdentityChanged(handler) {
+    const listener = (_e: IpcRendererEvent, identity: unknown) => {
+      const r = (identity ?? {}) as Record<string, unknown>
+      handler({ signedIn: r.signedIn === true, ...(typeof r.name === 'string' ? { name: r.name } : {}) })
+    }
+    ipcRenderer.on(IDENTITY_CHANNELS.changed, listener)
+    return () => ipcRenderer.removeListener(IDENTITY_CHANNELS.changed, listener)
+  },
+}
+
+contextBridge.exposeInMainWorld('aiOfficeIdentity', identityApi)
 
 // open documents dragged from the OS anywhere over Home or the tab strip
 installDropOpenBridge()

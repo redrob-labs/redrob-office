@@ -16,6 +16,7 @@ import type { AccountStatus, OfficePrefs, UiTheme } from '../../shared/home-api'
 import { ProviderLogo } from './provider-logos'
 import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import { RedrobPane } from './settings/RedrobPane'
+import { IdentityPane } from './home/IdentityPane'
 import './settings.css'
 
 // ── Settings modal (opened from the account menu) ─────────
@@ -54,7 +55,7 @@ function formatStars(n: number): string {
   return `${k >= 100 ? Math.round(k) : (Math.round(k * 10) / 10).toString().replace(/\.0$/, '')}k`
 }
 
-type SectionId = 'account' | 'aiModel' | 'general' | 'about'
+type SectionId = 'account' | 'aiModel' | 'identity' | 'general' | 'about'
 
 // The "account" section hosts the ported Genspark sign-in / credits, which
 // authenticate against genspark.ai. It is only listed when the cloud-account
@@ -63,6 +64,7 @@ type SectionId = 'account' | 'aiModel' | 'general' | 'about'
 const ALL_SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = [
   { id: 'account', labelKey: 'setSecAccount' },
   { id: 'aiModel', labelKey: 'setSecRedrob' },
+  { id: 'identity', labelKey: 'setSecSignIn' },
   { id: 'general', labelKey: 'setSecGeneral' },
   { id: 'about', labelKey: 'setSecAbout' },
 ]
@@ -73,6 +75,7 @@ const SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = CLOUD_ACCOUN
 const SECTION_ICON: Record<SectionId, IconName> = {
   account: 'user',
   aiModel: 'sparkle',
+  identity: 'users',
   general: 'sliders',
   about: 'info',
 }
@@ -535,6 +538,7 @@ export function SettingsModal({
               </div>
             </>
           )}
+          {section === 'identity' && <IdentityPane t={t} />}
           {section === 'aiModel' && prefs && (
             <RedrobPane
               t={t}

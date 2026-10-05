@@ -23,6 +23,8 @@ import {
   ipcMain,
   nativeImage,
   nativeTheme,
+  net,
+  safeStorage,
   session,
   shell,
   webContents,
@@ -104,6 +106,9 @@ import { JsonFileFactsRepository } from '@genoffice/facts/json-repository'
 import { registerFactsIpc } from './facts-service'
 import { VersionStore } from '@genoffice/versions/store'
 import { isHistoryPath, registerVersionsIpc } from './versions-service'
+import { IDENTITY_CHANNELS, SessionStore } from '@genoffice/identity'
+import { IdentityService, chooseProvider } from './identity-service'
+import { readFile, rm, writeFile } from 'node:fs/promises'
 import { FACTS_CHANNELS } from '../shared/facts-api'
 import { randomUUID } from 'node:crypto'
 import { userInfo } from 'node:os'
@@ -4481,6 +4486,49 @@ registerAskPromptIpc()
 registerEngineIpc()
 registerTabsIpc()
 registerDroppedFilesIpc()
+
+// Who is signed in: Redrob Console (or, in a development build, the local sync
+// stack's issuer). The token stays here, persisted only through the OS keychain.
+const identityService = new IdentityService({
+  provider: chooseProvider(process.env, app.isPackaged, {
+    fetch: (url, init) => net.fetch(url, init),
+    who: () => {
+      let name = 'This computer'
+      try {
+        name = userInfo().username || name
+      } catch {
+        // keep the generic name
+      }
+      return { sub: `dev-${name.toLowerCase()}`, name }
+    },
+  }),
+  store: new SessionStore(
+    {
+      available: () => safeStorage.isEncryptionAvailable(),
+      encrypt: (plain) => safeStorage.encryptString(plain),
+      decrypt: (data) => safeStorage.decryptString(Buffer.from(data)),
+    },
+    {
+      read: async () => {
+        try {
+          return await readFile(join(app.getPath('userData'), 'identity.bin'))
+        } catch {
+          return null
+        }
+      },
+      write: async (data) => writeFile(join(app.getPath('userData'), 'identity.bin'), data),
+      remove: async () => rm(join(app.getPath('userData'), 'identity.bin'), { force: true }),
+    },
+  ),
+  broadcast: (identity) => {
+    for (const wc of webContents.getAllWebContents()) wc.send(IDENTITY_CHANNELS.changed, identity)
+  },
+  openExternal: (url) => {
+    // only Console's own pages, which the provider has already checked
+    if (/^https:\/\//.test(url)) void shell.openExternal(url)
+  },
+})
+identityService.register(ipcMain)
 
 // Version history: every Docs save is kept on this computer; restores open as a copy.
 const versionStore = new VersionStore({ root: join(app.getPath('userData'), 'versions') })

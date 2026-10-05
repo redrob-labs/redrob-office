@@ -124,10 +124,10 @@ describe('Settings', () => {
     })
   }
 
-  it('lists Redrob AI, General and About, and opens on Redrob AI', async () => {
+  it('lists Redrob AI, Sharing, General and About, and opens on Redrob AI', async () => {
     await open()
     const nav = Array.from(host.querySelectorAll('.set-nav-item')).map((b) => b.textContent)
-    expect(nav).toEqual(['Redrob AI', 'General', 'About'])
+    expect(nav).toEqual(['Redrob AI', 'Sharing', 'General', 'About'])
     expect(host.querySelector('.set-pane-title')!.textContent).toBe('Redrob AI')
   })
 
