@@ -10,7 +10,7 @@ import { AuthError, bearer, normalEmail, type DevIssuer, type Identity, type Ver
 import type { BlobStore } from './blobs.ts'
 import type * as Y from 'yjs'
 import { CommentError, addComment, listComments, updateComment, type LiveDocs, type NewComment } from './comments.ts'
-import type { Repo } from './repo.ts'
+import type { EventKind, Repo } from './repo.ts'
 
 export interface AppDeps {
   repo: Repo
@@ -67,10 +67,37 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     }
   }
 
+  /**
+   * Records what someone did, for everyone with the file now (or `audience`,
+   * when the people it concerns are about to lose it). Activity is a record,
+   * not the change: a failure here is logged and never fails the request.
+   */
+  const emit = async (
+    file: { id: string; name: string },
+    who: { sub: string; name: string },
+    kind: EventKind,
+    detail: Record<string, unknown> = {},
+    audience?: readonly string[],
+  ) => {
+    try {
+      const subs = audience ?? (await deps.repo.members(file.id)).map((m) => m.sub)
+      await deps.repo.addEvent({ fileId: file.id, fileName: file.name, actorSub: who.sub, actorName: who.name, kind, detail, audience: subs })
+    } catch (err) {
+      deps.log?.(`sync: activity was not recorded: ${(err as Error).message}`)
+    }
+  }
+
   /** pending invites to the caller's verified address become membership */
   const claim = async (req: FastifyRequest): Promise<string[]> => {
     const who = req.identity!
-    return who.email ? deps.repo.claimInvites(who.email, { sub: who.sub, name: who.name }) : []
+    if (!who.email) return []
+    const joined = await deps.repo.claimInvites(who.email, { sub: who.sub, name: who.name })
+    for (const id of joined) {
+      const f = await deps.repo.getFile(id)
+      const role = f && (await deps.repo.roleOf(id, who.sub))
+      if (f) await emit(f, who, 'joined', { role })
+    }
+    return joined
   }
 
   /** the file and the caller's role, or a reply already sent */
@@ -111,6 +138,24 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       return { files: await deps.repo.listFiles(req.identity!.sub) }
     })
 
+    // What other people did to files this person had at the time, newest
+    // first. `after` polls for newer events; `before` pages back.
+    api.get('/activity', async (req, reply) => {
+      await claim(req)
+      const q = (req.query ?? {}) as Record<string, unknown>
+      const id = (v: unknown) => (typeof v === 'string' && /^\d{1,15}$/.test(v) ? Number(v) : undefined)
+      if ((q.after !== undefined && id(q.after) === undefined) || (q.before !== undefined && id(q.before) === undefined)) {
+        return reply.code(400).send({ error: 'after and before are event ids.' })
+      }
+      const limit = Math.min(200, Math.max(1, id(q.limit) ?? 50))
+      // one more than asked says whether there is more
+      const me = req.identity!.sub
+      const rows = await deps.repo.activity(me, { after: id(q.after), before: id(q.before), limit: limit + 1 })
+      // `you`: the event is about the caller (shared with, removed, made owner), so it reads "you"
+      const events = rows.slice(0, limit).map((e) => ({ ...e, you: e.detail.sub === me }))
+      return { events, more: rows.length > limit }
+    })
+
     api.post('/files', async (req, reply) => {
       const name = cleanName((req.body as Record<string, unknown> | undefined)?.name)
       if (!name) return reply.code(400).send({ error: 'A file needs a name.' })
@@ -130,7 +175,9 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const got = await fileFor(req, reply, 'delete')
       if (!got) return
       const keys = (await deps.repo.versions(got.file.id)).map((v) => v.blobKey)
+      const had = (await deps.repo.members(got.file.id)).map((m) => m.sub)
       await deps.repo.deleteFile(got.file.id)
+      await emit(got.file, req.identity!, 'unshared', {}, had)
       deps.closeLive?.(got.file.id)
       try {
         await deps.blobs.delete(keys)
@@ -149,6 +196,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const name = cleanName(((req.body ?? {}) as Record<string, unknown>).name)
       if (!name) return reply.code(400).send({ error: 'A file needs a name.' })
       await deps.repo.renameFile(got.file.id, name)
+      if (name !== got.file.name) await emit({ id: got.file.id, name }, req.identity!, 'renamed', { from: got.file.name })
       return { ...got.file, name, role: got.role }
     })
 
@@ -162,7 +210,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       if (!(await deps.repo.transferOwnership(got.file.id, req.identity!.sub, to))) {
         return reply.code(409).send({ error: 'Only someone who can already edit the file can become its owner.' })
       }
-      return { members: await deps.repo.members(got.file.id) }
+      const members = await deps.repo.members(got.file.id)
+      const owner = members.find((m) => m.sub === to)
+      await emit(got.file, req.identity!, 'transferred', { sub: to, name: owner?.name ?? to }, members.map((m) => m.sub))
+      return { members }
     })
 
     // Leave: someone who is not the owner takes themself off the file. Their
@@ -174,6 +225,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
         return reply.code(409).send({ error: 'The owner cannot leave. Make someone else the owner first, or stop sharing.' })
       }
       await deps.repo.removeMember(got.file.id, req.identity!.sub)
+      await emit(got.file, req.identity!, 'left')
       return reply.code(204).send()
     })
 
@@ -193,7 +245,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       if (!canGrant(got.role, role as Role, sub === req.identity!.sub)) {
         return reply.code(403).send({ error: 'That role cannot be given here.' })
       }
-      await deps.repo.setMember({ fileId: got.file.id, sub, name: cleanName(b.name, 120) || sub, role: role as Role })
+      const before = await deps.repo.roleOf(got.file.id, sub)
+      const name = cleanName(b.name, 120) || sub
+      await deps.repo.setMember({ fileId: got.file.id, sub, name, role: role as Role })
+      if (before !== role) await emit(got.file, req.identity!, before ? 'role' : 'shared', { sub, name, role })
       return { members: await deps.repo.members(got.file.id) }
     })
 
@@ -202,7 +257,11 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       if (!got) return
       const sub = cleanName((req.params as { sub?: string }).sub, 120)
       if (sub === req.identity!.sub) return reply.code(403).send({ error: 'The owner stays on the file.' })
+      const members = await deps.repo.members(got.file.id)
+      const gone = members.find((m) => m.sub === sub)
       await deps.repo.removeMember(got.file.id, sub)
+      // the person removed is told too: they are in the audience taken before the change
+      if (gone) await emit(got.file, req.identity!, 'removed', { sub, name: gone.name }, members.map((m) => m.sub))
       return reply.code(204).send()
     })
 
@@ -265,6 +324,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const got = await fileFor(req, reply, 'comment')
       if (!got) return
       const comment = await commentsCall(reply, got.file.id, (doc) => addComment(doc, (req.body ?? {}) as NewComment, req.identity!))
+      if (comment) await emit(got.file, req.identity!, 'comment', { reply: !!comment.parentId })
       return comment && reply.code(201).send({ comment })
     })
 
@@ -290,6 +350,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const blobKey = `files/${got.file.id}/${sha256}`
       await deps.blobs.put(blobKey, body)
       const v = await deps.repo.addVersion({ fileId: got.file.id, sha256, size: body.byteLength, blobKey, createdBy: req.identity!.sub })
+      await emit(got.file, req.identity!, 'version', { version: v.version })
       return reply.code(201).send(v)
     })
 

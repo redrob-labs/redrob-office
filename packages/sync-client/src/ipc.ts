@@ -1,4 +1,4 @@
-import type { CommentInput, CommentPatch, Role } from './client'
+import type { ActivityKind, CommentInput, CommentPatch, Role } from './client'
 
 /** Share over IPC: the shell talks to the sync service; editors and Home ask it. */
 export const SHARE_CHANNELS = {
@@ -15,7 +15,25 @@ export const SHARE_CHANNELS = {
   restoreVersion: 'share:restore-version',
   transfer: 'share:transfer',
   leave: 'share:leave',
+  activity: 'share:activity',
 } as const
+
+/** One thing someone else did to a shared file, for Home's Updates. */
+export interface SharedActivity {
+  id: number
+  fileId: string
+  fileName: string
+  /** who did it */
+  by: string
+  kind: ActivityKind
+  /** what kind-specific facts the service sent: version, role, the other person's name, the old name */
+  detail: { version?: number; role?: Role; name?: string; from?: string; reply?: boolean }
+  /** the event is about this person: shared with them, their role changed, removed, made owner */
+  you: boolean
+  at: string
+  /** the copy on this computer, when there is one */
+  localPath: string | null
+}
 
 /** One version of a shared file, as the version history shows it. */
 export interface SharedVersion {
@@ -82,6 +100,8 @@ export interface ShareApi {
   shareTransfer(path: string, account: string): Promise<ShareResult>
   /** someone who is not the owner leaves the file; their copy stays */
   shareLeave(path: string): Promise<ShareResult>
+  /** what other people did lately to files shared with this person, newest first */
+  shareActivity(): Promise<SharedActivity[] | { error: string }>
 }
 
 export interface ShareIpcLike {
@@ -125,6 +145,11 @@ export function shareBridge(ipc: ShareIpcLike): ShareApi {
       ipc.invoke(SHARE_CHANNELS.restoreVersion, path, version).then((r) => r as { ok: true; path: string } | Failure, failed),
     shareTransfer: (path, account) => ipc.invoke(SHARE_CHANNELS.transfer, path, account).then((r) => r as ShareResult, failed),
     shareLeave: (path) => ipc.invoke(SHARE_CHANNELS.leave, path).then((r) => r as ShareResult, failed),
+    shareActivity: () =>
+      ipc.invoke(SHARE_CHANNELS.activity).then(
+        (r) => r as SharedActivity[] | { error: string },
+        () => ({ error: NOT_HERE }),
+      ),
     openShared: (fileId) =>
       ipc.invoke(SHARE_CHANNELS.open, fileId).then((r) => r as { ok: true; path: string } | Failure, failed),
   }

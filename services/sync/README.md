@@ -59,6 +59,7 @@ disclosed.
 | `GET /files/:id`, `GET /files/:id/content`, `GET /files/:id/versions`, `GET /files/:id/versions/:v/content`, `GET /files/:id/members` | view |
 | `DELETE /files/:id/members/me` (leave; not the owner) | view |
 | `GET /me` | signed in |
+| `GET /activity?after=&before=&limit=` | signed in |
 | `GET /files/:id/comments` | view |
 | `POST /files/:id/comments` (`{ text, anchor }` or `{ text, parentId }`), `PATCH /files/:id/comments/:cid` (`{ done }` or `{ text }`, own words only) | comment |
 | `PUT /files/:id/content` (`application/octet-stream`), `PATCH /files/:id` (`{ name }`) | edit |
@@ -80,6 +81,19 @@ role except owner, and cannot demote or remove themselves.
   comment. The author is the verified person. A new thread carries its range
   as Yjs relative positions (`anchor`). The first view that may edit marks
   the text and drops the anchor.
+- `GET /activity` lists what other people did to files the caller had at
+  the time, newest first: a new version, someone given access or a new
+  role, removed, leaving, joining through an invite, a rename, an ownership
+  transfer, a comment sent through the API, and stopping sharing. Each event
+  keeps the file's name and its audience, meaning everyone with the file at
+  that moment plus anyone the event is about. So a removed member is told,
+  and stopping sharing reaches everyone after the file is gone. `you: true`
+  marks an event about the caller. `after` polls for newer events, `before`
+  pages back, and `limit` is 1 to 200 (default 50). `more` says whether
+  older events remain. A failure to record an event is logged and never
+  fails the change. Comments typed in a live editor go straight into the
+  live document, not through the API, so they are not events; Docs' catch-up
+  shows them.
 - `GET /files/:id/versions/:v/content` returns one earlier version. The
   desktop opens it as a copy beside the local file, so nothing anyone has
   open is overwritten.

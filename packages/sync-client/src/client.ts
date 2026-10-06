@@ -59,6 +59,34 @@ export function inviteEmail(v: unknown): string | null {
   return e.length <= 254 && /^[^\s@<>()",;:\\[\]]+@[^\s@<>()",;:\\[\]]+\.[^\s@<>()",;:\\[\]]+$/.test(e) ? e : null
 }
 
+export type ActivityKind =
+  | 'version'
+  | 'shared'
+  | 'role'
+  | 'removed'
+  | 'left'
+  | 'joined'
+  | 'renamed'
+  | 'transferred'
+  | 'comment'
+  | 'unshared'
+
+export const ACTIVITY_KINDS: readonly ActivityKind[] = ['version', 'shared', 'role', 'removed', 'left', 'joined', 'renamed', 'transferred', 'comment', 'unshared']
+
+/** Something someone else did to a file this person had at the time. */
+export interface RemoteEvent {
+  id: number
+  fileId: string
+  fileName: string
+  actorSub: string
+  actorName: string
+  kind: ActivityKind
+  detail: Record<string, unknown>
+  createdAt: string
+  /** the event is about this person (shared with them, removed, made owner) */
+  you: boolean
+}
+
 export interface RemoteFileDetail extends RemoteFile {
   latest: RemoteVersion | null
 }
@@ -246,6 +274,26 @@ export class SyncClient {
   /** Someone who is not the owner takes themself off the file. */
   async leave(fileId: string): Promise<void> {
     await this.call(`/files/${this.id(fileId)}/members/me`, { method: 'DELETE' })
+  }
+
+  /** What others did to files this person had then, newest first. Unknown kinds are dropped. */
+  async activity(q: { after?: number; before?: number; limit?: number } = {}): Promise<{ events: RemoteEvent[]; more: boolean }> {
+    const p = new URLSearchParams()
+    for (const k of ['after', 'before', 'limit'] as const) {
+      const v = q[k]
+      if (v !== undefined && Number.isInteger(v) && v >= 0) p.set(k, String(v))
+    }
+    const qs = p.toString()
+    const b = (await (await this.call(`/activity${qs ? `?${qs}` : ''}`)).json()) as { events?: unknown; more?: unknown }
+    const events = Array.isArray(b.events)
+      ? (b.events as RemoteEvent[]).filter(
+          (e) => e && typeof e.id === 'number' && typeof e.fileId === 'string' && typeof e.fileName === 'string' && (ACTIVITY_KINDS as readonly string[]).includes(e.kind),
+        )
+      : []
+    return {
+      events: events.map((e) => ({ ...e, detail: e.detail && typeof e.detail === 'object' ? e.detail : {}, you: e.you === true })),
+      more: b.more === true,
+    }
   }
 
   /** Who the service says the token belongs to. */

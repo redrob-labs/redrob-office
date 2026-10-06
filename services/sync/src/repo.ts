@@ -39,7 +39,47 @@ export interface Invite {
   createdAt: string
 }
 
+export type EventKind =
+  | 'version'
+  | 'shared'
+  | 'role'
+  | 'removed'
+  | 'left'
+  | 'joined'
+  | 'renamed'
+  | 'transferred'
+  | 'comment'
+  | 'unshared'
+
+/** Something someone did to a shared file, kept for the people who had it then. */
+export interface ActivityEvent {
+  id: number
+  fileId: string
+  fileName: string
+  actorSub: string
+  actorName: string
+  kind: EventKind
+  detail: Record<string, unknown>
+  createdAt: string
+}
+
+export interface NewEvent extends Omit<ActivityEvent, 'id' | 'createdAt'> {
+  /** who may see it: everyone with the file at that moment, plus anyone it is about */
+  audience: readonly string[]
+}
+
+export interface ActivityQuery {
+  /** only events newer than this id */
+  after?: number | undefined
+  /** only events older than this id (paging back) */
+  before?: number | undefined
+  limit: number
+}
+
 export interface Repo {
+  addEvent(e: NewEvent): Promise<void>
+  /** events this account may see, by others, newest first */
+  activity(sub: string, q: ActivityQuery): Promise<ActivityEvent[]>
   /** keeps or replaces the pending invite for this address */
   setInvite(i: Omit<Invite, 'createdAt'>): Promise<void>
   invites(fileId: string): Promise<Invite[]>
@@ -82,6 +122,19 @@ export class MemoryRepo implements Repo {
   private vers = new Map<string, FileVersion[]>()
   private docs = new Map<string, Uint8Array>()
   private inv = new Map<string, Invite>()
+  private events: Array<ActivityEvent & { audience: Set<string> }> = []
+
+  async addEvent(e: NewEvent) {
+    const { audience, ...rest } = e
+    this.events.push({ ...rest, id: this.events.length + 1, createdAt: new Date().toISOString(), audience: new Set(audience) })
+  }
+  async activity(sub: string, q: ActivityQuery) {
+    return this.events
+      .filter((e) => e.audience.has(sub) && e.actorSub !== sub && (q.after === undefined || e.id > q.after) && (q.before === undefined || e.id < q.before))
+      .reverse()
+      .slice(0, q.limit)
+      .map(({ audience: _a, ...e }) => e)
+  }
 
   async setInvite(i: Omit<Invite, 'createdAt'>) {
     if (!this.files.has(i.fileId)) return

@@ -243,6 +243,7 @@ export interface DesktopApi {
   shareRestoreVersion?: ShareApi['shareRestoreVersion']
   shareTransfer?: ShareApi['shareTransfer']
   shareLeave?: ShareApi['shareLeave']
+  shareActivity?: ShareApi['shareActivity']
   /** Live documents through the shell (absent outside the suite) */
   liveJoin?: LiveApi['liveJoin']
   livePull?: LiveApi['livePull']

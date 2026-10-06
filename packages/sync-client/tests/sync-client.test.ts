@@ -69,6 +69,31 @@ describe('SyncClient', () => {
     ])
   })
 
+  it('reads activity with a cursor and drops events it does not understand', async () => {
+    const urls: string[] = []
+    const fetch = vi.fn(async (url: string) => {
+      urls.push(url.replace('http://s', ''))
+      return new Response(
+        JSON.stringify({
+          events: [
+            { id: 9, fileId: ID, fileName: 'Plan.docx', actorSub: 'jae', actorName: 'Jae', kind: 'version', detail: { version: 3 }, createdAt: 'x', you: true },
+            { id: 8, fileId: ID, fileName: 'Plan.docx', actorSub: 'jae', actorName: 'Jae', kind: 'teleported', detail: {}, createdAt: 'x' },
+            { id: 7, fileId: ID, fileName: 'Plan.docx', actorSub: 'jae', actorName: 'Jae', kind: 'left', detail: null, createdAt: 'x' },
+          ],
+          more: true,
+        }),
+      )
+    })
+    const c = new SyncClient({ baseUrl: 'http://s', token: async () => 't', fetch })
+    const r = await c.activity({ after: 4, limit: 20 })
+    expect(r.events.map((e) => e.id)).toEqual([9, 7])
+    expect(r.events[1]!.detail).toEqual({})
+    expect(r.events.map((e) => e.you)).toEqual([true, false])
+    expect(r.more).toBe(true)
+    await c.activity()
+    expect(urls).toEqual(['/activity?after=4&limit=20', '/activity'])
+  })
+
   it('invites by e-mail, lists and cancels invites', async () => {
     const calls: string[] = []
     const fetch = vi.fn(async (url: string, init?: RequestInit) => {

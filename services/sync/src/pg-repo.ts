@@ -1,6 +1,6 @@
 import pg from 'pg'
 import type { Role } from './access.ts'
-import type { FileRecord, FileVersion, Invite, Member, Repo } from './repo.ts'
+import type { ActivityEvent, ActivityQuery, EventKind, FileRecord, FileVersion, Invite, Member, NewEvent, Repo } from './repo.ts'
 
 /**
  * The schema, one numbered step at a time. A step is applied once, inside a
@@ -49,6 +49,24 @@ export const MIGRATIONS: readonly string[] = [
      PRIMARY KEY (file_id, email)
    );
    CREATE INDEX invites_email ON invites (email)`,
+  // 7: activity. An event keeps the file's name and who could see it at the
+  // time, so it outlives the file (stop sharing) and a removed member still
+  // learns they were removed.
+  `CREATE TABLE events (
+     id bigserial PRIMARY KEY,
+     file_id uuid NOT NULL,
+     file_name text NOT NULL,
+     actor_sub text NOT NULL,
+     actor_name text NOT NULL,
+     kind text NOT NULL,
+     detail jsonb NOT NULL DEFAULT '{}'::jsonb,
+     created_at timestamptz NOT NULL DEFAULT now()
+   );
+   CREATE TABLE event_audience (
+     sub text NOT NULL,
+     event_id bigint NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+     PRIMARY KEY (sub, event_id)
+   )`,
 ]
 
 /** an arbitrary constant: the advisory lock that serialises migrations across service instances */
@@ -280,6 +298,37 @@ export class PgRepo implements Repo {
     } finally {
       client.release()
     }
+  }
+  async addEvent(e: NewEvent) {
+    const audience = [...new Set(e.audience)]
+    // one statement: the event and its audience land together or not at all
+    await this.pool.query(
+      `WITH ev AS (
+         INSERT INTO events (file_id, file_name, actor_sub, actor_name, kind, detail)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
+       )
+       INSERT INTO event_audience (sub, event_id) SELECT s, ev.id FROM ev, unnest($7::text[]) AS s`,
+      [e.fileId, e.fileName, e.actorSub, e.actorName, e.kind, JSON.stringify(e.detail), audience],
+    )
+  }
+  async activity(sub: string, q: ActivityQuery): Promise<ActivityEvent[]> {
+    const { rows } = await this.pool.query(
+      `SELECT e.* FROM event_audience a JOIN events e ON e.id = a.event_id
+       WHERE a.sub = $1 AND e.actor_sub <> $1
+         AND ($2::bigint IS NULL OR e.id > $2) AND ($3::bigint IS NULL OR e.id < $3)
+       ORDER BY e.id DESC LIMIT $4`,
+      [sub, q.after ?? null, q.before ?? null, q.limit],
+    )
+    return rows.map((r) => ({
+      id: Number(r.id),
+      fileId: String(r.file_id),
+      fileName: String(r.file_name),
+      actorSub: String(r.actor_sub),
+      actorName: String(r.actor_name),
+      kind: r.kind as EventKind,
+      detail: (r.detail ?? {}) as Record<string, unknown>,
+      createdAt: iso(r.created_at),
+    }))
   }
   async loadDoc(fileId: string) {
     const { rows } = await this.pool.query('SELECT state FROM doc_states WHERE file_id = $1', [fileId])

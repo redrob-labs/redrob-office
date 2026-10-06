@@ -10,6 +10,8 @@ import {
   type CommentInput,
   type CommentPatch,
   type RemoteComment,
+  type RemoteEvent,
+  type SharedActivity,
   type RemoteFile,
   type RemoteFileDetail,
   type RemoteInvite,
@@ -46,6 +48,7 @@ export interface ShareClient {
   renameFile(fileId: string, name: string): Promise<void>
   transferOwnership(fileId: string, sub: string): Promise<RemoteMember[]>
   leave(fileId: string): Promise<void>
+  activity(q?: { after?: number; before?: number; limit?: number }): Promise<{ events: RemoteEvent[]; more: boolean }>
 }
 
 /** the parts of SharedIndex this service uses */
@@ -226,6 +229,43 @@ export class ShareService {
       return { ok: true }
     } catch (e) {
       return { ok: false, error: messageOf(e) }
+    }
+  }
+
+  /**
+   * What other people did lately to files shared with this person, newest
+   * first, each with its copy on this computer when there is one. Only the
+   * facts each kind needs are passed on, typed.
+   */
+  async activity(): Promise<SharedActivity[] | { error: string }> {
+    const why = await this.unavailable()
+    if (why) return { error: this.reasonMessage(why) }
+    try {
+      const { events } = await this.deps.client!.activity({ limit: 50 })
+      const out: SharedActivity[] = []
+      for (const e of events) {
+        const d = e.detail
+        const detail: SharedActivity['detail'] = {}
+        if (typeof d.version === 'number') detail.version = d.version
+        if (isRole(d.role)) detail.role = d.role
+        if (typeof d.name === 'string') detail.name = d.name
+        if (typeof d.from === 'string') detail.from = d.from
+        if (typeof d.reply === 'boolean') detail.reply = d.reply
+        out.push({
+          id: e.id,
+          fileId: e.fileId,
+          fileName: e.fileName,
+          by: e.actorName,
+          kind: e.kind,
+          detail,
+          you: e.you,
+          at: e.createdAt,
+          localPath: await this.deps.index.pathOf(e.fileId),
+        })
+      }
+      return out
+    } catch (e) {
+      return { error: messageOf(e) }
     }
   }
 
@@ -492,6 +532,7 @@ export class ShareService {
     ipc.handle(SHARE_CHANNELS.restoreVersion, (_e, path, version) => this.restoreVersion(path, version))
     ipc.handle(SHARE_CHANNELS.transfer, (_e, path, account) => this.transfer(path, account))
     ipc.handle(SHARE_CHANNELS.leave, (_e, path) => this.leave(path))
+    ipc.handle(SHARE_CHANNELS.activity, () => this.activity())
     ipc.handle(SHARE_CHANNELS.status, (_e, path) => this.status(path))
     ipc.handle(SHARE_CHANNELS.invite, (_e, path, account, role) => this.invite(path, account, role))
     ipc.handle(SHARE_CHANNELS.remove, (_e, path, account) => this.remove(path, account))

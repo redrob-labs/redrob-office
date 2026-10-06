@@ -42,6 +42,7 @@ function api(status: ShareStatus, over: Partial<ShareApi> = {}): ShareApi {
     shareRestoreVersion: vi.fn(async () => ({ ok: false as const, error: 'no' })),
     shareTransfer: vi.fn(async () => ({ ok: true as const, status })),
     shareLeave: vi.fn(async () => ({ ok: true as const, status: { available: true as const, shared: false as const } })),
+    shareActivity: vi.fn(async () => []),
     ...over,
   }
 }

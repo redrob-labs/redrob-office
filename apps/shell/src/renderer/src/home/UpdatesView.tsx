@@ -11,6 +11,7 @@ import {
 import type { FactsCommand } from '../../../shared/facts-api'
 import { useI18n, type TFunc } from '../locale'
 import type { FactsHook } from './useFacts'
+import { ActivitySection } from './ActivitySection'
 
 /** The file's name and the folder it sits in, from a path either separator spells. */
 export function splitFilePath(path: string): { name: string; dir: string } {
@@ -99,6 +100,7 @@ export function UpdatesView({ facts, openPath }: UpdatesViewProps): ReactElement
         <p className="updates-sub">{t('updatesSub')}</p>
       </header>
       {body}
+      <ActivitySection openPath={openPath} />
     </main>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { SHARE_CHANNELS, SyncError, type RemoteFile, type RemoteFileDetail, type RemoteInvite, type RemoteMember, type Role } from '@genoffice/sync-client'
+import { SHARE_CHANNELS, SyncError, type RemoteEvent, type RemoteFile, type RemoteFileDetail, type RemoteInvite, type RemoteMember, type Role } from '@genoffice/sync-client'
 import type { SharedLink } from '@genoffice/sync-client/node'
 import { SHARE_MESSAGES, ShareService, cleanAccount, isShareablePath, type ShareClient, type ShareIndex } from '../src/main/share-service'
 
@@ -56,6 +56,7 @@ function fakeClient(over: Partial<ShareClient> = {}) {
       return members
     }),
     leave: vi.fn(async () => undefined),
+    activity: vi.fn(async () => ({ events: [] as RemoteEvent[], more: false })),
     ...over,
   }
   return client
@@ -413,6 +414,38 @@ describe('ShareService', () => {
     f.index.map.set(FILE, { fileId: ID, role: 'owner', version: 1 })
     await expect(f.svc.renamed(FILE, to)).resolves.toBeUndefined()
     expect(f.log).toHaveBeenCalled()
+  })
+
+  it('passes on activity with the local copy and only the typed facts each kind needs', async () => {
+    const ev = (id: number, kind: RemoteEvent['kind'], detail: Record<string, unknown>): RemoteEvent => ({
+      id,
+      fileId: ID,
+      fileName: 'Plan.docx',
+      actorSub: 'jae',
+      actorName: 'Jae Gardner',
+      kind,
+      detail,
+      createdAt: '2026-10-06T09:00:00.000Z',
+      you: kind === 'role',
+    })
+    const client = fakeClient({
+      activity: vi.fn(async () => ({
+        events: [ev(3, 'version', { version: 4, extra: 'x' }), ev(2, 'role', { role: 'owner-ish', name: 'Min' }), ev(1, 'renamed', { from: 'Old.docx' })],
+        more: false,
+      })),
+    })
+    const { svc, index } = service({ client })
+    index.map.set(FILE, { fileId: ID, role: 'edit', version: 3 })
+    const r = await svc.activity()
+    expect(client.activity).toHaveBeenCalledWith({ limit: 50 })
+    expect(r).toEqual([
+      { id: 3, fileId: ID, fileName: 'Plan.docx', by: 'Jae Gardner', kind: 'version', detail: { version: 4 }, you: false, at: '2026-10-06T09:00:00.000Z', localPath: FILE },
+      { id: 2, fileId: ID, fileName: 'Plan.docx', by: 'Jae Gardner', kind: 'role', detail: { name: 'Min' }, you: true, at: '2026-10-06T09:00:00.000Z', localPath: FILE },
+      { id: 1, fileId: ID, fileName: 'Plan.docx', by: 'Jae Gardner', kind: 'renamed', detail: { from: 'Old.docx' }, you: false, at: '2026-10-06T09:00:00.000Z', localPath: FILE },
+    ])
+    expect(await service({ signedIn: false }).svc.activity()).toEqual({ error: SHARE_MESSAGES.signedOut })
+    const down = fakeClient({ activity: vi.fn(async () => Promise.reject(new SyncError(0, 'x'))) })
+    expect(await service({ client: down }).svc.activity()).toEqual({ error: SHARE_MESSAGES.unreachable })
   })
 
   it('registers every share channel', () => {

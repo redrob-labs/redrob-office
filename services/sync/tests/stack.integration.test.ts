@@ -85,5 +85,20 @@ describe('the sync stack', () => {
     expect((await fetch(`${BASE}/files/${id}/members/me`, { method: 'DELETE', headers: h(jae) })).status).toBe(409)
     expect((await fetch(`${BASE}/files/${id}/members/me`, { method: 'DELETE', headers: h(min) })).status).toBe(204)
     expect((await fetch(`${BASE}/files/${id}`, { headers: h(min) })).status).toBe(404)
+
+    // Postgres keeps what happened while each person had the file: Min, now
+    // off it, still sees it, newest first (the saves came before she joined)
+    const feed = (await (await fetch(`${BASE}/activity?limit=2`, { headers: h(min) })).json()) as {
+      events: Array<{ kind: string; actorName: string; you: boolean }>
+      more: boolean
+    }
+    expect(feed.events.map((e) => e.kind)).toEqual(['transferred', 'renamed'])
+    expect(feed.more).toBe(true)
+    const older = (await (await fetch(`${BASE}/activity?limit=10&before=999999999`, { headers: h(min) })).json()) as {
+      events: Array<{ kind: string; you: boolean }>
+    }
+    expect(older.events.at(-1)).toEqual(expect.objectContaining({ kind: 'shared', you: true }))
+    const jaeFeed = (await (await fetch(`${BASE}/activity?limit=1`, { headers: h(jae) })).json()) as { events: Array<{ kind: string; actorName: string }> }
+    expect(jaeFeed.events[0]).toMatchObject({ kind: 'left', actorName: 'Min Park' })
   })
 })
