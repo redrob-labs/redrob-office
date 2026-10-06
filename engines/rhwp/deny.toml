@@ -1,0 +1,34 @@
+# Licence gate for the Hangul core's Rust dependencies.
+# The allowlist mirrors ALLOWED in tools/check-licenses.mjs (the npm gate), plus
+# BSL-1.0 and the LLVM exception, which only appear as alternatives in OR
+# expressions here. Keep the two lists in step.
+[graph]
+targets = ["wasm32-unknown-unknown"]
+
+[licenses]
+allow = [
+  "MIT",
+  "MIT-0",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "ISC",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "0BSD",
+  "CC0-1.0",
+  "Zlib",
+  "Unlicense",
+  "Unicode-3.0",
+  "BSL-1.0",
+]
+confidence-threshold = 0.9
+
+[advisories]
+ignore = []
+
+[bans]
+multiple-versions = "allow"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

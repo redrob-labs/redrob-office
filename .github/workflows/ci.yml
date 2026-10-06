@@ -52,6 +52,9 @@ jobs:
       - name: Dependency licences
         run: pnpm check:licenses
 
+      - name: Hangul core provenance
+        run: node scripts/hwp-core-provenance.mjs --check
+
       - name: Design-system tokens
         run: pnpm check:ui-tokens
 
@@ -66,6 +69,43 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  # The Hangul core (engines/rhwp → packages/hwp-core/wasm). The fast check
+  # compares the committed wasm and engine source with provenance.json; the
+  # rebuild proves the committed wasm really comes from the committed source.
+  # Not a required check: the rebuild takes about ten minutes.
+  hwp-core:
+    name: hwp-core reproducible
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Provenance matches the committed files
+        run: node scripts/hwp-core-provenance.mjs --check
+
+      - name: Rust toolchain (engines/rhwp/rust-toolchain.toml)
+        working-directory: engines/rhwp
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - name: wasm-pack and cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack@0.15.0,cargo-deny@0.18.9
+
+      - name: Rust dependency licences and sources
+        working-directory: engines/rhwp
+        run: cargo-deny --locked check licenses sources
+
+      - name: Rebuild the wasm from source
+        run: sh scripts/build-hwp-core.sh
+
+      - name: Rebuilt bytes match provenance.json
+        run: node scripts/hwp-core-provenance.mjs --check
 
   # Screenshot regression suite (tests/visual): launches the built shell under
   # Xvfb and compares every surface against the committed Linux baselines.

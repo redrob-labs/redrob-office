@@ -102,6 +102,27 @@ uses `AgentLoop`, `createDocsSkill`, `createFilesSkill`, and local document tool
 behaviour: a failed engine turn must be visible and must not silently switch providers or pretend tools
 are unavailable. Tool mutations must retain rollback snapshots and edit-queue semantics.
 
+### Hangul core (engines/rhwp, packages/hwp-core)
+
+The Hangul editor is being rebuilt on an engine we build ourselves. The plan is in
+`.kiro/specs/hangul-editor/`.
+
+- `engines/rhwp` is our fork of the rhwp Rust engine (MIT, Edward Kim), taken from upstream tag
+  v0.8.7. `engines/rhwp/REDROB.md` records exactly what was taken and every change since. Add a row
+  there for each change to the engine.
+- `packages/hwp-core` ships that engine built to WASM (`wasm/`) with a typed wrapper
+  (`HwpCoreDocument`). `./node` initialises it from disk for tests and for main-process use.
+- **The core owns fidelity.** Parsing, layout, pagination, painting and saving stay in the engine.
+  Editor code never lays out or paints document content. A change that moves document pixels is an
+  engine change.
+- **Rebuild, never hand-edit `wasm/`.** Run `pnpm --filter @genoffice/hwp-core build:wasm`. It needs
+  Rust 1.93.1 with the `wasm32-unknown-unknown` target and wasm-pack 0.15.0, and takes about ten
+  minutes. It rewrites `provenance.json`. `pnpm check:hwp-core` (run in the build job) fails when
+  `wasm/` or `engines/rhwp` drift from that record. The `hwp-core reproducible` job rebuilds from
+  source and compares bytes, and runs `cargo-deny` against `engines/rhwp/deny.toml`, whose allowlist
+  mirrors `tools/check-licenses.mjs`.
+- `packages/hwp-core` is MIT, not Apache-2.0, so changes to the engine can go upstream.
+
 ### Continuous integration and the fork boundary
 
 - `.github/workflows/ci.yml` runs on every pull request, on pushes to `main` and `master`, weekly at

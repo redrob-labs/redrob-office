@@ -1,0 +1,25 @@
+{
+  "engine": "rhwp",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2025-2026 Edward Kim",
+  "upstream": {
+    "repository": "https://github.com/edwardkim/rhwp",
+    "tag": "v0.8.7",
+    "commit": "1a76570e833917d15817415a53c09ad61ab3203f"
+  },
+  "source": "engines/rhwp",
+  "toolchain": {
+    "rust": "1.93.1",
+    "wasmPack": "0.15.0",
+    "wasmBindgen": "0.2.127",
+    "wasmOpt": "117",
+    "command": "scripts/build-hwp-core.sh"
+  },
+  "sourceSha256": "73a275be2400a255d1751e3440cf22e7e9241f1fdb04b131abef794aa39b5b3e",
+  "artifacts": {
+    "rhwp.js": "70cde06a369fa7fd4fc8bc8f3d6acaee158596ba1a116a2c72159002b0b5654e",
+    "rhwp.d.ts": "4742243ad37a992ba3deec56a3e3e7b57f05073e49806027147acc054b5fce85",
+    "rhwp_bg.wasm": "4341553724c81bdf7edbc7fc358db0e1f8d85067207b7708bb5fb34bbec3e901",
+    "rhwp_bg.wasm.d.ts": "8c9f8bbb336094aa5017fdc03b1059cbe60e8af67086fec1287000a0e322f151"
+  }
+}

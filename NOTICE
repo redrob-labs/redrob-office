@@ -47,6 +47,18 @@ Both are vendored here verbatim and served offline from a local origin (no CDN):
                                   (the build command is not recorded in this
                                   repository; PORT-DESIGN.md, which held it, was
                                   never checked in)
+    * engines/rhwp              — the rhwp Rust engine source (src/, crates/,
+                                  vendor/) from upstream tag v0.8.7, commit
+                                  1a76570e833917d15817415a53c09ad61ab3203f, with
+                                  Redrob's changes on top. engines/rhwp/REDROB.md
+                                  lists what was taken and what was changed.
+    * packages/hwp-core/wasm    — that engine built to WebAssembly by
+                                  scripts/build-hwp-core.sh; checksums and the
+                                  toolchain are pinned in
+                                  packages/hwp-core/provenance.json
+
+  Redrob's changes to engines/rhwp are licensed under the MIT License, the same
+  as rhwp, so they can be offered upstream.
 
 Redrob design system
 
