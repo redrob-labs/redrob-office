@@ -5,9 +5,11 @@ import { basename, extname, isAbsolute } from 'node:path'
 import {
   SHARE_CHANNELS,
   SyncError,
+  inviteEmail,
   isRole,
   type RemoteFile,
   type RemoteFileDetail,
+  type RemoteInvite,
   type RemoteMember,
   type RemoteVersion,
   type Role,
@@ -29,6 +31,9 @@ export interface ShareClient {
   removeMember(fileId: string, sub: string): Promise<void>
   getFile(fileId: string): Promise<RemoteFileDetail>
   deleteFile(fileId: string): Promise<void>
+  invites(fileId: string): Promise<RemoteInvite[]>
+  invite(fileId: string, email: string, role: Exclude<Role, 'owner'>): Promise<RemoteInvite[]>
+  cancelInvite(fileId: string, email: string): Promise<void>
 }
 
 /** the parts of SharedIndex this service uses */
@@ -114,8 +119,7 @@ export class ShareService {
     try {
       // the owner may have changed this person's role since the index was written
       const role = await this.refreshRole(path, link)
-      const members = await this.deps.client!.members(link.fileId)
-      return { available: true, shared: true, role, members }
+      return await this.sharedStatus(link.fileId, role)
     } catch (e) {
       if (e instanceof SyncError && e.status === 404) {
         // the shared file is gone or this person was removed; the local copy stays
@@ -125,6 +129,15 @@ export class ShareService {
       if (e instanceof SyncError && e.status === 401) return { available: false, reason: 'signed-out' }
       return { available: false, reason: 'unreachable' }
     }
+  }
+
+  /** People with access and, for the owner, invites nobody has taken up yet. */
+  private async sharedStatus(fileId: string, role: Role): Promise<ShareStatus> {
+    const client = this.deps.client!
+    const members = await client.members(fileId)
+    if (role !== 'owner') return { available: true, shared: true, role, members }
+    const pending = (await client.invites(fileId)).map((i) => ({ email: i.email, role: i.role }))
+    return { available: true, shared: true, role, members, pending }
   }
 
   /** The role the service holds now, written back to the index when it moved. */
@@ -189,8 +202,12 @@ export class ShareService {
         await this.deps.index.set(path, link)
       }
       if (link.role !== 'owner') return fail(SHARE_MESSAGES.notOwner)
-      const members = await client.setMember(link.fileId, who, role, who)
-      return { ok: true, status: { available: true, shared: true, role: link.role, members } }
+      // an e-mail address waits as an invite until someone signs in with it
+      // verified; anything else is a Redrob account id and joins at once
+      const email = inviteEmail(who)
+      if (email) await client.invite(link.fileId, email, role)
+      else await client.setMember(link.fileId, who, role, who)
+      return { ok: true, status: await this.sharedStatus(link.fileId, link.role) }
     } catch (e) {
       return fail(messageOf(e))
     }
@@ -206,9 +223,12 @@ export class ShareService {
     if (!link) return { ok: true, status: { available: true, shared: false } }
     if (link.role !== 'owner') return fail(SHARE_MESSAGES.notOwner)
     try {
-      await this.deps.client!.removeMember(link.fileId, who)
-      const members = await this.deps.client!.members(link.fileId)
-      return { ok: true, status: { available: true, shared: true, role: link.role, members } }
+      const client = this.deps.client!
+      const email = inviteEmail(who)
+      const pending = email ? (await client.invites(link.fileId)).some((i) => i.email === email) : false
+      if (pending) await client.cancelInvite(link.fileId, email!)
+      else await client.removeMember(link.fileId, who)
+      return { ok: true, status: await this.sharedStatus(link.fileId, link.role) }
     } catch (e) {
       return fail(messageOf(e))
     }

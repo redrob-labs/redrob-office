@@ -1,6 +1,6 @@
 import pg from 'pg'
 import type { Role } from './access.ts'
-import type { FileRecord, FileVersion, Member, Repo } from './repo.ts'
+import type { FileRecord, FileVersion, Invite, Member, Repo } from './repo.ts'
 
 /**
  * The schema, one numbered step at a time. A step is applied once, inside a
@@ -39,6 +39,16 @@ export const MIGRATIONS: readonly string[] = [
      state bytea NOT NULL,
      updated_at timestamptz NOT NULL DEFAULT now()
    )`,
+  // 6: invites by verified e-mail, for people who have not signed in yet
+  `CREATE TABLE invites (
+     file_id uuid NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+     email text NOT NULL CHECK (email = lower(email)),
+     role text NOT NULL CHECK (role IN ('edit','comment','view')),
+     invited_by text NOT NULL,
+     created_at timestamptz NOT NULL DEFAULT now(),
+     PRIMARY KEY (file_id, email)
+   );
+   CREATE INDEX invites_email ON invites (email)`,
 ]
 
 /** an arbitrary constant: the advisory lock that serialises migrations across service instances */
@@ -193,6 +203,49 @@ export class PgRepo implements Repo {
   async versions(fileId: string) {
     const { rows } = await this.pool.query('SELECT * FROM file_versions WHERE file_id = $1 ORDER BY version DESC', [fileId])
     return rows.map(version)
+  }
+  async setInvite(i: Omit<Invite, 'createdAt'>) {
+    await this.pool.query(
+      `INSERT INTO invites (file_id, email, role, invited_by) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (file_id, email) DO UPDATE SET role = $3, invited_by = $4`,
+      [i.fileId, i.email, i.role, i.invitedBy],
+    )
+  }
+  async invites(fileId: string): Promise<Invite[]> {
+    const { rows } = await this.pool.query('SELECT * FROM invites WHERE file_id = $1 ORDER BY email', [fileId])
+    return rows.map((r) => ({
+      fileId: String(r.file_id),
+      email: String(r.email),
+      role: r.role as Role,
+      invitedBy: String(r.invited_by),
+      createdAt: iso(r.created_at),
+    }))
+  }
+  async removeInvite(fileId: string, email: string) {
+    await this.pool.query('DELETE FROM invites WHERE file_id = $1 AND email = $2', [fileId, email])
+  }
+  async claimInvites(email: string, who: { sub: string; name: string }) {
+    const client = await this.pool.connect()
+    try {
+      await client.query('BEGIN')
+      const { rows } = await client.query('DELETE FROM invites WHERE email = $1 RETURNING file_id, role', [email])
+      const joined: string[] = []
+      for (const r of rows) {
+        // an existing membership (an owner above all) is never changed by an invite
+        const ins = await client.query(
+          'INSERT INTO members (file_id, sub, name, role) VALUES ($1, $2, $3, $4) ON CONFLICT (file_id, sub) DO NOTHING',
+          [r.file_id, who.sub, who.name, r.role],
+        )
+        if (ins.rowCount) joined.push(String(r.file_id))
+      }
+      await client.query('COMMIT')
+      return joined
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    } finally {
+      client.release()
+    }
   }
   async loadDoc(fileId: string) {
     const { rows } = await this.pool.query('SELECT state FROM doc_states WHERE file_id = $1', [fileId])

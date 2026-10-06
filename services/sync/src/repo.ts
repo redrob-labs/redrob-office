@@ -30,7 +30,26 @@ export interface FileVersion {
   createdAt: string
 }
 
+/** Access waiting for whoever signs in with this verified address. */
+export interface Invite {
+  fileId: string
+  email: string
+  role: Role
+  invitedBy: string
+  createdAt: string
+}
+
 export interface Repo {
+  /** keeps or replaces the pending invite for this address */
+  setInvite(i: Omit<Invite, 'createdAt'>): Promise<void>
+  invites(fileId: string): Promise<Invite[]>
+  removeInvite(fileId: string, email: string): Promise<void>
+  /**
+   * Turns every invite to this address into membership for this account and
+   * removes them. An existing membership is never lowered or changed.
+   * Returns the file ids the account joined.
+   */
+  claimInvites(email: string, who: { sub: string; name: string }): Promise<string[]>
   createFile(name: string, owner: { sub: string; name: string }): Promise<FileRecord>
   getFile(id: string): Promise<FileRecord | null>
   /** files this account is a member of, newest first */
@@ -52,6 +71,29 @@ export class MemoryRepo implements Repo {
   private mem = new Map<string, Member>()
   private vers = new Map<string, FileVersion[]>()
   private docs = new Map<string, Uint8Array>()
+  private inv = new Map<string, Invite>()
+
+  async setInvite(i: Omit<Invite, 'createdAt'>) {
+    if (!this.files.has(i.fileId)) return
+    this.inv.set(`${i.fileId}|${i.email}`, { ...i, createdAt: new Date().toISOString() })
+  }
+  async invites(fileId: string) {
+    return [...this.inv.values()].filter((i) => i.fileId === fileId).sort((a, b) => a.email.localeCompare(b.email))
+  }
+  async removeInvite(fileId: string, email: string) {
+    this.inv.delete(`${fileId}|${email}`)
+  }
+  async claimInvites(email: string, who: { sub: string; name: string }) {
+    const joined: string[] = []
+    for (const [k, i] of [...this.inv.entries()]) {
+      if (i.email !== email) continue
+      this.inv.delete(k)
+      if (!this.files.has(i.fileId) || this.mem.has(`${i.fileId}|${who.sub}`)) continue
+      this.mem.set(`${i.fileId}|${who.sub}`, { fileId: i.fileId, sub: who.sub, name: who.name, role: i.role })
+      joined.push(i.fileId)
+    }
+    return joined
+  }
 
   async createFile(name: string, owner: { sub: string; name: string }) {
     const f: FileRecord = { id: randomUUID(), name, ownerSub: owner.sub, createdAt: new Date().toISOString() }
@@ -75,6 +117,7 @@ export class MemoryRepo implements Repo {
   async deleteFile(id: string) {
     this.files.delete(id)
     for (const k of [...this.mem.keys()]) if (k.startsWith(`${id}|`)) this.mem.delete(k)
+    for (const k of [...this.inv.keys()]) if (k.startsWith(`${id}|`)) this.inv.delete(k)
     this.vers.delete(id)
     this.docs.delete(id)
   }

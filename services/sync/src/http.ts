@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto'
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
 import { can, canGrant, isRole, type Action, type Role } from './access.ts'
-import { AuthError, bearer, type DevIssuer, type Identity, type Verifier } from './auth.ts'
+import { AuthError, bearer, normalEmail, type DevIssuer, type Identity, type Verifier } from './auth.ts'
 import type { BlobStore } from './blobs.ts'
 import type { Repo } from './repo.ts'
 
@@ -47,7 +47,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const sub = cleanName(b.sub, 120)
       if (!sub) return reply.code(400).send({ error: 'sub is required' })
       const name = cleanName(b.name, 120) || sub
-      return { token: await dev.sign({ sub, name }) }
+      const email = normalEmail(b.email)
+      return { token: await dev.sign(email ? { sub, name, email } : { sub, name }) }
     })
   }
 
@@ -62,6 +63,12 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     }
   }
 
+  /** pending invites to the caller's verified address become membership */
+  const claim = async (req: FastifyRequest): Promise<string[]> => {
+    const who = req.identity!
+    return who.email ? deps.repo.claimInvites(who.email, { sub: who.sub, name: who.name }) : []
+  }
+
   /** the file and the caller's role, or a reply already sent */
   const fileFor = async (req: FastifyRequest, reply: FastifyReply, action: Action) => {
     const id = (req.params as { id?: string }).id ?? ''
@@ -69,7 +76,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       reply.code(404).send({ error: 'No such file.' })
       return null
     }
-    const role = await deps.repo.roleOf(id, req.identity!.sub)
+    let role = await deps.repo.roleOf(id, req.identity!.sub)
+    if (!role && (await claim(req)).includes(id)) role = await deps.repo.roleOf(id, req.identity!.sub)
     if (!role) {
       reply.code(404).send({ error: 'No such file.' })
       return null
@@ -89,9 +97,15 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.register(async (api) => {
     api.addHook('preHandler', authed)
 
-    api.get('/me', async (req) => req.identity)
+    api.get('/me', async (req) => {
+      await claim(req)
+      return req.identity
+    })
 
-    api.get('/files', async (req) => ({ files: await deps.repo.listFiles(req.identity!.sub) }))
+    api.get('/files', async (req) => {
+      await claim(req)
+      return { files: await deps.repo.listFiles(req.identity!.sub) }
+    })
 
     api.post('/files', async (req, reply) => {
       const name = cleanName((req.body as Record<string, unknown> | undefined)?.name)
@@ -149,6 +163,36 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const sub = cleanName((req.params as { sub?: string }).sub, 120)
       if (sub === req.identity!.sub) return reply.code(403).send({ error: 'The owner stays on the file.' })
       await deps.repo.removeMember(got.file.id, sub)
+      return reply.code(204).send()
+    })
+
+    // Invites by e-mail, for people who have not signed in to Redrob yet. The
+    // first time someone signs in with that verified address, the invite
+    // becomes membership. Only the owner sees or changes them.
+    api.get('/files/:id/invites', async (req, reply) => {
+      const got = await fileFor(req, reply, 'share')
+      if (!got) return
+      return { invites: await deps.repo.invites(got.file.id) }
+    })
+
+    api.put('/files/:id/invites/:email', async (req, reply) => {
+      const got = await fileFor(req, reply, 'share')
+      if (!got) return
+      const email = normalEmail((req.params as { email?: string }).email)
+      const role = ((req.body ?? {}) as Record<string, unknown>).role
+      if (!email || !isRole(role)) return reply.code(400).send({ error: 'An invite needs an e-mail address and a role.' })
+      if (!canGrant(got.role, role as Role, email === req.identity!.email)) {
+        return reply.code(403).send({ error: 'That role cannot be given here.' })
+      }
+      await deps.repo.setInvite({ fileId: got.file.id, email, role: role as Role, invitedBy: req.identity!.sub })
+      return { invites: await deps.repo.invites(got.file.id) }
+    })
+
+    api.delete('/files/:id/invites/:email', async (req, reply) => {
+      const got = await fileFor(req, reply, 'share')
+      if (!got) return
+      const email = normalEmail((req.params as { email?: string }).email)
+      if (email) await deps.repo.removeInvite(got.file.id, email)
       return reply.code(204).send()
     })
 

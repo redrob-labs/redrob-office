@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { SHARE_CHANNELS, SyncError, type RemoteFile, type RemoteFileDetail, type RemoteMember, type Role } from '@genoffice/sync-client'
+import { SHARE_CHANNELS, SyncError, type RemoteFile, type RemoteFileDetail, type RemoteInvite, type RemoteMember, type Role } from '@genoffice/sync-client'
 import type { SharedLink } from '@genoffice/sync-client/node'
 import { SHARE_MESSAGES, ShareService, cleanAccount, isShareablePath, type ShareClient, type ShareIndex } from '../src/main/share-service'
 
@@ -19,6 +19,7 @@ function fakeIndex(): ShareIndex & { map: Map<string, SharedLink> } {
 
 function fakeClient(over: Partial<ShareClient> = {}) {
   let members: RemoteMember[] = [{ sub: 'me', name: 'Me', role: 'owner' }]
+  let pending: RemoteInvite[] = []
   const client = {
     listFiles: vi.fn(async (): Promise<RemoteFile[]> => []),
     createFile: vi.fn(async (name: string): Promise<RemoteFile> => ({ id: ID, name, ownerSub: 'me', createdAt: 'now', role: 'owner' })),
@@ -34,6 +35,14 @@ function fakeClient(over: Partial<ShareClient> = {}) {
     }),
     getFile: vi.fn(async (id: string): Promise<RemoteFileDetail> => ({ id, name: 'Plan.docx', ownerSub: 'me', createdAt: 'now', role: 'owner', latest: null })),
     deleteFile: vi.fn(async () => undefined),
+    invites: vi.fn(async (): Promise<RemoteInvite[]> => pending),
+    invite: vi.fn(async (_id: string, email: string, role: Role) => {
+      pending = [...pending.filter((i) => i.email !== email), { email, role, invitedBy: 'me', createdAt: 'now' }]
+      return pending
+    }),
+    cancelInvite: vi.fn(async (_id: string, email: string) => {
+      pending = pending.filter((i) => i.email !== email)
+    }),
     ...over,
   }
   return client
@@ -259,6 +268,31 @@ describe('ShareService', () => {
     expect((await index.get(FILE))?.role).toBe('view')
     await svc.saved(FILE, new Uint8Array([1]))
     expect(client.upload).toHaveBeenCalledTimes(1)
+  })
+
+  it('an e-mail address is invited and waits; an account id joins at once', async () => {
+    const client = fakeClient()
+    const { svc } = service({ client })
+    const r = await svc.invite(FILE, ' Mina@Example.com ', 'view')
+    expect(client.invite).toHaveBeenCalledWith(ID, 'mina@example.com', 'view')
+    expect(client.setMember).not.toHaveBeenCalled()
+    expect(r.ok && r.status.available && r.status.shared && r.status.pending).toEqual([{ email: 'mina@example.com', role: 'view' }])
+    await svc.invite(FILE, 'kim', 'edit')
+    expect(client.setMember).toHaveBeenCalledWith(ID, 'kim', 'edit', 'kim')
+    // removing the address cancels the invite rather than a member
+    const after = await svc.remove(FILE, 'mina@example.com')
+    expect(client.cancelInvite).toHaveBeenCalledWith(ID, 'mina@example.com')
+    expect(client.removeMember).not.toHaveBeenCalled()
+    expect(after.ok && after.status.available && after.status.shared && after.status.pending).toEqual([])
+  })
+
+  it('only the owner is shown pending invites', async () => {
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'edit', version: 1 })
+    const client = fakeClient({ getFile: vi.fn(async (id: string) => ({ id, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'now', role: 'edit' as const, latest: null })) })
+    const st = await service({ client, index }).svc.status(FILE)
+    expect(st.available && st.shared && st.pending).toBeUndefined()
+    expect(client.invites).not.toHaveBeenCalled()
   })
 
   it('registers every share channel', () => {

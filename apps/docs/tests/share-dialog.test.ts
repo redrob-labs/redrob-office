@@ -123,6 +123,22 @@ describe('ShareDialog', () => {
     expect(button(SHARE_STRINGS.stop)).toBeUndefined()
   })
 
+  it('the owner sees invites nobody has taken up and can cancel one', async () => {
+    const a = api({
+      available: true,
+      shared: true,
+      role: 'owner',
+      members: [{ sub: 'me', name: 'Me', role: 'owner' }],
+      pending: [{ email: 'mina@example.com', role: 'view' }],
+    })
+    await render({ api: a })
+    expect(document.body.textContent).toContain(SHARE_STRINGS.pending)
+    const cancel = document.querySelector<HTMLButtonElement>('.doc-share__pending button')!
+    expect(cancel.getAttribute('aria-label')).toBe('Cancel the invite to mina@example.com')
+    await act(async () => cancel.click())
+    expect(a.shareRemove).toHaveBeenCalledWith(PATH, 'mina@example.com')
+  })
+
   it('someone who is not the owner sees the people but cannot invite or remove', async () => {
     await render({
       api: api({ available: true, shared: true, role: 'edit', members: [{ sub: 'kim', name: 'Kim', role: 'owner' }, { sub: 'me', name: 'Me', role: 'edit' }] }),

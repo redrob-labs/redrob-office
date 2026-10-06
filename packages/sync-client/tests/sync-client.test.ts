@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { SyncClient, SyncError, shareBridge } from '../src'
+import { SyncClient, SyncError, inviteEmail, shareBridge } from '../src'
 import { SharedIndex } from '../src/shared-index'
 
 const ID = '5f0c3f4e-1c2d-4e5f-8a9b-0c1d2e3f4a5b'
@@ -42,6 +42,26 @@ describe('SyncClient', () => {
     expect((await c.versions(ID)).map((v) => v.version)).toEqual([2, 1])
     expect(await c.me()).toEqual({ sub: 'jae', name: 'Jae' })
     expect(calls).toEqual([`GET /files/${ID}`, `DELETE /files/${ID}`, `GET /files/${ID}/versions`, 'GET /me'])
+  })
+
+  it('invites by e-mail, lists and cancels invites', async () => {
+    const calls: string[] = []
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${url.replace('http://s', '')} ${init?.body ?? ''}`.trim())
+      if (init?.method === 'DELETE') return new Response(null, { status: 204 })
+      return new Response(JSON.stringify({ invites: [{ email: 'mina@example.com', role: 'view', invitedBy: 'me', createdAt: 'x' }, { email: 1 }] }))
+    })
+    const c = new SyncClient({ baseUrl: 'http://s', token: async () => 't', fetch })
+    expect(await c.invite(ID, 'mina@example.com', 'view')).toHaveLength(2)
+    expect(await c.invites(ID)).toHaveLength(1)
+    await c.cancelInvite(ID, 'mina@example.com')
+    expect(calls).toEqual([
+      `PUT /files/${ID}/invites/mina%40example.com {"role":"view"}`,
+      `GET /files/${ID}/invites`,
+      `DELETE /files/${ID}/invites/mina%40example.com`,
+    ])
+    expect(inviteEmail(' Mina@Example.COM ')).toBe('mina@example.com')
+    expect(inviteEmail('mina')).toBeNull()
   })
 
   it('refuses a malformed file id without a request, and says when the service is down', async () => {

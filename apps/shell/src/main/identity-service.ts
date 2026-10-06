@@ -35,7 +35,7 @@ export interface IdentityEnv {
  * computer and asks for its development issuer. A packaged app never uses
  * the development issuer.
  */
-export function chooseProvider(env: IdentityEnv, packaged: boolean, deps: { fetch: Fetch; who: () => { sub: string; name: string } }): IdentityProvider {
+export function chooseProvider(env: IdentityEnv, packaged: boolean, deps: { fetch: Fetch; who: () => { sub: string; name: string; email?: string } }): IdentityProvider {
   const syncUrl = env.REDROB_SYNC_URL || DEFAULT_SYNC_URL
   if (!packaged && env.REDROB_IDENTITY === 'dev' && isLoopbackUrl(syncUrl)) {
     return devIssuerProvider({ syncUrl, who: deps.who, fetch: deps.fetch })

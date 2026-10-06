@@ -31,6 +31,20 @@ export interface RemoteVersion {
   createdAt: string
 }
 
+export interface RemoteInvite {
+  email: string
+  role: Role
+  invitedBy: string
+  createdAt: string
+}
+
+/** An address as invites are kept (trimmed, lower case), or null when it is not one. */
+export function inviteEmail(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const e = v.trim().toLowerCase()
+  return e.length <= 254 && /^[^\s@<>()",;:\\[\]]+@[^\s@<>()",;:\\[\]]+\.[^\s@<>()",;:\\[\]]+$/.test(e) ? e : null
+}
+
 export interface RemoteFileDetail extends RemoteFile {
   latest: RemoteVersion | null
 }
@@ -128,6 +142,26 @@ export class SyncClient {
 
   async removeMember(fileId: string, sub: string): Promise<void> {
     await this.call(`/files/${this.id(fileId)}/members/${encodeURIComponent(sub)}`, { method: 'DELETE' })
+  }
+
+  /** Pending invites by e-mail (owner only). */
+  async invites(fileId: string): Promise<RemoteInvite[]> {
+    const b = (await (await this.call(`/files/${this.id(fileId)}/invites`)).json()) as { invites?: unknown }
+    return Array.isArray(b.invites) ? (b.invites as RemoteInvite[]).filter((i) => typeof i.email === 'string' && isRole(i.role)) : []
+  }
+
+  /** Invites an address that may not have a Redrob account yet; it joins when that verified address signs in. */
+  async invite(fileId: string, email: string, role: Exclude<Role, 'owner'>): Promise<RemoteInvite[]> {
+    const r = await this.call(`/files/${this.id(fileId)}/invites/${encodeURIComponent(email)}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ role }),
+    })
+    return ((await r.json()) as { invites: RemoteInvite[] }).invites
+  }
+
+  async cancelInvite(fileId: string, email: string): Promise<void> {
+    await this.call(`/files/${this.id(fileId)}/invites/${encodeURIComponent(email)}`, { method: 'DELETE' })
   }
 
   /** The file, this person's current role on it, and its latest version. */

@@ -4123,7 +4123,9 @@ const identityService = new IdentityService({
       } catch {
         // keep the generic name
       }
-      return { sub: `dev-${name.toLowerCase()}`, name }
+      // REDROB_DEV_EMAIL gives the development account an address, to try invites by e-mail
+      const email = process.env.REDROB_DEV_EMAIL?.trim()
+      return { sub: `dev-${name.toLowerCase()}`, name, ...(email ? { email } : {}) }
     },
   }),
   store: new SessionStore(

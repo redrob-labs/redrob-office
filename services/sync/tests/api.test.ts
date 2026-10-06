@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { atLeast, can, canGrant, liveReadOnly } from '../src/access.ts'
-import { bearer, devIssuer } from '../src/auth.ts'
+import { bearer, devIssuer, identityFrom, normalEmail } from '../src/auth.ts'
 import { MemoryBlobs } from '../src/blobs.ts'
 import { authenticate } from '../src/collab.ts'
 import { loadConfig } from '../src/config.ts'
@@ -47,6 +47,15 @@ describe('config and tokens', () => {
     expect(() => loadConfig({ ...ENV })).toThrow(/SYNC_JWKS_URL/)
     expect(loadConfig({ ...ENV, SYNC_DEV_ISSUER: '1' }).auth.kind).toBe('dev')
     expect(loadConfig({ ...ENV, SYNC_DEV_ISSUER: '1' }).host).toBe('127.0.0.1')
+  })
+
+  it('takes an e-mail address from a token only when the issuer verified it', () => {
+    expect(identityFrom({ sub: 'a', name: 'A', email: 'A@Example.com', email_verified: true })).toEqual({ sub: 'a', name: 'A', email: 'a@example.com' })
+    expect(identityFrom({ sub: 'a', name: 'A', email: 'a@example.com' })).toEqual({ sub: 'a', name: 'A' })
+    expect(identityFrom({ sub: 'a', email: 'a@example.com', email_verified: 'true' })).toEqual({ sub: 'a', name: 'a' })
+    expect(identityFrom({ sub: 'a', email: 'nope', email_verified: true })).toEqual({ sub: 'a', name: 'a' })
+    expect(normalEmail(' Kim@Redrob.io ')).toBe('kim@redrob.io')
+    expect(normalEmail('kim')).toBeNull()
   })
 
   it('reads a bearer token and rejects anything else', async () => {
@@ -164,6 +173,44 @@ describe('HTTP API', () => {
     await app.inject({ method: 'PUT', url: `/files/${id}/members/jae`, headers: auth(felix), payload: { role: 'edit' } })
     expect((await app.inject({ url: `/files/${id}`, headers: auth(jae) })).json().role).toBe('edit')
     expect((await app.inject({ url: '/me', headers: auth(jae) })).json()).toEqual({ sub: 'jae', name: 'Jae Gardner' })
+  })
+
+  it('an invite by e-mail becomes membership when that verified address signs in', async () => {
+    const { dev, app, felix, auth } = await setup()
+    const id = (await app.inject({ method: 'POST', url: '/files', headers: auth(felix), payload: { name: 'Plan.docx' } })).json().id as string
+    const put = await app.inject({ method: 'PUT', url: `/files/${id}/invites/Mina@Example.com`, headers: auth(felix), payload: { role: 'comment' } })
+    expect(put.statusCode).toBe(200)
+    expect(put.json().invites).toMatchObject([{ email: 'mina@example.com', role: 'comment', invitedBy: 'felix' }])
+    // no owner role by invite, no bad address
+    expect((await app.inject({ method: 'PUT', url: `/files/${id}/invites/a@b.co`, headers: auth(felix), payload: { role: 'owner' } })).statusCode).toBe(403)
+    expect((await app.inject({ method: 'PUT', url: `/files/${id}/invites/not-an-address`, headers: auth(felix), payload: { role: 'view' } })).statusCode).toBe(400)
+
+    // an account without a verified address claims nothing
+    const other = await dev.sign({ sub: 'mallory', name: 'Mallory' })
+    expect((await app.inject({ url: '/files', headers: auth(other) })).json().files).toEqual([])
+
+    const mina = await dev.sign({ sub: 'mina', name: 'Mina', email: 'mina@example.com' })
+    // a direct link works before any list: the invite is claimed on first touch
+    expect((await app.inject({ url: `/files/${id}`, headers: auth(mina) })).json()).toMatchObject({ id, role: 'comment' })
+    expect((await app.inject({ url: `/files/${id}/invites`, headers: auth(felix) })).json().invites).toEqual([])
+    expect((await app.inject({ url: '/files', headers: auth(mina) })).json().files.map((f: { role: string }) => f.role)).toEqual(['comment'])
+  })
+
+  it('an invite never changes an existing membership and the owner can cancel one', async () => {
+    const { dev, repo, app, felix, auth } = await setup()
+    const id = (await app.inject({ method: 'POST', url: '/files', headers: auth(felix), payload: { name: 'Plan.docx' } })).json().id as string
+    await app.inject({ method: 'PUT', url: `/files/${id}/members/jae`, headers: auth(felix), payload: { role: 'edit' } })
+    await app.inject({ method: 'PUT', url: `/files/${id}/invites/jae@example.com`, headers: auth(felix), payload: { role: 'view' } })
+    const jae = await dev.sign({ sub: 'jae', name: 'Jae', email: 'jae@example.com' })
+    await app.inject({ url: '/files', headers: auth(jae) })
+    expect(await repo.roleOf(id, 'jae')).toBe('edit')
+
+    await app.inject({ method: 'PUT', url: `/files/${id}/invites/kim@example.com`, headers: auth(felix), payload: { role: 'view' } })
+    expect((await app.inject({ method: 'DELETE', url: `/files/${id}/invites/kim@example.com`, headers: auth(felix) })).statusCode).toBe(204)
+    const kim = await dev.sign({ sub: 'kim', name: 'Kim', email: 'kim@example.com' })
+    expect((await app.inject({ url: `/files/${id}`, headers: auth(kim) })).statusCode).toBe(404)
+    // only the owner sees invites
+    expect((await app.inject({ url: `/files/${id}/invites`, headers: auth(jae) })).statusCode).toBe(403)
   })
 
   it('treats a malformed id as no such file', async () => {

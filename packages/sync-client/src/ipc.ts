@@ -14,7 +14,14 @@ export const SHARE_CHANNELS = {
 export type ShareStatus =
   | { available: false; reason: 'no-service' | 'signed-out' | 'unreachable' }
   | { available: true; shared: false }
-  | { available: true; shared: true; role: Role; members: Array<{ sub: string; name: string; role: Role }> }
+  | {
+      available: true
+      shared: true
+      role: Role
+      members: Array<{ sub: string; name: string; role: Role }>
+      /** invites by e-mail nobody has taken up yet; the owner sees them */
+      pending?: Array<{ email: string; role: Role }>
+    }
 
 export type ShareResult = { ok: true; status: ShareStatus } | { ok: false; error: string }
 

@@ -44,7 +44,7 @@ export function isLoopbackUrl(url: string): boolean {
   }
 }
 
-export function devIssuerProvider(opts: { syncUrl: string; who: () => { sub: string; name: string }; fetch: Fetch }): IdentityProvider {
+export function devIssuerProvider(opts: { syncUrl: string; who: () => { sub: string; name: string; email?: string }; fetch: Fetch }): IdentityProvider {
   if (!isLoopbackUrl(opts.syncUrl)) throw new Error('The development issuer is only used for a sync service on this computer.')
   const base = opts.syncUrl.replace(/\/+$/, '')
   const mint = async (): Promise<SignInOutcome> => {

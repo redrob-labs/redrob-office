@@ -9,7 +9,10 @@ export const SHARE_STRINGS = {
   title: 'Share {name}',
   close: 'Close',
   account: 'Redrob account',
-  accountHint: 'The account id or e-mail they sign in to Redrob with.',
+  accountHint: 'Their Redrob account id or e-mail address. Someone new to Redrob gets access when they first sign in with that address.',
+  pending: 'Invited, not signed in yet',
+  pendingCancel: 'Cancel the invite to {name}',
+  pendingCancelShort: 'Cancel',
   role: 'They may',
   roleEdit: 'Edit',
   roleComment: 'Comment',
@@ -174,6 +177,22 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
             </section>
           ) : (
             <p className="doc-share__note">{SHARE_STRINGS.notShared}</p>
+          )}
+          {status.available && status.shared && status.role === 'owner' && status.pending && status.pending.length > 0 && (
+            <section aria-label={SHARE_STRINGS.pending}>
+              <h3 className="doc-share__h">{SHARE_STRINGS.pending}</h3>
+              <ul className="doc-share__people doc-share__pending">
+                {status.pending.map((p) => (
+                  <li key={p.email}>
+                    <span className="doc-share__name">{p.email}</span>
+                    <span className="doc-share__role">{ROLE_LABEL[p.role]}</span>
+                    <Button size="sm" variant="ghost" aria-label={fill(SHARE_STRINGS.pendingCancel, { name: p.email })} onClick={() => void remove(p.email)}>
+                      {SHARE_STRINGS.pendingCancelShort}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
           {status.available && status.shared && status.role === 'owner' && typeof api?.shareStop === 'function' && (
             <div className="doc-share__stop">

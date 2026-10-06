@@ -19,11 +19,23 @@ export interface Verifier {
 
 export class AuthError extends Error {}
 
-function identityFrom(payload: Record<string, unknown>): Identity {
+export function identityFrom(payload: Record<string, unknown>): Identity {
   const sub = payload.sub
   if (typeof sub !== 'string' || !sub) throw new AuthError('The token names no account.')
   const name = typeof payload.name === 'string' && payload.name ? payload.name : sub
-  return typeof payload.email === 'string' ? { sub, name, email: payload.email } : { sub, name }
+  // an address only counts once the issuer says it was verified: a pending
+  // invite to it hands over access, so an unverified claim must not
+  const email = payload.email_verified === true ? normalEmail(payload.email) : null
+  return email ? { sub, name, email } : { sub, name }
+}
+
+const EMAIL = /^[^\s@<>()",;:\\[\]]+@[^\s@<>()",;:\\[\]]+\.[^\s@<>()",;:\\[\]]+$/
+
+/** The address in the form invites are kept under (trimmed, lower case), or null when it is not one. */
+export function normalEmail(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const e = v.trim().toLowerCase()
+  return e.length <= 254 && EMAIL.test(e) ? e : null
 }
 
 export function jwksVerifier(opts: { jwksUrl: string; issuer: string; audience: string }): Verifier {
@@ -55,7 +67,8 @@ export async function devIssuer(opts: { issuer: string; audience: string }): Pro
   return {
     jwks,
     async sign(identity) {
-      return new SignJWT({ name: identity.name, ...(identity.email ? { email: identity.email } : {}) })
+      // development accounts' addresses count as verified
+      return new SignJWT({ name: identity.name, ...(identity.email ? { email: identity.email, email_verified: true } : {}) })
         .setProtectedHeader({ alg: 'ES256', kid: 'dev-1' })
         .setSubject(identity.sub)
         .setIssuer(opts.issuer)
