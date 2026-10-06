@@ -1116,6 +1116,43 @@ importers:
         specifier: ^4.1.0
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
+  tests/hangul-fidelity:
+    dependencies:
+      '@embedpdf/pdfium':
+        specifier: ^2.15.0
+        version: 2.15.0
+      '@genoffice/hwp-core':
+        specifier: workspace:*
+        version: link:../../packages/hwp-core
+      pixelmatch:
+        specifier: ^7.2.0
+        version: 7.2.0
+      pngjs:
+        specifier: ^7.0.0
+        version: 7.0.0
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.13.3
+      '@types/pngjs':
+        specifier: ^6.0.5
+        version: 6.0.5
+      electron:
+        specifier: ^43.3.0
+        version: 43.6.0
+      pdf-lib:
+        specifier: ^1.17.1
+        version: 1.17.1
+      tsx:
+        specifier: ^4.21.0
+        version: 4.23.13
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@24.13.3)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
   tests/visual:
     devDependencies:
       '@playwright/test':
@@ -4244,6 +4281,10 @@ packages:
   picomatch@4.0.5:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
+
+  pixelmatch@7.2.0:
+    resolution: {integrity: sha512-xhcb4yHu9sM/G7foGzoLtXYcC0zHEaOXXjRKhGup0fw78Nf2Tkiapv4EQyMzrbcmQPsllAI7DbFY2UT7PlI9Pg==}
+    hasBin: true
 
   pkijs@3.4.0:
     resolution: {integrity: sha512-emEcLuomt2j03vxD54giVB4SxTjnsqkU692xZOZXHDVoYyypEm+b3jpiTcc+Cf+myooc+/Ly0z01jqeNHVgJGw==}
@@ -8585,6 +8626,10 @@ snapshots:
   picomatch@2.3.2: {}
 
   picomatch@4.0.5: {}
+
+  pixelmatch@7.2.0:
+    dependencies:
+      pngjs: 7.0.0
 
   pkijs@3.4.0:
     dependencies:
