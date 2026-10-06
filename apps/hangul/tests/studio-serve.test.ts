@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   __resolveRequestForTest as resolveRequest,
+  addPrintJob,
   hangulStudioOrigin,
   serveHangulStudio,
   stopHangulStudio,
@@ -23,6 +24,21 @@ describe('serveHangulStudio', () => {
   afterEach(async () => {
     await stopHangulStudio()
     await Promise.all(dirs.splice(0).map((d) => rm(d, { recursive: true, force: true })))
+  })
+
+  it('serves a held print document once per job, with a CSP that lets nothing run, and forgets it', async () => {
+    const dir = await makeStudioDir()
+    dirs.push(dir)
+    const origin = await serveHangulStudio(dir)
+    const job = addPrintJob('<!doctype html><title>print</title><svg/>')
+    expect(job.path).toMatch(/^\/print-job\/[a-z0-9]+\.html$/)
+    const r = await fetch(`${origin}${job.path}`)
+    expect(r.status).toBe(200)
+    expect(await r.text()).toContain('<title>print</title>')
+    expect(r.headers.get('content-security-policy')).toContain("script-src 'none'")
+    job.done()
+    expect((await fetch(`${origin}${job.path}`)).status).toBe(404)
+    expect((await fetch(`${origin}/print-job/nope.html`)).status).toBe(404)
   })
 
   it('serves the studio index and assets from a loopback origin (never a CDN)', async () => {

@@ -14,11 +14,14 @@ import {
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
 import { emitDocumentSaved } from '@genoffice/electron-utils/document-saved'
-import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
+import { HOST_PREFIX, addPrintJob, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
 import type {
   HangulDocumentBytes,
+  HangulExportPdfResult,
   HangulFormat,
+  HangulPrintRequest,
+  HangulPrintResult,
   SaveHangulRequest,
   SaveHangulResult,
   SaveMode,
@@ -36,6 +39,8 @@ const tDlg = createI18n({
     btnCancel: '取消',
   },
   en: {
+    dlgPdfTitle: 'Export as PDF',
+    filterPdf: 'PDF Documents',
     dlgSaveTitle: 'Save Hangul Document',
     filterHangul: 'Hangul Documents',
     untitledFile: 'Untitled',
@@ -56,6 +61,8 @@ const tDlg = createI18n({
     btnCancel: 'キャンセル',
   },
   ko: {
+    dlgPdfTitle: 'PDF로 내보내기',
+    filterPdf: 'PDF 문서',
     dlgSaveTitle: '한글 문서 저장',
     filterHangul: '한글 문서',
     untitledFile: '제목 없음',
@@ -217,6 +224,8 @@ const tDlg = createI18n({
   },
 })
 type DlgKey =
+  | 'dlgPdfTitle'
+  | 'filterPdf'
   | 'dlgSaveTitle'
   | 'filterHangul'
   | 'untitledFile'
@@ -401,6 +410,44 @@ async function resolveSaveTarget(
   return picked.filePath
 }
 
+/** the print document can carry every page of a long file; anything larger is refused, not loaded */
+const MAX_PRINT_HTML = 256 * 1024 * 1024
+
+/**
+ * Loads a print document in a hidden window on the studio origin (so the
+ * page SVGs' fonts and images resolve as in the editor), waits for its fonts,
+ * runs `job`, and always closes the window. The document is served once and
+ * forgotten (studio-serve addPrintJob); its CSP lets nothing in it run.
+ */
+async function withPrintWindow<T>(request: HangulPrintRequest, job: (wc: WebContents) => Promise<T>): Promise<T> {
+  if (typeof request?.html !== 'string' || !request.html || request.html.length > MAX_PRINT_HTML) {
+    throw new Error('hangul: bad print request')
+  }
+  const origin = await ensureStudioOrigin()
+  if (!origin) throw new Error('hangul: the studio is not available, so the document cannot be printed')
+  const held = addPrintJob(request.html)
+  const win = new BrowserWindow({
+    show: false,
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false },
+  })
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  try {
+    await win.loadURL(`${origin}${held.path}`)
+    // webfonts referenced by the SVGs load after the document; print only once they have
+    await win.webContents.executeJavaScript('document.fonts.ready.then(() => true)', true).catch(() => true)
+    return await job(win.webContents)
+  } finally {
+    held.done()
+    if (!win.isDestroyed()) win.destroy()
+  }
+}
+
+/** The PDF's file name: the document's, with .pdf. */
+export function pdfNameFor(fileName: string): string {
+  const base = basename(fileName || '').replace(/\.(hwp|hwpx|hml)$/i, '') || tm('untitledFile')
+  return `${base}.pdf`
+}
+
 let ipcRegistered = false
 
 function registerHangulIpc(): void {
@@ -458,6 +505,42 @@ function registerHangulIpc(): void {
       }
     },
   )
+
+  ipcMain.handle(HANGUL_CHANNELS.print, async (_e, request: HangulPrintRequest): Promise<HangulPrintResult> => {
+    try {
+      return await withPrintWindow(request, (wc) =>
+        new Promise<HangulPrintResult>((resolve) => {
+          wc.print({ silent: false, printBackground: true }, (success, reason) => {
+            if (success) resolve({ ok: true })
+            else if (/cancel/i.test(reason)) resolve({ ok: true, canceled: true })
+            else resolve({ ok: false, error: reason || 'hangul: printing failed' })
+          })
+        }),
+      )
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.exportPdf, async (e, request: HangulPrintRequest): Promise<HangulExportPdfResult> => {
+    try {
+      const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
+      const current = savePathByWc.get(e.sender.id)
+      const name = pdfNameFor(typeof request?.fileName === 'string' ? request.fileName : '')
+      const picked = await showSaveDialogWithMemory(dialog, win, {
+        title: tm('dlgPdfTitle'),
+        defaultPath: join(current ? dirname(current) : configuredDefaultSaveDir(app), name),
+        filters: [{ name: tm('filterPdf'), extensions: ['pdf'] }],
+      })
+      if (picked.canceled || !picked.filePath) return { ok: true, canceled: true }
+      const target = picked.filePath
+      const pdf = await withPrintWindow(request, (wc) => wc.printToPDF({ printBackground: true, preferCSSPageSize: true }))
+      await atomicWriteFile(target, pdf)
+      return { ok: true, path: target }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
 
   ipcMain.on(HANGUL_CHANNELS.dirtyChanged, (e, dirty: unknown) => {
     if (dirty === true) dirtyByWc.add(e.sender.id)

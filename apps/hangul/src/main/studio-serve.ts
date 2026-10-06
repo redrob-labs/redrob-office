@@ -44,6 +44,30 @@ const CONTENT_TYPES: Record<string, string> = {
   '.txt': 'text/plain; charset=utf-8',
 }
 
+/** Path prefix of a print document held for one print or PDF job (see addPrintJob). */
+export const PRINT_PREFIX = '/print-job/'
+
+/** print documents waiting to be loaded, by id; each is served once its job has it */
+const printJobs = new Map<string, string>()
+
+/**
+ * Holds a print document so a hidden window can load it from the studio
+ * origin (fonts and images in the page SVGs then resolve as in the editor).
+ * Returns the path to load; call the returned function when the job is done.
+ */
+export function addPrintJob(html: string): { path: string; done: () => void } {
+  const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
+  printJobs.set(id, html)
+  return { path: `${PRINT_PREFIX}${id}.html`, done: () => void printJobs.delete(id) }
+}
+
+/** The held print document a request names, or null. */
+function printJobFor(url: string): string | null {
+  const path = new URL(url, 'http://127.0.0.1').pathname
+  if (!path.startsWith(PRINT_PREFIX) || !path.endsWith('.html')) return null
+  return printJobs.get(path.slice(PRINT_PREFIX.length, -'.html'.length)) ?? null
+}
+
 let server: Server | null = null
 let originUrl: string | null = null
 let rootDir: string | null = null
@@ -108,6 +132,24 @@ export async function serveHangulStudio(studioDir: string, hostDir?: string): Pr
   }
   const next = createServer((request, response) => {
     void (async () => {
+      if (request.url?.startsWith(PRINT_PREFIX)) {
+        const html = printJobFor(request.url)
+        if (html === null) {
+          response.writeHead(404, { 'content-type': 'text/plain' })
+          response.end('Not found')
+          return
+        }
+        const body = Buffer.from(html, 'utf8')
+        response.writeHead(200, {
+          'content-type': 'text/html; charset=utf-8',
+          'content-length': String(body.byteLength),
+          'cache-control': 'no-store',
+          // the page is SVG and CSS only: nothing in it may run
+          'content-security-policy': "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; script-src 'none'",
+        })
+        response.end(body)
+        return
+      }
       if (hostRoot && request.url?.startsWith(HOST_PREFIX)) {
         const file = resolveHostRequest(hostRoot, request.url)
         const info = file ? await stat(file).catch(() => null) : null

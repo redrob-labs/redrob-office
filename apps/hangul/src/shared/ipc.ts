@@ -32,6 +32,10 @@ export const HANGUL_CHANNELS = {
   closeSaveResult: 'hangul:close-save-result',
   /** the file was renamed on disk (Home list rename) — renderer syncs its display path */
   fileRenamed: 'hangul:file-renamed',
+  /** print the document (the system print dialog) from the page SVGs rhwp rendered */
+  print: 'hangul:print',
+  /** write the document as a PDF the person picks a place for */
+  exportPdf: 'hangul:export-pdf',
   getLanguage: 'app:get-language',
   languageChanged: 'app:language-changed',
   getTheme: 'app:get-theme',
@@ -58,6 +62,16 @@ export type SaveHangulResult =
   | { ok: true; canceled: true }
   | { ok: false; error: string }
 
+/** The print document the renderer built from rhwp's page SVGs (see renderer/print-doc.ts). */
+export interface HangulPrintRequest {
+  html: string
+  /** the document's name, for the PDF's default file name */
+  fileName: string
+}
+
+export type HangulPrintResult = { ok: true } | { ok: true; canceled: true } | { ok: false; error: string }
+export type HangulExportPdfResult = { ok: true; path: string } | { ok: true; canceled: true } | { ok: false; error: string }
+
 /** rhwp needs the raw bytes and the file name to pick the format on load. */
 export interface HangulDocumentBytes {
   /** document bytes, base64 */
@@ -83,6 +97,10 @@ export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
    * first. The resolved path is granted to the view and returned.
    */
   save(request: SaveHangulRequest): Promise<SaveHangulResult>
+  /** Print through the system dialog. */
+  print(request: HangulPrintRequest): Promise<HangulPrintResult>
+  /** Save as PDF where the person chooses; resolves with the written path. */
+  exportPdf(request: HangulPrintRequest): Promise<HangulExportPdfResult>
   /** Mirror unsaved-changes state to the main process; drives the close prompt. */
   setDirty(dirty: boolean): void
   /** Shell menu Save / Save As → renderer serializes via rhwp and calls save(). */

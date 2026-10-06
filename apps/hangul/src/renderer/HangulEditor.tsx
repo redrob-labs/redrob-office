@@ -37,6 +37,7 @@ import {
 } from '@genoffice/ui'
 import { useI18n } from './i18n/locale'
 import { saveHangulDocument } from './hangul-save'
+import { printDocumentOf } from './print-doc'
 import { resolveStudioOrigin, type StudioOriginResult } from './studio-origin'
 import { syncStudioTheme } from './studio-theme'
 import type { HangulFormat, SaveMode } from '../shared/ipc'
@@ -156,6 +157,42 @@ export function HangulEditor(): React.JSX.Element {
     }
   }, [])
 
+  /** print or PDF in progress, or the last one's outcome */
+  const [output, setOutput] = useState<{ busy: boolean; message: string | null; tone: 'success' | 'danger' }>({
+    busy: false,
+    message: null,
+    tone: 'success',
+  })
+
+  /**
+   * Print and Export as PDF: every page as rhwp renders it, one sheet per
+   * page at the page's own size. The main process prints or writes the PDF
+   * from a hidden window on the studio origin (see withPrintWindow).
+   */
+  const runOutput = useCallback(
+    async (kind: 'print' | 'pdf') => {
+      const editor = editorRef.current
+      if (!editor || output.busy) return
+      setOutput({ busy: true, message: t('preparingPrint'), tone: 'success' })
+      try {
+        const name = fileNameRef.current || t('untitled')
+        const html = await printDocumentOf(editor, name)
+        if (kind === 'print') {
+          const r = await window.hangulApi.print({ html, fileName: name })
+          setOutput(r.ok ? { busy: false, message: null, tone: 'success' } : { busy: false, message: t('printFailed', { error: r.error }), tone: 'danger' })
+        } else {
+          const r = await window.hangulApi.exportPdf({ html, fileName: name })
+          if (!r.ok) setOutput({ busy: false, message: t('exportPdfFailed', { error: r.error }), tone: 'danger' })
+          else setOutput({ busy: false, message: 'canceled' in r ? null : t('exportedPdf'), tone: 'success' })
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err.message : String(err)
+        setOutput({ busy: false, message: t(kind === 'print' ? 'printFailed' : 'exportPdfFailed', { error }), tone: 'danger' })
+      }
+    },
+    [output.busy, t],
+  )
+
   // Mirror rhwp's document-changed events to the host as the dirty flag so the
   // shell's close guard prompts before discarding edits.
   useEffect(() => {
@@ -261,6 +298,14 @@ export function HangulEditor(): React.JSX.Element {
           {t('saveAs')}
         </Button>
       ) : null}
+      <Button size="sm" variant="ghost" disabled={!ready || output.busy} onClick={() => void runOutput('print')}>
+        {t('print')}
+      </Button>
+      {classic ? (
+        <Button size="sm" variant="ghost" disabled={!ready || output.busy} onClick={() => void runOutput('pdf')}>
+          {t('exportPdf')}
+        </Button>
+      ) : null}
       <span className="hangul-powered">{t('poweredBy')}</span>
     </div>
   )
@@ -284,6 +329,11 @@ export function HangulEditor(): React.JSX.Element {
                 {t('saveFailed', { error: saveError })}
               </Badge>
             ) : null}
+            {output.message ? (
+              <Badge tone={output.tone} size="sm" dot>
+                {output.message}
+              </Badge>
+            ) : null}
           </span>}
           </VersionsButton>
         }
@@ -291,6 +341,8 @@ export function HangulEditor(): React.JSX.Element {
           tools: [
             { id: 'save', label: t('save'), run: () => void doSave('save'), disabled: !ready },
             { id: 'save-as', label: t('saveAs'), run: () => void doSave('saveAs'), disabled: !ready },
+            { id: 'print', label: t('print'), run: () => void runOutput('print'), disabled: !ready || output.busy },
+            { id: 'export-pdf', label: t('exportPdf'), keywords: ['pdf'], run: () => void runOutput('pdf'), disabled: !ready || output.busy },
             { id: 'ask', label: t('askRedrob'), keywords: ['redrob', 'ai'], run: () => setPanelOpen(true) },
           ],
           strings: frameText.search,

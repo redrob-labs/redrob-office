@@ -17,6 +17,8 @@ const api: HangulApi = {
   consumePending: () => ipcRenderer.invoke(HANGUL_CHANNELS.consumePending),
   readBytes: (path) => ipcRenderer.invoke(HANGUL_CHANNELS.readBytes, path),
   save: (request) => ipcRenderer.invoke(HANGUL_CHANNELS.save, request),
+  print: (request) => ipcRenderer.invoke(HANGUL_CHANNELS.print, request),
+  exportPdf: (request) => ipcRenderer.invoke(HANGUL_CHANNELS.exportPdf, request),
   setDirty: (dirty) => ipcRenderer.send(HANGUL_CHANNELS.dirtyChanged, dirty),
   onSaveRequest: (handler) => {
     const listener = (_e: Electron.IpcRendererEvent, mode: SaveMode) => handler(mode)
