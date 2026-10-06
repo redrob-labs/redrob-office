@@ -34,7 +34,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 0.4 No-op save round trip for `.hwp` and `.hwpx` through 한글 2024 in the harness. [R1.4, R3.1]
 - [ ] 0.5 Live-collaboration spike: y-hwp mirror versus server-ordered op log. Two-client fuzz test;
   check convergence and that 한글 2024 opens the result. [R9.4]
-- [ ] 0.6 Generate the 한글 2024 formatting coverage list for every supported object [R5.3] and the
+- [x] 0.6 Generate (baseline in `coverage/`, from rhwp-studio plus the 검토 tab; reconcile per row on the runner) the 한글 2024 formatting coverage list for every supported object [R5.3] and the
   shortcut map [R4.2].
 - [x] 0.7 Research (findings in `docs/decisions/2026-10-hangul-format-research.md`; 한글 2024-saved
   golden files for R2 and R3 wait for P-1):
