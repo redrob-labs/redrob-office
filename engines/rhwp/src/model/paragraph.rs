@@ -15,6 +15,10 @@ pub struct CharShapeRun {
 /// 문단 (HWPTAG_PARA_HEADER + 하위 레코드)
 #[derive(Debug, Default, Clone, serde::Serialize)]
 pub struct Paragraph {
+    /// [Redrob E1] Engine-session node id (`document_core::node_ids`). Assigned on first
+    /// query, kept through edits, never written to a file and never serialized.
+    #[serde(skip)]
+    pub node_id: u64,
     /// 문자 수 (제어 문자 포함)
     pub char_count: u32,
     /// 컨트롤 마스크
@@ -1759,6 +1763,8 @@ impl Paragraph {
         }
 
         Paragraph {
+            // [Redrob E1] the new tail paragraph gets a fresh session id on the next query.
+            node_id: 0,
             text: new_text,
             char_offsets: new_char_offsets,
             char_shapes: new_char_shapes,

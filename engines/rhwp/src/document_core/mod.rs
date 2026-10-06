@@ -7,6 +7,7 @@ pub(crate) mod helpers;
 pub(crate) use helpers::*;
 
 pub mod builders;
+pub mod node_ids;
 mod canvas_metric_requests;
 mod canvas_metrics;
 mod font_environment;
@@ -237,6 +238,9 @@ pub struct DocumentCore {
     pub(crate) para_column_map: Vec<Vec<u16>>,
     /// [#2424] 마지막 deferred cell edit revision. 새 edit가 기존 pagination job을 대체한다.
     pub(crate) deferred_pagination_revision: u64,
+    /// [Redrob E1] Next session node id. Monotonic for the life of the document, so an id is
+    /// never reused after its paragraph is deleted.
+    pub(crate) next_node_id: u64,
     /// [#2424] 아직 full pagination에 반영되지 않은 target descriptor.
     pub(crate) deferred_pagination_descriptor: Option<DeferredPaginationDescriptor>,
     /// [#2424] 공개 pagination과 분리된 shadow continuation job.
@@ -537,6 +541,7 @@ impl DocumentCore {
             dirty_paragraphs: Vec::new(),
             para_column_map: Vec::new(),
             deferred_pagination_revision: 0,
+            next_node_id: 1,
             deferred_pagination_descriptor: None,
             pending_pagination_job: None,
             page_tree_cache: RefCell::new(Vec::new()),

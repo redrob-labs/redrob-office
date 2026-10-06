@@ -20,6 +20,10 @@ import type {
   EditResult,
   HitTestResult,
   HwpFormat,
+  NodeId,
+  NodeLocation,
+  NodeRead,
+  Outline,
   PageInfo,
   ParaProperties,
   SearchResult,
@@ -177,6 +181,30 @@ export class HwpCoreDocument {
 
   search(query: string, from: { section: number; para: number; offset: number }, opts: { forward?: boolean; caseSensitive?: boolean } = {}): SearchResult {
     return decode(this.raw.searchText(query, from.section, from.para, from.offset, opts.forward ?? true, opts.caseSensitive ?? false))
+  }
+
+  // ── Nodes (E1, E3) ────────────────────────────────────────────────────
+  /** The document as a tree of nodes with session ids. */
+  outline(): Outline {
+    return decode(this.raw.getOutline())
+  }
+
+  /** Where a node is now, or null once it has been deleted. */
+  locate(id: NodeId): NodeLocation | null {
+    return decode(this.raw.locateNode(id))
+  }
+
+  /** Session id of body paragraph (section, para), or null when out of range. */
+  nodeIdAt(section: number, para: number): NodeId | null {
+    return this.raw.nodeIdAt(section, para) || null
+  }
+
+  nodeIdInCell(section: number, para: number, control: number, cell: number, cellPara: number): NodeId | null {
+    return this.raw.nodeIdInCell(section, para, control, cell, cellPara) || null
+  }
+
+  readNodes(ids: NodeId[]): NodeRead[] {
+    return decode(this.raw.readNodes(JSON.stringify(ids)))
   }
 
   // ── Edit ──────────────────────────────────────────────────────────────

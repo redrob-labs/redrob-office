@@ -1258,6 +1258,45 @@ impl HwpDocument {
         self.core.get_document_info()
     }
 
+    // ── [Redrob E1, E3] session node ids and structured reads ─────────────
+
+    /// The document as a tree of nodes with session ids (`document_core::node_ids`).
+    #[wasm_bindgen(js_name = getOutline)]
+    pub fn get_outline(&mut self) -> String {
+        self.core.outline_json()
+    }
+
+    /// Where node `id` is now as JSON `{section, para, path}`, or `null` when it is gone.
+    /// Ids are JS numbers; they stay below 2^53.
+    #[wasm_bindgen(js_name = locateNode)]
+    pub fn locate_node(&mut self, id: f64) -> String {
+        match self.core.locate_node(id as u64) {
+            Some(loc) => loc.to_json().to_string(),
+            None => "null".to_string(),
+        }
+    }
+
+    /// Session id of the body paragraph at (section, para); 0 when out of range.
+    #[wasm_bindgen(js_name = nodeIdAt)]
+    pub fn node_id_at(&mut self, section_idx: u32, para_idx: u32) -> f64 {
+        self.core.node_id_at(section_idx as usize, para_idx as usize).unwrap_or(0) as f64
+    }
+
+    /// Session id of a paragraph in a table cell; 0 when out of range.
+    #[wasm_bindgen(js_name = nodeIdInCell)]
+    pub fn node_id_in_cell(&mut self, section_idx: u32, para_idx: u32, control_idx: u32, cell_idx: u32, cell_para_idx: u32) -> f64 {
+        self.core
+            .node_id_in_cell(section_idx as usize, para_idx as usize, control_idx as usize, cell_idx as usize, cell_para_idx as usize)
+            .unwrap_or(0) as f64
+    }
+
+    /// Text, location and shape references of the given nodes (JSON array of ids).
+    #[wasm_bindgen(js_name = readNodes)]
+    pub fn read_nodes(&mut self, ids_json: &str) -> Result<String, JsValue> {
+        let ids: Vec<f64> = serde_json::from_str(ids_json).map_err(|e| JsValue::from_str(&format!("readNodes: {e}")))?;
+        Ok(self.core.read_nodes_json(&ids.into_iter().map(|i| i as u64).collect::<Vec<_>>()))
+    }
+
     /// 특정 페이지의 텍스트 레이아웃 정보를 JSON 문자열로 반환한다.
     ///
     /// 각 TextRun의 위치, 텍스트, 글자별 X 좌표 경계값을 포함한다.

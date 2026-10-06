@@ -37,6 +37,7 @@ in `packages/hwp-core/tests` and in the fork changes' own Rust tests.
 | --- | --- |
 | `Cargo.toml`: workspace members reduced to `.` and `crates/*`; test and example targets removed | Those targets point at directories not taken |
 | `Cargo.lock`: 324 lines of packages used only by the removed members pruned. No version changed. | Keeps `--locked` builds working |
+| **E1/E3** `src/document_core/node_ids.rs` (new); `Paragraph.node_id` (`#[serde(skip)]`, reset on split); `DocumentCore.next_node_id`; `ir_field_sweep.rs` ignores the field; WASM `getOutline`, `locateNode`, `nodeIdAt`, `nodeIdInCell`, `readNodes` | Session node ids, never written to a file, and a structured outline for AI and anchors. Upstream's 3,874 lib tests pass with the change. |
 
 The WASM built from this trimmed tree is byte-identical to the one built from upstream's full tree
 at the same commit (`rhwp_bg.wasm` SHA-256 `4341553724c8…`), so trimming changed nothing in the engine.

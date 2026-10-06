@@ -48,7 +48,7 @@ Requirement references are in brackets, e.g. [R2.1].
 
 ## Phase 1: Core extensions and editing core
 
-- [ ] 1.1 E1 stable Node ids (Rust, with round-trip tests in both formats). Propose upstream. [R6.1]
+- [x] 1.1 E1 stable Node ids (Rust, with round-trip tests in both formats). Propose upstream. [R6.1]
 - [ ] 1.2 E2 change stream (`Op`, `changeSeq`). Propose upstream. [R4.5]
 - [ ] 1.3 E3 `getOutline` and `readNodes`. E8 font provider hook with a substitution report.
   [R2.4, R2.5, R6.1]

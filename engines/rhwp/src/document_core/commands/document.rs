@@ -305,6 +305,7 @@ impl DocumentCore {
             dirty_paragraphs: Vec::new(),
             para_column_map: Vec::new(),
             deferred_pagination_revision: 0,
+            next_node_id: 1,
             deferred_pagination_descriptor: None,
             pending_pagination_job: None,
             page_tree_cache: RefCell::new(Vec::new()),

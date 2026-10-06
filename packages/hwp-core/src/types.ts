@@ -123,3 +123,48 @@ export interface ParaProperties {
   paraShapeId: number
   [key: string]: unknown
 }
+
+// ── Nodes (engine extension E1/E3, document_core/node_ids.rs) ───────────
+
+/** Session identity of a paragraph. Never written to the file; stable while the document is open. */
+export type NodeId = number
+
+export interface NodeStep {
+  controlIndex: number
+  kind: 'cell' | 'header' | 'footer' | 'footnote' | 'endnote' | 'textbox' | 'caption' | 'memo'
+  cellIndex?: number
+  para: number
+}
+
+export interface NodeLocation {
+  section: number
+  /** Top-level body paragraph (the host, for nested nodes). */
+  para: number
+  path: NodeStep[]
+}
+
+export interface OutlineControl {
+  controlIndex: number
+  kind: string
+  rows?: number
+  cols?: number
+  cells?: Array<{ cellIndex: number; row: number; col: number; rowSpan: number; colSpan: number; paragraphs: OutlineParagraph[] }>
+  paragraphs?: OutlineParagraph[]
+}
+
+export interface OutlineParagraph {
+  id: NodeId
+  length: number
+  preview: string
+  styleId: number
+  paraShapeId: number
+  controls?: OutlineControl[]
+}
+
+export interface Outline {
+  sections: Array<{ section: number; paragraphs: OutlineParagraph[] }>
+}
+
+export type NodeRead =
+  | { id: NodeId; missing: true }
+  | { id: NodeId; missing?: false; location: NodeLocation; text: string; styleId: number; paraShapeId: number; charShapes: Array<{ start: number; charShapeId: number }> }

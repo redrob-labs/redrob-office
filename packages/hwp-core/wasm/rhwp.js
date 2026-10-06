@@ -4790,6 +4790,22 @@ export class HwpDocument {
         }
     }
     /**
+     * The document as a tree of nodes with session ids (`document_core::node_ids`).
+     * @returns {string}
+     */
+    getOutline() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_getOutline(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
      * 문단 모양의 개요 번호만 탐색 정보로 반환한다.
      *
      * 일반 문단의 `1.` 같은 텍스트는 분석하지 않는다.
@@ -7593,6 +7609,24 @@ export class HwpDocument {
         }
     }
     /**
+     * Where node `id` is now as JSON `{section, para, path}`, or `null` when it is gone.
+     * Ids are JS numbers; they stay below 2^53.
+     * @param {number} id
+     * @returns {string}
+     */
+    locateNode(id) {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_locateNode(this.__wbg_ptr, id);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
      * 논리적 오프셋 → 텍스트 오프셋 변환.
      * @param {number} section_idx
      * @param {number} para_idx
@@ -8130,6 +8164,29 @@ export class HwpDocument {
         return this;
     }
     /**
+     * Session id of the body paragraph at (section, para); 0 when out of range.
+     * @param {number} section_idx
+     * @param {number} para_idx
+     * @returns {number}
+     */
+    nodeIdAt(section_idx, para_idx) {
+        const ret = wasm.hwpdocument_nodeIdAt(this.__wbg_ptr, section_idx, para_idx);
+        return ret;
+    }
+    /**
+     * Session id of a paragraph in a table cell; 0 when out of range.
+     * @param {number} section_idx
+     * @param {number} para_idx
+     * @param {number} control_idx
+     * @param {number} cell_idx
+     * @param {number} cell_para_idx
+     * @returns {number}
+     */
+    nodeIdInCell(section_idx, para_idx, control_idx, cell_idx, cell_para_idx) {
+        const ret = wasm.hwpdocument_nodeIdInCell(this.__wbg_ptr, section_idx, para_idx, control_idx, cell_idx, cell_para_idx);
+        return ret;
+    }
+    /**
      * 비밀번호로 보호된 HWP/HWPX 파일을 비밀번호와 함께 로드한다.
      *
      * HWP5 EncryptVersion 4, 압축 HWP3와 ODF AES-256-CBC HWPX를 지원한다.
@@ -8513,6 +8570,31 @@ export class HwpDocument {
             return getStringFromWasm0(ptr1, len1);
         } finally {
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+        }
+    }
+    /**
+     * Text, location and shape references of the given nodes (JSON array of ids).
+     * @param {string} ids_json
+     * @returns {string}
+     */
+    readNodes(ids_json) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const ptr0 = passStringToWasm0(ids_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.hwpdocument_readNodes(this.__wbg_ptr, ptr0, len0);
+            var ptr2 = ret[0];
+            var len2 = ret[1];
+            if (ret[3]) {
+                ptr2 = 0; len2 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
     }
     /**

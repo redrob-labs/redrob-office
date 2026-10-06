@@ -1047,6 +1047,10 @@ export class HwpDocument {
      */
     getObjects(): string;
     /**
+     * The document as a tree of nodes with session ids (`document_core::node_ids`).
+     */
+    getOutline(): string;
+    /**
      * 문단 모양의 개요 번호만 탐색 정보로 반환한다.
      *
      * 일반 문단의 `1.` 같은 텍스트는 분석하지 않는다.
@@ -1680,6 +1684,11 @@ export class HwpDocument {
      */
     listCharts(): string;
     /**
+     * Where node `id` is now as JSON `{section, para, path}`, or `null` when it is gone.
+     * Ids are JS numbers; they stay below 2^53.
+     */
+    locateNode(id: number): string;
+    /**
      * 논리적 오프셋 → 텍스트 오프셋 변환.
      */
     logicalToTextOffset(section_idx: number, para_idx: number, logical_offset: number): number;
@@ -1792,6 +1801,14 @@ export class HwpDocument {
      */
     constructor(data: Uint8Array);
     /**
+     * Session id of the body paragraph at (section, para); 0 when out of range.
+     */
+    nodeIdAt(section_idx: number, para_idx: number): number;
+    /**
+     * Session id of a paragraph in a table cell; 0 when out of range.
+     */
+    nodeIdInCell(section_idx: number, para_idx: number, control_idx: number, cell_idx: number, cell_para_idx: number): number;
+    /**
      * 비밀번호로 보호된 HWP/HWPX 파일을 비밀번호와 함께 로드한다.
      *
      * HWP5 EncryptVersion 4, 압축 HWP3와 ODF AES-256-CBC HWPX를 지원한다.
@@ -1877,6 +1894,10 @@ export class HwpDocument {
      * 한/글 5.x/97 OLE 수식을 편집 가능한 native equation으로 변환한다.
      */
     promoteOleEquation(section_idx: number, para_idx: number, control_idx: number): string;
+    /**
+     * Text, location and shape references of the given nodes (JSON array of ids).
+     */
+    readNodes(ids_json: string): string;
     /**
      * 사용자 명시 요청에 의한 lineseg 전체 reflow (#177).
      *
@@ -2754,6 +2775,7 @@ export interface InitOutput {
     readonly hwpdocument_getNumberingList: (a: number) => [number, number];
     readonly hwpdocument_getObjectCycle: (a: number) => [number, number, number, number];
     readonly hwpdocument_getObjects: (a: number) => [number, number];
+    readonly hwpdocument_getOutline: (a: number) => [number, number];
     readonly hwpdocument_getOutlineNavigation: (a: number) => [number, number, number, number];
     readonly hwpdocument_getPageBorderFill: (a: number, b: number) => [number, number, number, number];
     readonly hwpdocument_getPageCaretStarts: (a: number) => [number, number, number, number];
@@ -2866,6 +2888,7 @@ export interface InitOutput {
     readonly hwpdocument_insertTextLogical: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_isEmptyDocument: (a: number) => number;
     readonly hwpdocument_listCharts: (a: number) => [number, number, number, number];
+    readonly hwpdocument_locateNode: (a: number, b: number) => [number, number];
     readonly hwpdocument_logicalToTextOffset: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly hwpdocument_measureWidthDiagnostic: (a: number, b: number, c: number) => [number, number, number, number];
     readonly hwpdocument_mergeParagraph: (a: number, b: number, c: number) => [number, number, number, number];
@@ -2886,6 +2909,8 @@ export interface InitOutput {
     readonly hwpdocument_navigateHeaderFooterByPage: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_navigateNextEditable: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
     readonly hwpdocument_new: (a: number, b: number) => [number, number, number];
+    readonly hwpdocument_nodeIdAt: (a: number, b: number, c: number) => number;
+    readonly hwpdocument_nodeIdInCell: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
     readonly hwpdocument_openWithPassword: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly hwpdocument_pageCount: (a: number) => number;
     readonly hwpdocument_pageHasFootnoteFootholds: (a: number, b: number) => number;
@@ -2901,6 +2926,7 @@ export interface InitOutput {
     readonly hwpdocument_pasteTableCellsTransposed: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_pasteTableCellsTransposedAsTable: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_promoteOleEquation: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly hwpdocument_readNodes: (a: number, b: number, c: number) => [number, number, number, number];
     readonly hwpdocument_reflowLinesegs: (a: number) => number;
     readonly hwpdocument_registerCanvasMetricReplies: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly hwpdocument_registerExactFontSource: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];

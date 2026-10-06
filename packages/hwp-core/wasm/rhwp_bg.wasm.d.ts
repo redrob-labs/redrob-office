@@ -208,6 +208,7 @@ export const hwpdocument_getNoteEquationProperties: (a: number, b: number, c: nu
 export const hwpdocument_getNumberingList: (a: number) => [number, number];
 export const hwpdocument_getObjectCycle: (a: number) => [number, number, number, number];
 export const hwpdocument_getObjects: (a: number) => [number, number];
+export const hwpdocument_getOutline: (a: number) => [number, number];
 export const hwpdocument_getOutlineNavigation: (a: number) => [number, number, number, number];
 export const hwpdocument_getPageBorderFill: (a: number, b: number) => [number, number, number, number];
 export const hwpdocument_getPageCaretStarts: (a: number) => [number, number, number, number];
@@ -320,6 +321,7 @@ export const hwpdocument_insertTextInHeaderFooter: (a: number, b: number, c: num
 export const hwpdocument_insertTextLogical: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_isEmptyDocument: (a: number) => number;
 export const hwpdocument_listCharts: (a: number) => [number, number, number, number];
+export const hwpdocument_locateNode: (a: number, b: number) => [number, number];
 export const hwpdocument_logicalToTextOffset: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const hwpdocument_measureWidthDiagnostic: (a: number, b: number, c: number) => [number, number, number, number];
 export const hwpdocument_mergeParagraph: (a: number, b: number, c: number) => [number, number, number, number];
@@ -340,6 +342,8 @@ export const hwpdocument_moveVerticalEx: (a: number, b: number, c: number) => [n
 export const hwpdocument_navigateHeaderFooterByPage: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_navigateNextEditable: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
 export const hwpdocument_new: (a: number, b: number) => [number, number, number];
+export const hwpdocument_nodeIdAt: (a: number, b: number, c: number) => number;
+export const hwpdocument_nodeIdInCell: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
 export const hwpdocument_openWithPassword: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const hwpdocument_pageCount: (a: number) => number;
 export const hwpdocument_pageHasFootnoteFootholds: (a: number, b: number) => number;
@@ -355,6 +359,7 @@ export const hwpdocument_pasteInternalInCellByPath: (a: number, b: number, c: nu
 export const hwpdocument_pasteTableCellsTransposed: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_pasteTableCellsTransposedAsTable: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_promoteOleEquation: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const hwpdocument_readNodes: (a: number, b: number, c: number) => [number, number, number, number];
 export const hwpdocument_reflowLinesegs: (a: number) => number;
 export const hwpdocument_registerCanvasMetricReplies: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
 export const hwpdocument_registerExactFontSource: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];

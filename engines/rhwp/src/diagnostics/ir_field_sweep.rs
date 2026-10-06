@@ -664,6 +664,8 @@ fn sweep_paragraph(base: &str, a: &Paragraph, b: &Paragraph, out: &mut Divergenc
         // 행 메트릭의 출처와 계산한 번호는 직렬화 원문에 없는 파생값이다.
         layout_space_metrics: _,
         numbering_marker: _,
+        // [Redrob E1] session node id — never in the file, not part of IR comparison.
+        node_id: _,
     } = a;
 
     macro_rules! f {
