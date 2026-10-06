@@ -1,9 +1,14 @@
 export {
   ACTIVITY_KINDS,
+  INVITE_LINK_SCHEME,
   ROLES,
   SyncClient,
   SyncError,
   inviteEmail,
+  inviteLinkUrl,
+  parseInviteLink,
+  type LinkPreview,
+  type RemoteLink,
   isRole,
   type ActivityKind,
   type CommentInput,
@@ -21,6 +26,7 @@ export {
 } from './client'
 export {
   SHARE_CHANNELS,
+  SHARE_EVENTS,
   shareBridge,
   type ShareApi,
   type ShareIpcLike,

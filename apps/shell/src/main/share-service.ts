@@ -6,7 +6,11 @@ import {
   SHARE_CHANNELS,
   SyncError,
   inviteEmail,
+  inviteLinkUrl,
   isRole,
+  parseInviteLink,
+  type LinkPreview,
+  type RemoteLink,
   type CommentInput,
   type CommentPatch,
   type RemoteComment,
@@ -49,6 +53,11 @@ export interface ShareClient {
   transferOwnership(fileId: string, sub: string): Promise<RemoteMember[]>
   leave(fileId: string): Promise<void>
   activity(q?: { after?: number; before?: number; limit?: number }): Promise<{ events: RemoteEvent[]; more: boolean }>
+  createLink(fileId: string, role: Exclude<Role, 'owner'>, days: number): Promise<{ link: RemoteLink; token: string }>
+  links(fileId: string): Promise<RemoteLink[]>
+  revokeLink(fileId: string, linkId: string): Promise<void>
+  peekLink(token: string): Promise<LinkPreview>
+  redeemLink(token: string): Promise<{ file: { id: string; name: string }; role: Role; joined: boolean }>
 }
 
 /** the parts of SharedIndex this service uses */
@@ -75,6 +84,8 @@ export interface ShareServiceDeps {
   openPath: (path: string) => void | Promise<void>
   /** a new version of a shared file reached the service (live rooms rebase on it) */
   uploaded?: (fileId: string, version: number) => void
+  /** tells Home an invite link is waiting to be confirmed */
+  pushJoinRequest?: (link: string) => void
   log?: (message: string) => void
 }
 
@@ -98,6 +109,8 @@ export const SHARE_MESSAGES = {
   noVersion: 'That version is no longer on the service.',
   ownerStays: 'The owner cannot leave. Make someone else the owner first, or stop sharing.',
   notEditor: 'Only someone who can already edit the file can become its owner.',
+  badDays: 'A link lasts 1 to 30 days.',
+  badLink: 'That is not a Redrob Office invite link.',
 } as const
 
 /** An absolute path to a saved document of a kind the suite edits. */
@@ -286,6 +299,19 @@ export class ShareService {
     }
   }
 
+  /** The file's link, sharing it first (creating and uploading it, this person the owner) when it is not yet. */
+  private async sharedLink(path: string): Promise<SharedLink> {
+    const existing = await this.deps.index.get(path)
+    if (existing) return existing
+    const client = this.deps.client!
+    const bytes = await this.deps.readFile(path)
+    const file = await client.createFile(basename(path))
+    const v = await client.upload(file.id, bytes)
+    const link: SharedLink = { fileId: file.id, role: 'owner', version: v.version }
+    await this.deps.index.set(path, link)
+    return link
+  }
+
   /** Shares the file if it is not yet (creating and uploading it), then gives `account` the role. */
   async invite(path: unknown, account: unknown, role: unknown): Promise<ShareResult> {
     const why = await this.unavailable()
@@ -296,14 +322,7 @@ export class ShareService {
     if (!isRole(role) || role === 'owner') return fail(SHARE_MESSAGES.badRole)
     const client = this.deps.client!
     try {
-      let link = await this.deps.index.get(path)
-      if (!link) {
-        const bytes = await this.deps.readFile(path)
-        const file = await client.createFile(basename(path))
-        const v = await client.upload(file.id, bytes)
-        link = { fileId: file.id, role: 'owner', version: v.version }
-        await this.deps.index.set(path, link)
-      }
+      const link = await this.sharedLink(path)
       if (link.role !== 'owner') return fail(SHARE_MESSAGES.notOwner)
       // an e-mail address waits as an invite until someone signs in with it
       // verified; anything else is a Redrob account id and joins at once
@@ -527,7 +546,107 @@ export class ShareService {
     }
   }
 
+  private pendingJoin: string | null = null
+
+  /**
+   * An invite link was opened from outside the app (clicked, or on the command
+   * line). Nothing is joined here: Home is told, shows what the link would do,
+   * and joins only when the person says so. The link is also kept until Home
+   * takes it, for a Home that has not loaded yet. Returns false for anything
+   * that is not an invite link.
+   */
+  requestJoin(text: string): boolean {
+    const token = parseInviteLink(text)
+    if (!token) return false
+    this.pendingJoin = inviteLinkUrl(token)
+    this.deps.pushJoinRequest?.(this.pendingJoin)
+    return true
+  }
+
+  /** The link waiting for Home, once. */
+  takeJoinRequest(): string | null {
+    const l = this.pendingJoin
+    this.pendingJoin = null
+    return l
+  }
+
+  /** The owner makes an invite link, sharing the file first when it is not yet. */
+  async linkCreate(path: unknown, role: unknown, days: unknown): Promise<{ ok: true; url: string; link: RemoteLink } | { ok: false; error: string }> {
+    const why = await this.unavailable()
+    if (why) return { ok: false, error: this.reasonMessage(why) }
+    if (!isShareablePath(path)) return { ok: false, error: SHARE_MESSAGES.notShareable }
+    if (!isRole(role) || role === 'owner') return { ok: false, error: SHARE_MESSAGES.badRole }
+    if (typeof days !== 'number' || !Number.isInteger(days) || days < 1 || days > 30) return { ok: false, error: SHARE_MESSAGES.badDays }
+    try {
+      const link = await this.sharedLink(path)
+      if ((await this.refreshRole(path, link)) !== 'owner') return { ok: false, error: SHARE_MESSAGES.notOwner }
+      const made = await this.deps.client!.createLink(link.fileId, role, days)
+      return { ok: true, url: inviteLinkUrl(made.token), link: made.link }
+    } catch (e) {
+      return { ok: false, error: messageOf(e) }
+    }
+  }
+
+  async links(path: unknown): Promise<RemoteLink[] | null | { error: string }> {
+    const link = await this.linkFor(path)
+    if (!link || 'error' in link) return link
+    if (link.role !== 'owner') return null
+    try {
+      return await this.deps.client!.links(link.fileId)
+    } catch (e) {
+      return { error: messageOf(e) }
+    }
+  }
+
+  async linkRevoke(path: unknown, linkId: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+    const link = await this.linkFor(path)
+    if (!link) return { ok: false, error: SHARE_MESSAGES.gone }
+    if ('error' in link) return { ok: false, error: link.error }
+    if (typeof linkId !== 'string') return { ok: false, error: SHARE_MESSAGES.badLink }
+    try {
+      await this.deps.client!.revokeLink(link.fileId, linkId)
+      return { ok: true }
+    } catch (e) {
+      // already revoked: what the owner wanted
+      if (e instanceof SyncError && e.status === 404) return { ok: true }
+      return { ok: false, error: messageOf(e) }
+    }
+  }
+
+  /** What a pasted or clicked link would do; nothing is used or changed. */
+  async linkPeek(text: unknown): Promise<{ ok: true; preview: LinkPreview } | { ok: false; error: string }> {
+    const why = await this.unavailable()
+    if (why) return { ok: false, error: this.reasonMessage(why) }
+    const token = parseInviteLink(text)
+    if (!token) return { ok: false, error: SHARE_MESSAGES.badLink }
+    try {
+      return { ok: true, preview: await this.deps.client!.peekLink(token) }
+    } catch (e) {
+      return { ok: false, error: messageOf(e) }
+    }
+  }
+
+  /** Uses a link, then opens the file: the copy here when there is one, else downloaded into Shared. */
+  async linkJoin(text: unknown): Promise<{ ok: true; path: string } | { ok: false; error: string }> {
+    const why = await this.unavailable()
+    if (why) return { ok: false, error: this.reasonMessage(why) }
+    const token = parseInviteLink(text)
+    if (!token) return { ok: false, error: SHARE_MESSAGES.badLink }
+    try {
+      const r = await this.deps.client!.redeemLink(token)
+      return await this.open(r.file.id)
+    } catch (e) {
+      return { ok: false, error: messageOf(e) }
+    }
+  }
+
   register(ipc: IpcLike): void {
+    ipc.handle(SHARE_CHANNELS.takeJoinRequest, () => this.takeJoinRequest())
+    ipc.handle(SHARE_CHANNELS.linkCreate, (_e, path, role, days) => this.linkCreate(path, role, days))
+    ipc.handle(SHARE_CHANNELS.links, (_e, path) => this.links(path))
+    ipc.handle(SHARE_CHANNELS.linkRevoke, (_e, path, id) => this.linkRevoke(path, id))
+    ipc.handle(SHARE_CHANNELS.linkPeek, (_e, link) => this.linkPeek(link))
+    ipc.handle(SHARE_CHANNELS.linkJoin, (_e, link) => this.linkJoin(link))
     ipc.handle(SHARE_CHANNELS.versions, (_e, path) => this.versions(path))
     ipc.handle(SHARE_CHANNELS.restoreVersion, (_e, path, version) => this.restoreVersion(path, version))
     ipc.handle(SHARE_CHANNELS.transfer, (_e, path, account) => this.transfer(path, account))

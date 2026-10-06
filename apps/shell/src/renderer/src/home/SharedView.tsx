@@ -10,7 +10,14 @@ type Row = { id: string; name: string; detail: string; localPath: string | null 
  * Shared files: what other people shared with this person, and what this
  * person shares. Opening one keeps a copy on this computer.
  */
-export function SharedView({ api = window.aiOfficeShare }: { api?: Partial<ShareApi> | undefined }): ReactElement {
+export function SharedView({
+  api = window.aiOfficeShare,
+  onJoinLink,
+}: {
+  api?: Partial<ShareApi> | undefined
+  /** opens the "Join with a link" dialog */
+  onJoinLink?: (() => void) | undefined
+}): ReactElement {
   const { t } = useI18n()
   const [tab, setTab] = useState<Tab>('with-me')
   const [withMe, setWithMe] = useState<SharedWithMe[] | null>(null)
@@ -61,6 +68,11 @@ export function SharedView({ api = window.aiOfficeShare }: { api?: Partial<Share
         {t('navShared')}
       </h1>
       <p className="updates-sub">{t('sharedSub')}</p>
+      {onJoinLink && api && (
+        <Button size="sm" variant="secondary" onClick={onJoinLink}>
+          {t('joinFromLink')}
+        </Button>
+      )}
     </header>
   )
 

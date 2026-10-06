@@ -60,6 +60,8 @@ disclosed.
 | `DELETE /files/:id/members/me` (leave; not the owner) | view |
 | `GET /me` | signed in |
 | `GET /activity?after=&before=&limit=` | signed in |
+| `GET /links/:token` (preview), `POST /links/:token/redeem` | signed in |
+| `POST /files/:id/links` (`{ role, days }`), `GET /files/:id/links`, `DELETE /files/:id/links/:linkId` | owner |
 | `GET /files/:id/comments` | view |
 | `POST /files/:id/comments` (`{ text, anchor }` or `{ text, parentId }`), `PATCH /files/:id/comments/:cid` (`{ done }` or `{ text }`, own words only) | comment |
 | `PUT /files/:id/content` (`application/octet-stream`), `PATCH /files/:id` (`{ name }`) | edit |
@@ -94,6 +96,17 @@ role except owner, and cannot demote or remove themselves.
   fails the change. Comments typed in a live editor go straight into the
   live document, not through the API, so they are not events; Docs' catch-up
   shows them.
+- Invite links: the owner makes one with a role (edit at most) that lasts 1
+  to 30 days (7 by default). The 256-bit token comes back once, at
+  creation. Only its SHA-256 is stored, so the table cannot be turned back
+  into working links. Redeeming needs a verified token like every other
+  route, so the link alone opens nothing. It never changes the role of
+  someone who already has the file, and it counts its uses. Revoking a
+  link, letting it expire, or stopping sharing ends it, and all three
+  answer with the same 404. `GET /links/:token` says what a link would do
+  without using it. The desktop link is `redrob-office://join/<token>`.
+  Opening one only shows that preview: nothing is joined until the person
+  confirms.
 - `GET /files/:id/versions/:v/content` returns one earlier version. The
   desktop opens it as a copy beside the local file, so nothing anyone has
   open is overwritten.

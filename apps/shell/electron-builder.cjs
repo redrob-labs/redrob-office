@@ -464,6 +464,10 @@ const config = {
       mimeType: 'text/markdown',
     },
   ],
+  // invite links (redrob-office://join/<token>): CFBundleURLTypes on macOS and
+  // x-scheme-handler in the Linux .desktop file. Windows registers at first run
+  // (app.setAsDefaultProtocolClient in the main process).
+  protocols: [{ name: 'Redrob Office invite link', schemes: ['redrob-office'] }],
   npmRebuild: false,
   mac: {
     // Two separate arch packages (NOT universal): arm64 keeps the exact

@@ -43,6 +43,13 @@ function api(status: ShareStatus, over: Partial<ShareApi> = {}): ShareApi {
     shareTransfer: vi.fn(async () => ({ ok: true as const, status })),
     shareLeave: vi.fn(async () => ({ ok: true as const, status: { available: true as const, shared: false as const } })),
     shareActivity: vi.fn(async () => []),
+    shareLinkCreate: vi.fn(async () => ({ ok: false as const, error: 'no' })),
+    shareLinks: vi.fn(async () => null),
+    shareLinkRevoke: vi.fn(async () => ({ ok: true as const })),
+    shareLinkPeek: vi.fn(async () => ({ ok: false as const, error: 'no' })),
+    shareLinkJoin: vi.fn(async () => ({ ok: false as const, error: 'no' })),
+    onShareJoinRequest: vi.fn(() => () => undefined),
+    shareTakeJoinRequest: vi.fn(async () => null),
     ...over,
   }
 }
@@ -187,6 +194,37 @@ describe('ShareDialog', () => {
 
     await render({ api: api({ available: true, shared: true, role: 'owner', members: [{ sub: 'me', name: 'Me', role: 'owner' }] }) })
     expect(button(SHARE_STRINGS.leave)).toBeUndefined()
+  })
+
+  it('the owner makes an invite link, sees it once to copy, and can revoke links', async () => {
+    const shared: ShareStatus = { available: true, shared: true, role: 'owner', members: [{ sub: 'me', name: 'Me', role: 'owner' }] }
+    const link = { id: '22222222-2222-4333-8444-555555555555', role: 'comment' as const, createdAt: 'x', expiresAt: '2099-01-01T00:00:00.000Z', uses: 1 }
+    const a = api(shared, {
+      shareLinks: vi.fn(async () => [link]),
+      shareLinkCreate: vi.fn(async () => ({ ok: true as const, url: `redrob-office://join/${'z'.repeat(43)}`, link })),
+      shareLinkRevoke: vi.fn(async () => ({ ok: true as const })),
+    })
+    await render({ api: a })
+    expect(document.body.textContent).toContain(SHARE_STRINGS.linkTitle)
+    expect(document.querySelector('.doc-share__linklist')!.textContent).toContain('used once')
+    const selects = document.querySelectorAll<HTMLSelectElement>('.doc-share__links select')
+    act(() => {
+      selects[0]!.value = 'comment'
+      selects[0]!.dispatchEvent(new Event('change', { bubbles: true }))
+      selects[1]!.value = '30'
+      selects[1]!.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    const create = [...document.querySelectorAll<HTMLButtonElement>('.doc-share button')].find((b) => b.textContent === SHARE_STRINGS.linkCreate)!
+    await act(async () => create.click())
+    await flush()
+    expect(a.shareLinkCreate).toHaveBeenCalledWith(PATH, 'comment', 30)
+    expect((document.querySelector('.doc-share__made input') as HTMLInputElement).value).toBe(`redrob-office://join/${'z'.repeat(43)}`)
+    expect(document.body.textContent).toContain(SHARE_STRINGS.linkMade)
+    const revoke = document.querySelector<HTMLButtonElement>('.doc-share__linklist button')!
+    expect(revoke.getAttribute('aria-label')).toMatch(/^Revoke the Comment link until /)
+    await act(async () => revoke.click())
+    expect(a.shareLinkRevoke).toHaveBeenCalledWith(PATH, link.id)
+    expect(document.querySelector('.doc-share__linklist')).toBeNull()
   })
 
   it('someone who is not the owner sees the people but cannot invite or remove', async () => {

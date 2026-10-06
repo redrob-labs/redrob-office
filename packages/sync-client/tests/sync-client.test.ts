@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { SyncClient, SyncError, inviteEmail, shareBridge } from '../src'
+import { SyncClient, SyncError, inviteEmail, inviteLinkUrl, parseInviteLink, shareBridge } from '../src'
 import { SharedIndex } from '../src/shared-index'
 
 const ID = '5f0c3f4e-1c2d-4e5f-8a9b-0c1d2e3f4a5b'
@@ -92,6 +92,46 @@ describe('SyncClient', () => {
     expect(r.more).toBe(true)
     await c.activity()
     expect(urls).toEqual(['/activity?after=4&limit=20', '/activity'])
+  })
+
+  it('reads invite links as pasted or clicked, and nothing else', () => {
+    const T = 'Ab_-'.repeat(10) + 'xyz'
+    expect(T).toHaveLength(43)
+    expect(inviteLinkUrl(T)).toBe(`redrob-office://join/${T}`)
+    expect(parseInviteLink(` redrob-office://join/${T} `)).toBe(T)
+    expect(parseInviteLink(`redrob-office://join/${T}/`)).toBe(T)
+    expect(parseInviteLink(T)).toBe(T)
+    for (const bad of [`https://x/join/${T}`, `redrob-office://join/${T}?x=1`, `redrob-office://join/${T.slice(1)}`, `redrob-office://open/${T}`, '', null]) {
+      expect(parseInviteLink(bad)).toBeNull()
+    }
+  })
+
+  it('makes, lists, revokes, previews and redeems links', async () => {
+    const T = 'q'.repeat(43)
+    const LINK = '22222222-2222-4333-8444-555555555555'
+    const calls: string[] = []
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${url.replace('http://s', '')} ${init?.body ?? ''}`.trim())
+      if (url.endsWith('/links') && init?.method === 'POST') return new Response(JSON.stringify({ token: T, link: { id: LINK, role: 'view' } }))
+      if (url.endsWith('/links')) return new Response(JSON.stringify({ links: [{ id: LINK, role: 'view' }, { id: 'nope', role: 'view' }] }))
+      if (url.endsWith('/redeem')) return new Response(JSON.stringify({ file: { id: ID, name: 'Plan.docx' }, role: 'view', joined: true }))
+      if (init?.method === 'DELETE') return new Response(null, { status: 204 })
+      return new Response(JSON.stringify({ fileName: 'Plan.docx', ownerName: 'Kim', role: 'edit', expiresAt: 'x', alreadyHave: 'bogus' }))
+    })
+    const c = new SyncClient({ baseUrl: 'http://s', token: async () => 't', fetch })
+    expect((await c.createLink(ID, 'view', 7)).token).toBe(T)
+    expect(await c.links(ID)).toHaveLength(1)
+    await c.revokeLink(ID, LINK)
+    expect((await c.peekLink(T)).alreadyHave).toBeNull()
+    expect((await c.redeemLink(T)).joined).toBe(true)
+    await expect(c.redeemLink('short')).rejects.toMatchObject({ status: 404 })
+    expect(calls).toEqual([
+      `POST /files/${ID}/links {"role":"view","days":7}`,
+      `GET /files/${ID}/links`,
+      `DELETE /files/${ID}/links/${LINK}`,
+      `GET /links/${T}`,
+      `POST /links/${T}/redeem`,
+    ])
   })
 
   it('invites by e-mail, lists and cancels invites', async () => {

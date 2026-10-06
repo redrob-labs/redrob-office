@@ -101,4 +101,25 @@ describe('the sync stack', () => {
     const jaeFeed = (await (await fetch(`${BASE}/activity?limit=1`, { headers: h(jae) })).json()) as { events: Array<{ kind: string; actorName: string }> }
     expect(jaeFeed.events[0]).toMatchObject({ kind: 'left', actorName: 'Min Park' })
   })
+
+  it('invite links join, keep an existing role, and stop when revoked (Postgres)', async () => {
+    const felix = await token('felix', 'Felix Kim')
+    const kai = await token(`kai-${Date.now()}`, 'Kai Lee')
+    const h = (t: string, extra: Record<string, string> = {}) => ({ authorization: `Bearer ${t}`, ...extra })
+    const json = (t: string) => h(t, { 'content-type': 'application/json' })
+    const { id } = (await (await fetch(`${BASE}/files`, { method: 'POST', headers: json(felix), body: JSON.stringify({ name: 'Links.docx' }) })).json()) as { id: string }
+    const made = await fetch(`${BASE}/files/${id}/links`, { method: 'POST', headers: json(felix), body: JSON.stringify({ role: 'comment', days: 2 }) })
+    expect(made.status).toBe(201)
+    const { token: link, link: row } = (await made.json()) as { token: string; link: { id: string } }
+    const peek = (await (await fetch(`${BASE}/links/${link}`, { headers: h(kai) })).json()) as { ownerName: string; alreadyHave: string | null }
+    expect(peek).toMatchObject({ ownerName: 'Felix Kim', alreadyHave: null })
+    const joined = await fetch(`${BASE}/links/${link}/redeem`, { method: 'POST', headers: h(kai) })
+    expect(await joined.json()).toMatchObject({ role: 'comment', joined: true })
+    const again = await fetch(`${BASE}/links/${link}/redeem`, { method: 'POST', headers: h(felix) })
+    expect(await again.json()).toMatchObject({ role: 'owner', joined: false })
+    const listed = (await (await fetch(`${BASE}/files/${id}/links`, { headers: h(felix) })).json()) as { links: Array<{ uses: number }> }
+    expect(listed.links[0]!.uses).toBe(2)
+    expect((await fetch(`${BASE}/files/${id}/links/${row.id}`, { method: 'DELETE', headers: h(felix) })).status).toBe(204)
+    expect((await fetch(`${BASE}/links/${link}/redeem`, { method: 'POST', headers: h(kai) })).status).toBe(404)
+  })
 })

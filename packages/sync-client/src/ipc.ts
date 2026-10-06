@@ -1,4 +1,4 @@
-import type { ActivityKind, CommentInput, CommentPatch, Role } from './client'
+import type { ActivityKind, CommentInput, CommentPatch, LinkPreview, RemoteLink, Role } from './client'
 
 /** Share over IPC: the shell talks to the sync service; editors and Home ask it. */
 export const SHARE_CHANNELS = {
@@ -16,6 +16,18 @@ export const SHARE_CHANNELS = {
   transfer: 'share:transfer',
   leave: 'share:leave',
   activity: 'share:activity',
+  linkCreate: 'share:link-create',
+  links: 'share:links',
+  linkRevoke: 'share:link-revoke',
+  linkPeek: 'share:link-peek',
+  linkJoin: 'share:link-join',
+  takeJoinRequest: 'share:take-join-request',
+} as const
+
+/** Pushed from the shell to Home (not handled with invoke). */
+export const SHARE_EVENTS = {
+  /** an invite link was opened (clicked, or passed on the command line); Home asks before joining */
+  joinRequest: 'share:join-request',
 } as const
 
 /** One thing someone else did to a shared file, for Home's Updates. */
@@ -102,10 +114,26 @@ export interface ShareApi {
   shareLeave(path: string): Promise<ShareResult>
   /** what other people did lately to files shared with this person, newest first */
   shareActivity(): Promise<SharedActivity[] | { error: string }>
+  /** the owner makes an invite link for the file (shares it first if needed) */
+  shareLinkCreate(path: string, role: Exclude<Role, 'owner'>, days: number): Promise<{ ok: true; url: string; link: RemoteLink } | Failure>
+  /** the owner's working and expired links; null when the file is not shared */
+  shareLinks(path: string): Promise<RemoteLink[] | null | { error: string }>
+  shareLinkRevoke(path: string, linkId: string): Promise<{ ok: true } | Failure>
+  /** what a pasted or clicked link would do, without using it */
+  shareLinkPeek(link: string): Promise<{ ok: true; preview: LinkPreview } | Failure>
+  /** uses the link and opens the file (downloaded into the Shared folder) */
+  shareLinkJoin(link: string): Promise<{ ok: true; path: string } | Failure>
+  /** Home: an invite link was opened from outside the app; returns an unsubscribe */
+  onShareJoinRequest(handler: (link: string) => void): () => void
+  /** Home, on load: a link opened before Home was there, once */
+  shareTakeJoinRequest(): Promise<string | null>
 }
 
 export interface ShareIpcLike {
   invoke(channel: string, ...args: unknown[]): Promise<unknown>
+  /** present in a real preload; without it onShareJoinRequest never fires */
+  on?(channel: string, listener: (event: unknown, ...args: unknown[]) => void): unknown
+  removeListener?(channel: string, listener: (event: unknown, ...args: unknown[]) => void): unknown
 }
 
 const NOT_HERE = 'Sharing is not available here.'
@@ -150,6 +178,29 @@ export function shareBridge(ipc: ShareIpcLike): ShareApi {
         (r) => r as SharedActivity[] | { error: string },
         () => ({ error: NOT_HERE }),
       ),
+    shareLinkCreate: (path, role, days) =>
+      ipc.invoke(SHARE_CHANNELS.linkCreate, path, role, days).then((r) => r as { ok: true; url: string; link: RemoteLink } | Failure, failed),
+    shareLinks: (path) =>
+      ipc.invoke(SHARE_CHANNELS.links, path).then(
+        (r) => (r === null || Array.isArray(r) ? (r as RemoteLink[] | null) : (r as { error: string })),
+        () => ({ error: NOT_HERE }),
+      ),
+    shareLinkRevoke: (path, linkId) => ipc.invoke(SHARE_CHANNELS.linkRevoke, path, linkId).then((r) => r as { ok: true } | Failure, failed),
+    shareLinkPeek: (link) => ipc.invoke(SHARE_CHANNELS.linkPeek, link).then((r) => r as { ok: true; preview: LinkPreview } | Failure, failed),
+    shareLinkJoin: (link) => ipc.invoke(SHARE_CHANNELS.linkJoin, link).then((r) => r as { ok: true; path: string } | Failure, failed),
+    shareTakeJoinRequest: () =>
+      ipc.invoke(SHARE_CHANNELS.takeJoinRequest).then(
+        (r) => (typeof r === 'string' ? r : null),
+        () => null,
+      ),
+    onShareJoinRequest: (handler) => {
+      if (!ipc.on || !ipc.removeListener) return () => undefined
+      const listener = (_e: unknown, link: unknown) => {
+        if (typeof link === 'string') handler(link)
+      }
+      ipc.on(SHARE_EVENTS.joinRequest, listener)
+      return () => void ipc.removeListener!(SHARE_EVENTS.joinRequest, listener)
+    },
     openShared: (fileId) =>
       ipc.invoke(SHARE_CHANNELS.open, fileId).then((r) => r as { ok: true; path: string } | Failure, failed),
   }

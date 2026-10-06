@@ -93,3 +93,24 @@
   margin: 0 0 var(--space-3);
   padding-top: var(--space-2);
 }
+
+.doc-share__links {
+  margin: 0 0 var(--space-3);
+}
+
+.doc-share__links > .doc-share__row {
+  margin-bottom: var(--space-2);
+}
+
+.doc-share__made {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 var(--space-2);
+  font-size: 13px;
+}
+
+.doc-share__made label {
+  font-weight: 600;
+  color: var(--ink-primary);
+}

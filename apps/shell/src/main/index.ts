@@ -113,7 +113,7 @@ import { VersionStore } from '@genoffice/versions/store'
 import { isHistoryPath, registerVersionsIpc } from './versions-service'
 import { IDENTITY_CHANNELS, SessionStore } from '@genoffice/identity'
 import { DEFAULT_SYNC_URL, IdentityService, chooseProvider } from './identity-service'
-import { SyncClient } from '@genoffice/sync-client'
+import { INVITE_LINK_SCHEME, SHARE_EVENTS, SyncClient } from '@genoffice/sync-client'
 import { SharedIndex } from '@genoffice/sync-client/node'
 import { ShareService } from './share-service'
 import { LiveHub } from '@genoffice/sync-client/live'
@@ -4082,7 +4082,37 @@ app.on('open-file', (event, filePath) => {
   if (!openDocumentPath(filePath)) tabManager?.openHomeTab()
 })
 
+// Invite links (redrob-office://join/<token>). macOS delivers a clicked link
+// through open-url; Windows and Linux start a second instance with it in argv.
+// Either way nothing is joined until Home shows what the link would do and the
+// person says yes (see ShareService.requestJoin).
+let pendingInviteLink = inviteLinkIn(process.argv)
+
+function inviteLinkIn(argv: readonly string[]): string | null {
+  return argv.find((a) => a.toLowerCase().startsWith(`${INVITE_LINK_SCHEME}://`)) ?? null
+}
+
+function deliverInviteLink(link: string): void {
+  revealShellWindow()
+  tabManager?.openHomeTab()
+  if (!shareService.requestJoin(link)) console.warn('[share] ignored a link that is not an invite link')
+}
+
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  if (!app.isReady()) {
+    pendingInviteLink = url
+    return
+  }
+  deliverInviteLink(url)
+})
+
 app.on('second-instance', (_event, argv, _cwd, additionalData) => {
+  const link = inviteLinkIn(argv)
+  if (link) {
+    deliverInviteLink(link)
+    return
+  }
   const file =
     supportedFileIn(argv) ??
     unsupportedFileIn(argv) ??
@@ -4197,6 +4227,10 @@ const shareService = new ShareService({
   openPath: (p) => void openDocumentPath(p),
   // a new version is the base live views rebase on (liveHub is set below, before any save)
   uploaded: (fileId, version) => liveHub?.setBase(fileId, version),
+  // Home is the shell window's own page
+  pushJoinRequest: (link) => {
+    if (shellWindow && !shellWindow.isDestroyed()) shellWindow.webContents.send(SHARE_EVENTS.joinRequest, link)
+  },
   log: (m) => console.warn(m),
 })
 shareService.register(ipcMain)
@@ -4329,8 +4363,13 @@ app.whenReady().then(async () => {
   installDockMenu()
   initAutoUpdater(() => shellWindow, currentUpdateChannel())
 
+  // a packaged app owns redrob-office:// links; a development build is not registered (paste the link in Shared)
+  if (app.isPackaged && !app.isDefaultProtocolClient(INVITE_LINK_SCHEME)) app.setAsDefaultProtocolClient(INVITE_LINK_SCHEME)
+
   if (!pendingLaunchPath || !openDocumentPath(pendingLaunchPath)) tabManager?.openHomeTab()
   pendingLaunchPath = null
+  if (pendingInviteLink) deliverInviteLink(pendingInviteLink)
+  pendingInviteLink = null
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createShellWindow()

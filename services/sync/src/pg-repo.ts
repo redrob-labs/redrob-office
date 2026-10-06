@@ -1,6 +1,6 @@
 import pg from 'pg'
 import type { Role } from './access.ts'
-import type { ActivityEvent, ActivityQuery, EventKind, FileRecord, FileVersion, Invite, Member, NewEvent, Repo } from './repo.ts'
+import type { ActivityEvent, ActivityQuery, EventKind, FileRecord, FileVersion, Invite, InviteLink, Member, NewEvent, Repo } from './repo.ts'
 
 /**
  * The schema, one numbered step at a time. A step is applied once, inside a
@@ -67,6 +67,20 @@ export const MIGRATIONS: readonly string[] = [
      event_id bigint NOT NULL REFERENCES events(id) ON DELETE CASCADE,
      PRIMARY KEY (sub, event_id)
    )`,
+  // 8: invite links. Only a hash of the token is kept, so the table cannot
+  // be read back into working links.
+  `CREATE TABLE invite_links (
+     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+     file_id uuid NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+     token_hash text NOT NULL UNIQUE,
+     role text NOT NULL CHECK (role IN ('edit','comment','view')),
+     created_by text NOT NULL,
+     created_at timestamptz NOT NULL DEFAULT now(),
+     expires_at timestamptz NOT NULL,
+     revoked_at timestamptz,
+     uses integer NOT NULL DEFAULT 0
+   );
+   CREATE INDEX invite_links_file ON invite_links (file_id)`,
 ]
 
 /** an arbitrary constant: the advisory lock that serialises migrations across service instances */
@@ -139,6 +153,17 @@ const version = (r: Record<string, unknown>): FileVersion => ({
   blobKey: String(r.blob_key),
   createdBy: String(r.created_by),
   createdAt: iso(r.created_at),
+})
+
+const link = (r: Record<string, unknown>): InviteLink => ({
+  id: String(r.id),
+  fileId: String(r.file_id),
+  role: r.role as Role,
+  createdBy: String(r.created_by),
+  createdAt: iso(r.created_at),
+  expiresAt: iso(r.expires_at),
+  revokedAt: r.revoked_at ? iso(r.revoked_at) : null,
+  uses: Number(r.uses),
 })
 
 export class PgRepo implements Repo {
@@ -292,6 +317,69 @@ export class PgRepo implements Repo {
       }
       await client.query('COMMIT')
       return joined
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    } finally {
+      client.release()
+    }
+  }
+  async createLink(l: { fileId: string; tokenHash: string; role: Role; createdBy: string; expiresAt: Date }) {
+    const { rows } = await this.pool.query(
+      `INSERT INTO invite_links (file_id, token_hash, role, created_by, expires_at) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [l.fileId, l.tokenHash, l.role, l.createdBy, l.expiresAt],
+    )
+    return link(rows[0]!)
+  }
+  async links(fileId: string) {
+    const { rows } = await this.pool.query(
+      'SELECT * FROM invite_links WHERE file_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC',
+      [fileId],
+    )
+    return rows.map(link)
+  }
+  async revokeLink(fileId: string, linkId: string) {
+    const r = await this.pool.query(
+      'UPDATE invite_links SET revoked_at = now() WHERE id = $1 AND file_id = $2 AND revoked_at IS NULL',
+      [linkId, fileId],
+    )
+    return (r.rowCount ?? 0) > 0
+  }
+  async peekLink(tokenHash: string, now: Date) {
+    const { rows } = await this.pool.query(
+      'SELECT * FROM invite_links WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > $2',
+      [tokenHash, now],
+    )
+    return rows[0] ? link(rows[0]) : null
+  }
+  async redeemLink(tokenHash: string, who: { sub: string; name: string }, now: Date) {
+    const client = await this.pool.connect()
+    try {
+      await client.query('BEGIN')
+      // the use is counted and the membership written in one step; a revoke
+      // that commits first wins
+      const { rows } = await client.query(
+        `UPDATE invite_links SET uses = uses + 1
+         WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > $2
+         RETURNING file_id, role`,
+        [tokenHash, now],
+      )
+      const l = rows[0]
+      if (!l) {
+        await client.query('ROLLBACK')
+        return null
+      }
+      const fileId = String(l.file_id)
+      const ins = await client.query(
+        'INSERT INTO members (file_id, sub, name, role) VALUES ($1, $2, $3, $4) ON CONFLICT (file_id, sub) DO NOTHING',
+        [fileId, who.sub, who.name, l.role],
+      )
+      const joined = (ins.rowCount ?? 0) > 0
+      const role = joined
+        ? (l.role as Role)
+        : ((await client.query('SELECT role FROM members WHERE file_id = $1 AND sub = $2', [fileId, who.sub])).rows[0]!.role as Role)
+      await client.query('COMMIT')
+      return { fileId, role, joined }
     } catch (err) {
       await client.query('ROLLBACK')
       throw err

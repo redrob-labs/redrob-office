@@ -76,7 +76,32 @@ export interface ActivityQuery {
   limit: number
 }
 
+/** A link that lets a signed-in person join a file with a role, until it expires or is revoked. */
+export interface InviteLink {
+  id: string
+  fileId: string
+  role: Role
+  createdBy: string
+  createdAt: string
+  expiresAt: string
+  revokedAt: string | null
+  uses: number
+}
+
 export interface Repo {
+  createLink(l: { fileId: string; tokenHash: string; role: Role; createdBy: string; expiresAt: Date }): Promise<InviteLink>
+  /** the file's links that are not revoked, newest first (expired ones included, marked by expiresAt) */
+  links(fileId: string): Promise<InviteLink[]>
+  /** false when there is no such link on this file */
+  revokeLink(fileId: string, linkId: string): Promise<boolean>
+  /**
+   * Redeems a live link (not revoked, not expired at `now`): the account joins
+   * with the link's role, unless it already has the file, whose role is never
+   * changed. Null when the link does not work.
+   */
+  redeemLink(tokenHash: string, who: { sub: string; name: string }, now: Date): Promise<{ fileId: string; role: Role; joined: boolean } | null>
+  /** a live link by its hash, without using it */
+  peekLink(tokenHash: string, now: Date): Promise<InviteLink | null>
   addEvent(e: NewEvent): Promise<void>
   /** events this account may see, by others, newest first */
   activity(sub: string, q: ActivityQuery): Promise<ActivityEvent[]>
@@ -123,6 +148,52 @@ export class MemoryRepo implements Repo {
   private docs = new Map<string, Uint8Array>()
   private inv = new Map<string, Invite>()
   private events: Array<ActivityEvent & { audience: Set<string> }> = []
+  private linkRows: Array<InviteLink & { tokenHash: string }> = []
+
+  async createLink(l: { fileId: string; tokenHash: string; role: Role; createdBy: string; expiresAt: Date }) {
+    const row = {
+      id: randomUUID(),
+      fileId: l.fileId,
+      tokenHash: l.tokenHash,
+      role: l.role,
+      createdBy: l.createdBy,
+      createdAt: new Date().toISOString(),
+      expiresAt: l.expiresAt.toISOString(),
+      revokedAt: null,
+      uses: 0,
+    }
+    this.linkRows.push(row)
+    const { tokenHash: _t, ...link } = row
+    return link
+  }
+  async links(fileId: string) {
+    return this.linkRows
+      .filter((l) => l.fileId === fileId && !l.revokedAt && this.files.has(fileId))
+      .reverse()
+      .map(({ tokenHash: _t, ...l }) => l)
+  }
+  async revokeLink(fileId: string, linkId: string) {
+    const l = this.linkRows.find((x) => x.id === linkId && x.fileId === fileId && !x.revokedAt)
+    if (!l) return false
+    l.revokedAt = new Date().toISOString()
+    return true
+  }
+  async peekLink(tokenHash: string, now: Date) {
+    const l = this.linkRows.find((x) => x.tokenHash === tokenHash)
+    if (!l || l.revokedAt || Date.parse(l.expiresAt) <= now.getTime() || !this.files.has(l.fileId)) return null
+    const { tokenHash: _t, ...link } = l
+    return link
+  }
+  async redeemLink(tokenHash: string, who: { sub: string; name: string }, now: Date) {
+    const l = this.linkRows.find((x) => x.tokenHash === tokenHash)
+    if (!l || l.revokedAt || Date.parse(l.expiresAt) <= now.getTime() || !this.files.has(l.fileId)) return null
+    l.uses += 1
+    const key = `${l.fileId}|${who.sub}`
+    const had = this.mem.get(key)
+    if (had) return { fileId: l.fileId, role: had.role, joined: false }
+    this.mem.set(key, { fileId: l.fileId, sub: who.sub, name: who.name, role: l.role })
+    return { fileId: l.fileId, role: l.role, joined: true }
+  }
 
   async addEvent(e: NewEvent) {
     const { audience, ...rest } = e
@@ -181,6 +252,7 @@ export class MemoryRepo implements Repo {
     this.files.delete(id)
     for (const k of [...this.mem.keys()]) if (k.startsWith(`${id}|`)) this.mem.delete(k)
     for (const k of [...this.inv.keys()]) if (k.startsWith(`${id}|`)) this.inv.delete(k)
+    this.linkRows = this.linkRows.filter((l) => l.fileId !== id)
     this.vers.delete(id)
     this.docs.delete(id)
   }

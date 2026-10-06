@@ -3,7 +3,7 @@
  * route checks the caller's role on that file first and answers 404 to a
  * non-member, so a file's existence is not disclosed.
  */
-import { createHash } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
 import { can, canGrant, isRole, type Action, type Role } from './access.ts'
 import { AuthError, bearer, normalEmail, type DevIssuer, type Identity, type Verifier } from './auth.ts'
@@ -24,7 +24,15 @@ export interface AppDeps {
   /** drops every live connection to a file (the file was deleted) */
   closeLive?: ((fileId: string) => void) | undefined
   log?: ((message: string) => void) | undefined
+  /** the clock links expire by (tests move it) */
+  now?: (() => Date) | undefined
 }
+
+/** an invite link lives at most this long, and a week when the owner does not say */
+export const LINK_MAX_DAYS = 30
+export const LINK_DEFAULT_DAYS = 7
+const LINK_TOKEN = /^[A-Za-z0-9_-]{43}$/
+const tokenHash = (token: string) => createHash('sha256').update(token).digest('hex')
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const cleanName = (v: unknown, max = 255) =>
@@ -293,6 +301,74 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const email = normalEmail((req.params as { email?: string }).email)
       if (email) await deps.repo.removeInvite(got.file.id, email)
       return reply.code(204).send()
+    })
+
+    // Invite links. The owner makes one with a role (edit at most) and an
+    // expiry, and can revoke it. Anyone signed in who has the link joins with
+    // that role; a link alone, without a verified token, opens nothing. The
+    // token is shown once, at creation: only its hash is stored.
+    api.post('/files/:id/links', async (req, reply) => {
+      const got = await fileFor(req, reply, 'share')
+      if (!got) return
+      const b = (req.body ?? {}) as Record<string, unknown>
+      const role = b.role
+      if (!isRole(role) || !canGrant(got.role, role, false)) return reply.code(400).send({ error: 'A link gives edit, comment or view.' })
+      const days = b.days === undefined ? LINK_DEFAULT_DAYS : b.days
+      if (typeof days !== 'number' || !Number.isInteger(days) || days < 1 || days > LINK_MAX_DAYS) {
+        return reply.code(400).send({ error: `A link lasts 1 to ${LINK_MAX_DAYS} days.` })
+      }
+      const token = randomBytes(32).toString('base64url')
+      const now = deps.now?.() ?? new Date()
+      const link = await deps.repo.createLink({
+        fileId: got.file.id,
+        tokenHash: tokenHash(token),
+        role,
+        createdBy: req.identity!.sub,
+        expiresAt: new Date(now.getTime() + days * 86_400_000),
+      })
+      return reply.code(201).send({ link, token })
+    })
+
+    api.get('/files/:id/links', async (req, reply) => {
+      const got = await fileFor(req, reply, 'share')
+      if (!got) return
+      return { links: await deps.repo.links(got.file.id) }
+    })
+
+    api.delete('/files/:id/links/:linkId', async (req, reply) => {
+      const got = await fileFor(req, reply, 'share')
+      if (!got) return
+      const linkId = (req.params as { linkId?: string }).linkId ?? ''
+      if (!UUID.test(linkId) || !(await deps.repo.revokeLink(got.file.id, linkId))) {
+        return reply.code(404).send({ error: 'No such link.' })
+      }
+      return reply.code(204).send()
+    })
+
+    // What a link would do, without using it, so the desktop can ask first.
+    api.get('/links/:token', async (req, reply) => {
+      const token = (req.params as { token?: string }).token ?? ''
+      const gone = () => reply.code(404).send({ error: 'This link does not work any more. Ask the owner for a new one.' })
+      if (!LINK_TOKEN.test(token)) return gone()
+      const l = await deps.repo.peekLink(tokenHash(token), deps.now?.() ?? new Date())
+      const file = l && (await deps.repo.getFile(l.fileId))
+      if (!l || !file) return gone()
+      const owner = (await deps.repo.members(file.id)).find((m) => m.role === 'owner')
+      const role = await deps.repo.roleOf(file.id, req.identity!.sub)
+      return { fileName: file.name, ownerName: owner?.name ?? '', role: l.role, expiresAt: l.expiresAt, alreadyHave: role }
+    })
+
+    api.post('/links/:token/redeem', async (req, reply) => {
+      const token = (req.params as { token?: string }).token ?? ''
+      const gone = () => reply.code(404).send({ error: 'This link does not work any more. Ask the owner for a new one.' })
+      if (!LINK_TOKEN.test(token)) return gone()
+      const who = req.identity!
+      const r = await deps.repo.redeemLink(tokenHash(token), { sub: who.sub, name: who.name }, deps.now?.() ?? new Date())
+      if (!r) return gone()
+      const file = await deps.repo.getFile(r.fileId)
+      if (!file) return gone()
+      if (r.joined) await emit(file, who, 'joined', { role: r.role, via: 'link' })
+      return { file: { id: file.id, name: file.name }, role: r.role, joined: r.joined }
     })
 
     // Comments, written into the live document by the service on behalf of

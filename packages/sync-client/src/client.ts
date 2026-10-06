@@ -87,6 +87,47 @@ export interface RemoteEvent {
   you: boolean
 }
 
+/** An invite link as the owner sees it; the token itself is shown only when it is made. */
+export interface RemoteLink {
+  id: string
+  role: Role
+  createdAt: string
+  expiresAt: string
+  uses: number
+}
+
+/** What a link would do, before it is used. */
+export interface LinkPreview {
+  fileName: string
+  ownerName: string
+  role: Role
+  expiresAt: string
+  /** this person's role already, when they have the file */
+  alreadyHave: Role | null
+}
+
+/** The scheme the desktop app registers for invite links. */
+export const INVITE_LINK_SCHEME = 'redrob-office'
+const LINK_TOKEN = /^[A-Za-z0-9_-]{43}$/
+
+/** The link to hand someone: `redrob-office://join/<token>`. */
+export function inviteLinkUrl(token: string): string {
+  return `${INVITE_LINK_SCHEME}://join/${token}`
+}
+
+/**
+ * The token in an invite link as it was pasted or clicked, or null. Accepts
+ * `redrob-office://join/<token>` (with or without a trailing slash) or the
+ * bare token; anything else, including another scheme or path, is refused.
+ */
+export function parseInviteLink(text: unknown): string | null {
+  if (typeof text !== 'string') return null
+  const s = text.trim()
+  if (LINK_TOKEN.test(s)) return s
+  const m = /^redrob-office:\/\/join\/([A-Za-z0-9_-]{43})\/?$/i.exec(s)
+  return m ? m[1]! : null
+}
+
 export interface RemoteFileDetail extends RemoteFile {
   latest: RemoteVersion | null
 }
@@ -294,6 +335,48 @@ export class SyncClient {
       events: events.map((e) => ({ ...e, detail: e.detail && typeof e.detail === 'object' ? e.detail : {}, you: e.you === true })),
       more: b.more === true,
     }
+  }
+
+  /** The owner makes an invite link; the token comes back this once. */
+  async createLink(fileId: string, role: Exclude<Role, 'owner'>, days: number): Promise<{ link: RemoteLink; token: string }> {
+    const r = await this.call(`/files/${this.id(fileId)}/links`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ role, days }),
+    })
+    const b = (await r.json()) as { link: RemoteLink; token: string }
+    if (!LINK_TOKEN.test(b.token)) throw new SyncError(502, 'The sync service sent a link that does not work.')
+    return b
+  }
+
+  /** The file's links that still work or have expired; revoked ones are gone. */
+  async links(fileId: string): Promise<RemoteLink[]> {
+    const b = (await (await this.call(`/files/${this.id(fileId)}/links`)).json()) as { links?: unknown }
+    return Array.isArray(b.links) ? (b.links as RemoteLink[]).filter((l) => UUID.test(l.id) && isRole(l.role)) : []
+  }
+
+  async revokeLink(fileId: string, linkId: string): Promise<void> {
+    if (!UUID.test(linkId)) throw new SyncError(404, 'No such link.')
+    await this.call(`/files/${this.id(fileId)}/links/${linkId}`, { method: 'DELETE' })
+  }
+
+  async peekLink(token: string): Promise<LinkPreview> {
+    if (!LINK_TOKEN.test(token)) throw new SyncError(404, 'This link does not work any more. Ask the owner for a new one.')
+    const b = (await (await this.call(`/links/${token}`)).json()) as LinkPreview
+    if (!isRole(b.role)) throw new SyncError(502, 'The sync service sent an unknown role.')
+    return { fileName: String(b.fileName), ownerName: String(b.ownerName ?? ''), role: b.role, expiresAt: String(b.expiresAt), alreadyHave: isRole(b.alreadyHave) ? b.alreadyHave : null }
+  }
+
+  /** Uses a link: this person joins the file (an existing role is never changed). */
+  async redeemLink(token: string): Promise<{ file: { id: string; name: string }; role: Role; joined: boolean }> {
+    if (!LINK_TOKEN.test(token)) throw new SyncError(404, 'This link does not work any more. Ask the owner for a new one.')
+    const b = (await (await this.call(`/links/${token}/redeem`, { method: 'POST' })).json()) as {
+      file: { id: string; name: string }
+      role: Role
+      joined: boolean
+    }
+    if (!UUID.test(b.file?.id ?? '') || !isRole(b.role)) throw new SyncError(502, 'The sync service sent an unexpected answer.')
+    return b
   }
 
   /** Who the service says the token belongs to. */

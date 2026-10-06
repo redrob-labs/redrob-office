@@ -38,6 +38,7 @@ import type { FactsApi } from '../../shared/facts-api'
 import type { IdentityApi } from '@genoffice/identity'
 import type { ShareApi } from '@genoffice/sync-client'
 import { SharedView } from './home/SharedView'
+import { useJoinLink } from './home/JoinLink'
 import type { StartKind } from './home/formats'
 
 declare global {
@@ -535,6 +536,8 @@ export function Home() {
   const setUpdatesMode = (on: boolean) => setPane(on ? 'updates' : null)
   // files waiting in Updates, from the linked-figure store in the main process
   const facts = useFacts()
+  // invite links: clicked outside the app or pasted in Shared; joined only after the person confirms
+  const joinLink = useJoinLink()
   const updatesWaiting = facts.state ? waitingFiles(facts.state).length : 0
   const [filter, setFilter] = useState('all')
   // modified-column sort (WPS-style header popover), shared by the global and project tables
@@ -1574,10 +1577,12 @@ export function Home() {
       ) : updatesMode ? (
         <UpdatesView facts={facts} openPath={(path) => void window.aiOffice.openPath(path)} />
       ) : sharedMode ? (
-        <SharedView />
+        <SharedView onJoinLink={joinLink.openBlank} />
       ) : (
         renderGlobalContent()
       )}
+
+      {joinLink.dialog}
 
       {confirmDelete && (
         <Dialog

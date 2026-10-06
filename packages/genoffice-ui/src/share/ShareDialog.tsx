@@ -1,7 +1,7 @@
 import { useEffect, useId, useState, type FormEvent, type ReactElement } from 'react'
 import { Alert, Button } from '../kit'
 import { Dialog } from '../Dialog'
-import type { Role, ShareApi, ShareStatus } from '@genoffice/sync-client'
+import type { RemoteLink, Role, ShareApi, ShareStatus } from '@genoffice/sync-client'
 
 /** Share copy; English is the master and the only selectable language. */
 export const SHARE_STRINGS = {
@@ -42,6 +42,23 @@ export const SHARE_STRINGS = {
   leaveWhy: 'You lose access to the shared file, and your saves stop reaching the others. The copy on this computer stays.',
   leaveConfirm: 'Leave',
   leaveCancel: 'Stay',
+  linkTitle: 'Invite link',
+  linkWhy: 'Anyone signed in to Redrob who has the link can join with this role until it expires. Revoke it to stop that.',
+  linkRole: 'People with the link may',
+  linkDays: 'Works for',
+  linkDay1: '1 day',
+  linkDay7: '7 days',
+  linkDay30: '30 days',
+  linkCreate: 'Create link',
+  linkMade: 'The link is shown only now. Copy it and send it to the people you choose.',
+  linkUrl: 'Invite link',
+  linkCopy: 'Copy',
+  linkCopied: 'Copied',
+  linkItem: '{role} · until {until} · used {n} times',
+  linkItemOne: '{role} · until {until} · used once',
+  linkExpired: '{role} · expired {until}',
+  linkRevoke: 'Revoke the {role} link until {until}',
+  linkRevokeShort: 'Revoke',
 } as const
 
 const fill = (s: string, v: Record<string, string>) => Object.entries(v).reduce((o, [k, x]) => o.split(`{${k}}`).join(x), s)
@@ -79,6 +96,22 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
   const stopWhyId = useId()
   const handWhyId = useId()
   const leaveWhyId = useId()
+  const [links, setLinks] = useState<RemoteLink[]>([])
+  const [linkRole, setLinkRole] = useState<Exclude<Role, 'owner'>>('view')
+  const [linkDays, setLinkDays] = useState(7)
+  const [madeUrl, setMadeUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const linkWhyId = useId()
+  const linkUrlId = useId()
+
+  const ownerShared = !!status && status.available && status.shared && status.role === 'owner'
+  useEffect(() => {
+    if (!open || !ownerShared || !path || typeof api?.shareLinks !== 'function') {
+      setLinks([])
+      return
+    }
+    void api.shareLinks(path).then((r) => setLinks(Array.isArray(r) ? r : []))
+  }, [open, ownerShared, path, api])
 
   useEffect(() => {
     if (!open) return
@@ -86,6 +119,8 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
     setConfirmStop(false)
     setHandTo(null)
     setConfirmLeave(false)
+    setMadeUrl(null)
+    setCopied(false)
     if (!api || !path) {
       setStatus(api ? null : { available: false, reason: 'no-service' })
       return
@@ -146,6 +181,49 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
     setConfirmLeave(false)
     if (r.ok) setStatus(r.status)
     else setError(r.error)
+  }
+
+  const createLink = async () => {
+    if (typeof api?.shareLinkCreate !== 'function' || !path) return
+    setBusy(true)
+    setError(null)
+    setCopied(false)
+    const r = await api.shareLinkCreate(path, linkRole, linkDays)
+    setBusy(false)
+    if (!r.ok) return setError(r.error)
+    setMadeUrl(r.url)
+    // creating the first link shares the file: show its people and links
+    const [s, l] = await Promise.all([api.shareStatus(path), api.shareLinks?.(path)])
+    setStatus(s)
+    if (Array.isArray(l)) setLinks(l)
+  }
+
+  const revokeLink = async (id: string) => {
+    if (typeof api?.shareLinkRevoke !== 'function' || !path) return
+    const r = await api.shareLinkRevoke(path, id)
+    if (!r.ok) return setError(r.error)
+    setLinks((ls) => ls.filter((l) => l.id !== id))
+  }
+
+  const copyLink = async () => {
+    if (!madeUrl) return
+    try {
+      await navigator.clipboard.writeText(madeUrl)
+      setCopied(true)
+    } catch {
+      // the field is selectable; copying by hand still works
+    }
+  }
+
+  const day = (at: string) => {
+    const d = new Date(at)
+    return Number.isNaN(d.getTime()) ? at : d.toLocaleDateString(undefined, { dateStyle: 'medium' })
+  }
+  const linkLine = (l: RemoteLink) => {
+    const role = ROLE_LABEL[l.role]
+    const until = day(l.expiresAt)
+    if (Date.parse(l.expiresAt) <= Date.now()) return fill(SHARE_STRINGS.linkExpired, { role, until })
+    return l.uses === 1 ? fill(SHARE_STRINGS.linkItemOne, { role, until }) : fill(SHARE_STRINGS.linkItem, { role, until, n: String(l.uses) })
   }
 
   const unavailable =
@@ -256,6 +334,60 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
                   </li>
                 ))}
               </ul>
+            </section>
+          )}
+          {isOwner && typeof api?.shareLinkCreate === 'function' && (
+            <section className="doc-share__links" aria-label={SHARE_STRINGS.linkTitle}>
+              <h3 className="doc-share__h">{SHARE_STRINGS.linkTitle}</h3>
+              <p id={linkWhyId} className="doc-share__note">
+                {SHARE_STRINGS.linkWhy}
+              </p>
+              <div className="doc-share__row">
+                <select aria-label={SHARE_STRINGS.linkRole} value={linkRole} onChange={(e) => setLinkRole(e.target.value as Exclude<Role, 'owner'>)}>
+                  <option value="view">{SHARE_STRINGS.roleView}</option>
+                  <option value="comment">{SHARE_STRINGS.roleComment}</option>
+                  <option value="edit">{SHARE_STRINGS.roleEdit}</option>
+                </select>
+                <select aria-label={SHARE_STRINGS.linkDays} value={linkDays} onChange={(e) => setLinkDays(Number(e.target.value))}>
+                  <option value={1}>{SHARE_STRINGS.linkDay1}</option>
+                  <option value={7}>{SHARE_STRINGS.linkDay7}</option>
+                  <option value={30}>{SHARE_STRINGS.linkDay30}</option>
+                </select>
+                <Button size="sm" variant="secondary" aria-describedby={linkWhyId} disabled={busy} onClick={() => void createLink()}>
+                  {SHARE_STRINGS.linkCreate}
+                </Button>
+              </div>
+              {madeUrl && (
+                <div className="doc-share__made">
+                  <label htmlFor={linkUrlId}>{SHARE_STRINGS.linkUrl}</label>
+                  <div className="doc-share__row">
+                    <input id={linkUrlId} value={madeUrl} readOnly spellCheck={false} onFocus={(e) => e.target.select()} />
+                    <Button size="sm" variant="primary" onClick={() => void copyLink()}>
+                      {copied ? SHARE_STRINGS.linkCopied : SHARE_STRINGS.linkCopy}
+                    </Button>
+                  </div>
+                  <p className="doc-share__note" role="status">
+                    {SHARE_STRINGS.linkMade}
+                  </p>
+                </div>
+              )}
+              {links.length > 0 && (
+                <ul className="doc-share__people doc-share__linklist">
+                  {links.map((l) => (
+                    <li key={l.id}>
+                      <span className="doc-share__name">{linkLine(l)}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label={fill(SHARE_STRINGS.linkRevoke, { role: ROLE_LABEL[l.role], until: day(l.expiresAt) })}
+                        onClick={() => void revokeLink(l.id)}
+                      >
+                        {SHARE_STRINGS.linkRevokeShort}
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           )}
           {status.available && status.shared && status.role === 'owner' && typeof api?.shareStop === 'function' && (

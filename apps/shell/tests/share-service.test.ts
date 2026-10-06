@@ -57,6 +57,11 @@ function fakeClient(over: Partial<ShareClient> = {}) {
     }),
     leave: vi.fn(async () => undefined),
     activity: vi.fn(async () => ({ events: [] as RemoteEvent[], more: false })),
+    createLink: vi.fn(async () => ({ link: { id: 'x', role: 'view' as Role, createdAt: '', expiresAt: '', uses: 0 }, token: 'x'.repeat(43) })),
+    links: vi.fn(async () => []),
+    revokeLink: vi.fn(async () => undefined),
+    peekLink: vi.fn(async () => ({ fileName: '', ownerName: '', role: 'view' as Role, expiresAt: '', alreadyHave: null })),
+    redeemLink: vi.fn(async () => ({ file: { id: ID, name: 'Plan.docx' }, role: 'view' as Role, joined: true })),
     ...over,
   }
   return client
@@ -446,6 +451,79 @@ describe('ShareService', () => {
     expect(await service({ signedIn: false }).svc.activity()).toEqual({ error: SHARE_MESSAGES.signedOut })
     const down = fakeClient({ activity: vi.fn(async () => Promise.reject(new SyncError(0, 'x'))) })
     expect(await service({ client: down }).svc.activity()).toEqual({ error: SHARE_MESSAGES.unreachable })
+  })
+
+  it('makes an invite link (sharing the file first), lists and revokes links, owner only', async () => {
+    const TOKEN = 'a'.repeat(43)
+    const link = { id: '22222222-2222-4333-8444-555555555555', role: 'view' as Role, createdAt: 'now', expiresAt: 'later', uses: 0 }
+    const client = fakeClient({
+      createLink: vi.fn(async () => ({ link, token: TOKEN })),
+      links: vi.fn(async () => [link]),
+      revokeLink: vi.fn(async () => undefined),
+    })
+    const { svc, index } = service({ client })
+    const r = await svc.linkCreate(FILE, 'view', 7)
+    expect(r).toEqual({ ok: true, url: `redrob-office://join/${TOKEN}`, link })
+    // the file was shared on the way, this person its owner
+    expect(client.createFile).toHaveBeenCalledWith('Plan.docx')
+    expect(index.map.get(FILE)?.role).toBe('owner')
+    expect(client.createLink).toHaveBeenCalledWith(ID, 'view', 7)
+    expect(await svc.links(FILE)).toEqual([link])
+    expect(await svc.linkRevoke(FILE, link.id)).toEqual({ ok: true })
+    expect(await svc.linkCreate(FILE, 'owner', 7)).toEqual({ ok: false, error: SHARE_MESSAGES.badRole })
+    expect(await svc.linkCreate(FILE, 'view', 31)).toEqual({ ok: false, error: SHARE_MESSAGES.badDays })
+    // an editor neither makes nor sees links
+    const editor = fakeClient({ getFile: vi.fn(async (id: string) => ({ id, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'now', role: 'edit' as Role, latest: null })) })
+    const e = service({ client: editor })
+    e.index.map.set(FILE, { fileId: ID, role: 'edit', version: 1 })
+    expect(await e.svc.linkCreate(FILE, 'view', 7)).toEqual({ ok: false, error: SHARE_MESSAGES.notOwner })
+    expect(await e.svc.links(FILE)).toBeNull()
+  })
+
+  it('checks a pasted link without using it, then joins and opens the file', async () => {
+    const TOKEN = 'b'.repeat(43)
+    const preview = { fileName: 'Plan.docx', ownerName: 'Kim', role: 'edit' as Role, expiresAt: 'later', alreadyHave: null }
+    const client = fakeClient({
+      peekLink: vi.fn(async () => preview),
+      redeemLink: vi.fn(async () => ({ file: { id: ID, name: 'Plan.docx' }, role: 'edit' as Role, joined: true })),
+      listFiles: vi.fn(async () => [{ id: ID, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'now', role: 'edit' as Role }]),
+    })
+    const { svc, openPath, saveDownload } = service({ client })
+    expect(await svc.linkPeek(`  redrob-office://join/${TOKEN}/ `)).toEqual({ ok: true, preview })
+    expect(client.peekLink).toHaveBeenCalledWith(TOKEN)
+    expect(client.redeemLink).not.toHaveBeenCalled()
+    const r = await svc.linkJoin(`redrob-office://join/${TOKEN}`)
+    expect(r).toEqual({ ok: true, path: '/docs/Shared/Plan.docx' })
+    expect(saveDownload).toHaveBeenCalled()
+    expect(openPath).toHaveBeenCalledWith('/docs/Shared/Plan.docx')
+    for (const bad of ['https://evil.example/join/' + TOKEN, 'redrob-office://other/' + TOKEN, 'redrob-office://join/short', 42]) {
+      expect(await svc.linkPeek(bad)).toEqual({ ok: false, error: SHARE_MESSAGES.badLink })
+      expect(await svc.linkJoin(bad)).toEqual({ ok: false, error: SHARE_MESSAGES.badLink })
+    }
+    const gone = fakeClient({ redeemLink: vi.fn(async () => Promise.reject(new SyncError(404, 'This link does not work any more. Ask the owner for a new one.'))) })
+    expect(await service({ client: gone }).svc.linkJoin(TOKEN)).toEqual({ ok: false, error: 'This link does not work any more. Ask the owner for a new one.' })
+  })
+
+  it('a link opened from outside waits for Home and is never joined on its own', async () => {
+    const pushed: string[] = []
+    const client = fakeClient({ redeemLink: vi.fn() })
+    const svc = new ShareService({
+      client,
+      index: fakeIndex(),
+      signedIn: async () => true,
+      readFile: async () => new Uint8Array(),
+      saveDownload: async (n) => n,
+      saveCopyBeside: async (_b, n) => n,
+      openPath: () => undefined,
+      pushJoinRequest: (l) => void pushed.push(l),
+    })
+    const TOKEN = 'c'.repeat(43)
+    expect(svc.requestJoin(`REDROB-OFFICE://join/${TOKEN}`)).toBe(true)
+    expect(pushed).toEqual([`redrob-office://join/${TOKEN}`])
+    expect(svc.takeJoinRequest()).toBe(`redrob-office://join/${TOKEN}`)
+    expect(svc.takeJoinRequest()).toBeNull()
+    expect(svc.requestJoin('redrob-office://settings')).toBe(false)
+    expect(client.redeemLink).not.toHaveBeenCalled()
   })
 
   it('registers every share channel', () => {

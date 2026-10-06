@@ -244,6 +244,13 @@ export interface DesktopApi {
   shareTransfer?: ShareApi['shareTransfer']
   shareLeave?: ShareApi['shareLeave']
   shareActivity?: ShareApi['shareActivity']
+  shareLinkCreate?: ShareApi['shareLinkCreate']
+  shareLinks?: ShareApi['shareLinks']
+  shareLinkRevoke?: ShareApi['shareLinkRevoke']
+  shareLinkPeek?: ShareApi['shareLinkPeek']
+  shareLinkJoin?: ShareApi['shareLinkJoin']
+  onShareJoinRequest?: ShareApi['onShareJoinRequest']
+  shareTakeJoinRequest?: ShareApi['shareTakeJoinRequest']
   /** Live documents through the shell (absent outside the suite) */
   liveJoin?: LiveApi['liveJoin']
   livePull?: LiveApi['livePull']
