@@ -33,6 +33,15 @@ export const SHARE_STRINGS = {
   stopConfirm: 'Stop sharing for everyone',
   stopCancel: 'Keep sharing',
   stopWhy: 'Everyone else loses access, and the shared versions are deleted. Every copy already on someone’s computer stays there, including yours.',
+  makeOwner: 'Make {name} the owner',
+  makeOwnerShort: 'Make owner',
+  makeOwnerWhy: '{name} becomes the owner and decides who has the file. You stay on it as an editor.',
+  makeOwnerConfirm: 'Make {name} the owner',
+  makeOwnerCancel: 'Keep it',
+  leave: 'Leave this file',
+  leaveWhy: 'You lose access to the shared file, and your saves stop reaching the others. The copy on this computer stays.',
+  leaveConfirm: 'Leave',
+  leaveCancel: 'Stay',
 } as const
 
 const fill = (s: string, v: Record<string, string>) => Object.entries(v).reduce((o, [k, x]) => o.split(`{${k}}`).join(x), s)
@@ -62,14 +71,21 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirmStop, setConfirmStop] = useState(false)
+  /** the member about to be made owner, while the owner confirms */
+  const [handTo, setHandTo] = useState<{ sub: string; name: string } | null>(null)
+  const [confirmLeave, setConfirmLeave] = useState(false)
   const accountId = useId()
   const hintId = useId()
   const stopWhyId = useId()
+  const handWhyId = useId()
+  const leaveWhyId = useId()
 
   useEffect(() => {
     if (!open) return
     setError(null)
     setConfirmStop(false)
+    setHandTo(null)
+    setConfirmLeave(false)
     if (!api || !path) {
       setStatus(api ? null : { available: false, reason: 'no-service' })
       return
@@ -106,6 +122,28 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
     const r = await api.shareStop(path)
     setBusy(false)
     setConfirmStop(false)
+    if (r.ok) setStatus(r.status)
+    else setError(r.error)
+  }
+
+  const transfer = async (sub: string) => {
+    if (typeof api?.shareTransfer !== 'function' || !path) return
+    setBusy(true)
+    setError(null)
+    const r = await api.shareTransfer(path, sub)
+    setBusy(false)
+    setHandTo(null)
+    if (r.ok) setStatus(r.status)
+    else setError(r.error)
+  }
+
+  const leave = async () => {
+    if (typeof api?.shareLeave !== 'function' || !path) return
+    setBusy(true)
+    setError(null)
+    const r = await api.shareLeave(path)
+    setBusy(false)
+    setConfirmLeave(false)
     if (r.ok) setStatus(r.status)
     else setError(r.error)
   }
@@ -166,6 +204,17 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
                   <li key={m.sub}>
                     <span className="doc-share__name">{m.name}</span>
                     <span className="doc-share__role">{ROLE_LABEL[m.role]}</span>
+                    {status.role === 'owner' && m.role === 'edit' && typeof api?.shareTransfer === 'function' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label={fill(SHARE_STRINGS.makeOwner, { name: m.name })}
+                        disabled={busy}
+                        onClick={() => setHandTo({ sub: m.sub, name: m.name })}
+                      >
+                        {SHARE_STRINGS.makeOwnerShort}
+                      </Button>
+                    )}
                     {status.role === 'owner' && m.role !== 'owner' && (
                       <Button size="sm" variant="ghost" aria-label={fill(SHARE_STRINGS.remove, { name: m.name })} onClick={() => void remove(m.sub)}>
                         {SHARE_STRINGS.removeShort}
@@ -174,6 +223,21 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
                   </li>
                 ))}
               </ul>
+              {handTo && status.role === 'owner' && (
+                <div className="doc-share__stop">
+                  <p id={handWhyId} className="doc-share__note">
+                    {fill(SHARE_STRINGS.makeOwnerWhy, { name: handTo.name })}
+                  </p>
+                  <div className="doc-share__row">
+                    <Button size="sm" variant="primary" aria-describedby={handWhyId} disabled={busy} onClick={() => void transfer(handTo.sub)}>
+                      {fill(SHARE_STRINGS.makeOwnerConfirm, { name: handTo.name })}
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled={busy} onClick={() => setHandTo(null)}>
+                      {SHARE_STRINGS.makeOwnerCancel}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </section>
           ) : (
             <p className="doc-share__note">{SHARE_STRINGS.notShared}</p>
@@ -213,6 +277,29 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
               ) : (
                 <Button size="sm" variant="secondary" onClick={() => setConfirmStop(true)}>
                   {SHARE_STRINGS.stop}
+                </Button>
+              )}
+            </div>
+          )}
+          {status.available && status.shared && status.role !== 'owner' && typeof api?.shareLeave === 'function' && (
+            <div className="doc-share__stop">
+              {confirmLeave ? (
+                <>
+                  <p id={leaveWhyId} className="doc-share__note">
+                    {SHARE_STRINGS.leaveWhy}
+                  </p>
+                  <div className="doc-share__row">
+                    <Button size="sm" variant="danger" aria-describedby={leaveWhyId} disabled={busy} onClick={() => void leave()}>
+                      {SHARE_STRINGS.leaveConfirm}
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirmLeave(false)}>
+                      {SHARE_STRINGS.leaveCancel}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <Button size="sm" variant="secondary" onClick={() => setConfirmLeave(true)}>
+                  {SHARE_STRINGS.leave}
                 </Button>
               )}
             </div>

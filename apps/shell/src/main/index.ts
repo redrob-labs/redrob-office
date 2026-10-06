@@ -2947,6 +2947,8 @@ function registerHomeIpc(): void {
         return { ok: false, error: err instanceof Error ? err.message : tm('errRenameFailed') }
       }
       replaceRecentFile(path, target)
+      // a shared file stays shared under its new name (and the shared name follows when this person may edit)
+      void shareService.renamed(path, target)
       // project-store's fileMap/chatIdByPath re-key too, so AI chat history follows the file
       projectFileRenamed(path, target)
       // the slides module's own recent list switches to the new path as well (used by the start screen)
@@ -4181,6 +4183,14 @@ const shareService = new ShareService({
     const stem = safe.slice(0, safe.length - ext.length)
     let target = join(dir, safe)
     for (let n = 2; existsSync(target); n++) target = join(dir, `${stem} (${n})${ext}`)
+    await writeFile(target, bytes, { flag: 'wx' })
+    return target
+  },
+  saveCopyBeside: async (beside, name, bytes) => {
+    const ext = extname(name)
+    const stem = name.slice(0, name.length - ext.length)
+    let target = join(dirname(beside), name)
+    for (let n = 2; existsSync(target); n++) target = join(dirname(beside), `${stem} (${n})${ext}`)
     await writeFile(target, bytes, { flag: 'wx' })
     return target
   },

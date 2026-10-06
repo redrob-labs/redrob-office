@@ -11,7 +11,21 @@ export const SHARE_CHANNELS = {
   open: 'share:open',
   commentAdd: 'share:comment-add',
   commentUpdate: 'share:comment-update',
+  versions: 'share:versions',
+  restoreVersion: 'share:restore-version',
+  transfer: 'share:transfer',
+  leave: 'share:leave',
 } as const
+
+/** One version of a shared file, as the version history shows it. */
+export interface SharedVersion {
+  version: number
+  /** when it reached the service */
+  at: string
+  /** who saved it, by name when they still have access */
+  by: string
+  size: number
+}
 
 export type ShareStatus =
   | { available: false; reason: 'no-service' | 'signed-out' | 'unreachable' }
@@ -60,6 +74,14 @@ export interface ShareApi {
   /** a comment written by the service, for someone who may comment but not edit the live file */
   shareCommentAdd(path: string, input: CommentInput): Promise<{ ok: true; id: string } | Failure>
   shareCommentUpdate(path: string, commentId: string, patch: CommentPatch): Promise<{ ok: true } | Failure>
+  /** every version on the service, newest first; null when the file is not shared */
+  shareVersions(path: string): Promise<SharedVersion[] | null | { error: string }>
+  /** opens an earlier shared version as a copy beside the file; nothing open is overwritten */
+  shareRestoreVersion(path: string, version: number): Promise<{ ok: true; path: string } | Failure>
+  /** the owner makes an editor the owner, and becomes an editor */
+  shareTransfer(path: string, account: string): Promise<ShareResult>
+  /** someone who is not the owner leaves the file; their copy stays */
+  shareLeave(path: string): Promise<ShareResult>
 }
 
 export interface ShareIpcLike {
@@ -94,6 +116,15 @@ export function shareBridge(ipc: ShareIpcLike): ShareApi {
       ipc.invoke(SHARE_CHANNELS.commentAdd, path, input).then((r) => r as { ok: true; id: string } | Failure, failed),
     shareCommentUpdate: (path, commentId, patch) =>
       ipc.invoke(SHARE_CHANNELS.commentUpdate, path, commentId, patch).then((r) => r as { ok: true } | Failure, failed),
+    shareVersions: (path) =>
+      ipc.invoke(SHARE_CHANNELS.versions, path).then(
+        (r) => (r === null || Array.isArray(r) ? (r as SharedVersion[] | null) : (r as { error: string })),
+        () => ({ error: NOT_HERE }),
+      ),
+    shareRestoreVersion: (path, version) =>
+      ipc.invoke(SHARE_CHANNELS.restoreVersion, path, version).then((r) => r as { ok: true; path: string } | Failure, failed),
+    shareTransfer: (path, account) => ipc.invoke(SHARE_CHANNELS.transfer, path, account).then((r) => r as ShareResult, failed),
+    shareLeave: (path) => ipc.invoke(SHARE_CHANNELS.leave, path).then((r) => r as ShareResult, failed),
     openShared: (fileId) =>
       ipc.invoke(SHARE_CHANNELS.open, fileId).then((r) => r as { ok: true; path: string } | Failure, failed),
   }

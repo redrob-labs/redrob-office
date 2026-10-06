@@ -24,6 +24,7 @@ export {
   type ShareResult,
   type ShareStatus,
   type SharedByMe,
+  type SharedVersion,
   type SharedWithMe,
 } from './ipc'
 export {

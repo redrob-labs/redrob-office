@@ -38,6 +38,10 @@ function api(status: ShareStatus, over: Partial<ShareApi> = {}): ShareApi {
     shareCommentAdd: vi.fn(async () => ({ ok: true as const, id: '123456789' })),
     shareCommentUpdate: vi.fn(async () => ({ ok: true as const })),
     openShared: vi.fn(async () => ({ ok: false as const, error: 'no' })),
+    shareVersions: vi.fn(async () => null),
+    shareRestoreVersion: vi.fn(async () => ({ ok: false as const, error: 'no' })),
+    shareTransfer: vi.fn(async () => ({ ok: true as const, status })),
+    shareLeave: vi.fn(async () => ({ ok: true as const, status: { available: true as const, shared: false as const } })),
     ...over,
   }
 }
@@ -139,6 +143,49 @@ describe('ShareDialog', () => {
     expect(cancel.getAttribute('aria-label')).toBe('Cancel the invite to mina@example.com')
     await act(async () => cancel.click())
     expect(a.shareRemove).toHaveBeenCalledWith(PATH, 'mina@example.com')
+  })
+
+  it('the owner makes an editor the owner after confirming, and becomes an editor', async () => {
+    const after: ShareStatus = {
+      available: true,
+      shared: true,
+      role: 'edit',
+      members: [{ sub: 'me', name: 'Me', role: 'edit' }, { sub: 'kim', name: 'Kim', role: 'owner' }],
+    }
+    const a = api(
+      { available: true, shared: true, role: 'owner', members: [{ sub: 'me', name: 'Me', role: 'owner' }, { sub: 'kim', name: 'Kim', role: 'edit' }, { sub: 'min', name: 'Min', role: 'view' }] },
+      { shareTransfer: vi.fn(async () => ({ ok: true as const, status: after })) },
+    )
+    await render({ api: a })
+    const byLabel = (label: string) => document.querySelector<HTMLButtonElement>(`.doc-share button[aria-label="${label}"]`)
+    // only an editor can be handed the file
+    expect(byLabel('Make Kim the owner')).not.toBeNull()
+    expect(byLabel('Make Min the owner')).toBeNull()
+    act(() => byLabel('Make Kim the owner')!.click())
+    expect(document.body.textContent).toContain('Kim becomes the owner')
+    expect(a.shareTransfer).not.toHaveBeenCalled()
+    const confirm = [...document.querySelectorAll<HTMLButtonElement>('.doc-share button')].find((b) => b.textContent === 'Make Kim the owner')!
+    await act(async () => confirm.click())
+    await flush()
+    expect(a.shareTransfer).toHaveBeenCalledWith(PATH, 'kim')
+    // now an editor: no invite form, and Leave is offered
+    expect(document.querySelector('.doc-share form')).toBeNull()
+    expect(document.body.textContent).toContain(SHARE_STRINGS.leave)
+  })
+
+  it('someone who is not the owner leaves after confirming; the owner is never offered it', async () => {
+    const a = api({ available: true, shared: true, role: 'view', members: [{ sub: 'kim', name: 'Kim', role: 'owner' }, { sub: 'me', name: 'Me', role: 'view' }] })
+    await render({ api: a })
+    const button = (label: string) => [...document.querySelectorAll<HTMLButtonElement>('.doc-share button')].find((b) => b.textContent === label)
+    act(() => button(SHARE_STRINGS.leave)!.click())
+    expect(document.body.textContent).toContain(SHARE_STRINGS.leaveWhy)
+    await act(async () => button(SHARE_STRINGS.leaveConfirm)!.click())
+    await flush()
+    expect(a.shareLeave).toHaveBeenCalledWith(PATH)
+    expect(document.body.textContent).toContain(SHARE_STRINGS.notShared)
+
+    await render({ api: api({ available: true, shared: true, role: 'owner', members: [{ sub: 'me', name: 'Me', role: 'owner' }] }) })
+    expect(button(SHARE_STRINGS.leave)).toBeUndefined()
   })
 
   it('someone who is not the owner sees the people but cannot invite or remove', async () => {

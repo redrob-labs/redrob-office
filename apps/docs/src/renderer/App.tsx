@@ -4653,6 +4653,7 @@ export function App() {
           path={doc?.filePath ?? null}
           fileName={doc?.filePath ? (doc.filePath.split(/[\\/]/).pop() ?? '') : ''}
           api={window.desktop}
+          share={shareApi}
         />
       )}
       {hasDoc && (

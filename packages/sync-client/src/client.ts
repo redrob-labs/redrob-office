@@ -217,6 +217,37 @@ export class SyncClient {
     return Array.isArray(b.versions) ? (b.versions as RemoteVersion[]) : []
   }
 
+  /** One earlier version's bytes. */
+  async downloadVersion(fileId: string, version: number): Promise<{ bytes: Uint8Array; version: number }> {
+    if (!Number.isInteger(version) || version < 1) throw new SyncError(404, 'That version is not here.')
+    const r = await this.call(`/files/${this.id(fileId)}/versions/${version}/content`)
+    return { bytes: new Uint8Array(await r.arrayBuffer()), version: Number(r.headers.get('x-file-version') ?? version) }
+  }
+
+  /** The name everyone with access sees (anyone who may edit). */
+  async renameFile(fileId: string, name: string): Promise<void> {
+    await this.call(`/files/${this.id(fileId)}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name }),
+    })
+  }
+
+  /** The owner hands the file to an editor and becomes an editor. */
+  async transferOwnership(fileId: string, sub: string): Promise<RemoteMember[]> {
+    const r = await this.call(`/files/${this.id(fileId)}/transfer`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ sub }),
+    })
+    return ((await r.json()) as { members: RemoteMember[] }).members
+  }
+
+  /** Someone who is not the owner takes themself off the file. */
+  async leave(fileId: string): Promise<void> {
+    await this.call(`/files/${this.id(fileId)}/members/me`, { method: 'DELETE' })
+  }
+
   /** Who the service says the token belongs to. */
   async me(): Promise<{ sub: string; name: string }> {
     const b = (await (await this.call('/me')).json()) as { sub?: unknown; name?: unknown }

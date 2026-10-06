@@ -1,13 +1,14 @@
 import { useState, type ReactElement, type ReactNode } from 'react'
 import type { VersionsApi } from '@genoffice/versions'
-import { VersionHistory } from './VersionHistory'
+import { VersionHistory, type SharedVersionsApi } from './VersionHistory'
 import { verT } from './strings'
 
 export interface VersionsButtonProps {
   /** the document's path; null before its first save */
   path: string | null
   fileName: string
-  api: Partial<VersionsApi> | undefined
+  /** the editor's preload: the versions bridge, and the Share bridge when the editor has one */
+  api: Partial<VersionsApi & SharedVersionsApi> | undefined
   /** the editor's own save status, shown as the button's label */
   children: ReactNode
 }
@@ -15,7 +16,7 @@ export interface VersionsButtonProps {
 /**
  * The save status, made into the way into version history: every editor puts its
  * status in this, so every editor has the same history (kept on this computer, newest
- * first, Restore opens a copy beside the file).
+ * first, Restore opens a copy beside the file; a shared file also lists the shared versions).
  */
 export function VersionsButton({ path, fileName, api, children }: VersionsButtonProps): ReactElement {
   const [open, setOpen] = useState(false)
@@ -32,7 +33,7 @@ export function VersionsButton({ path, fileName, api, children }: VersionsButton
       >
         {children}
       </button>
-      <VersionHistory open={open} onClose={() => setOpen(false)} path={path} fileName={fileName} api={api} />
+      <VersionHistory open={open} onClose={() => setOpen(false)} path={path} fileName={fileName} api={api} share={api} />
     </>
   )
 }

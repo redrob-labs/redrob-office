@@ -141,6 +141,42 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       return reply.code(204).send()
     })
 
+    // Rename: the name everyone with access sees. Anyone who may edit may rename,
+    // as they may change the contents; each computer keeps its own file name.
+    api.patch('/files/:id', async (req, reply) => {
+      const got = await fileFor(req, reply, 'write')
+      if (!got) return
+      const name = cleanName(((req.body ?? {}) as Record<string, unknown>).name)
+      if (!name) return reply.code(400).send({ error: 'A file needs a name.' })
+      await deps.repo.renameFile(got.file.id, name)
+      return { ...got.file, name, role: got.role }
+    })
+
+    // Hand the file to an editor: they become the owner and the old owner an
+    // editor, in one step, so there is always exactly one owner.
+    api.post('/files/:id/transfer', async (req, reply) => {
+      const got = await fileFor(req, reply, 'share')
+      if (!got) return
+      const to = cleanName(((req.body ?? {}) as Record<string, unknown>).sub, 120)
+      if (!to || to === req.identity!.sub) return reply.code(400).send({ error: 'Choose someone else to own the file.' })
+      if (!(await deps.repo.transferOwnership(got.file.id, req.identity!.sub, to))) {
+        return reply.code(409).send({ error: 'Only someone who can already edit the file can become its owner.' })
+      }
+      return { members: await deps.repo.members(got.file.id) }
+    })
+
+    // Leave: someone who is not the owner takes themself off the file. Their
+    // copy on their own computer stays.
+    api.delete('/files/:id/members/me', async (req, reply) => {
+      const got = await fileFor(req, reply, 'read')
+      if (!got) return
+      if (got.role === 'owner') {
+        return reply.code(409).send({ error: 'The owner cannot leave. Make someone else the owner first, or stop sharing.' })
+      }
+      await deps.repo.removeMember(got.file.id, req.identity!.sub)
+      return reply.code(204).send()
+    })
+
     api.get('/files/:id/members', async (req, reply) => {
       const got = await fileFor(req, reply, 'read')
       if (!got) return
@@ -274,6 +310,23 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const got = await fileFor(req, reply, 'read')
       if (!got) return
       return { versions: await deps.repo.versions(got.file.id) }
+    })
+
+    // One earlier version's bytes; the desktop opens them as a copy, so nothing
+    // anyone has open is overwritten.
+    api.get('/files/:id/versions/:v/content', async (req, reply) => {
+      const got = await fileFor(req, reply, 'read')
+      if (!got) return
+      const raw = (req.params as { v?: string }).v ?? ''
+      const n = /^\d{1,9}$/.test(raw) ? Number(raw) : 0
+      const v = n > 0 ? await deps.repo.version(got.file.id, n) : null
+      const bytes = v ? await deps.blobs.get(v.blobKey) : null
+      if (!v || !bytes) return reply.code(404).send({ error: 'That version is not here.' })
+      return reply
+        .header('content-type', 'application/octet-stream')
+        .header('x-file-version', String(v.version))
+        .header('x-file-sha256', v.sha256)
+        .send(Buffer.from(bytes))
     })
   })
 

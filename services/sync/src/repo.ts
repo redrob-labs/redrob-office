@@ -55,12 +55,22 @@ export interface Repo {
   /** files this account is a member of, newest first */
   listFiles(sub: string): Promise<Array<FileRecord & { role: Role; memberCount: number }>>
   deleteFile(id: string): Promise<void>
+  /** the name everyone with access sees */
+  renameFile(id: string, name: string): Promise<void>
+  /**
+   * Makes `toSub`, who must already be an editor, the owner; the old owner
+   * becomes an editor. One step: there is always exactly one owner. Returns
+   * false (and changes nothing) when `toSub` is not an editor of the file.
+   */
+  transferOwnership(fileId: string, fromSub: string, toSub: string): Promise<boolean>
   roleOf(fileId: string, sub: string): Promise<Role | null>
   members(fileId: string): Promise<Member[]>
   setMember(m: Member): Promise<void>
   removeMember(fileId: string, sub: string): Promise<void>
   addVersion(v: Omit<FileVersion, 'version' | 'createdAt'>): Promise<FileVersion>
   latestVersion(fileId: string): Promise<FileVersion | null>
+  /** one version by number, or null */
+  version(fileId: string, version: number): Promise<FileVersion | null>
   versions(fileId: string): Promise<FileVersion[]>
   loadDoc(fileId: string): Promise<Uint8Array | null>
   storeDoc(fileId: string, state: Uint8Array): Promise<void>
@@ -121,6 +131,20 @@ export class MemoryRepo implements Repo {
     this.vers.delete(id)
     this.docs.delete(id)
   }
+  async renameFile(id: string, name: string) {
+    const f = this.files.get(id)
+    if (f) this.files.set(id, { ...f, name })
+  }
+  async transferOwnership(fileId: string, fromSub: string, toSub: string) {
+    const f = this.files.get(fileId)
+    const from = this.mem.get(`${fileId}|${fromSub}`)
+    const to = this.mem.get(`${fileId}|${toSub}`)
+    if (!f || from?.role !== 'owner' || to?.role !== 'edit' || fromSub === toSub) return false
+    this.mem.set(`${fileId}|${fromSub}`, { ...from, role: 'edit' })
+    this.mem.set(`${fileId}|${toSub}`, { ...to, role: 'owner' })
+    this.files.set(fileId, { ...f, ownerSub: toSub })
+    return true
+  }
   async roleOf(fileId: string, sub: string) {
     return this.mem.get(`${fileId}|${sub}`)?.role ?? null
   }
@@ -142,6 +166,9 @@ export class MemoryRepo implements Repo {
   async latestVersion(fileId: string) {
     const list = this.vers.get(fileId) ?? []
     return list[list.length - 1] ?? null
+  }
+  async version(fileId: string, version: number) {
+    return (this.vers.get(fileId) ?? []).find((v) => v.version === version) ?? null
   }
   async versions(fileId: string) {
     return [...(this.vers.get(fileId) ?? [])].reverse()

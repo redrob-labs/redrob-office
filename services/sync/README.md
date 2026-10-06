@@ -56,12 +56,13 @@ disclosed.
 | Route | Role needed |
 | --- | --- |
 | `GET /files`, `POST /files` | signed in |
-| `GET /files/:id`, `GET /files/:id/content`, `GET /files/:id/versions`, `GET /files/:id/members` | view |
+| `GET /files/:id`, `GET /files/:id/content`, `GET /files/:id/versions`, `GET /files/:id/versions/:v/content`, `GET /files/:id/members` | view |
+| `DELETE /files/:id/members/me` (leave; not the owner) | view |
 | `GET /me` | signed in |
 | `GET /files/:id/comments` | view |
 | `POST /files/:id/comments` (`{ text, anchor }` or `{ text, parentId }`), `PATCH /files/:id/comments/:cid` (`{ done }` or `{ text }`, own words only) | comment |
-| `PUT /files/:id/content` (`application/octet-stream`) | edit |
-| `PUT /files/:id/members/:sub` (`{ role, name }`), `DELETE /files/:id/members/:sub`, `DELETE /files/:id` | owner |
+| `PUT /files/:id/content` (`application/octet-stream`), `PATCH /files/:id` (`{ name }`) | edit |
+| `PUT /files/:id/members/:sub` (`{ role, name }`), `DELETE /files/:id/members/:sub`, `DELETE /files/:id`, `POST /files/:id/transfer` (`{ sub }`) | owner |
 | `GET /files/:id/invites`, `PUT /files/:id/invites/:email` (`{ role }`), `DELETE /files/:id/invites/:email` | owner |
 
 The roles are `owner`, `edit`, `comment` and `view`. An owner can grant any
@@ -79,6 +80,20 @@ role except owner, and cannot demote or remove themselves.
   comment. The author is the verified person. A new thread carries its range
   as Yjs relative positions (`anchor`). The first view that may edit marks
   the text and drops the anchor.
+- `GET /files/:id/versions/:v/content` returns one earlier version. The
+  desktop opens it as a copy beside the local file, so nothing anyone has
+  open is overwritten.
+- `PATCH /files/:id` renames the file for everyone. The desktop sends it when
+  someone who may edit renames their local copy; each computer keeps its own
+  file name.
+- `POST /files/:id/transfer` makes an editor the owner and the old owner an
+  editor, in one transaction, so a file always has exactly one owner. It
+  answers 409 when the person is not already an editor.
+- `DELETE /files/:id/members/me` takes the caller off the file. The owner
+  gets 409 and must transfer or stop sharing first. Because `me` is a fixed
+  path segment, it always means the caller: an account whose id is
+  literally `me` cannot be removed by the owner through
+  `DELETE /files/:id/members/:sub`.
 
 ## Schema
 

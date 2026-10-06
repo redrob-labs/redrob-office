@@ -44,6 +44,31 @@ describe('SyncClient', () => {
     expect(calls).toEqual([`GET /files/${ID}`, `DELETE /files/${ID}`, `GET /files/${ID}/versions`, 'GET /me'])
   })
 
+  it('downloads an earlier version, renames, transfers ownership and leaves', async () => {
+    const calls: string[] = []
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${url.replace('http://s', '')} ${init?.body ?? ''}`.trim())
+      if (url.endsWith('/versions/3/content')) return new Response(new Uint8Array([7, 8]), { headers: { 'x-file-version': '3' } })
+      if (url.endsWith('/transfer')) return new Response(JSON.stringify({ members: [{ sub: 'jae', name: 'Jae', role: 'owner' }] }))
+      if (init?.method === 'DELETE') return new Response(null, { status: 204 })
+      return new Response(JSON.stringify({}))
+    })
+    const c = new SyncClient({ baseUrl: 'http://s', token: async () => 't', fetch })
+    const v = await c.downloadVersion(ID, 3)
+    expect([...v.bytes]).toEqual([7, 8])
+    expect(v.version).toBe(3)
+    await c.renameFile(ID, 'Plan v2.docx')
+    expect((await c.transferOwnership(ID, 'jae'))[0]!.role).toBe('owner')
+    await c.leave(ID)
+    await expect(c.downloadVersion(ID, 0)).rejects.toMatchObject({ status: 404 })
+    expect(calls).toEqual([
+      `GET /files/${ID}/versions/3/content`,
+      `PATCH /files/${ID} {"name":"Plan v2.docx"}`,
+      `POST /files/${ID}/transfer {"sub":"jae"}`,
+      `DELETE /files/${ID}/members/me`,
+    ])
+  })
+
   it('invites by e-mail, lists and cancels invites', async () => {
     const calls: string[] = []
     const fetch = vi.fn(async (url: string, init?: RequestInit) => {

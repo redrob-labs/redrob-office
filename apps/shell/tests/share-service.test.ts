@@ -45,6 +45,17 @@ function fakeClient(over: Partial<ShareClient> = {}) {
     }),
     addComment: vi.fn(async (_id: string, input: { text: string }) => ({ id: '123456789', author: 'Me', text: input.text, date: 'now' })),
     updateComment: vi.fn(async (_id: string, cid: string) => ({ id: cid, author: 'Me', text: 'x', date: 'now' })),
+    versions: vi.fn(async () => [
+      { version: 2, sha256: 'b', size: 5, createdBy: 'jae', createdAt: '2026-10-06T09:14:00.000Z' },
+      { version: 1, sha256: 'a', size: 3, createdBy: 'gone', createdAt: '2026-10-05T08:00:00.000Z' },
+    ]),
+    downloadVersion: vi.fn(async (_id: string, version: number) => ({ bytes: new Uint8Array([version]), version })),
+    renameFile: vi.fn(async () => undefined),
+    transferOwnership: vi.fn(async (_id: string, sub: string) => {
+      members = members.map((m) => (m.sub === sub ? { ...m, role: 'owner' as Role } : m.role === 'owner' ? { ...m, role: 'edit' as Role } : m))
+      return members
+    }),
+    leave: vi.fn(async () => undefined),
     ...over,
   }
   return client
@@ -54,15 +65,19 @@ function service(opts: { client?: ShareClient | null; signedIn?: boolean; index?
   const index = opts.index ?? fakeIndex()
   const openPath = vi.fn()
   const saveDownload = vi.fn(async (name: string) => `/docs/Shared/${name}`)
+  const saveCopyBeside = vi.fn(async (_beside: string, name: string, _bytes: Uint8Array) => `/work/${name}`)
+  const log = vi.fn()
   const svc = new ShareService({
     client: opts.client === undefined ? fakeClient() : opts.client,
     index,
     signedIn: async () => opts.signedIn ?? true,
     readFile: async () => new Uint8Array([9, 9]),
     saveDownload,
+    saveCopyBeside,
     openPath,
+    log,
   })
-  return { svc, index, openPath, saveDownload }
+  return { svc, index, openPath, saveDownload, saveCopyBeside, log }
 }
 
 describe('share rules', () => {
@@ -313,6 +328,91 @@ describe('ShareService', () => {
     expect(await svc.commentAdd(FILE, { text: 'x' })).toEqual({ ok: false, error: SHARE_MESSAGES.badComment })
     expect(await svc.commentAdd(FILE, { text: ' ', parentId: '1' })).toEqual({ ok: false, error: SHARE_MESSAGES.badComment })
     expect(await svc.commentAdd(FILE.replace('Plan', 'Other'), { text: 'x', parentId: '1' })).toEqual({ ok: false, error: SHARE_MESSAGES.gone })
+  })
+
+  it('lists shared versions by name and opens an earlier one as a copy beside the file', async () => {
+    const client = fakeClient({ members: vi.fn(async () => [{ sub: 'jae', name: 'Jae Gardner', role: 'edit' as Role }]) })
+    const { svc, index, saveCopyBeside, openPath } = service({ client })
+    expect(await svc.versions(FILE)).toBeNull()
+    index.map.set(FILE, { fileId: ID, role: 'view', version: 2 })
+    expect(await svc.versions(FILE)).toEqual([
+      { version: 2, at: '2026-10-06T09:14:00.000Z', by: 'Jae Gardner', size: 5 },
+      { version: 1, at: '2026-10-05T08:00:00.000Z', by: 'gone', size: 3 },
+    ])
+    const r = await svc.restoreVersion(FILE, 1)
+    expect(r).toEqual({ ok: true, path: '/work/Plan (version 2026-10-05 08.00).docx' })
+    expect(saveCopyBeside).toHaveBeenCalledWith(FILE, 'Plan (version 2026-10-05 08.00).docx', new Uint8Array([1]))
+    expect(openPath).toHaveBeenCalledWith('/work/Plan (version 2026-10-05 08.00).docx')
+    // the shared file and its index entry are untouched
+    expect(index.map.get(FILE)).toEqual({ fileId: ID, role: 'view', version: 2 })
+    expect(await svc.restoreVersion(FILE, 9)).toEqual({ ok: false, error: SHARE_MESSAGES.noVersion })
+    expect(await svc.restoreVersion(FILE, '1')).toEqual({ ok: false, error: SHARE_MESSAGES.noVersion })
+  })
+
+  it('forgets a file whose versions the service no longer shows this person', async () => {
+    const client = fakeClient({ versions: vi.fn(async () => Promise.reject(new SyncError(404, 'No such file.'))) })
+    const { svc, index } = service({ client })
+    index.map.set(FILE, { fileId: ID, role: 'edit', version: 1 })
+    expect(await svc.versions(FILE)).toBeNull()
+    expect(index.map.has(FILE)).toBe(false)
+  })
+
+  it('hands ownership to an editor and keeps editing', async () => {
+    const client = fakeClient()
+    const { svc, index } = service({ client })
+    index.map.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    await svc.invite(FILE, 'jae', 'edit')
+    const r = await svc.transfer(FILE, 'jae')
+    expect(r.ok).toBe(true)
+    expect(client.transferOwnership).toHaveBeenCalledWith(ID, 'jae')
+    expect(index.map.get(FILE)!.role).toBe('edit')
+    if (r.ok && r.status.available && r.status.shared) expect(r.status.role).toBe('edit')
+    // not an editor yet
+    const refusing = fakeClient({ transferOwnership: vi.fn(async () => Promise.reject(new SyncError(409, 'x'))) })
+    const s2 = service({ client: refusing })
+    s2.index.map.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    expect(await s2.svc.transfer(FILE, 'min')).toEqual({ ok: false, error: SHARE_MESSAGES.notEditor })
+  })
+
+  it('only the owner transfers; anyone else may leave, and the owner may not', async () => {
+    const editorClient = fakeClient({ getFile: vi.fn(async (id: string) => ({ id, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'now', role: 'edit' as Role, latest: null })) })
+    const { svc, index } = service({ client: editorClient })
+    index.map.set(FILE, { fileId: ID, role: 'edit', version: 1 })
+    expect(await svc.transfer(FILE, 'min')).toEqual({ ok: false, error: SHARE_MESSAGES.notOwner })
+    expect(await svc.leave(FILE)).toEqual({ ok: true, status: { available: true, shared: false } })
+    expect(editorClient.leave).toHaveBeenCalledWith(ID)
+    expect(index.map.has(FILE)).toBe(false)
+
+    const owner = service()
+    owner.index.map.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    expect(await owner.svc.leave(FILE)).toEqual({ ok: false, error: SHARE_MESSAGES.ownerStays })
+    expect(owner.index.map.has(FILE)).toBe(true)
+  })
+
+  it('a local rename moves the index entry and renames the shared file for an editor', async () => {
+    const client = fakeClient()
+    const { svc, index } = service({ client })
+    const to = FILE.replace('Plan', 'Plan v2')
+    index.map.set(FILE, { fileId: ID, role: 'edit', version: 3 })
+    await svc.renamed(FILE, to)
+    expect(index.map.has(FILE)).toBe(false)
+    expect(index.map.get(to)).toEqual({ fileId: ID, role: 'edit', version: 3 })
+    expect(client.renameFile).toHaveBeenCalledWith(ID, 'Plan v2.docx')
+    // a viewer's rename stays on their computer
+    const viewer = fakeClient()
+    const v = service({ client: viewer })
+    v.index.map.set(FILE, { fileId: ID, role: 'view', version: 3 })
+    await v.svc.renamed(FILE, to)
+    expect(v.index.map.get(to)?.role).toBe('view')
+    expect(viewer.renameFile).not.toHaveBeenCalled()
+    // an unshared file is left alone, and a failed rename is only logged
+    const failing = fakeClient({ renameFile: vi.fn(async () => Promise.reject(new SyncError(0, 'down'))) })
+    const f = service({ client: failing })
+    await f.svc.renamed(FILE, to)
+    expect(failing.renameFile).not.toHaveBeenCalled()
+    f.index.map.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    await expect(f.svc.renamed(FILE, to)).resolves.toBeUndefined()
+    expect(f.log).toHaveBeenCalled()
   })
 
   it('registers every share channel', () => {

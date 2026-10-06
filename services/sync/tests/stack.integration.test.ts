@@ -53,4 +53,37 @@ describe('the sync stack', () => {
     expect(got.status).toBe(200)
     expect(await got.text()).toBe('docx bytes')
   })
+
+  it('serves an earlier version, renames, transfers ownership in Postgres, and lets a member leave', async () => {
+    const felix = await token('felix', 'Felix Kim')
+    const jae = await token('jae', 'Jae Gardner')
+    const min = await token('min', 'Min Park')
+    const h = (t: string, extra: Record<string, string> = {}) => ({ authorization: `Bearer ${t}`, ...extra })
+    const json = (t: string) => h(t, { 'content-type': 'application/json' })
+    const { id } = (await (await fetch(`${BASE}/files`, { method: 'POST', headers: json(felix), body: JSON.stringify({ name: 'Plan.docx' }) })).json()) as { id: string }
+    for (const body of ['one', 'two']) {
+      await fetch(`${BASE}/files/${id}/content`, { method: 'PUT', headers: h(felix, { 'content-type': 'application/octet-stream' }), body: new TextEncoder().encode(body) })
+    }
+    await fetch(`${BASE}/files/${id}/members/jae`, { method: 'PUT', headers: json(felix), body: JSON.stringify({ role: 'edit', name: 'Jae Gardner' }) })
+    await fetch(`${BASE}/files/${id}/members/min`, { method: 'PUT', headers: json(felix), body: JSON.stringify({ role: 'view', name: 'Min Park' }) })
+
+    const v1 = await fetch(`${BASE}/files/${id}/versions/1/content`, { headers: h(min) })
+    expect(v1.status).toBe(200)
+    expect(await v1.text()).toBe('one')
+
+    expect((await fetch(`${BASE}/files/${id}`, { method: 'PATCH', headers: json(jae), body: JSON.stringify({ name: 'Plan v2.docx' }) })).status).toBe(200)
+    const detail = (await (await fetch(`${BASE}/files/${id}`, { headers: h(min) })).json()) as { name: string }
+    expect(detail.name).toBe('Plan v2.docx')
+
+    expect((await fetch(`${BASE}/files/${id}/transfer`, { method: 'POST', headers: json(felix), body: JSON.stringify({ sub: 'min' }) })).status).toBe(409)
+    const moved = await fetch(`${BASE}/files/${id}/transfer`, { method: 'POST', headers: json(felix), body: JSON.stringify({ sub: 'jae' }) })
+    expect(moved.status).toBe(200)
+    const roles = Object.fromEntries(((await moved.json()) as { members: Array<{ sub: string; role: string }> }).members.map((m) => [m.sub, m.role]))
+    expect(roles).toEqual({ felix: 'edit', jae: 'owner', min: 'view' })
+    expect(((await (await fetch(`${BASE}/files/${id}`, { headers: h(jae) })).json()) as { ownerSub: string }).ownerSub).toBe('jae')
+
+    expect((await fetch(`${BASE}/files/${id}/members/me`, { method: 'DELETE', headers: h(jae) })).status).toBe(409)
+    expect((await fetch(`${BASE}/files/${id}/members/me`, { method: 'DELETE', headers: h(min) })).status).toBe(204)
+    expect((await fetch(`${BASE}/files/${id}`, { headers: h(min) })).status).toBe(404)
+  })
 })

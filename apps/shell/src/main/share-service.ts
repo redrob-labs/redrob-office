@@ -19,9 +19,11 @@ import {
   type ShareResult,
   type ShareStatus,
   type SharedByMe,
+  type SharedVersion,
   type SharedWithMe,
 } from '@genoffice/sync-client'
 import type { SharedLink } from '@genoffice/sync-client/node'
+import { restoredCopyName } from '@genoffice/versions'
 
 /** the parts of SyncClient this service uses */
 export interface ShareClient {
@@ -39,6 +41,11 @@ export interface ShareClient {
   invites(fileId: string): Promise<RemoteInvite[]>
   invite(fileId: string, email: string, role: Exclude<Role, 'owner'>): Promise<RemoteInvite[]>
   cancelInvite(fileId: string, email: string): Promise<void>
+  versions(fileId: string): Promise<RemoteVersion[]>
+  downloadVersion(fileId: string, version: number): Promise<{ bytes: Uint8Array; version: number }>
+  renameFile(fileId: string, name: string): Promise<void>
+  transferOwnership(fileId: string, sub: string): Promise<RemoteMember[]>
+  leave(fileId: string): Promise<void>
 }
 
 /** the parts of SharedIndex this service uses */
@@ -57,6 +64,11 @@ export interface ShareServiceDeps {
   readFile: (path: string) => Promise<Uint8Array>
   /** writes a downloaded shared file somewhere new and returns its path */
   saveDownload: (name: string, bytes: Uint8Array) => Promise<string>
+  /**
+   * writes bytes as a new file named `name` in the folder of `beside` (never
+   * over an existing file) and returns its path
+   */
+  saveCopyBeside: (beside: string, name: string, bytes: Uint8Array) => Promise<string>
   openPath: (path: string) => void | Promise<void>
   /** a new version of a shared file reached the service (live rooms rebase on it) */
   uploaded?: (fileId: string, version: number) => void
@@ -80,6 +92,9 @@ export const SHARE_MESSAGES = {
   notOwner: 'Only the owner can change who has this file.',
   gone: 'That file is no longer shared with you.',
   badComment: 'That comment could not be sent.',
+  noVersion: 'That version is no longer on the service.',
+  ownerStays: 'The owner cannot leave. Make someone else the owner first, or stop sharing.',
+  notEditor: 'Only someone who can already edit the file can become its owner.',
 } as const
 
 /** An absolute path to a saved document of a kind the suite edits. */
@@ -369,7 +384,114 @@ export class ShareService {
     }
   }
 
+  /** The link behind a shared path, or why there is none (null: the file is simply not shared). */
+  private async linkFor(path: unknown): Promise<SharedLink | null | { error: string }> {
+    const why = await this.unavailable()
+    if (why) return { error: this.reasonMessage(why) }
+    if (!isShareablePath(path)) return null
+    return this.deps.index.get(path)
+  }
+
+  /** Every version on the service, newest first, named by who saved it. */
+  async versions(path: unknown): Promise<SharedVersion[] | null | { error: string }> {
+    const link = await this.linkFor(path)
+    if (!link || 'error' in link) return link
+    const client = this.deps.client!
+    try {
+      const [versions, members] = await Promise.all([client.versions(link.fileId), client.members(link.fileId)])
+      const names = new Map(members.map((m) => [m.sub, m.name]))
+      return versions.map((v) => ({ version: v.version, at: v.createdAt, by: names.get(v.createdBy) ?? v.createdBy, size: v.size }))
+    } catch (e) {
+      if (e instanceof SyncError && e.status === 404) {
+        await this.deps.index.remove(path as string)
+        return null
+      }
+      return { error: messageOf(e) }
+    }
+  }
+
+  /**
+   * Opens an earlier shared version as a copy beside the local file, named as a
+   * restored local version is. The file itself, and every live view of it, is
+   * left alone; the copy is not shared.
+   */
+  async restoreVersion(path: unknown, version: unknown): Promise<{ ok: true; path: string } | { ok: false; error: string }> {
+    const link = await this.linkFor(path)
+    if (!link) return { ok: false, error: SHARE_MESSAGES.gone }
+    if ('error' in link) return { ok: false, error: link.error }
+    if (typeof version !== 'number' || !Number.isInteger(version) || version < 1) return { ok: false, error: SHARE_MESSAGES.noVersion }
+    const client = this.deps.client!
+    try {
+      const v = (await client.versions(link.fileId)).find((x) => x.version === version)
+      if (!v) return { ok: false, error: SHARE_MESSAGES.noVersion }
+      const { bytes } = await client.downloadVersion(link.fileId, version)
+      const copy = await this.deps.saveCopyBeside(path as string, restoredCopyName(basename(path as string), v.createdAt), bytes)
+      await this.deps.openPath(copy)
+      return { ok: true, path: copy }
+    } catch (e) {
+      if (e instanceof SyncError && e.status === 404) return { ok: false, error: SHARE_MESSAGES.noVersion }
+      return { ok: false, error: messageOf(e) }
+    }
+  }
+
+  /** The owner makes an editor the owner and becomes an editor. */
+  async transfer(path: unknown, account: unknown): Promise<ShareResult> {
+    const link = await this.linkFor(path)
+    if (!link) return fail(SHARE_MESSAGES.gone)
+    if ('error' in link) return fail(link.error)
+    const who = cleanAccount(account)
+    if (!who) return fail(SHARE_MESSAGES.badAccount)
+    try {
+      if ((await this.refreshRole(path as string, link)) !== 'owner') return fail(SHARE_MESSAGES.notOwner)
+      await this.deps.client!.transferOwnership(link.fileId, who)
+      await this.deps.index.set(path as string, { ...link, role: 'edit' })
+      return { ok: true, status: await this.sharedStatus(link.fileId, 'edit') }
+    } catch (e) {
+      if (e instanceof SyncError && e.status === 409) return fail(SHARE_MESSAGES.notEditor)
+      return fail(messageOf(e))
+    }
+  }
+
+  /** Someone who is not the owner leaves the file; the copy on this computer stays. */
+  async leave(path: unknown): Promise<ShareResult> {
+    const link = await this.linkFor(path)
+    if (!link) return { ok: true, status: { available: true, shared: false } }
+    if ('error' in link) return fail(link.error)
+    try {
+      if ((await this.refreshRole(path as string, link)) === 'owner') return fail(SHARE_MESSAGES.ownerStays)
+      await this.deps.client!.leave(link.fileId)
+    } catch (e) {
+      // already off the file: the outcome they asked for
+      if (!(e instanceof SyncError && e.status === 404)) return fail(messageOf(e))
+    }
+    await this.deps.index.remove(path as string)
+    return { ok: true, status: { available: true, shared: false } }
+  }
+
+  /**
+   * A shared file was renamed on this computer: the index follows it, and when
+   * this person may edit, the shared name follows too. Never throws.
+   */
+  async renamed(from: string, to: string): Promise<void> {
+    try {
+      const link = await this.deps.index.get(from)
+      if (!link) return
+      await this.deps.index.set(to, link)
+      // the index is keyed case-insensitively: a rename that only changes case is the same entry
+      if (from.toLowerCase() !== to.toLowerCase()) await this.deps.index.remove(from)
+      const client = this.deps.client
+      if (!client || (link.role !== 'owner' && link.role !== 'edit') || !(await this.deps.signedIn())) return
+      await client.renameFile(link.fileId, basename(to))
+    } catch (e) {
+      this.deps.log?.(`[share] rename did not reach the service: ${messageOf(e)}`)
+    }
+  }
+
   register(ipc: IpcLike): void {
+    ipc.handle(SHARE_CHANNELS.versions, (_e, path) => this.versions(path))
+    ipc.handle(SHARE_CHANNELS.restoreVersion, (_e, path, version) => this.restoreVersion(path, version))
+    ipc.handle(SHARE_CHANNELS.transfer, (_e, path, account) => this.transfer(path, account))
+    ipc.handle(SHARE_CHANNELS.leave, (_e, path) => this.leave(path))
     ipc.handle(SHARE_CHANNELS.status, (_e, path) => this.status(path))
     ipc.handle(SHARE_CHANNELS.invite, (_e, path, account, role) => this.invite(path, account, role))
     ipc.handle(SHARE_CHANNELS.remove, (_e, path, account) => this.remove(path, account))

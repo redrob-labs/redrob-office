@@ -170,6 +170,36 @@ export class PgRepo implements Repo {
   async deleteFile(id: string) {
     await this.pool.query('DELETE FROM files WHERE id = $1', [id])
   }
+  async renameFile(id: string, name: string) {
+    await this.pool.query('UPDATE files SET name = $2 WHERE id = $1', [id, name])
+  }
+  async transferOwnership(fileId: string, fromSub: string, toSub: string) {
+    if (fromSub === toSub) return false
+    const client = await this.pool.connect()
+    try {
+      await client.query('BEGIN')
+      // lock both rows so two transfers (or a role change) cannot interleave
+      const { rows } = await client.query(
+        'SELECT sub, role FROM members WHERE file_id = $1 AND sub = ANY($2::text[]) FOR UPDATE',
+        [fileId, [fromSub, toSub]],
+      )
+      const role = (s: string) => rows.find((r) => r.sub === s)?.role
+      if (role(fromSub) !== 'owner' || role(toSub) !== 'edit') {
+        await client.query('ROLLBACK')
+        return false
+      }
+      await client.query("UPDATE members SET role = 'edit' WHERE file_id = $1 AND sub = $2", [fileId, fromSub])
+      await client.query("UPDATE members SET role = 'owner' WHERE file_id = $1 AND sub = $2", [fileId, toSub])
+      await client.query('UPDATE files SET owner_sub = $2 WHERE id = $1', [fileId, toSub])
+      await client.query('COMMIT')
+      return true
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    } finally {
+      client.release()
+    }
+  }
   async roleOf(fileId: string, sub: string) {
     const { rows } = await this.pool.query('SELECT role FROM members WHERE file_id = $1 AND sub = $2', [fileId, sub])
     return rows[0] ? (rows[0].role as Role) : null
@@ -198,6 +228,10 @@ export class PgRepo implements Repo {
   }
   async latestVersion(fileId: string) {
     const { rows } = await this.pool.query('SELECT * FROM file_versions WHERE file_id = $1 ORDER BY version DESC LIMIT 1', [fileId])
+    return rows[0] ? version(rows[0]) : null
+  }
+  async version(fileId: string, v: number) {
+    const { rows } = await this.pool.query('SELECT * FROM file_versions WHERE file_id = $1 AND version = $2', [fileId, v])
     return rows[0] ? version(rows[0]) : null
   }
   async versions(fileId: string) {

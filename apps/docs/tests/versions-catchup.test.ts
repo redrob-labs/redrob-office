@@ -104,6 +104,47 @@ describe('VersionHistory', () => {
     expect(document.body.textContent).toContain('A copy of this version opens beside the current one.')
   })
 
+  it('a shared file has a Shared tab: everyone’s versions, and an earlier one opens as a copy', async () => {
+    const api = { listVersions: vi.fn(async () => versions) }
+    const share = {
+      shareVersions: vi.fn(async () => [
+        { version: 3, at: '2026-10-06T09:00:00Z', by: 'Jae Gardner', size: 9 },
+        { version: 2, at: '2026-10-05T09:00:00Z', by: 'Felix Kim', size: 8 },
+      ]),
+      shareRestoreVersion: vi.fn(async () => ({ ok: true as const, path: 'C:\\Docs\\NDA (version 2026-10-05 09.00).docx' })),
+    }
+    act(() => root.render(createElement(VersionHistory, { open: true, onClose: vi.fn(), path: 'C:\\Docs\\NDA.docx', fileName: 'NDA.docx', api, share })))
+    await flush()
+    const tab = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find((t) => t.textContent === 'Shared')!
+    expect(tab).toBeDefined()
+    act(() => tab.click())
+    const rows = [...document.querySelectorAll('.doc-versions__list li')]
+    expect(rows).toHaveLength(2)
+    expect(rows[0]!.textContent).toContain('Version 3')
+    expect(rows[0]!.textContent).toContain('Jae Gardner')
+    expect(rows[0]!.textContent).toContain('Current')
+    // naming is for versions on this computer only
+    expect(document.querySelector('.doc-versions__name')).toBeNull()
+    const open = rows[1]!.querySelector('button')!
+    expect(open.getAttribute('aria-label')).toBe('Open shared version 2 as a copy')
+    await act(async () => open.click())
+    await flush()
+    expect(share.shareRestoreVersion).toHaveBeenCalledWith('C:\\Docs\\NDA.docx', 2)
+    expect(document.body.textContent).toContain('A copy of that shared version opens beside your file.')
+  })
+
+  it('a file that is not shared has no Shared tab', async () => {
+    const share = { shareVersions: vi.fn(async () => null), shareRestoreVersion: vi.fn() }
+    act(() =>
+      root.render(
+        createElement(VersionHistory, { open: true, onClose: vi.fn(), path: 'C:\\Docs\\NDA.docx', fileName: 'NDA.docx', api: { listVersions: vi.fn(async () => versions) }, share }),
+      ),
+    )
+    await flush()
+    expect(share.shareVersions).toHaveBeenCalledWith('C:\\Docs\\NDA.docx')
+    expect(document.querySelector('[role="tab"]')).toBeNull()
+  })
+
   it('says how to start the history before the first save', async () => {
     act(() => root.render(createElement(VersionHistory, { open: true, onClose: vi.fn(), path: null, fileName: '', api: undefined })))
     await flush()
