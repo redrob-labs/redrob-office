@@ -52,23 +52,21 @@ export {
   runDeviceConnect,
   startDeviceAuthorization,
 } from './device-connect'
-export { chatForProvider } from './chat'
 export {
   REDROB_CONSOLE_API_BASE,
   REDROB_ENGINE_MODEL,
   REDROB_ENGINE_ROUTE,
   hasDegradedSteering,
-  redrobEngineChat,
-  redrobEngineStream,
   redrobEngineUnavailableMessage,
 } from './redrob-engine'
-export type { RedrobEngineAuth } from './redrob-engine'
 export { setRescueFetch } from './fetch'
 export { AiAuthError, isAiAuthError } from './auth-error'
 export { isAiNetworkError } from './network-error'
 export { isAiOverloadedError } from './overload-error'
-export { AiCreditsError, sseLines, streamForProvider } from './stream'
-export type { StreamCallbacks } from './stream'
+// Running a turn needs Node built-ins: main processes import it from '@genoffice/ai-provider/node'.
+export { AiCreditsError, sseLines } from './protocols/shared'
+export type { StreamCallbacks } from './protocols/shared'
+export { DEFAULT_ENGINE_MODEL, engineModelOf } from './engine-model'
 export {
   AI_CHAT_RESPONSE_TIMEOUT_MS,
   AI_CONNECT_TIMEOUT_MS,

@@ -156,6 +156,9 @@ export async function startFakeEngine(): Promise<FakeEngine> {
       const ac = new AbortController()
       sessionAbort.set(sessionId, ac)
       const messageID = `msg_${++seq}`
+      // the real engine announces the user message and then the assistant message
+      emit('message.updated', { sessionID: sessionId, info: { id: `msg_${++seq}`, role: 'user', sessionID: sessionId } })
+      emit('message.updated', { sessionID: sessionId, info: { id: messageID, role: 'assistant', sessionID: sessionId } })
       const b = (body ?? {}) as Record<string, unknown>
       const tools = b.tools as Record<string, boolean> | undefined
       const ctx: FakePromptContext = {

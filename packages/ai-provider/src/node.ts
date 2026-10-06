@@ -1,0 +1,24 @@
+/**
+ * Main-process entry of @genoffice/ai-provider.
+ *
+ * Everything here runs a turn on the bundled engine and hosts Office's tools on a
+ * loopback MCP server, so it needs `node:http` and `node:crypto`. Renderers import the
+ * package root, which stays free of Node built-ins.
+ */
+export { chatForProvider } from './chat'
+export { streamForProvider } from './stream'
+export {
+  DEFAULT_ENGINE_MODEL,
+  ENGINE_RUN_IDLE_MS,
+  EngineUnavailableError,
+  activeEngineRuns,
+  engineChat,
+  engineErrorOf,
+  engineStream,
+  engineUnavailableMessage,
+  setEngineTargetProvider,
+  transcriptParts,
+} from './engine-turn'
+export type { EngineTargetProvider } from './engine-turn'
+export { startMcpHost } from './mcp-host'
+export type { McpHost, McpToolResult } from './mcp-host'

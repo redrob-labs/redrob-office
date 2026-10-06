@@ -59,20 +59,19 @@ import {
   isAiAuthError,
   isAiNetworkError,
   isAiOverloadedError,
-  chatForProvider,
   defaultAiSettings,
   activeProvider,
   cloudToolsEnabled,
   maxOutputTokensOf,
   resolveAiSettings,
   setRescueFetch,
-  streamForProvider,
   type AiProviderId,
   type AiSettings,
   type AiStreamChunk,
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import { chatForProvider, streamForProvider } from '@genoffice/ai-provider/node'
 import { csvToXlsxBuffer, decodeCsvBuffer, sheetCsvToXlsxBuffer } from '../gateway/csv-import'
 import {
   ensureGenofficeLogin,

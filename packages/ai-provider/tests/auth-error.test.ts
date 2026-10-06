@@ -9,9 +9,9 @@
 //
 // So the classification, not the button, is the thing worth locking: a timeout
 // and a server error must NOT classify as auth, and a 401/403 must.
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { AiAuthError, AiTimeoutError, isAiAuthError, redrobEngineStream } from '../src/index'
-import type { StreamCallbacks } from '../src/index'
+import { describe, expect, it } from 'vitest'
+import { engineErrorOf } from '../src/engine-turn'
+import { AiAuthError, AiTimeoutError, isAiAuthError } from '../src/index'
 
 describe('isAiAuthError', () => {
   it('is true for rejected credentials', () => {
@@ -43,61 +43,25 @@ describe('isAiAuthError', () => {
   })
 })
 
-// The classifier above is only useful if the engine actually raises it, so drive
-// the real entry point: these are what fail if the throw site regresses.
-describe('redrobEngineStream auth classification', () => {
-  const AUTH = { apiKey: 'rk-test-key' }
-  const CB: StreamCallbacks = {
-    onDelta: () => {},
-    onToolCall: () => {},
-    signal: new AbortController().signal,
-  }
-  const MESSAGES = [{ role: 'user' as const, text: 'hi' }]
-
-  function run(): Promise<void> {
-    return redrobEngineStream(AUTH, 'system', MESSAGES, [], 256, CB)
-  }
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-    vi.restoreAllMocks()
+// The classifier above is only useful if the engine bridge actually raises it, so drive
+// the mapping from the engine's message error: these fail if the throw site regresses.
+describe('engine message errors', () => {
+  it('classifies a provider sign-in failure as auth', () => {
+    expect(isAiAuthError(engineErrorOf({ name: 'ProviderAuthError', data: { message: 'bad key' } }))).toBe(true)
   })
 
-  function respondWith(status: number, body: string): void {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(body, { status, headers: { 'content-type': 'application/json' } }),
-      ),
-    )
-  }
-
-  it('classifies a 401 from the console as auth', async () => {
-    respondWith(401, '{"error":{"code":"invalid_api_key"}}')
-    await expect(run()).rejects.toSatisfy(isAiAuthError)
+  it('classifies a 401 or 403 from the provider as auth', () => {
+    expect(isAiAuthError(engineErrorOf({ name: 'APIError', data: { message: 'no', statusCode: 401 } }))).toBe(true)
+    expect(isAiAuthError(engineErrorOf({ name: 'APIError', data: { message: 'no', statusCode: 403 } }))).toBe(true)
   })
 
-  it('classifies a 403 from the console as auth', async () => {
-    respondWith(403, '{"error":{"code":"forbidden"}}')
-    await expect(run()).rejects.toSatisfy(isAiAuthError)
+  it('does NOT classify a 500 or 429 as auth', () => {
+    expect(isAiAuthError(engineErrorOf({ name: 'APIError', data: { message: 'boom', statusCode: 500 } }))).toBe(false)
+    expect(isAiAuthError(engineErrorOf({ name: 'APIError', data: { message: 'slow', statusCode: 429 } }))).toBe(false)
   })
 
-  it('does NOT classify a 500 as auth', async () => {
-    respondWith(500, 'upstream exploded')
-    await expect(run()).rejects.toSatisfy((e: unknown) => !isAiAuthError(e))
-  })
-
-  it('does NOT classify a 429 as auth', async () => {
-    respondWith(429, 'slow down')
-    await expect(run()).rejects.toSatisfy((e: unknown) => !isAiAuthError(e))
-  })
-
-  it('classifies a missing key as auth without making a request', async () => {
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
-    await expect(
-      redrobEngineStream({ apiKey: '  ' }, 'system', MESSAGES, [], 256, CB),
-    ).rejects.toSatisfy(isAiAuthError)
-    expect(fetchMock).not.toHaveBeenCalled()
+  it('treats an aborted message as no error', () => {
+    expect(engineErrorOf({ name: 'MessageAbortedError', data: {} })).toBeNull()
+    expect(engineErrorOf(undefined)).toBeNull()
   })
 })

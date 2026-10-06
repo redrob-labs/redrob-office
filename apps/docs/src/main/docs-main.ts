@@ -54,14 +54,12 @@ import {
   isAiAuthError,
   isAiNetworkError,
   isAiOverloadedError,
-  chatForProvider,
   defaultAiSettings,
   activeProvider,
   cloudToolsEnabled,
   resolveAiSettings,
   maxOutputTokensOf,
   setRescueFetch,
-  streamForProvider,
   type AiChatRequest,
   type AiSettings,
   type AiStreamChunk,
@@ -69,6 +67,7 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import { chatForProvider, streamForProvider } from '@genoffice/ai-provider/node'
 import {
   ensureGenofficeLogin,
   gskApiKey,

@@ -28,13 +28,13 @@ import {
   maxOutputTokensOf,
   resolveAiSettings,
   setRescueFetch,
-  streamForProvider,
   type AiSettings,
   type AiStreamChunk,
   type AiStreamRequest,
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import { streamForProvider } from '@genoffice/ai-provider/node'
 import { fetchRemoteImage } from '@genoffice/electron-utils'
 import {
   webSearch,

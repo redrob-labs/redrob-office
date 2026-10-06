@@ -1,15 +1,13 @@
-import { redrobEngineChat } from './redrob-engine'
+import { engineModelOf } from './engine-model'
+import { engineChat } from './engine-turn'
 import type { AiChatResponse, AiProviderConfig, AiProviderId } from './types'
 
 /**
- * One-shot (non-streaming) chat, routed to the single Redrob Console engine.
+ * One-shot (non-streaming) chat, run on the bundled Redrob engine.
  *
- * The `provider` argument is ignored: Redrob Office has one engine and no
- * provider selection or BYOK. `config.apiKey` carries the Redrob Console key the
- * app resolved from its AI settings (the only accepted key is one issued at
- * https://console.redrob.ai); an empty key yields the honest-failure notice
- * rather than a keyless request. The base URL and model are fixed by policy and
- * cannot be overridden here.
+ * The engine holds the credential and makes the call; Office names the model. The
+ * `provider` argument and any key or base URL in `config` are ignored. A failure is
+ * returned as `{ ok: false }` with the engine's reason, never answered some other way.
  */
 export async function chatForProvider(
   _provider: AiProviderId,
@@ -18,5 +16,10 @@ export async function chatForProvider(
   user: string,
   signal?: AbortSignal,
 ): Promise<AiChatResponse> {
-  return redrobEngineChat({ apiKey: config.apiKey }, system, user, signal)
+  try {
+    const text = await engineChat(engineModelOf(config), system, user, signal)
+    return { ok: true, content: text }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) }
+  }
 }

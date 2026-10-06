@@ -72,7 +72,8 @@ import {
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
 import { registerRedrobConnectIpc } from './redrob-connect'
-import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
+import { getEngineTarget, registerEngineIpc, teardownEngine } from './engine-lifecycle'
+import { setEngineTargetProvider } from '@genoffice/ai-provider/node'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -4490,6 +4491,8 @@ registerHomeIpc()
 registerRedrobConnectIpc()
 registerAskPromptIpc()
 registerEngineIpc()
+// every AI turn in every editor runs on the engine; the editor mains find it here
+setEngineTargetProvider(() => getEngineTarget())
 registerTabsIpc()
 registerDroppedFilesIpc()
 
