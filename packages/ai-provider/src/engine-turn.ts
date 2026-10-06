@@ -38,6 +38,7 @@ import { DEFAULT_ENGINE_MODEL } from './engine-model'
 import type { EngineTarget } from './engine-integration'
 import { startMcpHost, type McpHost, type McpToolResult } from './mcp-host'
 import type { StreamCallbacks } from './protocols/shared'
+import type { AiTurnUsage } from './types'
 
 export { DEFAULT_ENGINE_MODEL } from './engine-model'
 
@@ -175,6 +176,15 @@ export function engineErrorOf(error: unknown): Error | null {
   return new Error(engineUnavailableMessage(message.slice(0, 300)))
 }
 
+/** The engine's message info → what the turn used. The model it names wins over the one asked for. */
+export function usageOf(info: unknown, asked: string): AiTurnUsage | null {
+  if (!info || typeof info !== 'object') return null
+  const i = info as { providerID?: unknown; modelID?: unknown; cost?: unknown; tokens?: { input?: unknown; output?: unknown } }
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
+  const model = typeof i.providerID === 'string' && typeof i.modelID === 'string' ? `${i.providerID}/${i.modelID}` : asked
+  return { model, inputTokens: num(i.tokens?.input), outputTokens: num(i.tokens?.output), cost: num(i.cost) }
+}
+
 // ---- runs ----
 
 type HeldCall = { call: AgentToolCall; release: (result: McpToolResult) => void }
@@ -219,8 +229,11 @@ class EngineRun {
   }
 
   /** Begin: tools as MCP, a session, the message. Resolves when the first turn yields. */
+  private model = DEFAULT_ENGINE_MODEL
+
   async start(model: string, system: string, messages: AgentMessage[], tools: AgentToolDef[], cb: StreamCallbacks): Promise<void> {
     runs.set(this.id, this)
+    this.model = model || DEFAULT_ENGINE_MODEL
     const yielded = this.attach(cb)
     try {
       if (tools.length) {
@@ -409,6 +422,8 @@ class EngineRun {
     const finish = typeof info.finish === 'string' ? info.finish : 'stop'
     void this.teardown()
     if (w) {
+      const usage = usageOf(result.info, this.model)
+      if (usage) w.cb.onUsage?.(usage)
       this.waiter = null
       w.cb.onStopReason?.(finish === 'length' ? 'max_tokens' : finish === 'tool-calls' ? 'stop' : finish)
       w.resolve()

@@ -356,6 +356,17 @@ function AiModelPane({ t }: { t: TFunc }) {
           touch()
         }}
       />
+      <div className="set-field">
+        <div className="set-field-text">
+          <div className="set-field-stack">
+            <div className="set-field-label">{t('setAiUsage')}</div>
+            <div className="set-field-desc">{t('setAiUsageDesc')}</div>
+          </div>
+        </div>
+        <Button className="set-btn" variant="secondary" size="sm" onClick={() => void window.aiOffice.openConsoleUsage?.()}>
+          {t('setViewUsage')}
+        </Button>
+      </div>
       <AiProvidersPane t={t} />
       <div className="set-pane-footer">
         <AiStatusPill

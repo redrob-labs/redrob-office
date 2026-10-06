@@ -73,6 +73,21 @@ describe('engineStream', () => {
     expect(prompt.tools).toEqual({ '*': false })
   })
 
+  it('reports the model the engine ran and what the turn used', async () => {
+    engine.onPrompt(async () => ({
+      info: { role: 'assistant', finish: 'stop', providerID: 'redrob', modelID: 'claude-sonnet-5', cost: 0.0123, tokens: { input: 120, output: 30 } },
+      parts: [],
+    }))
+    let usage: unknown
+    await engineStream('redrob/claude-sonnet-5', 's', [{ role: 'user', text: 'x' }], [], {
+      signal: new AbortController().signal,
+      onDelta: () => undefined,
+      onToolCall: () => undefined,
+      onUsage: (u) => (usage = u),
+    })
+    expect(usage).toEqual({ model: 'redrob/claude-sonnet-5', inputTokens: 120, outputTokens: 30, cost: 0.0123 })
+  })
+
   it('bridges a tool call into agent-core and resumes the same engine run with the result', async () => {
     let toolAnswer = ''
     engine.onPrompt(async (ctx) => {

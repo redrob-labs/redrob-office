@@ -517,6 +517,8 @@ const GENTEAM_URL = GITHUB_REPO_URL
 // Genspark credit-usage page opened from the account menu's credits row.
 // Kept main-side so the renderer never supplies the URL.
 const CREDIT_USAGE_URL = 'https://www.genspark.ai/credit-usage'
+/** Redrob Console's usage page. Fixed here so the renderer never supplies a URL. */
+const REDROB_CONSOLE_USAGE_URL = 'https://console.redrob.ai/usage'
 
 // ---- "star us on GitHub" prompt (see star-prompt.ts for the rules) ----
 
@@ -3375,6 +3377,13 @@ function registerHomeIpc(): void {
 
   ipcMain.handle(HOME_CHANNELS.openGenTeam, () => {
     shell.openExternal(GENTEAM_URL).catch(() => {
+      // no browser handler available; nothing actionable for the user here
+    })
+  })
+
+  // Usage and credit for Redrob are Console's; Office holds no key to ask for them itself.
+  ipcMain.handle(HOME_CHANNELS.openConsoleUsage, () => {
+    shell.openExternal(REDROB_CONSOLE_USAGE_URL).catch(() => {
       // no browser handler available; nothing actionable for the user here
     })
   })

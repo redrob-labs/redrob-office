@@ -40,6 +40,8 @@ export interface StreamCallbacks {
   onStopReason?: (reason: string) => void
   /** bytes arrived on the wire (fires per network chunk, including SSE pings; used for keepalive) */
   onActivity?: () => void
+  /** the model that ran and what the request used, once the engine finishes it */
+  onUsage?: (usage: import('../types').AiTurnUsage) => void
   signal: AbortSignal
 }
 

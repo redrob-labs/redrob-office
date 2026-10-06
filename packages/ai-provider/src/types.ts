@@ -105,4 +105,15 @@ export interface AiStreamChunk {
   errorCode?: 'timeout' | 'credits' | 'network' | 'overloaded' | 'auth'
   /** normalized stop reason carried on 'done' ('max_tokens' = output cut off by the token limit) */
   stopReason?: string
+  /** carried on 'done': the `provider/model` the engine ran and what the turn used */
+  usage?: AiTurnUsage
+}
+
+/** What one engine turn used, as the engine reports it. */
+export interface AiTurnUsage {
+  model: string
+  inputTokens: number
+  outputTokens: number
+  /** in USD as the engine prices it; 0 when it does not know */
+  cost: number
 }

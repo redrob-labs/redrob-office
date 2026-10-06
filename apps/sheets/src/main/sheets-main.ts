@@ -67,6 +67,7 @@ import {
   setRescueFetch,
   type AiProviderId,
   type AiSettings,
+  type AiTurnUsage,
   type AiStreamChunk,
   type GenSparkAccountStatus,
   type LegacyAiSettings,
@@ -3118,6 +3119,7 @@ export function registerSheetsAiIpc(): void {
     }
     try {
       let stopReason: string | undefined
+      let usage: AiTurnUsage | undefined
       await streamForProvider(provider, config, system, messages, tools, maxTokens, {
         signal: controller.signal,
         onDelta: (text) => send({ requestId, type: 'delta', text }),
@@ -3127,14 +3129,20 @@ export function registerSheetsAiIpc(): void {
         onStopReason: (reason) => {
           stopReason = reason
         },
+        onUsage: (u) => {
+          usage = u
+        },
       })
       // sheets tsconfig sets exactOptionalPropertyTypes: an explicit
       // `stopReason: undefined` is not assignable to AiStreamChunk, so only
       // include the property when a reason was actually reported.
       send(
-        stopReason === undefined
-          ? { requestId, type: 'done' }
-          : { requestId, type: 'done', stopReason },
+        {
+          requestId,
+          type: 'done',
+          ...(stopReason === undefined ? {} : { stopReason }),
+          ...(usage ? { usage } : {}),
+        },
       )
     } catch (err) {
       if (controller.signal.aborted) {

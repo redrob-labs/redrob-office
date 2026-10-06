@@ -154,6 +154,8 @@ export interface HomeApi {
   openGenTeam(): Promise<void>
   /** open the Genspark credit-usage page in the default browser */
   openCreditUsage(): Promise<void>
+  /** open Redrob Console's usage page (fixed URL, chosen in main) */
+  openConsoleUsage(): Promise<void>
   /** open the public GitHub repository in the default browser */
   openGitHubRepo(): Promise<void>
   /** current stargazer count of the public repo (null while offline / rate-limited) */
@@ -406,6 +408,7 @@ export const HOME_CHANNELS = {
   pickDefaultSaveDir: 'home:pick-default-save-dir',
   openGenTeam: 'home:open-genteam',
   openCreditUsage: 'home:open-credit-usage',
+  openConsoleUsage: 'home:open-console-usage',
   openGitHubRepo: 'home:open-github-repo',
   githubStars: 'home:github-stars',
   starPromptShouldShow: 'home:star-prompt-should-show',

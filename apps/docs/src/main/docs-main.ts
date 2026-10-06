@@ -62,6 +62,7 @@ import {
   setRescueFetch,
   type AiChatRequest,
   type AiSettings,
+  type AiTurnUsage,
   type AiStreamChunk,
   type AiStreamRequest,
   type GenSparkAccountStatus,
@@ -2703,6 +2704,7 @@ export function registerAiIpc(): void {
     }
     try {
       let stopReason: string | undefined
+      let usage: AiTurnUsage | undefined
       await streamForProvider(provider, config, system, messages, tools, maxTokens, {
         signal: controller.signal,
         onDelta: (text) => send({ requestId, type: 'delta', text }),
@@ -2712,8 +2714,11 @@ export function registerAiIpc(): void {
         onStopReason: (reason) => {
           stopReason = reason
         },
+        onUsage: (u) => {
+          usage = u
+        },
       })
-      send({ requestId, type: 'done', stopReason })
+      send({ requestId, type: 'done', stopReason, ...(usage ? { usage } : {}) })
     } catch (err) {
       if (controller.signal.aborted) {
         send({ requestId, type: 'done' })

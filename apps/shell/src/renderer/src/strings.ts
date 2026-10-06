@@ -350,6 +350,8 @@ export const strings = {
     setAiKeyConnected: 'Connected as {label}. Paste a new key to replace it.',
     setAiModelDesc: 'Redrob Auto picks a model for each request. Models come from the Redrob engine.',
     setAiModelImages: 'reads images',
+    setAiUsage: 'Usage',
+    setAiUsageDesc: 'Requests, tokens and credit for Redrob are shown in Redrob Console.',
     setAiModelMissing: 'not offered by the engine now',
     setAiProvidersDesc:
       'Connect your own provider. The Redrob engine keeps the key or sign-in; Office never stores it. A provider brings models only if this engine version offers them.',
