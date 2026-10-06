@@ -83,6 +83,7 @@ import {
   setRedrobSignIn,
 } from '@genoffice/ai-provider/node'
 import { setHostedSearch } from '@genoffice/ai-search'
+import { onDocumentSaved } from '@genoffice/electron-utils/document-saved'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -148,7 +149,6 @@ import {
   setDocsShellWindow,
   setDocsFileSavedHook,
   setDocsFileOpenedHook,
-  setDocSavedHook,
   setSessionPathResolver,
   defaultSaveDir,
   uniquePathIn,
@@ -4200,7 +4200,8 @@ new LiveService({
   log: (m) => console.warn(m),
 }).register(ipcMain)
 
-setDocSavedHook((path, bytes, auto) => {
+// Every editor's save, from one bus: version history and shared-file upload for all formats.
+onDocumentSaved(({ path, bytes, auto }) => {
   void shareService.saved(path, bytes)
   if (!isHistoryPath(path)) return
   let by = 'This computer'

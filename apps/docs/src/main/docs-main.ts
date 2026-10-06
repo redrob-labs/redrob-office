@@ -37,6 +37,7 @@ import {
   toggleDevToolsItem,
   windowMenuTemplate,
 } from '@genoffice/electron-utils'
+import { emitDocumentSaved } from '@genoffice/electron-utils/document-saved'
 import { configureMetricsCache, familyVerticalMetrics } from '@genoffice/font-metrics'
 import { createI18n, getUiLang, normalizeLang, setUiLang, toSelectableLang } from '@genoffice/i18n'
 import { ProjectStore } from '@genoffice/project-store'
@@ -1967,13 +1968,6 @@ let runtime: DocsRuntimeConfig = {
   rendererFile: join(__dirname, '../renderer/index.html'),
 }
 
-/** Called after every successful save with the bytes written; the shell keeps version history with it. */
-let docSavedHook: ((path: string, bytes: Uint8Array, auto: boolean) => void) | null = null
-
-export function setDocSavedHook(fn: ((path: string, bytes: Uint8Array, auto: boolean) => void) | null): void {
-  docSavedHook = fn
-}
-
 export function configureDocsRuntime(config: DocsRuntimeConfig): void {
   runtime = config
   // shell mode: the shell queues argv files itself (per-tab pendingWindowOpens);
@@ -3206,11 +3200,7 @@ export function registerDocsIpc(): void {
         clearRecoveryCopy(filePath)
         pushRecent(filePath)
         // version history: the bytes as written (still encrypted when the file is)
-        try {
-          docSavedHook?.(filePath, bytes, auto === true)
-        } catch {
-          // history is best-effort; the save itself succeeded
-        }
+        emitDocumentSaved({ path: filePath, bytes, auto: auto === true, editor: 'docs' })
         return { ok: true, passwordIntentPending }
       } catch (err) {
         return { ok: false, error: String(err) }
