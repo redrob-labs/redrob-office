@@ -168,6 +168,9 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
@@ -244,6 +247,9 @@ importers:
       '@genoffice/project-store':
         specifier: workspace:*
         version: link:../../packages/project-store
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
@@ -337,6 +343,9 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
@@ -418,6 +427,9 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
@@ -703,6 +715,9 @@ importers:
       '@genoffice/project-store':
         specifier: workspace:*
         version: link:../../packages/project-store
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
@@ -920,6 +935,9 @@ importers:
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../pptx-render
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../sync-client
       '@genoffice/versions':
         specifier: workspace:*
         version: link:../versions

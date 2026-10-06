@@ -16,6 +16,7 @@
   "devDependencies": {
     "@genoffice/electron-utils": "workspace:*",
     "@genoffice/i18n": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
     "@genoffice/versions": "workspace:*",
     "@rhwp/editor": "workspace:*",

@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, type FormEvent, type ReactElement } from 'react'
-import { Alert, Button, Dialog } from '@genoffice/ui'
+import { Alert, Button } from '../kit'
+import { Dialog } from '../Dialog'
 import type { Role, ShareApi, ShareStatus } from '@genoffice/sync-client'
 
 /** Share copy; English is the master and the only selectable language. */
@@ -23,6 +24,7 @@ export const SHARE_STRINGS = {
   signedOut: 'Sign in to Redrob in Settings, Sharing, to share files.',
   unreachable: 'The sync service could not be reached. Nothing changed.',
   unsaved: 'Save the file first; then it can be shared.',
+  fileOnlyNote: 'Shared as a file: each save becomes a new version for everyone. Editing together live is not available for this kind of file.',
   privateNote: "Redrob's proposals that nobody has kept are never shared.",
 } as const
 
@@ -41,10 +43,12 @@ export interface ShareDialogProps {
   path: string | null
   fileName: string
   api: ShareApi | undefined
+  /** an extra line under the people list, e.g. that this kind of file has no live editing */
+  note?: string | undefined
 }
 
 /** Share: people and what each may do. The owner gives edit, comment or view. */
-export function ShareDialog({ open, onClose, path, fileName, api }: ShareDialogProps): ReactElement | null {
+export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareDialogProps): ReactElement | null {
   const [status, setStatus] = useState<ShareStatus | null>(null)
   const [account, setAccount] = useState('')
   const [role, setRole] = useState<Exclude<Role, 'owner'>>('edit')
@@ -153,6 +157,7 @@ export function ShareDialog({ open, onClose, path, fileName, api }: ShareDialogP
           ) : (
             <p className="doc-share__note">{SHARE_STRINGS.notShared}</p>
           )}
+          {note && <p className="doc-share__note">{note}</p>}
           <p className="doc-share__note">{SHARE_STRINGS.privateNote}</p>
         </>
       ) : null}

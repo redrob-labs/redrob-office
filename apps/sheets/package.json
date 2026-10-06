@@ -32,6 +32,7 @@
     "@genoffice/facts": "workspace:*",
     "@genoffice/file-parse": "workspace:*",
     "@genoffice/i18n": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
     "@genoffice/versions": "workspace:*",
     "@univerjs/core": "^0.25.1",

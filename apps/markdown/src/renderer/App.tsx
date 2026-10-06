@@ -1,3 +1,5 @@
+import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import '@genoffice/ui/share.css'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -616,6 +618,7 @@ export default function App() {
           onRedo={() => editor?.chain().focus().redo().run()}
           canUndo={!!editor?.can().undo()}
           canRedo={!!editor?.can().redo()}
+          share={<ShareButton path={filePath} fileName={fileName ?? t('mdUntitled')} api={window.markdownApi} note={SHARE_STRINGS.fileOnlyNote} />}
           saveStatus={
           <VersionsButton path={filePath} fileName={fileName ?? t('mdUntitled')} api={window.markdownApi}>
             {statusText ? <span className={`md-save-status status-${saveState}`}>{statusText}</span> : undefined}

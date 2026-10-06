@@ -1,3 +1,4 @@
+import { shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
@@ -91,6 +92,8 @@ import type {
 const api: SlidesApi = {
   // shell-owned version history and last visits (apps/shell/src/main/versions-service.ts)
   ...versionsBridge(ipcRenderer),
+  // shell-owned sharing (apps/shell/src/main/share-service.ts)
+  ...shareBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
   // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite

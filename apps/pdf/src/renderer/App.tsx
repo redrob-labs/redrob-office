@@ -1,3 +1,5 @@
+import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import '@genoffice/ui/share.css'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -5717,6 +5719,7 @@ export default function App() {
         onRedo={redoStack.length > 0 ? redo : undefined}
         canUndo={undoStack.length > 0}
         canRedo={redoStack.length > 0}
+        share={<ShareButton path={filePath} fileName={filePath ? (filePath.split(/[\\/]/).pop() ?? filePath) : t('pdfUntitled')} api={window.pdfApi} note={SHARE_STRINGS.fileOnlyNote} />}
         saveStatus={
           <VersionsButton path={filePath} fileName={filePath ? (filePath.split(/[\\/]/).pop() ?? filePath) : t('pdfUntitled')} api={window.pdfApi}>
             {<span className="pdf-save-status">

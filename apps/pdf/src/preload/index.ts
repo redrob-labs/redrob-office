@@ -1,3 +1,4 @@
+import { shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import { contextBridge, ipcRenderer } from 'electron'
@@ -10,6 +11,8 @@ import type { PdfApi, UiTheme } from '../shared/ipc'
 const api: PdfApi = {
   // shell-owned version history and last visits (apps/shell/src/main/versions-service.ts)
   ...versionsBridge(ipcRenderer),
+  // shell-owned sharing (apps/shell/src/main/share-service.ts)
+  ...shareBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   consumePending: () => ipcRenderer.invoke(PDF_CHANNELS.consumePending),
   readFile: (path) => ipcRenderer.invoke(PDF_CHANNELS.readFile, path),

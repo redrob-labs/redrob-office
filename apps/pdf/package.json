@@ -21,6 +21,7 @@
     "@genoffice/electron-utils": "workspace:*",
     "@genoffice/font-metrics": "workspace:*",
     "@genoffice/i18n": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
     "@genoffice/versions": "workspace:*",
     "@types/react": "^19.2.14",

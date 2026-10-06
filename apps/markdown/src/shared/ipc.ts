@@ -1,3 +1,4 @@
+import type { ShareApi } from '@genoffice/sync-client'
 import type { VersionsApi } from '@genoffice/versions'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { Lang } from '@genoffice/i18n'
@@ -107,7 +108,7 @@ export interface ImageData {
 }
 
 /** API exposed by preload to the renderer (window.markdownApi) */
-export interface MarkdownApi extends OfficePrefsApi, Partial<VersionsApi> {
+export interface MarkdownApi extends OfficePrefsApi, Partial<VersionsApi>, Partial<ShareApi> {
   /** Take the md path pending for this view (queued at tab creation); null = new untitled document */
   consumePending(): Promise<string | null>
   /** Read the file as UTF-8 text. Only paths granted to this view are allowed */

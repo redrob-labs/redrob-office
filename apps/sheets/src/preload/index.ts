@@ -1,3 +1,4 @@
+import { shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
@@ -58,6 +59,8 @@ import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 const desktopApi: DesktopApi = {
   // shell-owned version history and last visits (apps/shell/src/main/versions-service.ts)
   ...versionsBridge(ipcRenderer),
+  // shell-owned sharing (apps/shell/src/main/share-service.ts)
+  ...shareBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   // shell-owned linked figures (apps/shell/src/main/facts-service.ts)
   ...factsBridge(ipcRenderer),

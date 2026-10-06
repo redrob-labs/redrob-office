@@ -1,3 +1,5 @@
+import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import '@genoffice/ui/share.css'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -2843,6 +2845,7 @@ export function App() {
         onRedo={hasDoc ? () => void redo() : undefined}
         canUndo={histState.canUndo}
         canRedo={histState.canRedo}
+        share={<ShareButton path={path} fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')} api={window.slidesApi} note={SHARE_STRINGS.fileOnlyNote} />}
         saveStatus={
           <VersionsButton path={path} fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')} api={window.slidesApi}>
             {hasDoc ? (

@@ -1,3 +1,4 @@
+import type { ShareApi } from '@genoffice/sync-client'
 import type { VersionsApi } from '@genoffice/versions'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 /**
@@ -1162,7 +1163,7 @@ export type MenuCommand =
   | 'copy'
   | 'paste'
 
-export interface SlidesApi extends Partial<OfficePrefsApi>, Partial<VersionsApi> {
+export interface SlidesApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi> {
   /** a request typed into Home's composer, for the Redrob panel to answer (one-shot) */
   consumeAskPrompt?: () => Promise<string | null>
   /** current UI language (persisted by the shell in app-settings.json) */

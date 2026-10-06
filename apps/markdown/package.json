@@ -21,6 +21,7 @@
     "@genoffice/electron-utils": "workspace:*",
     "@genoffice/i18n": "workspace:*",
     "@genoffice/project-store": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
     "@tiptap/core": "3.29.2",
     "@tiptap/extension-code-block": "3.29.2",

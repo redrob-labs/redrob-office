@@ -163,3 +163,6 @@ export { VersionHistory, type VersionHistoryProps } from './versions/VersionHist
 export { VersionsButton, type VersionsButtonProps } from './versions/VersionsButton'
 export { CatchUp, catchUpLine, type CatchUpProps } from './versions/CatchUp'
 export { verT, type VerStringKey } from './versions/strings'
+// sharing, shared by every editor (styles: '@genoffice/ui/share.css')
+export { SHARE_STRINGS, ShareDialog, type ShareDialogProps } from './share/ShareDialog'
+export { ShareButton, type ShareButtonProps } from './share/ShareButton'

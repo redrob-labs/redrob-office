@@ -1,3 +1,5 @@
+import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import '@genoffice/ui/share.css'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
 import { useEffect, useRef, useState } from 'react'
@@ -532,6 +534,7 @@ export function ExcelShell({
         onRedo={canRedo ? onRedo : undefined}
         canUndo={canUndo}
         canRedo={canRedo}
+        share={<ShareButton path={filePath ?? null} fileName={fileName ?? t('appUntitledXlsx')} api={window.desktopApi} note={SHARE_STRINGS.fileOnlyNote} />}
         saveStatus={
           <VersionsButton path={filePath ?? null} fileName={fileName ?? t('appUntitledXlsx')} api={window.desktopApi}>
             {<span className="sheets-save-status">{canSave ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}</span>}

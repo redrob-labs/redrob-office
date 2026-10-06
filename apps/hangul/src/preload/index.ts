@@ -1,3 +1,4 @@
+import { shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
@@ -9,6 +10,8 @@ import type { HangulApi, SaveMode, UiTheme } from '../shared/ipc'
 const api: HangulApi = {
   // shell-owned version history and last visits (apps/shell/src/main/versions-service.ts)
   ...versionsBridge(ipcRenderer),
+  // shell-owned sharing (apps/shell/src/main/share-service.ts)
+  ...shareBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   studioOrigin: () => ipcRenderer.invoke(HANGUL_CHANNELS.studioOrigin),
   consumePending: () => ipcRenderer.invoke(HANGUL_CHANNELS.consumePending),

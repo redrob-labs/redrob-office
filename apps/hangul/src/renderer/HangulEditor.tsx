@@ -1,3 +1,5 @@
+import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import '@genoffice/ui/share.css'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
 /**
@@ -268,6 +270,7 @@ export function HangulEditor(): React.JSX.Element {
       <EditorFrame
         strings={frameText.frame}
         fileName={fileName}
+        share={<ShareButton path={docPath} fileName={fileName} api={window.hangulApi} note={SHARE_STRINGS.fileOnlyNote} />}
         saveStatus={
           <VersionsButton path={docPath} fileName={fileName} api={window.hangulApi}>
             {<span className="hangul-status" role="status" aria-live="polite">

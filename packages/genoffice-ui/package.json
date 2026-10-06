@@ -14,7 +14,8 @@
     "./color-picker.css": "./src/color-picker.css",
     "./dropdown.css": "./src/dropdown.css",
     "./fonts/*": "./src/fonts/*",
-    "./versions.css": "./src/versions/versions.css"
+    "./versions.css": "./src/versions/versions.css",
+    "./share.css": "./src/share/share.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -36,7 +37,8 @@
   "dependencies": {
     "@genoffice/i18n": "workspace:*",
     "@genoffice/pptx-render": "workspace:*",
-    "@redrob-labs/ui": "1.0.2",
-    "@genoffice/versions": "workspace:*"
+    "@genoffice/sync-client": "workspace:*",
+    "@genoffice/versions": "workspace:*",
+    "@redrob-labs/ui": "1.0.2"
   }
 }
