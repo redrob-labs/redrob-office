@@ -1,40 +1,28 @@
 /**
  * @vitest-environment jsdom
  *
- * Credential-destination honesty: the ported Genspark cloud-account surfaces
- * (sign-in, cloud projects, credits) authenticate against / link to
- * genspark.ai. Presenting them under a "Redrob" label would misrepresent where
- * a user's credentials go, so they are hidden behind CLOUD_ACCOUNT_ENABLED
- * (false) until a real Redrob auth/cloud backend exists.
- *
- * These tests prove:
- *  1. the flag is off for release;
- *  2. Settings shows no account/sign-in nav or login control, and rendering it
- *     triggers no login/account call;
- *  3. the Home render sites that reach genspark.ai (sign-in mount query, cloud
- *     nav, cloud-projects view) are guarded by the flag in source.
+ * Credential-destination honesty. The Genspark cloud-account surfaces the port came
+ * with (sign-in, cloud projects, credits) authenticated against genspark.ai; they are
+ * removed, not just hidden. These tests prove:
+ *  1. Settings shows no account/sign-in nav or login control;
+ *  2. no Office source reaches genspark.ai or the gsk CLI any more.
+ * The Sharing pane wording ("Account", "Sign in") is guarded here too: sharing
+ * identity is Redrob's, and the retired cloud account must not seem to come back.
  */
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { Root } from 'react-dom/client'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { HomeApi } from '../src/shared/home-api'
 import { LocaleProvider } from '../src/renderer/src/locale'
 import { SettingsModal } from '../src/renderer/src/SettingsModal'
-import { CLOUD_ACCOUNT_ENABLED } from '../src/renderer/src/cloud-account-flag'
 
 const REPO_ROOT = resolve(__dirname, '..', '..', '..')
 const src = (rel: string) => readFileSync(resolve(REPO_ROOT, rel), 'utf8')
 
-describe('cloud-account flag', () => {
-  it('is disabled for release (no Redrob auth/cloud backend wired yet)', () => {
-    expect(CLOUD_ACCOUNT_ENABLED).toBe(false)
-  })
-})
-
-describe('Settings has no Genspark sign-in / credits surface when disabled', () => {
+describe('Settings has no cloud-account sign-in or credits surface', () => {
   const actEnv = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
   actEnv.IS_REACT_ACT_ENVIRONMENT = true
   let host: HTMLDivElement
@@ -50,12 +38,7 @@ describe('Settings has no Genspark sign-in / credits surface when disabled', () 
     host.remove()
   })
 
-  it('renders no Account nav item and no sign-in button, and never calls login/account IPC', async () => {
-    const onLogin = vi.fn()
-    const onLogout = vi.fn()
-    const accountStatus = vi.fn(async () => ({ loggedIn: false }))
-    const accountLogin = vi.fn(async () => true)
-    const openCreditUsage = vi.fn(async () => {})
+  it('renders no Account nav item and no Genspark sign-in or credits control', async () => {
     window.aiOffice = {
       getTheme: async () => 'system',
       getDefaultSaveDir: async () => '',
@@ -64,82 +47,66 @@ describe('Settings has no Genspark sign-in / credits surface when disabled', () 
       getUpdateChannel: async () => 'stable',
       getAppVersion: async () => '1.0.0',
       githubStars: async () => null,
-      accountStatus,
-      accountLogin,
-      openCreditUsage,
     } as unknown as HomeApi
 
     await act(async () => {
-      root.render(
-        createElement(
-          LocaleProvider,
-          { initial: 'en' },
-          createElement(SettingsModal, {
-            // a logged-in status is deliberately supplied to prove the account
-            // pane is gated by the flag, not merely by login state
-            status: { loggedIn: true, email: 'x@example.com', creditBalance: 42 },
-            loggingOut: false,
-            loginWaiting: false,
-            loginUrl: null,
-            urlCopied: false,
-            onOpenLoginUrl: vi.fn(),
-            onCopyLoginUrl: vi.fn(),
-            onClose: vi.fn(),
-            onLogin,
-            onLogout,
-          }),
-        ),
-      )
+      root.render(createElement(LocaleProvider, { initial: 'en' }, createElement(SettingsModal, { onClose: () => undefined })))
       await Promise.resolve()
     })
 
-    const navLabels = Array.from(host.querySelectorAll<HTMLButtonElement>('.set-nav-item')).map(
-      (b) => b.textContent ?? '',
-    )
-    // No account section in the nav; Redrob AI / General / About remain.
+    const navLabels = Array.from(host.querySelectorAll<HTMLButtonElement>('.set-nav-item')).map((b) => b.textContent ?? '')
     expect(navLabels.some((l) => /Account/i.test(l))).toBe(false)
     expect(navLabels.some((l) => /Redrob AI/i.test(l))).toBe(true)
-
-    // No sign-in / logout / credits controls anywhere in the modal.
     const allText = host.textContent ?? ''
     expect(/Sign in|Signed in|Genspark|Credits|Sign out/i.test(allText)).toBe(false)
-
-    // The account/login/credit IPCs are never invoked by rendering settings.
-    expect(onLogin).not.toHaveBeenCalled()
-    expect(onLogout).not.toHaveBeenCalled()
-    expect(accountLogin).not.toHaveBeenCalled()
-    expect(openCreditUsage).not.toHaveBeenCalled()
   })
 })
 
-describe('Home genspark.ai reach sites are guarded by the flag', () => {
-  const home = () => src('apps/shell/src/renderer/src/Home.tsx')
+/** every .ts/.tsx under a source root, skipping tests and build output */
+function sources(dir: string, out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    if (name === 'node_modules' || name === 'out' || name === 'dist' || name === 'tests' || name.startsWith('.')) continue
+    const p = join(dir, name)
+    if (statSync(p).isDirectory()) sources(p, out)
+    else if (/\.(ts|tsx|mts|cjs|mjs)$/.test(name) && !/\.test\./.test(name)) out.push(p)
+  }
+  return out
+}
 
-  it('the on-mount account-status query (hits genspark.ai) is flag-guarded', () => {
-    const text = home()
-    // the mount effect that calls accountStatus must early-return on the flag
-    // before reaching the IPC call
-    const guard = /if \(!CLOUD_ACCOUNT_ENABLED\) return\s*\n\s*let alive = true\s*\n\s*void window\.aiOffice\.accountStatus/
-    expect(guard.test(text)).toBe(true)
+describe('no Genspark reach left in Office', () => {
+  it('no source names genspark.ai or the gsk tool CLI', () => {
+    const roots = ['apps', 'packages'].flatMap((top) =>
+      readdirSync(resolve(REPO_ROOT, top))
+        .map((n) => resolve(REPO_ROOT, top, n, 'src'))
+        .filter((p) => {
+          try {
+            return statSync(p).isDirectory()
+          } catch {
+            return false
+          }
+        }),
+    )
+    const offenders: string[] = []
+    for (const root of roots) {
+      for (const file of sources(root)) {
+        const text = readFileSync(file, 'utf8')
+        // the upstream project's issue links (github.com/genspark-ai/genoffice) are attribution, not a dependency
+        const withoutUpstreamLinks = text.replace(/github\.com\/genspark-ai\/genoffice[^\s'")]*/g, '')
+        if (/genspark\.ai|@genspark\/cli|tool_cli/.test(withoutUpstreamLinks)) offenders.push(file.slice(REPO_ROOT.length + 1))
+      }
+    }
+    expect(offenders).toEqual([])
   })
 
-  it('the cloud-projects nav item and view are flag-guarded', () => {
-    const text = home()
-    expect(text).toContain('{CLOUD_ACCOUNT_ENABLED && loggedIn && (')
-    expect(text).toContain('CLOUD_ACCOUNT_ENABLED && cloudMode ? (')
+  it('Home and Settings carry no cloud-account code path', () => {
+    const home = src('apps/shell/src/renderer/src/Home.tsx')
+    expect(home).not.toMatch(/accountStatus|accountLogin|CloudProjectsView|cloudProjectsSync/)
+    const settings = src('apps/shell/src/renderer/src/SettingsModal.tsx')
+    expect(settings).not.toMatch(/section === 'account'|loginGenspark|openCreditUsage/)
   })
 
-  it('SettingsModal drops the account section and gates its pane on the flag', () => {
-    const s = src('apps/shell/src/renderer/src/SettingsModal.tsx')
-    expect(s).toContain("ALL_SECTIONS.filter((s) => s.id !== 'account')")
-    expect(s).toContain("{CLOUD_ACCOUNT_ENABLED && section === 'account' && (")
-  })
-
-  it('the login handler / credit URL still exist in main (endpoint code kept, just unreachable)', () => {
-    // We intentionally KEEP the endpoint code; it must not be deleted, only made
-    // unreachable from a Redrob-labeled control.
-    const index = src('apps/shell/src/main/index.ts')
-    expect(index).toContain('CREDIT_USAGE_URL')
-    expect(index).toContain('startGenofficeLogin')
+  it('keeps "Account" and "Sign in" out of the Sharing pane', () => {
+    const pane = src('apps/shell/src/renderer/src/home/IdentityPane.tsx')
+    expect(pane).not.toMatch(/['"`>][^'"`<]*\b(Account|Sign in)\b/)
   })
 })

@@ -3,7 +3,6 @@
  * Google API, then Tavily, with DuckDuckGo as the keyless last resort. Runs in the main process
  * (Node fetch / child process) to avoid renderer CORS; the Serper key reuses SERPER_API_KEY,
  * the Tavily key reuses TAVILY_API_KEY.
- * For gsk auth see ./gsk.ts (`gsk login` or GSK_API_KEY).
  */
 
 import {
@@ -15,8 +14,6 @@ import {
 } from './shared'
 
 export type { ImageSearchResult, WebSearchResult } from './shared'
-export * from './gsk'
-export * from './genoffice-auth'
 
 /**
  * Redrob-hosted search, tried first when installed (the shell installs it from
@@ -43,14 +40,12 @@ const TAVILY_KEY = () => process.env.TAVILY_API_KEY ?? ''
 export async function webSearch(
   query: string,
   maxResults = 6,
-  useGsk = true,
 ): Promise<{
   results: WebSearchResult[]
   answer?: string
   method: string
   error?: string
 }> {
-  void useGsk // kept for call-site compatibility; Genspark is no longer a search backend
   const hosted = hostedSearchNow()?.web
   if (hosted) {
     try {
@@ -142,13 +137,11 @@ export async function webSearch(
 export async function imageSearch(
   query: string,
   maxResults = 8,
-  useGsk = true,
 ): Promise<{
   images: ImageSearchResult[]
   method: string
   error?: string
 }> {
-  void useGsk // kept for call-site compatibility; Genspark is no longer a search backend
   const hosted = hostedSearchNow()?.images
   if (hosted) {
     try {

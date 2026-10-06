@@ -761,7 +761,7 @@ export interface PdfApi extends Partial<OfficePrefsApi> {
    *  clicks produce no DOM event here) — dismiss open popovers */
   onChromePressed(handler: () => void): () => void
   getAiSettings(): Promise<AiSettings>
-  /** Genspark login state (gsk); gates the cloud-only generate_image tool */
+  /** whether Redrob-hosted image generation may be offered; gates generate_image */
   gskStatus(): Promise<{ loggedIn: boolean }>
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>

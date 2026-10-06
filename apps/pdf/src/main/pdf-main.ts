@@ -24,8 +24,7 @@ import {
   showOpenDialogWithMemory,
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
-import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
-import { cloudToolsEnabled, type AiSettings } from '@genoffice/ai-provider'
+import type { AiSettings } from '@genoffice/ai-provider'
 import { generateImage } from '@genoffice/ai-provider/node'
 import { PDF_CHANNELS } from '../shared/ipc'
 import type {
@@ -793,15 +792,6 @@ function withSignatures(
 
 let ipcRegistered = false
 
-/** live read of the shared ai-settings.json (written by the shell settings pane) */
-function gskCloudToolsOn(): boolean {
-  try {
-    const raw = readFileSync(join(app.getPath('userData'), 'ai-settings.json'), 'utf8')
-    return cloudToolsEnabled(JSON.parse(raw) as Partial<AiSettings>)
-  } catch {
-    return true // no settings file yet = default on
-  }
-}
 
 function registerPdfIpc(): void {
   if (ipcRegistered) return

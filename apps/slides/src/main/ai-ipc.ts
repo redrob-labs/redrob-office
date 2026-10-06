@@ -39,21 +39,17 @@ import {
   analyzeMedia,
   currentEngineTarget,
   custodyKeys,
+  generateImage,
   holdsKeys,
+  hostedToolSupport,
+  redrobSignIn,
   streamForProvider,
   withoutKeys,
-  generateImage,
 } from '@genoffice/ai-provider/node'
 import { fetchRemoteImage } from '@genoffice/electron-utils'
 import {
   webSearch,
   imageSearch,
-  ensureGenofficeLogin,
-  gskApiKey,
-  gskGenerateImage,
-  gskAnalyzeMedia,
-  gskLoginInfo,
-  hasGskAuth,
 } from '@genoffice/ai-search'
 import { addPicture, editPictureSrcRect, replacePictureBytes } from '@genoffice/pptx-engine'
 import { matchesElementRef } from '@genoffice/pptx-engine/identity'
@@ -67,10 +63,6 @@ import { pushHistory, rebuildSlide, scheduleHistoryNotify, sessions } from './se
 
 const AI_SETTINGS_PATH = () => join(app.getPath('userData'), 'ai-settings.json')
 
-/** live read: the shell settings pane writes the file; every tool call re-checks */
-function gskCloudToolsOn(): boolean {
-  return cloudToolsEnabled(readJson<Partial<AiSettings>>(AI_SETTINGS_PATH(), {}))
-}
 
 function readJson<T>(path: string, fallback: T): T {
   try {
@@ -127,20 +119,13 @@ export function registerAiIpc(): void {
     return withoutKeys(settings)
   })
 
-  // Redrob account (gsk login state): the auth source for AI features; when logged out the frontend uses this to guide login
-  ipcMain.handle(
-    'ai:gsk-status',
-    async (_event, withEmail?: boolean): Promise<GenSparkAccountStatus> => {
-      if (!hasGskAuth()) return { loggedIn: false }
-      if (!withEmail) return { loggedIn: true }
-      const info = await gskLoginInfo()
-      return info?.email ? { loggedIn: true, email: info.email } : { loggedIn: true }
-    },
-  )
+  // Whether Redrob-hosted image tools may be offered: false only once the route is known
+  // to be missing (docs/console-requests/office-ai-routes.md). The channel name is kept from
+  // the port for the renderers; nothing behind it talks to Genspark.
+  ipcMain.handle('ai:gsk-status', (): GenSparkAccountStatus => ({ loggedIn: hostedToolSupport().images !== false }))
 
-  ipcMain.handle('ai:gsk-login', () => {
-    ensureGenofficeLogin((url) => void shell.openExternal(url))
-  })
+  // "Sign in to Redrob": the shell runs Console connect and hands the key to the engine
+  ipcMain.handle('ai:gsk-login', () => redrobSignIn())
 
   // keys go to the engine's credential store, never into this file
   ipcMain.handle('ai:set-settings', async (_event, settings: AiSettings) => {
@@ -235,8 +220,7 @@ export function registerAiIpc(): void {
     try {
       return await webSearch(
         String(query),
-        typeof maxResults === 'number' ? maxResults : 6,
-        gskCloudToolsOn(),
+        typeof maxResults === 'number' ? maxResults : 6
       )
     } catch (err) {
       return { results: [], method: 'error', error: String(err) }
@@ -247,8 +231,7 @@ export function registerAiIpc(): void {
     try {
       return await imageSearch(
         String(query),
-        typeof maxResults === 'number' ? maxResults : 8,
-        gskCloudToolsOn(),
+        typeof maxResults === 'number' ? maxResults : 8
       )
     } catch (err) {
       return { images: [], method: 'error', error: String(err) }
@@ -262,7 +245,7 @@ export function registerAiIpc(): void {
 // never called; docs does not have these channels, so putting them in the wrong place raises
 // "No handler registered".
 export function registerSlidesOnlyAiIpc(): void {
-  // gsk (Redrob CLI) capabilities: AI image generation / media analysis. Returns an error prompt when not logged in.
+  // Redrob-hosted image generation and media analysis on the engine
   ipcMain.handle(
     'ai:generate-image',
     async (

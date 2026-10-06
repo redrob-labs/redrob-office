@@ -68,6 +68,34 @@ function publicResult(outcome: DeviceConnectOutcome): ConnectResult {
   }
 }
 
+/**
+ * Sign in to Redrob from an editor's AI panel: the same Console connect, with the code
+ * shown on Console's own page in the browser. Resolves when the key is in the engine (or
+ * the attempt ended); a failure is left for the next turn to report.
+ */
+let signInFlight: Promise<void> | null = null
+export function redrobSignInInBrowser(): Promise<void> {
+  signInFlight ??= (async () => {
+    try {
+      const authorization = await startDeviceAuthorization('office', { fetch: consoleFetch })
+      void shell.openExternal(authorization.verificationUriComplete)
+      const outcome = await runDeviceConnect({
+        authorization,
+        isCancelled: () => false,
+        deps: { fetch: consoleFetch, now: () => Date.now(), sleep: (ms) => new Promise((r) => setTimeout(r, ms)) },
+      })
+      if (outcome.status === 'connected') {
+        await storeEngineKey('redrob', outcome.key.apiKey, outcome.key.apiKeyName || 'Redrob Office')
+      }
+    } catch (e) {
+      console.warn('[redrob] sign-in did not finish:', e instanceof Error ? e.message : String(e))
+    } finally {
+      signInFlight = null
+    }
+  })()
+  return signInFlight
+}
+
 export function registerRedrobConnectIpc(): void {
   ipcMain.handle('redrob:connect-start', async (): Promise<ConnectAttempt> => {
     const authorization = await startDeviceAuthorization('office', { fetch: consoleFetch })

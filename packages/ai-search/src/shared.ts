@@ -39,17 +39,3 @@ export function firstItem(v: unknown): unknown {
   return Array.isArray(v) ? (v as unknown[])[0] : undefined
 }
 
-let explicitProxyUrl = ''
-
-/**
- * Proxy resolved by the apps' proxy bootstraps (env vars, else the system
- * proxy via session.resolveProxy); consumed by gskChildEnv() and the login
- * flow's proxy fallback.
- */
-export function setGskProxyUrl(url: string): void {
-  explicitProxyUrl = url
-}
-
-export function gskProxyUrl(): string {
-  return explicitProxyUrl
-}

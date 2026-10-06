@@ -76,21 +76,17 @@ import {
   chatForProvider,
   currentEngineTarget,
   custodyKeys,
+  generateImage,
   holdsKeys,
+  hostedToolSupport,
+  redrobSignIn,
   streamForProvider,
   withoutKeys,
-  generateImage,
 } from '@genoffice/ai-provider/node'
 import { csvToXlsxBuffer, decodeCsvBuffer, sheetCsvToXlsxBuffer } from '../gateway/csv-import'
 import {
-  ensureGenofficeLogin,
-  gskApiKey,
-  gskLoginInfo,
-  hasGskAuth,
-  setGskProxyUrl,
   webSearch,
   imageSearch,
-  gskGenerateImage,
 } from '@genoffice/ai-search'
 import { parseFileToText } from '@genoffice/file-parse'
 import type { CellEdit, SheetStructuralOps } from '../gateway/xlsx-gateway'
@@ -1720,10 +1716,6 @@ function writeJson(path: string, value: unknown): void {
 
 const SETTINGS_PATH = () => userDataPath('ai-settings.json')
 
-/** live read: the shell settings pane writes the file; every tool call re-checks */
-function gskCloudToolsOn(): boolean {
-  return cloudToolsEnabled(readJson<Partial<AiSettings>>(SETTINGS_PATH(), {}))
-}
 
 // Dev-only automation hooks: a fixed CDP port for driving the app from test
 // scripts, and a workbook path that bypasses the native file dialog.
@@ -3040,21 +3032,13 @@ export function registerSheetsAiIpc(): void {
     return withoutKeys(settings)
   })
 
-  // Redrob account (gsk login state): the auth source for AI features; the
-  // frontend uses it to guide sign-in when logged out
-  ipcMain.handle(
-    IPC_CHANNELS.aiGskStatus,
-    async (_event, withEmail?: unknown): Promise<GenSparkAccountStatus> => {
-      if (!hasGskAuth()) return { loggedIn: false }
-      if (!withEmail) return { loggedIn: true }
-      const info = await gskLoginInfo()
-      return info?.email ? { loggedIn: true, email: info.email } : { loggedIn: true }
-    },
-  )
+  // Whether Redrob-hosted image tools may be offered: false only once the route is known
+  // to be missing (docs/console-requests/office-ai-routes.md). The channel name is kept from
+  // the port for the renderers; nothing behind it talks to Genspark.
+  ipcMain.handle(IPC_CHANNELS.aiGskStatus, (): GenSparkAccountStatus => ({ loggedIn: hostedToolSupport().images !== false }))
 
-  ipcMain.handle(IPC_CHANNELS.aiGskLogin, () => {
-    ensureGenofficeLogin((url) => void shell.openExternal(url))
-  })
+  // "Sign in to Redrob": the shell runs Console connect and hands the key to the engine
+  ipcMain.handle(IPC_CHANNELS.aiGskLogin, () => redrobSignIn())
 
   ipcMain.handle(IPC_CHANNELS.aiSetSettings, async (event, input: unknown) => {
     sessionFor(event)
@@ -3173,8 +3157,7 @@ export function registerSheetsAiIpc(): void {
     try {
       return await webSearch(
         z.string().parse(query),
-        typeof maxResults === 'number' ? maxResults : 6,
-        gskCloudToolsOn(),
+        typeof maxResults === 'number' ? maxResults : 6
       )
     } catch (err) {
       return { results: [], method: 'error', error: String(err) }
@@ -3184,8 +3167,7 @@ export function registerSheetsAiIpc(): void {
     try {
       return await imageSearch(
         z.string().parse(query),
-        typeof maxResults === 'number' ? maxResults : 8,
-        gskCloudToolsOn(),
+        typeof maxResults === 'number' ? maxResults : 8
       )
     } catch (err) {
       return { images: [], method: 'error', error: String(err) }
@@ -3884,9 +3866,6 @@ export {
  */
 async function applyMainProcessProxy(): Promise<void> {
   const setDispatcher = async (proxyUrl: string) => {
-    // spawned gsk CLI children do their own fetch and never see the
-    // dispatcher below — forward the proxy to them via env
-    setGskProxyUrl(proxyUrl)
     try {
       const { ProxyAgent, setGlobalDispatcher } = await import('undici')
       setGlobalDispatcher(new ProxyAgent(proxyUrl))
@@ -3910,8 +3889,8 @@ async function applyMainProcessProxy(): Promise<void> {
   try {
     await app.whenReady()
     // PAC/rule proxies answer per-host: probe the host the login flow, the
-    // Genspark LLM proxy and the gsk CLI actually target
-    const resolved = await electronSession.defaultSession.resolveProxy('https://www.genspark.ai/')
+    // Redrob Console actually targets
+    const resolved = await electronSession.defaultSession.resolveProxy('https://console.redrob.ai/')
     const m = /PROXY\s+([^;]+)/i.exec(resolved || '')
     if (m?.[1]) {
       await setDispatcher(`http://${m[1].trim()}`)

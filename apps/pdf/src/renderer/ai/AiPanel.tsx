@@ -249,7 +249,7 @@ export function AiPanel({
   }, [panelWidth])
   const settingsRef = useRef<AiSettings | null>(null)
 
-  /** gsk login state for the cloud-tools gate (refreshed on mount and window focus) */
+  /** whether Redrob-hosted image generation may be offered (refreshed on mount and window focus) */
   const gskLoggedInRef = useRef(false)
   useEffect(() => {
     let alive = true

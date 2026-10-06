@@ -9,9 +9,6 @@ import iconPdf from './assets/file-pdf.svg'
 import iconMd from './assets/file-md.svg'
 import iconHwp from './assets/file-hwp.svg'
 import type {
-  AccountStatus,
-  CloudProjectKind,
-  CloudProjectsSnapshot,
   HomeApi,
   ProjectHomeApi,
   ProjectSummaryEntry,
@@ -28,7 +25,6 @@ import {
 } from '@genoffice/ui'
 import { fileCountKey, visiblePageCount } from './counts'
 import { displayParentDir } from './recent-location'
-import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import { useI18n } from './locale'
 import type { I18n, StringKey } from './locale'
 import { SettingsModal } from './SettingsModal'
@@ -433,536 +429,30 @@ function ProjectPanel({ projects, selectedId, onSelect, onRefresh }: ProjectPane
 }
 
 // ── Account entry (bottom-left) ──────────────────────────
-// Currently the Genspark (gsk) login entry; to be upgraded to a signup/account system later.
-// Clicking it opens the settings modal directly (SettingsModal.tsx), which hosts
-// login/logout plus preferences (language, theme, save location, update channel).
-
-const LOGIN_POLL_MS = 2500
-/** fallback deadline when the CLI does not report expires_in (device codes live ~300s) */
-const LOGIN_MAX_WAIT_MS = 300_000
-
-function AccountEntry({
-  onStatusChange,
-}: {
-  onStatusChange?: (status: AccountStatus | null) => void
-}) {
+// Entry point to Settings at the foot of the sidebar.
+function AccountEntry() {
   const { t } = useI18n()
-  const [status, setStatus] = useState<AccountStatus | null>(null)
-
-  useEffect(() => {
-    onStatusChange?.(status)
-  }, [status, onStatusChange])
-  const [waiting, setWaiting] = useState(false)
-  // incremented on login retry, resetting the polling timer
-  const [loginNonce, setLoginNonce] = useState(0)
-  const [loginError, setLoginError] = useState<
-    'timeout' | 'launch' | 'network' | 'expired' | 'failed' | null
-  >(null)
-  // auth URL reported by the login CLI — rescue entry when the browser did not open
-  const [authUrl, setAuthUrl] = useState<string | null>(null)
-  const [urlCopied, setUrlCopied] = useState(false)
-  const loginDeadline = useRef(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [loggingOut, setLoggingOut] = useState(false)
-  // bumped on logout so an in-flight status refresh (which can still
-  // report logged-in) is discarded instead of resurrecting the UI
-  const statusSeq = useRef(0)
-
-  // query login state once on mount — skipped when cloud-account is disabled so
-  // the app never contacts the genspark.ai account endpoint under a Redrob label
-  useEffect(() => {
-    if (!CLOUD_ACCOUNT_ENABLED) return
-    let alive = true
-    void window.aiOffice.accountStatus?.().then((s) => {
-      if (alive) setStatus(s)
-    })
-    return () => {
-      alive = false
-    }
-  }, [])
-
-  // login progress pushed from main (gsk login CLI output); inert when the
-  // cloud-account (genspark) sign-in surface is disabled
-  useEffect(() => {
-    if (!CLOUD_ACCOUNT_ENABLED) return
-    const off = window.aiOffice.onAccountLogin?.((ev) => {
-      if (ev.phase === 'url') {
-        if (ev.url) setAuthUrl(ev.url)
-        if (ev.expiresInSec) loginDeadline.current = Date.now() + ev.expiresInSec * 1000
-      } else if (ev.phase === 'success') {
-        void window.aiOffice.accountStatus().then((s) => {
-          if (s.loggedIn) {
-            setStatus(s)
-            setWaiting(false)
-            setAuthUrl(null)
-          }
-        })
-      } else if (ev.phase === 'error') {
-        setWaiting(false)
-        setAuthUrl(null)
-        setLoginError(
-          ev.error === 'network' ? 'network' : ev.error === 'expired' ? 'expired' : 'failed',
-        )
-      }
-    })
-    return off
-  }, [])
-
-  // config-file polling stays as the fallback success path (works even if progress events are lost)
-  useEffect(() => {
-    if (!waiting) return
-    const timer = setInterval(() => {
-      void window.aiOffice.accountStatus().then((s) => {
-        if (s.loggedIn) {
-          setStatus(s)
-          setWaiting(false)
-          setAuthUrl(null)
-        } else if (Date.now() > loginDeadline.current) {
-          setWaiting(false)
-          setAuthUrl(null)
-          setLoginError('timeout')
-        }
-      })
-    }, LOGIN_POLL_MS)
-    return () => clearInterval(timer)
-  }, [waiting, loginNonce])
-
-  const loggedIn = status?.loggedIn ?? false
-  const email = status?.email ?? ''
-  const initial = email ? email[0].toUpperCase() : loggedIn ? 'G' : '?'
-  const errorText = loginError
-    ? {
-        timeout: t('loginTimeout'),
-        launch: t('loginLaunchFailed'),
-        network: t('loginNetworkError'),
-        expired: t('loginExpired'),
-        failed: t('loginFailed'),
-      }[loginError]
-    : null
-
-  const doLogout = () => {
-    setLoggingOut(true)
-    statusSeq.current++
-    void window.aiOffice.accountLogout().then(() => {
-      setLoggingOut(false)
-      setStatus({ loggedIn: false })
-    })
-  }
-
-  const startLogin = () => {
-    // clicking again while waiting = relaunch the login (main kills the stale CLI, so the new device code is the live one)
-    setLoginError(null)
-    setWaiting(true)
-    setAuthUrl(null)
-    setUrlCopied(false)
-    loginDeadline.current = Date.now() + LOGIN_MAX_WAIT_MS
-    setLoginNonce((n) => n + 1)
-    void window.aiOffice.accountLogin().then((launched) => {
-      if (!launched) {
-        setWaiting(false)
-        setLoginError('launch')
-      }
-    })
-  }
-
-  const openLoginUrl = () => void window.aiOffice.openLoginUrl?.()
-
-  const copyLoginUrl = () => {
-    if (!authUrl) return
-    void navigator.clipboard.writeText(authUrl).then(() => {
-      setUrlCopied(true)
-      window.setTimeout(() => setUrlCopied(false), 2000)
-    })
-  }
-
-  const handleClick = () => {
-    // refresh the login state / credit balance; drop the response
-    // when a logout happened while it was in flight. Skipped when the
-    // cloud-account surface is disabled (no genspark.ai contact); the button
-    // is then just a Settings opener.
-    if (CLOUD_ACCOUNT_ENABLED) {
-      const seq = statusSeq.current
-      void window.aiOffice.accountStatus?.().then((s) => {
-        if (seq === statusSeq.current) setStatus(s)
-      })
-    }
-    setSettingsOpen(true)
-  }
-
   return (
     <div className="account-entry">
-      {settingsOpen && (
-        <SettingsModal
-          status={status}
-          loggingOut={loggingOut}
-          loginWaiting={waiting}
-          loginUrl={authUrl}
-          urlCopied={urlCopied}
-          onOpenLoginUrl={openLoginUrl}
-          onCopyLoginUrl={copyLoginUrl}
-          onClose={() => setSettingsOpen(false)}
-          onLogin={() => {
-            setSettingsOpen(false)
-            startLogin()
-          }}
-          onLogout={doLogout}
-        />
-      )}
-      {CLOUD_ACCOUNT_ENABLED && !settingsOpen && waiting && authUrl && (
-        <div className="login-hint" role="status">
-          <button className="login-hint-open" onClick={openLoginUrl}>
-            {t('loginOpenShort')}
-          </button>
-          <button
-            className={`login-hint-copy${urlCopied ? ' copied' : ''}`}
-            onClick={copyLoginUrl}
-            // static tip: screentips are suppressed from pointerdown until the pointer
-            // leaves the control, so a swapped-in "copied" tip would never show — the
-            // check-mark icon is the visible feedback
-            data-tip={t('loginCopyUrl')}
-            aria-label={urlCopied ? t('loginCopied') : t('loginCopyUrl')}
-          >
-            {urlCopied ? <Icon name="check" size={14} /> : <Icon name="copy" size={14} />}
-          </button>
-        </div>
-      )}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
       <button
         className="account-btn"
-        onClick={handleClick}
+        onClick={() => setSettingsOpen(true)}
         aria-haspopup="dialog"
         aria-expanded={settingsOpen}
-        data-tip={
-          !CLOUD_ACCOUNT_ENABLED
-            ? t('settings')
-            : loggedIn
-              ? email || t('loggedInGenspark')
-              : waiting
-                ? t('waitingLogin')
-                : (errorText ?? t('loginGenspark'))
-        }
+        data-tip={t('settings')}
         aria-label={t('settings')}
       >
-        <span
-          className={`account-avatar${loggedIn ? ' logged-in' : ''}${waiting ? ' waiting' : ''}`}
-        >
-          {!CLOUD_ACCOUNT_ENABLED ? (
-            <Icon name="settings" size={15} />
-          ) : waiting ? (
-            <svg
-              className="account-spinner"
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              aria-hidden="true"
-            >
-              <circle
-                cx="8"
-                cy="8"
-                r="6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                fill="none"
-                strokeDasharray="26"
-                strokeDashoffset="18"
-                strokeLinecap="round"
-              />
-            </svg>
-          ) : (
-            initial
-          )}
+        <span className="account-avatar">
+          <Icon name="settings" size={15} />
         </span>
         <span className="account-text">
-          <span className="account-name">
-            {!CLOUD_ACCOUNT_ENABLED
-              ? t('settings')
-              : loggedIn
-                ? email
-                  ? email.split('@')[0]
-                  : t('loggedIn')
-                : waiting
-                  ? t('waitingShort')
-                  : t('login')}
-          </span>
-          {CLOUD_ACCOUNT_ENABLED && !loggedIn && !waiting && errorText && (
-            <span className="account-sub error">{errorText}</span>
-          )}
+          <span className="account-name">{t('settings')}</span>
         </span>
         <Icon name="chevronRight" size={14} className="account-chevron" />
       </button>
     </div>
-  )
-}
-
-// ── Cloud (Genspark web) projects view ──────────────────
-
-/** kind filter segments; labels shared with the recents type filter */
-const CLOUD_FILTERS = [
-  { key: 'all', label: 'filterAll' },
-  { key: 'docs', label: 'filterDocs' },
-  { key: 'sheets', label: 'filterSheets' },
-  { key: 'slides', label: 'filterSlides' },
-] as const satisfies readonly { key: 'all' | CloudProjectKind; label: StringKey }[]
-
-/** module kind → file icon extension */
-const CLOUD_KIND_EXT: Record<string, string> = { docs: 'docx', sheets: 'xlsx', slides: 'pptx' }
-
-/** rows revealed per "load more" step; purely client-side over the local snapshot */
-const CLOUD_REVEAL_STEP = 100
-
-function CloudProjectsView() {
-  const i18n = useI18n()
-  const { t } = i18n
-  const [snapshot, setSnapshot] = useState<CloudProjectsSnapshot | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
-  const [loginWaiting, setLoginWaiting] = useState(false)
-  const [kind, setKind] = useState<'all' | CloudProjectKind>('all')
-  const [query, setQuery] = useState('')
-  const [sort, setSort] = useState<'recent' | 'oldest'>('recent')
-  const [sortMenuOpen, setSortMenuOpen] = useState(false)
-  const [revealed, setRevealed] = useState(CLOUD_REVEAL_STEP)
-  const sortRef = useRef<HTMLDivElement>(null)
-
-  // the local store paints instantly; a background sync replaces it when done.
-  // a failed sync keeps whatever is shown; with nothing shown the
-  // !snapshot && !loading branch below renders the retry state
-  const startSync = () => {
-    setSyncing(true)
-    void window.aiOffice.cloudProjectsSync?.().then((synced) => {
-      setSyncing(false)
-      setLoading(false)
-      if (synced) setSnapshot(synced)
-    })
-  }
-  const startSyncRef = useRef(startSync)
-  startSyncRef.current = startSync
-
-  useEffect(() => {
-    let cancelled = false
-    void window.aiOffice.cloudProjectsCached?.().then((stored) => {
-      if (cancelled || !stored) return
-      setSnapshot((prev) => prev ?? stored)
-      setLoading(false)
-    })
-    startSyncRef.current()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  // the sign-in button reuses the account login flow; sync once it lands
-  useEffect(() => {
-    const off = window.aiOffice.onAccountLogin?.((ev) => {
-      if (ev.phase === 'success') {
-        setLoginWaiting(false)
-        startSyncRef.current()
-      } else if (ev.phase === 'error') {
-        setLoginWaiting(false)
-      }
-    })
-    return off
-  }, [])
-
-  // unified dismissal: outside press, window blur, chrome press (tab strip / window drag)
-  useDismissablePopover(sortMenuOpen, () => setSortMenuOpen(false), {
-    inside: () => [sortRef.current],
-  })
-
-  const startLogin = () => {
-    setLoginWaiting(true)
-    void window.aiOffice.accountLogin?.().then((ok) => {
-      if (!ok) setLoginWaiting(false)
-    })
-  }
-
-  const changeKind = (k: 'all' | CloudProjectKind) => {
-    if (k === kind) return
-    setKind(k)
-    setRevealed(CLOUD_REVEAL_STEP)
-  }
-
-  const openProject = (projectUrl: string) => {
-    void window.aiOffice.openCloudProject?.(projectUrl)
-  }
-
-  // filter / search / sort are all local over the snapshot — no requests
-  const q = query.trim().toLowerCase()
-  let list = snapshot?.projects.filter((proj) => kind === 'all' || proj.kind === kind) ?? []
-  if (q) list = list.filter((proj) => proj.title.toLowerCase().includes(q))
-  if (sort === 'oldest') list = [...list].reverse()
-  const visible = list.slice(0, revealed)
-
-  const renderRows = () => {
-    const items: ReactElement[] = []
-    for (const proj of visible) {
-      items.push(
-        <li key={proj.projectId}>
-          <button
-            className="cloud-row"
-            data-tip={t('cloudOpenInBrowser')}
-            data-tip-anchor=".cloud-row-external"
-            data-tip-place="right"
-            onClick={() => openProject(proj.projectUrl)}
-          >
-            <FileBadge ext={CLOUD_KIND_EXT[proj.kind] ?? ''} size={24} />
-            <span className="cloud-row-main">
-              <span className="cloud-row-title">{proj.title || t('untitled')}</span>
-              <Icon name="external" size={13} className="cloud-row-external" />
-            </span>
-            <span className="cloud-row-time">
-              {proj.ctimeMs ? formatModified(proj.ctimeMs, i18n) : ''}
-            </span>
-          </button>
-        </li>,
-      )
-    }
-    return items
-  }
-
-  const renderBody = () => {
-    if (snapshot && !snapshot.available) {
-      return (
-        <p className="empty proj-empty">
-          <span className="empty-hint">{t('cloudLoginHint')}</span>
-          <Button variant="secondary" size="sm" disabled={loginWaiting} onClick={startLogin}>
-            {loginWaiting ? t('waitingShort') : t('loginGenspark')}
-          </Button>
-        </p>
-      )
-    }
-    if (!snapshot) {
-      if (loading || syncing) {
-        return (
-          <div className="load-more" aria-hidden="true">
-            <span className="load-more-spinner" />
-          </div>
-        )
-      }
-      return (
-        <p className="empty proj-empty">
-          <span className="empty-hint">{t('cloudError')}</span>
-          <Button variant="secondary" size="sm" onClick={() => startSync()}>
-            {t('cloudRetry')}
-          </Button>
-        </p>
-      )
-    }
-    if (list.length === 0) {
-      return (
-        <p className="empty proj-empty">
-          <span className="empty-hint">
-            {t(q ? 'cloudNoResults' : kind === 'all' ? 'cloudEmpty' : 'emptyFiltered')}
-          </span>
-        </p>
-      )
-    }
-    return (
-      <div className="cloud-scroll">
-        <div className="cloud-table">
-          <div className="cloud-columns">
-            <span className="col-name">{t('colName')}</span>
-            <div className="cloud-col-sort" ref={sortRef}>
-              <button
-                className="cloud-col-sort-btn"
-                aria-haspopup="menu"
-                aria-expanded={sortMenuOpen}
-                onClick={() => setSortMenuOpen((o) => !o)}
-              >
-                {t('colModified')}
-                <Icon
-                  name="arrowDown"
-                  size={12}
-                  style={sort === 'oldest' ? { transform: 'rotate(180deg)' } : undefined}
-                />
-              </button>
-              {sortMenuOpen && (
-                <div className="cloud-sort-menu rr-menu__list" role="menu">
-                  {(['recent', 'oldest'] as const).map((key) => (
-                    <button
-                      key={key}
-                      className={`rr-menu__item${sort === key ? ' active' : ''}`}
-                      role="menuitemradio"
-                      aria-checked={sort === key}
-                      onClick={() => {
-                        setSort(key)
-                        setSortMenuOpen(false)
-                        setRevealed(CLOUD_REVEAL_STEP)
-                      }}
-                    >
-                      <SortCheck visible={sort === key} />
-                      {t(key === 'recent' ? 'cloudSortRecent' : 'cloudSortOldest')}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <ul className="cloud-list">{renderRows()}</ul>
-        </div>
-        {list.length > revealed && (
-          <div className="load-more">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setRevealed((n) => n + CLOUD_REVEAL_STEP)}
-            >
-              {t('cloudLoadMore')}
-            </Button>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <main className="content">
-      <section className="cloud-projects" aria-label={t('navCloud')}>
-        <header className="cloud-hero">
-          <div className="cloud-hero-top">
-            <h1 className="cloud-title">{t('navCloud')}</h1>
-          </div>
-          <p className="cloud-subtitle">{t('cloudSubtitle')}</p>
-          {snapshot?.available && (
-            <div className="cloud-controls">
-              <div className="cloud-seg" role="tablist" aria-label={t('filterAria')}>
-                {CLOUD_FILTERS.map((f) => (
-                  <button
-                    key={f.key}
-                    className={kind === f.key ? 'active' : ''}
-                    role="tab"
-                    aria-selected={kind === f.key}
-                    onClick={() => changeKind(f.key)}
-                  >
-                    {t(f.label)}
-                  </button>
-                ))}
-              </div>
-              <button
-                className={`cloud-refresh-btn${syncing ? ' syncing' : ''}`}
-                data-tip={t('cloudRefresh')}
-                aria-label={t('cloudRefresh')}
-                disabled={syncing}
-                onClick={() => startSync()}
-              >
-                <Icon name="refresh" size={14} />
-              </button>
-              <div className="cloud-search">
-                <Icon name="search" size={14} />
-                <input
-                  value={query}
-                  placeholder={t('cloudSearchPlaceholder', { n: snapshot.projects.length })}
-                  onChange={(e) => {
-                    setQuery(e.target.value)
-                    setRevealed(CLOUD_REVEAL_STEP)
-                  }}
-                />
-              </div>
-            </div>
-          )}
-        </header>
-        {renderBody()}
-      </section>
-    </main>
   )
 }
 
@@ -1038,8 +528,6 @@ export function Home() {
   const [navCounts, setNavCounts] = useState({ recent: 0, starred: 0 })
   const [loadingMore, setLoadingMore] = useState(false)
   const [view, setView] = useState<'recent' | 'starred'>('recent')
-  // Genspark web projects take over the content area (like a selected project)
-  const [cloudMode, setCloudMode] = useState(false)
   // Updates and Shared with you take over the content area like a selected project
   const [pane, setPane] = useState<'updates' | 'shared' | null>(null)
   const updatesMode = pane === 'updates'
@@ -1061,19 +549,8 @@ export function Home() {
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null)
   // unavailable recent entry (missing flag) the user clicked — offer list removal
   const [confirmMissing, setConfirmMissing] = useState<RecentEntry | null>(null)
-  // name in the greeting; omitted when logged out
-  const [accountName, setAccountName] = useState('')
-  // Genspark Projects is web-account data, so its nav entry only shows when logged in
-  const [loggedIn, setLoggedIn] = useState(false)
-  // single source of account state: AccountEntry reports every change (initial
-  // load, login, logout), keeping the greeting name and the nav entry in sync
-  const handleAccountStatus = useCallback((s: AccountStatus | null) => {
-    const on = s?.loggedIn ?? false
-    setLoggedIn(on)
-    if (!on) setCloudMode(false)
-    const name = on ? (s?.email ?? '').split('@')[0] : ''
-    setAccountName(name ? name[0].toUpperCase() + name.slice(1) : '')
-  }, [])
+  // the greeting carries no account name: there is no account here
+  const accountName = ''
   // Recent's name search; sent to main debounced so typing doesn't page on every key
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -2006,16 +1483,15 @@ export function Home() {
 
         <nav className="sidebar-nav">
           <button
-            className={`nav-item${view === 'recent' && !selectedProjectId && !cloudMode && !pane ? ' active' : ''}`}
+            className={`nav-item${view === 'recent' && !selectedProjectId && !pane ? ' active' : ''}`}
             aria-current={
-              view === 'recent' && !selectedProjectId && !cloudMode && !pane
+              view === 'recent' && !selectedProjectId && !pane
                 ? 'page'
                 : undefined
             }
             onClick={() => {
               changeView('recent')
               setSelectedProjectId(null)
-              setCloudMode(false)
               setUpdatesMode(false)
             }}
           >
@@ -2029,7 +1505,6 @@ export function Home() {
             onClick={() => {
               setUpdatesMode(true)
               setSelectedProjectId(null)
-              setCloudMode(false)
               setSelected(new Set())
               setRowMenu(null)
             }}
@@ -2039,16 +1514,15 @@ export function Home() {
             {updatesWaiting > 0 && <span className="nav-count">{updatesWaiting}</span>}
           </button>
           <button
-            className={`nav-item${view === 'starred' && !selectedProjectId && !cloudMode && !pane ? ' active' : ''}`}
+            className={`nav-item${view === 'starred' && !selectedProjectId && !pane ? ' active' : ''}`}
             aria-current={
-              view === 'starred' && !selectedProjectId && !cloudMode && !pane
+              view === 'starred' && !selectedProjectId && !pane
                 ? 'page'
                 : undefined
             }
             onClick={() => {
               changeView('starred')
               setSelectedProjectId(null)
-              setCloudMode(false)
               setUpdatesMode(false)
             }}
           >
@@ -2062,7 +1536,6 @@ export function Home() {
             onClick={() => {
               setPane('shared')
               setSelectedProjectId(null)
-              setCloudMode(false)
               setSelected(new Set())
               setRowMenu(null)
             }}
@@ -2070,21 +1543,6 @@ export function Home() {
             <Icon name="users" size={16} />
             <span className="nav-label">{t('navShared')}</span>
           </button>
-          {CLOUD_ACCOUNT_ENABLED && loggedIn && (
-            <button
-              className={`nav-item${cloudMode && !selectedProjectId ? ' active' : ''}`}
-              onClick={() => {
-                setCloudMode(true)
-                setSelectedProjectId(null)
-                setSelected(new Set())
-                setRowMenu(null)
-              }}
-            >
-              <Icon name="sparkle" size={16} />
-              <span className="nav-label">{t('navCloud')}</span>
-              <Icon name="external" size={13} className="nav-external" />
-            </button>
-          )}
         </nav>
 
         {/* project sidebar */}
@@ -2107,12 +1565,8 @@ export function Home() {
           </>
         )}
 
-        {/* AccountEntry is the entry point to Settings. When cloud-account is
-            disabled it shows only a neutral Settings control (no sign-in identity
-            and no genspark.ai login flow); the account/credits section is also
-            dropped from the settings modal. */}
         <HomeFoot />
-        <AccountEntry onStatusChange={handleAccountStatus} />
+        <AccountEntry />
       </aside>
 
       {selectedProjectId ? (
@@ -2121,8 +1575,6 @@ export function Home() {
         <UpdatesView facts={facts} openPath={(path) => void window.aiOffice.openPath(path)} />
       ) : sharedMode ? (
         <SharedView />
-      ) : CLOUD_ACCOUNT_ENABLED && cloudMode ? (
-        <CloudProjectsView />
       ) : (
         renderGlobalContent()
       )}

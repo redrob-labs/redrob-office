@@ -72,18 +72,15 @@ import {
   chatForProvider,
   currentEngineTarget,
   custodyKeys,
+  generateImage,
   holdsKeys,
+  hostedToolSupport,
   readModelCapabilities,
+  redrobSignIn,
   streamForProvider,
   withoutKeys,
-  generateImage,
 } from '@genoffice/ai-provider/node'
 import {
-  ensureGenofficeLogin,
-  gskApiKey,
-  gskGenerateImage,
-  gskLoginInfo,
-  hasGskAuth,
   webSearch,
   imageSearch,
 } from '@genoffice/ai-search'
@@ -2627,10 +2624,6 @@ const TWIPS_PER_INCH = 1440
 
 const SETTINGS_PATH = () => userDataPath('ai-settings.json')
 
-/** live read: the shell settings pane writes the file; every tool call re-checks */
-function gskCloudToolsOn(): boolean {
-  return cloudToolsEnabled(readJson<Partial<AiSettings>>(SETTINGS_PATH(), {}))
-}
 
 const activeAiStreams = new Map<string, AbortController>()
 
@@ -2658,20 +2651,13 @@ export function registerAiIpc(): void {
     return withoutKeys(settings)
   })
 
-  // Redrob account (gsk login state): auth source for AI features; the frontend uses it to prompt login when logged out
-  ipcMain.handle(
-    'ai:gsk-status',
-    async (_event, withEmail?: boolean): Promise<GenSparkAccountStatus> => {
-      if (!hasGskAuth()) return { loggedIn: false }
-      if (!withEmail) return { loggedIn: true }
-      const info = await gskLoginInfo()
-      return info?.email ? { loggedIn: true, email: info.email } : { loggedIn: true }
-    },
-  )
+  // Whether Redrob-hosted image tools may be offered: false only once the route is known
+  // to be missing (docs/console-requests/office-ai-routes.md). The channel name is kept from
+  // the port for the renderers; nothing behind it talks to Genspark.
+  ipcMain.handle('ai:gsk-status', (): GenSparkAccountStatus => ({ loggedIn: hostedToolSupport().images !== false }))
 
-  ipcMain.handle('ai:gsk-login', () => {
-    ensureGenofficeLogin((url) => void shell.openExternal(url))
-  })
+  // "Sign in to Redrob": the shell runs Console connect and hands the key to the engine
+  ipcMain.handle('ai:gsk-login', () => redrobSignIn())
 
   // A key typed in Settings goes to the engine's credential store and is dropped here:
   // the file keeps preferences and the model name only. If the engine refuses it, the
@@ -2760,8 +2746,7 @@ export function registerAiIpc(): void {
     try {
       return await webSearch(
         String(query),
-        typeof maxResults === 'number' ? maxResults : 6,
-        gskCloudToolsOn(),
+        typeof maxResults === 'number' ? maxResults : 6
       )
     } catch (err) {
       return { results: [], method: 'error', error: String(err) }
@@ -2771,8 +2756,7 @@ export function registerAiIpc(): void {
     try {
       return await imageSearch(
         String(query),
-        typeof maxResults === 'number' ? maxResults : 8,
-        gskCloudToolsOn(),
+        typeof maxResults === 'number' ? maxResults : 8
       )
     } catch (err) {
       return { images: [], method: 'error', error: String(err) }

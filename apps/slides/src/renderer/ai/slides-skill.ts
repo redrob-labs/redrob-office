@@ -112,12 +112,12 @@ export interface DeckAccess {
    * On search failure returns an empty array (fail-open; doesn't block the main generation path).
    */
   searchImages?(query: string, maxResults: number): Promise<string[]>
-  /** Whether cloud single-page generation is available (kill switch + gsk login state) */
+  /** Whether a hosted page generator is available (none ships today; kept for a Redrob-hosted one) */
   isCloudPageGenEnabled?(): Promise<boolean>
-  /** live predicate: gsk login && the Genspark-cloud-tools toggle; false hides generate_image / analyze_media */
+  /** live predicate: whether Redrob-hosted image generation may be offered; false hides generate_image */
   gskTools?(): boolean
   /**
-   * Cloud single-page generation (gsk slide_generate), used by generate_deck's self-driven
+   * Hosted single-page generation, used by generate_deck's self-driven
    * pipeline: given the unified style + this page's brief/layout/images, the cloud service
    * writes the HTML and converts it to a one-slide pptx. Returns a marker string that goes
    * into a landGeneratedPages pageMarkers slot.
@@ -138,7 +138,7 @@ export interface DeckAccess {
     signal?: AbortSignal
   }): Promise<{ ok: boolean; marker?: string; error?: string }>
   /**
-   * Local single-page generation (used when cloud is unavailable, e.g. BYOK without gsk):
+   * Local single-page generation (the default):
    * same inputs and marker contract as generatePageCloud, but the page is produced entirely
    * locally — one LLM request writes a structured slide spec and the main process builds it
    * directly into a one-slide pptx (no HTML intermediate).
@@ -2367,7 +2367,7 @@ async function executeTool(
       // ── Self-driven pipeline:
       //   1) Plan: use pages if passed; with topic, the tool plans the outline via LLM (batched recursion over threshold) — fixes missing pages at the input side.
       //   2) Generate: batched concurrent page generation (one retry per page), **each batch lands immediately → frontend shows pages one by one**.
-      //      Cloud (gsk slide_generate) when available; otherwise fully local — the LLM (app AI
+      //      Generated locally: the LLM writes a slide spec that is built directly into a pptx.
       //      transport, works with BYOK) writes a slide spec that is built directly into a pptx.
       const useCloud =
         !!access.generatePageCloud && !!(await access.isCloudPageGenEnabled?.().catch(() => false))

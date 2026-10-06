@@ -57,16 +57,7 @@ describe('Settings analytics consent', () => {
           LocaleProvider,
           { initial: 'en' },
           createElement(SettingsModal, {
-            status: null,
-            loggingOut: false,
-            loginWaiting: false,
-            loginUrl: null,
-            urlCopied: false,
-            onOpenLoginUrl: vi.fn(),
-            onCopyLoginUrl: vi.fn(),
             onClose: vi.fn(),
-            onLogin: vi.fn(),
-            onLogout: vi.fn(),
           }),
         ),
       )

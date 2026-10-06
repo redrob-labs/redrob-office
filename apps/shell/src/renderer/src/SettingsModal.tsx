@@ -12,9 +12,8 @@ import type { AiSettings } from '@genoffice/ai-provider'
 import { isSelectableLang, languageOptions } from '@genoffice/i18n'
 import { useI18n } from './locale'
 import type { StringKey, TFunc } from './locale'
-import type { AccountStatus, OfficePrefs, UiTheme } from '../../shared/home-api'
+import type { OfficePrefs, UiTheme } from '../../shared/home-api'
 import { ProviderLogo } from './provider-logos'
-import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import { RedrobPane } from './settings/RedrobPane'
 import { AiProvidersPane, ModelPicker } from './settings/AiProvidersPane'
 import { IdentityPane } from './home/IdentityPane'
@@ -54,25 +53,17 @@ function formatStars(n: number): string {
   return `${k >= 100 ? Math.round(k) : (Math.round(k * 10) / 10).toString().replace(/\.0$/, '')}k`
 }
 
-type SectionId = 'account' | 'aiModel' | 'identity' | 'general' | 'about'
+type SectionId = 'aiModel' | 'identity' | 'general' | 'about'
 
-// The "account" section hosts the ported Genspark sign-in / credits, which
-// authenticate against genspark.ai. It is only listed when the cloud-account
-// surface is enabled; otherwise Settings opens on the AI Model (Redrob Console)
-// pane and the account/credits pane is unreachable.
 const ALL_SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = [
-  { id: 'account', labelKey: 'setSecAccount' },
   { id: 'aiModel', labelKey: 'setSecRedrob' },
   { id: 'identity', labelKey: 'setSecSignIn' },
   { id: 'general', labelKey: 'setSecGeneral' },
   { id: 'about', labelKey: 'setSecAbout' },
 ]
-const SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = CLOUD_ACCOUNT_ENABLED
-  ? ALL_SECTIONS
-  : ALL_SECTIONS.filter((s) => s.id !== 'account')
+const SECTIONS = ALL_SECTIONS
 
 const SECTION_ICON: Record<SectionId, IconName> = {
-  account: 'user',
   aiModel: 'sparkle',
   identity: 'users',
   general: 'sliders',
@@ -423,33 +414,10 @@ function AiStatusPill({ status }: { status: AiStatus | null }) {
 }
 
 export interface SettingsModalProps {
-  status: AccountStatus | null
-  loggingOut: boolean
-  /** browser sign-in in progress (spinner shows on the account entry) */
-  loginWaiting: boolean
-  /** device auth URL while waiting — rescue actions when the browser did not auto-open */
-  loginUrl: string | null
-  urlCopied: boolean
-  onOpenLoginUrl: () => void
-  onCopyLoginUrl: () => void
   onClose: () => void
-  /** closes the modal and launches the Genspark login flow (progress shows on the account entry) */
-  onLogin: () => void
-  onLogout: () => void
 }
 
-export function SettingsModal({
-  status,
-  loggingOut,
-  loginWaiting,
-  loginUrl,
-  urlCopied,
-  onOpenLoginUrl,
-  onCopyLoginUrl,
-  onClose,
-  onLogin,
-  onLogout,
-}: SettingsModalProps) {
+export function SettingsModal({ onClose }: SettingsModalProps) {
   const { lang, setLang, t } = useI18n()
   const [section, setSection] = useState<SectionId>(SECTIONS[0].id)
   // Toolbar, Plan or Run, Cross-check and Memory: stored by main, followed by every editor
@@ -515,9 +483,6 @@ export function SettingsModal({
     })
   }
 
-  const loggedIn = status?.loggedIn ?? false
-  const email = status?.email ?? ''
-
   return (
     <Dialog
       className="set-overlay"
@@ -542,55 +507,6 @@ export function SettingsModal({
           ))}
         </nav>
         <div className="set-pane">
-          {CLOUD_ACCOUNT_ENABLED && section === 'account' && (
-            <>
-              <h3 className="set-pane-title">{t('setSecAccount')}</h3>
-              <Field label={t('setEmail')} value={loggedIn ? email : t('setNotLoggedIn')} />
-              {loggedIn && (
-                <Field
-                  label={t('credits')}
-                  value={
-                    status?.creditBalance === undefined
-                      ? '—'
-                      : Math.floor(status.creditBalance).toLocaleString('en-US')
-                  }
-                  action={
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      data-tip={t('creditsTip')}
-                      onClick={() => void window.aiOffice.openCreditUsage?.()}
-                    >
-                      {t('setViewUsage')}
-                    </Button>
-                  }
-                />
-              )}
-              <div className="set-pane-footer">
-                {loggedIn ? (
-                  <Button variant="danger" size="sm" disabled={loggingOut} onClick={onLogout}>
-                    {loggingOut ? t('loggingOut') : t('logout')}
-                  </Button>
-                ) : (
-                  <>
-                    {loginWaiting && loginUrl && (
-                      <>
-                        <Button variant="secondary" size="sm" onClick={onOpenLoginUrl}>
-                          {t('loginOpenManually')}
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={onCopyLoginUrl}>
-                          {urlCopied ? t('loginCopied') : t('loginCopyUrl')}
-                        </Button>
-                      </>
-                    )}
-                    <Button variant="primary" size="sm" onClick={onLogin}>
-                      {loginWaiting ? t('waitingShort') : t('loginGenspark')}
-                    </Button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
           {section === 'identity' && <IdentityPane t={t} />}
           {section === 'aiModel' && prefs && (
             <RedrobPane

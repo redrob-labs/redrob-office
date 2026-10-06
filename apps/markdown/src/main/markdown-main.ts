@@ -24,9 +24,8 @@ import {
   showSaveDialogWithMemory,
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
-import { cloudToolsEnabled, type AiSettings } from '@genoffice/ai-provider'
+import type { AiSettings } from '@genoffice/ai-provider'
 import { generateImage } from '@genoffice/ai-provider/node'
-import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
 import { atomicWriteFile } from './atomic-write'
 import {
   copyImageIntoOwnedAssets,
@@ -675,15 +674,6 @@ function registerMarkdownIpc(): void {
     },
   )
 
-  /** live read: the shell settings pane writes the file; every tool call re-checks */
-  const gskCloudToolsOn = (): boolean => {
-    try {
-      const raw = readFileSync(join(app.getPath('userData'), 'ai-settings.json'), 'utf8')
-      return cloudToolsEnabled(JSON.parse(raw) as Partial<AiSettings>)
-    } catch {
-      return false
-    }
-  }
 
   // markdown-owned (like docs:ai-generate-image): the shared ai:* handlers are
   // shell-registered, but image generation is gated per app

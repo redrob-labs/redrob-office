@@ -24,6 +24,8 @@ export { custodyKeys, holdsKeys, integrationForSlot, withoutKeys } from './key-c
 export type { CustodyResult } from './key-custody'
 export { currentEngineTarget } from './engine-turn'
 export { readModelCapabilities } from './model-capabilities'
+export { redrobSignIn, setRedrobSignIn } from './redrob-sign-in'
+export type { RedrobSignIn } from './redrob-sign-in'
 export {
   ENGINE_CONSOLE_RELAY,
   HostedToolUnavailableError,

@@ -42,7 +42,7 @@ export function createPdfSkill(deps: PdfAiDeps): AgentSkill {
     get systemPrompt() {
       return deps.gskTools?.() === false ? SYSTEM_PROMPT + GSK_TOOLS_OFF_NOTE : SYSTEM_PROMPT
     },
-    // live view: gskTools (login && cloud-tools toggle) is re-read before every model request
+    // live view: gskTools (hosted image generation available) is re-read before every model request
     get tools() {
       return deps.gskTools?.() === false
         ? AGENT_TOOLS.filter((t) => t.name !== 'generate_image')
