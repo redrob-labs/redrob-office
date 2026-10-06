@@ -24,5 +24,7 @@ export { custodyKeys, holdsKeys, integrationForSlot, withoutKeys } from './key-c
 export type { CustodyResult } from './key-custody'
 export { currentEngineTarget } from './engine-turn'
 export { readModelCapabilities } from './model-capabilities'
+export { MEDIA_MAX_BYTES, MediaUnavailableError, analyzeMedia, loadMedia, pickMediaModel, transcribe } from './media'
+export type { AnalyzeMediaOptions, MediaKind, TranscribeOptions } from './media'
 export { startMcpHost } from './mcp-host'
 export type { McpHost, McpToolResult } from './mcp-host'

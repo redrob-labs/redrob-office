@@ -566,14 +566,14 @@ const TOOLS: AgentToolDef[] = [
   {
     name: 'analyze_media',
     description:
-      'Analyze media content (Redrob): understand images/audio/video. Pass media URLs (or local file paths) and analysis requirements; returns analysis text. Video supports extracting key points, structure, and time ranges — good for turning user material into usable deck content.',
+      'Analyze media content: understand images (png, jpeg, gif, webp) and short audio clips (mp3, wav). Pass https URLs or data: URLs plus analysis requirements; returns analysis text. Runs on a model that reads that media; video is not supported. Good for turning user material into usable deck content.',
     inputSchema: {
       type: 'object',
       properties: {
         mediaUrls: {
           type: 'array',
           items: { type: 'string' },
-          description: 'List of media URLs or local file paths',
+          description: 'List of https:// or data: URLs (local file paths are not read)',
         },
         requirements: {
           type: 'string',
@@ -1553,11 +1553,11 @@ export function formatSlideDump(slide: RenderSlide): string {
   return `Canvas ${slide.widthPx}×${slide.heightPx}px (1 px = ${pxToEmu} EMU)\n${parts.join('\n---\n') || '(no elements on this page)'}${colorNote}`
 }
 
-/** tools only usable through the Genspark cloud (gated by login + the cloud-tools toggle) */
-const GSK_ONLY_TOOLS = new Set(['generate_image', 'analyze_media'])
+/** tools that need a service this build may not have (gated live, see access.gskTools) */
+const GSK_ONLY_TOOLS = new Set(['generate_image'])
 
 const GSK_TOOLS_OFF_NOTE =
-  '\n\nNote: generate_image and analyze_media are currently unavailable (Redrob cloud tools are off or the user is signed out). Do not call or promise them; for imagery use image_search + insert_web_image instead.'
+  '\n\nNote: generate_image is not offered in this session. Do not call or promise it; for imagery use image_search + insert_web_image instead.'
 
 export function createSlidesSkill(access: DeckAccess): AgentSkill {
   // The HTML pipeline was already used in this conversation → later calls without an explicit mode default to append.

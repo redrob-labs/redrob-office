@@ -35,7 +35,14 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
-import { currentEngineTarget, custodyKeys, holdsKeys, streamForProvider, withoutKeys } from '@genoffice/ai-provider/node'
+import {
+  analyzeMedia,
+  currentEngineTarget,
+  custodyKeys,
+  holdsKeys,
+  streamForProvider,
+  withoutKeys,
+} from '@genoffice/ai-provider/node'
 import { fetchRemoteImage } from '@genoffice/electron-utils'
 import {
   webSearch,
@@ -292,17 +299,14 @@ export function registerSlidesOnlyAiIpc(): void {
 
   ipcMain.handle(
     'ai:analyze-media',
-    async (_event, op: { mediaUrls: string[]; requirements: string }) => {
-      if (!hasGskAuth()) return { error: tm('errGskCli') }
-      if (!gskCloudToolsOn())
-        return {
-          error:
-            'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool',
-        }
+    async (_event, op: { mediaUrls: string[]; requirements: string; model?: string }) => {
+      // a chat turn on the engine with the media attached, on a model that reads it
       try {
-        const text = await gskAnalyzeMedia({
-          mediaUrls: (op.mediaUrls ?? []).map(String),
-          requirements: String(op.requirements ?? ''),
+        const text = await analyzeMedia({
+          mediaUrls: Array.isArray(op?.mediaUrls) ? op.mediaUrls.map(String) : [],
+          requirements: String(op?.requirements ?? ''),
+          ...(typeof op?.model === 'string' ? { model: op.model } : {}),
+          fetch: (url, init) => net.fetch(url, init),
         })
         return { text }
       } catch (err) {
