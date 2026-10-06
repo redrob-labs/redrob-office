@@ -13,30 +13,31 @@ Requirement references are in brackets, e.g. [R2.1].
 **Prerequisites. Phase 0 cannot complete without these, and they need people, not code:**
 
 - [ ] P-1 A self-hosted Windows runner with a licensed 한글 2024 and COM automation enabled.
-- [ ] P-2 Create the `redrob-labs/rhwp` repository as a fork of `edwardkim/rhwp`.
+- [x] P-2 ~~Create the `redrob-labs/rhwp` repository~~: GitHub refused (403); the fork lives in `engines/rhwp` (see its REDROB.md).
 - [ ] P-3 Corpus sources: public documents identified; a storage location for customer documents
   outside the repo.
 - [ ] P-4 Counsel engaged for the trademark, font and specification-terms review [R10.7].
 
 ## Phase 0: Foundations and gates
 
-- [ ] 0.1 Fork rhwp at tag v0.8.7. Build the WASM in Docker. Add `packages/hwp-core` with the
+- [x] 0.1 Fork rhwp at tag v0.8.7. Build the WASM in Docker. Add `packages/hwp-core` with the
   artifact, generated types and `provenance.json`. Add the `hwp-core reproducible` CI job.
   [R10.1, R10.2]
-- [ ] 0.2 Add `cargo-deny` licence checks to the fork's CI. Extend the root `NOTICE` for rhwp core
+- [x] 0.2 Add `cargo-deny` licence checks to the fork's CI. Extend the root `NOTICE` for rhwp core
   (MIT). [R10.3]
-- [ ] 0.3 Fidelity harness:
+- [x] 0.3 Fidelity harness:
   - Corpus manifest with feature tags.
   - Hancom reference generator: COM open → fixed PDF path → PDFium 150 dpi.
   - Electron offscreen renderer for the Core.
   - pixelmatch diff and HTML report.
   [R1.1, R1.2, R2.2]
-- [ ] 0.4 No-op save round trip for `.hwp` and `.hwpx` through 한글 2024 in the harness. [R1.4, R3.1]
+- [x] 0.4 No-op save round trip for `.hwp` and `.hwpx` through 한글 2024 in the harness. [R1.4, R3.1]
 - [ ] 0.5 Live-collaboration spike: y-hwp mirror versus server-ordered op log. Two-client fuzz test;
   check convergence and that 한글 2024 opens the result. [R9.4]
 - [ ] 0.6 Generate the 한글 2024 formatting coverage list for every supported object [R5.3] and the
   shortcut map [R4.2].
-- [ ] 0.7 Research:
+- [x] 0.7 Research (findings in `docs/decisions/2026-10-hangul-format-research.md`; 한글 2024-saved
+  golden files for R2 and R3 wait for P-1):
   - R1: Node id slots in HWP 5.0 and HWPX.
   - R2: Memo records in files saved by 한글 2024, both formats.
   - R3: Revision records, both formats.
@@ -65,6 +66,7 @@ Requirement references are in brackets, e.g. [R2.1].
   a worker. [R4.4]
 - [ ] 1.10 Open, save and Save As through the existing main and preload: atomic writes, password
   documents, dirty tracking from `changeSeq`. Add the development flag `REDROB_HANGUL_EDITOR=next`.
+  Until E5a lands, refuse an in-place save of a document with tracked changes, and offer Save As.
   [R3.4, R3.6, R4.5, R11.1]
 - [ ] 1.11 Harness: scripted edit scenarios saved and checked in 한글 2024 for both formats. Run in
   CI nightly. [R3.2, R3.3, R3.5]
@@ -81,6 +83,9 @@ Requirement references are in brackets, e.g. [R2.1].
   header/footer, field, bookmark, hyperlink. [R5.3]
 - [ ] 2.5 i18n strings in both locales; visual baselines in `tests/visual`; accessibility pass.
   [R5.4, R5.5]
+- [ ] 2.7 Hancom attribution in the Hangul About and help surfaces, in both locales: 「본 제품은
+  한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.」 Required by the HWP
+  specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
 - [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
   CommandBus. [R5.3]
 
@@ -110,7 +115,10 @@ Requirement references are in brackets, e.g. [R2.1].
 - [ ] 4.2 Comments UI: rail, threads, replies, resolve, @mentions, @Redrob; storage for thread
   metadata that has no native slot (decided in this task). AI `read_comments`, `reply_comment` and
   `resolve_comment`. [R7.2, R6.1]
-- [ ] 4.3 E5 Revision API with recording mode, golden tests against the R3 fixtures, and a 한글 2024
+- [ ] 4.0 E5a revision preservation in the engine (HWPX marks and tables; HWP 5.0 raw data kept on
+  the right paragraphs through edits). Flip `known-gaps.test.ts` to assert preservation. Can land
+  before Phase 4. [R3.3]
+- [ ] 4.3 E5b Revision API with recording mode, golden tests against the R3 fixtures, and a 한글 2024
   two-way accept/reject test. [R8.1, R8.2]
 - [ ] 4.4 Suggesting and viewing modes; revision marks in the overlay; review actions; tracked AI
   edits and the AI `read_revisions`, `accept_revision` and `reject_revision` tools. [R8.1, R8.3, R6.4]

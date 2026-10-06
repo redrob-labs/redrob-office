@@ -15,7 +15,7 @@
     "wasmOpt": "117",
     "command": "scripts/build-hwp-core.sh"
   },
-  "sourceSha256": "73a275be2400a255d1751e3440cf22e7e9241f1fdb04b131abef794aa39b5b3e",
+  "sourceSha256": "49e2b9798e38588e712fa8e54a23822cab17b7951037be05c0b85bdb93235213",
   "artifacts": {
     "rhwp.js": "70cde06a369fa7fd4fc8bc8f3d6acaee158596ba1a116a2c72159002b0b5654e",
     "rhwp.d.ts": "4742243ad37a992ba3deec56a3e3e7b57f05073e49806027147acc054b5fce85",

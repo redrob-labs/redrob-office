@@ -60,6 +60,13 @@ Both are vendored here verbatim and served offline from a local origin (no CDN):
   Redrob's changes to engines/rhwp are licensed under the MIT License, the same
   as rhwp, so they can be offered upstream.
 
+  본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+  (This product was developed with reference to Hancom's published Hangul
+  document file (.hwp) specification.) The HWPX format is the Korean national
+  standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered
+  trademarks of Hancom Inc.; Redrob Office is not affiliated with, sponsored by
+  or endorsed by Hancom Inc.
+
 Redrob design system
 
   The application chrome is built on the Redrob Group Design System 2026, as

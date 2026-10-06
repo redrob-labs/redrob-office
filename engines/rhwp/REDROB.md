@@ -1,5 +1,9 @@
 # engines/rhwp: Redrob's fork of the rhwp engine
 
+> 본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+> (Hancom's HWP specification requires this statement in a product's source, user interface,
+> manual and help; see `docs/decisions/2026-10-hangul-format-research.md`, finding 4.)
+
 This directory holds the Rust source of [rhwp](https://github.com/edwardkim/rhwp) (MIT, Copyright
 (c) 2025-2026 Edward Kim), the HWP/HWPX engine behind the Hangul editor. It is built to WebAssembly
 into `packages/hwp-core` (see `scripts/build-hwp-core.sh`).
