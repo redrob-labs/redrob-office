@@ -28,6 +28,8 @@ export type FakeEngine = {
   requests: { method: string; path: string; body: unknown }[]
   mcp: Map<string, { url: string; headers: Record<string, string> }>
   aborted: string[]
+  /** Console routes the (requested) engine relay serves; empty = the relay does not exist yet */
+  relayRoutes: Map<string, (body: unknown) => unknown>
   /** v1 `/auth/:id` store */
   v1Auth: Map<string, unknown>
   /** keys handed to the credential store, in order */
@@ -80,6 +82,7 @@ export async function startFakeEngine(): Promise<FakeEngine> {
   const aborted: string[] = []
   const keys: FakeEngine['keys'] = []
   const v1Auth = new Map<string, unknown>()
+  const relayRoutes: FakeEngine['relayRoutes'] = new Map()
   const streams = new Set<ServerResponse>()
   const sessionAbort = new Map<string, AbortController>()
   let promptFn: (ctx: FakePromptContext) => Promise<Record<string, unknown>> = async () => ({
@@ -144,6 +147,12 @@ export async function startFakeEngine(): Promise<FakeEngine> {
           },
         ],
       })
+    }
+    if (p.startsWith('/api/console/relay/')) {
+      const route = p.slice('/api/console/relay'.length)
+      const answer = relayRoutes.get(route)
+      if (!answer) return send(404, { name: 'NotFound' })
+      return send(200, answer(body))
     }
     if (p === '/provider/auth') {
       return send(200, {
@@ -291,6 +300,7 @@ export async function startFakeEngine(): Promise<FakeEngine> {
     aborted,
     keys,
     v1Auth,
+    relayRoutes,
     onPrompt: (fn) => {
       promptFn = fn
     },

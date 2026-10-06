@@ -24,6 +24,16 @@ export { custodyKeys, holdsKeys, integrationForSlot, withoutKeys } from './key-c
 export type { CustodyResult } from './key-custody'
 export { currentEngineTarget } from './engine-turn'
 export { readModelCapabilities } from './model-capabilities'
+export {
+  ENGINE_CONSOLE_RELAY,
+  HostedToolUnavailableError,
+  generateImage,
+  hostedImageSearch,
+  hostedToolSupport,
+  hostedWebSearch,
+  resetHostedToolSupport,
+} from './hosted-tools'
+export type { GenerateImageOptions, HostedImageResult, HostedTool, HostedWebResult } from './hosted-tools'
 export { MEDIA_MAX_BYTES, MediaUnavailableError, analyzeMedia, loadMedia, pickMediaModel, transcribe } from './media'
 export type { AnalyzeMediaOptions, MediaKind, TranscribeOptions } from './media'
 export { startMcpHost } from './mcp-host'

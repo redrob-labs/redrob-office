@@ -25,6 +25,7 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { cloudToolsEnabled, type AiSettings } from '@genoffice/ai-provider'
+import { generateImage } from '@genoffice/ai-provider/node'
 import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
 import { atomicWriteFile } from './atomic-write'
 import {
@@ -689,19 +690,10 @@ function registerMarkdownIpc(): void {
   ipcMain.handle(
     MARKDOWN_CHANNELS.aiGenerateImage,
     async (_e, op: { prompt?: unknown; aspectRatio?: unknown }) => {
-      if (!hasGskAuth())
-        return {
-          error: 'Redrob account is not logged in on this machine; ask the user to log in first',
-        }
-      if (!gskCloudToolsOn())
-        return {
-          error:
-            'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool',
-        }
       const prompt = String(op?.prompt ?? '').trim()
       if (!prompt) return { error: 'prompt must not be empty' }
       try {
-        const r = await gskGenerateImage({
+        const r = await generateImage({
           prompt,
           aspectRatio: op?.aspectRatio ? String(op.aspectRatio) : undefined,
         })

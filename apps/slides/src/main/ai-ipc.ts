@@ -42,6 +42,7 @@ import {
   holdsKeys,
   streamForProvider,
   withoutKeys,
+  generateImage,
 } from '@genoffice/ai-provider/node'
 import { fetchRemoteImage } from '@genoffice/electron-utils'
 import {
@@ -274,21 +275,13 @@ export function registerSlidesOnlyAiIpc(): void {
         imageSize?: string
       },
     ) => {
-      if (!hasGskAuth()) return { error: tm('errGskCli') }
-      if (!gskCloudToolsOn())
-        return {
-          error:
-            'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool',
-        }
       try {
-        const r = await gskGenerateImage({
-          prompt: String(op.prompt),
-          model: op.model ? String(op.model) : undefined,
-          referenceImageUrls: Array.isArray(op.referenceImageUrls)
-            ? op.referenceImageUrls.map(String)
-            : undefined,
-          aspectRatio: op.aspectRatio ? String(op.aspectRatio) : undefined,
-          imageSize: op.imageSize ? String(op.imageSize) : undefined,
+        // Redrob-hosted route (docs/console-requests/office-ai-routes.md); unavailable until Console serves it
+        const r = await generateImage({
+          prompt: String(op.prompt ?? ''),
+          ...(Array.isArray(op.referenceImageUrls) ? { referenceImageUrls: op.referenceImageUrls.map(String) } : {}),
+          ...(op.aspectRatio ? { aspectRatio: String(op.aspectRatio) } : {}),
+          ...(op.imageSize ? { size: String(op.imageSize) } : {}),
         })
         return { url: r.url }
       } catch (err) {

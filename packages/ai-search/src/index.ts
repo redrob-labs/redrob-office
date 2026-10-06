@@ -1,6 +1,6 @@
 /**
- * Search utilities (main process) — gsk (Genspark CLI) first, then Serper Google API,
- * then Tavily, with DuckDuckGo as the keyless last resort. Runs in the main process
+ * Search utilities (main process): Redrob-hosted search when available, then Serper
+ * Google API, then Tavily, with DuckDuckGo as the keyless last resort. Runs in the main process
  * (Node fetch / child process) to avoid renderer CORS; the Serper key reuses SERPER_API_KEY,
  * the Tavily key reuses TAVILY_API_KEY.
  * For gsk auth see ./gsk.ts (`gsk login` or GSK_API_KEY).
@@ -13,11 +13,27 @@ import {
   type ImageSearchResult,
   type WebSearchResult,
 } from './shared'
-import { gskImageSearch, gskWebSearch, hasGskAuth } from './gsk'
 
 export type { ImageSearchResult, WebSearchResult } from './shared'
 export * from './gsk'
 export * from './genoffice-auth'
+
+/**
+ * Redrob-hosted search, tried first when installed (the shell installs it from
+ * @genoffice/ai-provider/node; until Console serves it, it reports unavailable and the
+ * keyless chain below answers).
+ */
+export type HostedSearch = {
+  web?: (query: string, maxResults: number) => Promise<{ results: WebSearchResult[]; answer?: string } | null>
+  images?: (query: string, maxResults: number) => Promise<ImageSearchResult[] | null>
+}
+// on globalThis: each editor main may bundle its own copy of this module
+const HOSTED_SLOT = Symbol.for('redrob.office.hostedSearch')
+const slot = globalThis as { [HOSTED_SLOT]?: HostedSearch | null }
+export function setHostedSearch(search: HostedSearch | null): void {
+  slot[HOSTED_SLOT] = search
+}
+const hostedSearchNow = (): HostedSearch | null => slot[HOSTED_SLOT] ?? null
 
 const SERPER_KEY = () => process.env.SERPER_API_KEY ?? ''
 const TAVILY_KEY = () => process.env.TAVILY_API_KEY ?? ''
@@ -34,13 +50,14 @@ export async function webSearch(
   method: string
   error?: string
 }> {
-  // useGsk=false: the user turned Genspark cloud tools off — skip straight to the free backends
-  if (useGsk && hasGskAuth()) {
+  void useGsk // kept for call-site compatibility; Genspark is no longer a search backend
+  const hosted = hostedSearchNow()?.web
+  if (hosted) {
     try {
-      const r = await gskWebSearch(query, maxResults)
-      if (r.results.length) return { ...r, method: 'gsk' }
+      const r = await hosted(query, maxResults)
+      if (r && r.results.length) return { ...r, method: 'redrob' }
     } catch {
-      /* fall back to Serper/Tavily/DuckDuckGo */
+      /* not available yet: fall back to Serper/Tavily/DuckDuckGo */
     }
   }
   const key = SERPER_KEY()
@@ -131,12 +148,14 @@ export async function imageSearch(
   method: string
   error?: string
 }> {
-  if (useGsk && hasGskAuth()) {
+  void useGsk // kept for call-site compatibility; Genspark is no longer a search backend
+  const hosted = hostedSearchNow()?.images
+  if (hosted) {
     try {
-      const images = await gskImageSearch(query, maxResults)
-      if (images.length) return { images, method: 'gsk' }
+      const images = await hosted(query, maxResults)
+      if (images && images.length) return { images, method: 'redrob' }
     } catch {
-      /* fall back to Serper/DuckDuckGo */
+      /* not available yet: fall back to Serper/DuckDuckGo */
     }
   }
   const key = SERPER_KEY()

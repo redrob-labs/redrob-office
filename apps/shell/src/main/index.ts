@@ -74,7 +74,13 @@ import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settin
 import { registerRedrobConnectIpc } from './redrob-connect'
 import { getEngineTarget, registerEngineIpc, teardownEngine } from './engine-lifecycle'
 import { migrateOfficeHeldKeys, registerEngineCredentialsIpc } from './engine-credentials'
-import { setEngineTargetProvider } from '@genoffice/ai-provider/node'
+import {
+  hostedImageSearch,
+  hostedToolSupport,
+  hostedWebSearch,
+  setEngineTargetProvider,
+} from '@genoffice/ai-provider/node'
+import { setHostedSearch } from '@genoffice/ai-search'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -4504,6 +4510,9 @@ registerEngineIpc()
 registerEngineCredentialsIpc()
 // every AI turn in every editor runs on the engine; the editor mains find it here
 setEngineTargetProvider(() => getEngineTarget())
+// Redrob-hosted search goes first when Console serves it; until then the keyless chain answers
+setHostedSearch({ web: (q, n) => hostedWebSearch(q, n), images: (q, n) => hostedImageSearch(q, n) })
+ipcMain.handle('ai:hosted-tools', () => hostedToolSupport())
 // a key an older build stored is handed to the engine and removed from disk
 void app.whenReady().then(() => migrateOfficeHeldKeys())
 registerTabsIpc()
