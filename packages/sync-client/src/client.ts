@@ -13,6 +13,8 @@ export interface RemoteFile {
   ownerSub: string
   createdAt: string
   role: Role
+  /** everyone with access, the owner included (the file list sends it) */
+  memberCount?: number
 }
 
 export interface RemoteMember {
@@ -27,6 +29,10 @@ export interface RemoteVersion {
   size: number
   createdBy: string
   createdAt: string
+}
+
+export interface RemoteFileDetail extends RemoteFile {
+  latest: RemoteVersion | null
 }
 
 export class SyncError extends Error {
@@ -122,5 +128,30 @@ export class SyncClient {
 
   async removeMember(fileId: string, sub: string): Promise<void> {
     await this.call(`/files/${this.id(fileId)}/members/${encodeURIComponent(sub)}`, { method: 'DELETE' })
+  }
+
+  /** The file, this person's current role on it, and its latest version. */
+  async getFile(fileId: string): Promise<RemoteFileDetail> {
+    const b = (await (await this.call(`/files/${this.id(fileId)}`)).json()) as RemoteFileDetail
+    if (!isRole(b.role)) throw new SyncError(502, 'The sync service sent an unknown role.')
+    return { id: b.id, name: b.name, ownerSub: b.ownerSub, createdAt: b.createdAt, role: b.role, latest: b.latest ?? null }
+  }
+
+  /** Stop sharing: the owner deletes the shared file for everyone. */
+  async deleteFile(fileId: string): Promise<void> {
+    await this.call(`/files/${this.id(fileId)}`, { method: 'DELETE' })
+  }
+
+  /** Every version, newest first. */
+  async versions(fileId: string): Promise<RemoteVersion[]> {
+    const b = (await (await this.call(`/files/${this.id(fileId)}/versions`)).json()) as { versions?: unknown }
+    return Array.isArray(b.versions) ? (b.versions as RemoteVersion[]) : []
+  }
+
+  /** Who the service says the token belongs to. */
+  async me(): Promise<{ sub: string; name: string }> {
+    const b = (await (await this.call('/me')).json()) as { sub?: unknown; name?: unknown }
+    if (typeof b.sub !== 'string') throw new SyncError(502, 'The sync service did not say who you are.')
+    return { sub: b.sub, name: typeof b.name === 'string' ? b.name : b.sub }
   }
 }

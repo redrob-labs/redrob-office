@@ -88,3 +88,8 @@
 .doc-share__role {
   color: var(--ink-secondary);
 }
+
+.doc-share__stop {
+  margin: 0 0 var(--space-3);
+  padding-top: var(--space-2);
+}

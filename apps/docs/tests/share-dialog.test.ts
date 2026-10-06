@@ -32,7 +32,9 @@ function api(status: ShareStatus, over: Partial<ShareApi> = {}): ShareApi {
     shareStatus: vi.fn(async () => status),
     shareInvite: vi.fn(async () => ({ ok: true as const, status })),
     shareRemove: vi.fn(async () => ({ ok: true as const, status })),
+    shareStop: vi.fn(async () => ({ ok: true as const, status: { available: true as const, shared: false as const } })),
     sharedWithMe: vi.fn(async () => []),
+    sharedByMe: vi.fn(async () => []),
     openShared: vi.fn(async () => ({ ok: false as const, error: 'no' })),
     ...over,
   }
@@ -103,6 +105,22 @@ describe('ShareDialog', () => {
     await flush()
     expect(document.body.textContent).toContain('The sync service could not be reached. Nothing changed.')
     expect(input.value).toBe('kim')
+  })
+
+  it('the owner stops sharing only after confirming what it does', async () => {
+    const a = api({ available: true, shared: true, role: 'owner', members: [{ sub: 'me', name: 'Me', role: 'owner' }, { sub: 'kim', name: 'Kim', role: 'edit' }] })
+    await render({ api: a })
+    const button = (label: string) => [...document.querySelectorAll<HTMLButtonElement>('.doc-share button')].find((b) => b.textContent === label)
+    act(() => button(SHARE_STRINGS.stop)!.click())
+    expect(document.body.textContent).toContain(SHARE_STRINGS.stopWhy)
+    act(() => button(SHARE_STRINGS.stopCancel)!.click())
+    expect(a.shareStop).not.toHaveBeenCalled()
+    act(() => button(SHARE_STRINGS.stop)!.click())
+    await act(async () => button(SHARE_STRINGS.stopConfirm)!.click())
+    await flush()
+    expect(a.shareStop).toHaveBeenCalledWith(PATH)
+    expect(document.body.textContent).toContain(SHARE_STRINGS.notShared)
+    expect(button(SHARE_STRINGS.stop)).toBeUndefined()
   })
 
   it('someone who is not the owner sees the people but cannot invite or remove', async () => {

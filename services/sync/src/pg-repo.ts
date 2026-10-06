@@ -2,8 +2,14 @@ import pg from 'pg'
 import type { Role } from './access.ts'
 import type { FileRecord, FileVersion, Member, Repo } from './repo.ts'
 
-/** Applied in order at start; each statement is idempotent. */
-export const MIGRATIONS = [
+/**
+ * The schema, one numbered step at a time. A step is applied once, inside a
+ * transaction, and recorded in `schema_migrations`; never edit or reorder a
+ * step that has shipped, add a new one at the end. The first five steps were
+ * written to be idempotent before the table existed, so a database created
+ * by an older service adopts them without change.
+ */
+export const MIGRATIONS: readonly string[] = [
   `CREATE TABLE IF NOT EXISTS files (
      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
      name text NOT NULL,
@@ -35,6 +41,59 @@ export const MIGRATIONS = [
    )`,
 ]
 
+/** an arbitrary constant: the advisory lock that serialises migrations across service instances */
+const MIGRATION_LOCK = 72_616_401
+
+export interface Queryable {
+  query(sql: string, params?: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>
+}
+
+/**
+ * Applies the steps this database has not had yet, in order, each in its own
+ * transaction, under an advisory lock so two instances starting together do
+ * not race. Returns the step numbers applied (1-based).
+ */
+export async function migrate(pool: pg.Pool, steps: readonly string[] = MIGRATIONS): Promise<number[]> {
+  const client = await pool.connect()
+  try {
+    return await migrateWith(client, steps)
+  } finally {
+    client.release()
+  }
+}
+
+export async function migrateWith(db: Queryable, steps: readonly string[] = MIGRATIONS): Promise<number[]> {
+  await db.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK])
+  try {
+    await db.query(
+      `CREATE TABLE IF NOT EXISTS schema_migrations (
+         version integer PRIMARY KEY,
+         applied_at timestamptz NOT NULL DEFAULT now()
+       )`,
+    )
+    const { rows } = await db.query('SELECT version FROM schema_migrations')
+    const done = new Set(rows.map((r) => Number(r.version)))
+    const applied: number[] = []
+    for (let i = 0; i < steps.length; i++) {
+      const n = i + 1
+      if (done.has(n)) continue
+      await db.query('BEGIN')
+      try {
+        await db.query(steps[i]!)
+        await db.query('INSERT INTO schema_migrations (version) VALUES ($1)', [n])
+        await db.query('COMMIT')
+      } catch (err) {
+        await db.query('ROLLBACK')
+        throw new Error(`Migration ${n} failed: ${(err as Error).message}`)
+      }
+      applied.push(n)
+    }
+    return applied
+  } finally {
+    await db.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK])
+  }
+}
+
 const iso = (v: unknown) => (v instanceof Date ? v.toISOString() : String(v))
 
 const file = (r: Record<string, unknown>): FileRecord => ({
@@ -62,7 +121,7 @@ export class PgRepo implements Repo {
 
   static async connect(url: string): Promise<PgRepo> {
     const pool = new pg.Pool({ connectionString: url, max: 10 })
-    for (const sql of MIGRATIONS) await pool.query(sql)
+    await migrate(pool)
     return new PgRepo(pool)
   }
 
@@ -92,10 +151,11 @@ export class PgRepo implements Repo {
   }
   async listFiles(sub: string) {
     const { rows } = await this.pool.query(
-      'SELECT f.*, m.role FROM files f JOIN members m ON m.file_id = f.id WHERE m.sub = $1 ORDER BY f.created_at DESC',
+      `SELECT f.*, m.role, (SELECT count(*) FROM members x WHERE x.file_id = f.id) AS member_count
+       FROM files f JOIN members m ON m.file_id = f.id WHERE m.sub = $1 ORDER BY f.created_at DESC`,
       [sub],
     )
-    return rows.map((r) => ({ ...file(r), role: r.role as Role }))
+    return rows.map((r) => ({ ...file(r), role: r.role as Role, memberCount: Number(r.member_count) }))
   }
   async deleteFile(id: string) {
     await this.pool.query('DELETE FROM files WHERE id = $1', [id])
@@ -139,8 +199,11 @@ export class PgRepo implements Repo {
     return rows[0] ? new Uint8Array(rows[0].state as Buffer) : null
   }
   async storeDoc(fileId: string, state: Uint8Array) {
+    // a room that closes after its file was deleted stores nothing
     await this.pool.query(
-      'INSERT INTO doc_states (file_id, state) VALUES ($1, $2) ON CONFLICT (file_id) DO UPDATE SET state = $2, updated_at = now()',
+      `INSERT INTO doc_states (file_id, state)
+       SELECT $1, $2 WHERE EXISTS (SELECT 1 FROM files WHERE id = $1)
+       ON CONFLICT (file_id) DO UPDATE SET state = $2, updated_at = now()`,
       [fileId, Buffer.from(state)],
     )
   }

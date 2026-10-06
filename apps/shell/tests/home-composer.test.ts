@@ -124,12 +124,12 @@ describe('Home, composer first', () => {
     expect(api.ask).toHaveBeenCalledWith('Draft a mutual NDA')
   })
 
-  it('names the navigation Home, Updates, Starred with counts, then Shared with you', async () => {
+  it('names the navigation Home, Updates, Starred with counts, then Shared', async () => {
     await mount()
     const labels = Array.from(host.querySelectorAll('.sidebar-nav .nav-label')).map(
       (n) => n.textContent,
     )
-    expect(labels.slice(0, 4)).toEqual(['Home', 'Updates', 'Starred', 'Shared with you'])
+    expect(labels.slice(0, 4)).toEqual(['Home', 'Updates', 'Starred', 'Shared'])
     const items = Array.from(host.querySelectorAll('.sidebar-nav .nav-item'))
     expect(items[0]!.querySelector('.nav-count')!.textContent).toBe('8')
     expect(items[0]!.getAttribute('aria-current')).toBe('page')
@@ -147,12 +147,12 @@ describe('Home, composer first', () => {
     expect(host.querySelector('.home-hero')).toBeNull()
   })
 
-  it('opens Shared with you and says when sharing is not available', async () => {
+  it('opens Shared and says when sharing is not available', async () => {
     await mount()
     const shared = Array.from(host.querySelectorAll<HTMLButtonElement>('.sidebar-nav .nav-item'))[3]!
     act(() => shared.click())
     expect(shared.getAttribute('aria-current')).toBe('page')
-    expect(host.querySelector('#shared-title')!.textContent).toBe('Shared with you')
+    expect(host.querySelector('#shared-title')!.textContent).toBe('Shared')
     expect(host.textContent).toContain('Sharing is not available here.')
     expect(host.querySelector('.home-hero')).toBeNull()
   })

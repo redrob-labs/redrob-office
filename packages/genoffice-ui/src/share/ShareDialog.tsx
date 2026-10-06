@@ -26,6 +26,10 @@ export const SHARE_STRINGS = {
   unsaved: 'Save the file first; then it can be shared.',
   fileOnlyNote: 'Shared as a file: each save becomes a new version for everyone. Editing together live is not available for this kind of file.',
   privateNote: "Redrob's proposals that nobody has kept are never shared.",
+  stop: 'Stop sharing',
+  stopConfirm: 'Stop sharing for everyone',
+  stopCancel: 'Keep sharing',
+  stopWhy: 'Everyone else loses access, and the shared versions are deleted. Every copy already on someone’s computer stays there, including yours.',
 } as const
 
 const fill = (s: string, v: Record<string, string>) => Object.entries(v).reduce((o, [k, x]) => o.split(`{${k}}`).join(x), s)
@@ -54,12 +58,15 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
   const [role, setRole] = useState<Exclude<Role, 'owner'>>('edit')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [confirmStop, setConfirmStop] = useState(false)
   const accountId = useId()
   const hintId = useId()
+  const stopWhyId = useId()
 
   useEffect(() => {
     if (!open) return
     setError(null)
+    setConfirmStop(false)
     if (!api || !path) {
       setStatus(api ? null : { available: false, reason: 'no-service' })
       return
@@ -85,6 +92,17 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
   const remove = async (sub: string) => {
     if (!api || !path) return
     const r = await api.shareRemove(path, sub)
+    if (r.ok) setStatus(r.status)
+    else setError(r.error)
+  }
+
+  const stop = async () => {
+    if (typeof api?.shareStop !== 'function' || !path) return
+    setBusy(true)
+    setError(null)
+    const r = await api.shareStop(path)
+    setBusy(false)
+    setConfirmStop(false)
     if (r.ok) setStatus(r.status)
     else setError(r.error)
   }
@@ -156,6 +174,29 @@ export function ShareDialog({ open, onClose, path, fileName, api, note }: ShareD
             </section>
           ) : (
             <p className="doc-share__note">{SHARE_STRINGS.notShared}</p>
+          )}
+          {status.available && status.shared && status.role === 'owner' && typeof api?.shareStop === 'function' && (
+            <div className="doc-share__stop">
+              {confirmStop ? (
+                <>
+                  <p id={stopWhyId} className="doc-share__note">
+                    {SHARE_STRINGS.stopWhy}
+                  </p>
+                  <div className="doc-share__row">
+                    <Button size="sm" variant="danger" aria-describedby={stopWhyId} disabled={busy} onClick={() => void stop()}>
+                      {SHARE_STRINGS.stopConfirm}
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirmStop(false)}>
+                      {SHARE_STRINGS.stopCancel}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <Button size="sm" variant="secondary" onClick={() => setConfirmStop(true)}>
+                  {SHARE_STRINGS.stop}
+                </Button>
+              )}
+            </div>
           )}
           {note && <p className="doc-share__note">{note}</p>}
           <p className="doc-share__note">{SHARE_STRINGS.privateNote}</p>

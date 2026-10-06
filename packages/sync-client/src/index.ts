@@ -1,5 +1,26 @@
-export { ROLES, SyncClient, SyncError, isRole, type Fetch, type RemoteFile, type RemoteMember, type RemoteVersion, type Role, type SyncClientOptions } from './client'
-export { SHARE_CHANNELS, shareBridge, type ShareApi, type ShareIpcLike, type ShareResult, type ShareStatus, type SharedWithMe } from './ipc'
+export {
+  ROLES,
+  SyncClient,
+  SyncError,
+  isRole,
+  type Fetch,
+  type RemoteFile,
+  type RemoteFileDetail,
+  type RemoteMember,
+  type RemoteVersion,
+  type Role,
+  type SyncClientOptions,
+} from './client'
+export {
+  SHARE_CHANNELS,
+  shareBridge,
+  type ShareApi,
+  type ShareIpcLike,
+  type ShareResult,
+  type ShareStatus,
+  type SharedByMe,
+  type SharedWithMe,
+} from './ipc'
 export {
   LIVE_BASE_KEY,
   LIVE_CHANNELS,

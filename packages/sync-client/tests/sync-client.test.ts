@@ -27,6 +27,23 @@ describe('SyncClient', () => {
     expect(fetch).toHaveBeenCalledWith(`http://127.0.0.1:8787/files/${ID}/content`, expect.objectContaining({ method: 'PUT' }))
   })
 
+  it('reads a file with the current role, deletes one, lists versions and says who is signed in', async () => {
+    const calls: string[] = []
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${url.replace('http://s', '')}`)
+      if (url.endsWith('/me')) return new Response(JSON.stringify({ sub: 'jae', name: 'Jae' }))
+      if (url.endsWith('/versions')) return new Response(JSON.stringify({ versions: [{ version: 2 }, { version: 1 }] }))
+      if (init?.method === 'DELETE') return new Response(null, { status: 204 })
+      return new Response(JSON.stringify({ id: ID, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'x', role: 'edit', latest: null }))
+    })
+    const c = new SyncClient({ baseUrl: 'http://s', token: async () => 't', fetch })
+    expect(await c.getFile(ID)).toEqual({ id: ID, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'x', role: 'edit', latest: null })
+    await c.deleteFile(ID)
+    expect((await c.versions(ID)).map((v) => v.version)).toEqual([2, 1])
+    expect(await c.me()).toEqual({ sub: 'jae', name: 'Jae' })
+    expect(calls).toEqual([`GET /files/${ID}`, `DELETE /files/${ID}`, `GET /files/${ID}/versions`, 'GET /me'])
+  })
+
   it('refuses a malformed file id without a request, and says when the service is down', async () => {
     const fetch = vi.fn(async () => Promise.reject(new Error('ECONNREFUSED')))
     const c = new SyncClient({ baseUrl: 'http://127.0.0.1:8787', token: async () => 't', fetch })

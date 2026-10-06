@@ -233,7 +233,9 @@ export interface DesktopApi {
   shareStatus?: ShareApi['shareStatus']
   shareInvite?: ShareApi['shareInvite']
   shareRemove?: ShareApi['shareRemove']
+  shareStop?: ShareApi['shareStop']
   sharedWithMe?: ShareApi['sharedWithMe']
+  sharedByMe?: ShareApi['sharedByMe']
   openShared?: ShareApi['openShared']
   /** Live documents through the shell (absent outside the suite) */
   liveJoin?: LiveApi['liveJoin']

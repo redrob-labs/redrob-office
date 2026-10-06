@@ -1,10 +1,12 @@
-import { CreateBucketCommand, GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { CreateBucketCommand, DeleteObjectsCommand, GetObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import type { SyncConfig } from './config.ts'
 
 /** Where file bytes live: any S3 store (SeaweedFS locally) for real, memory for tests. */
 export interface BlobStore {
   put(key: string, bytes: Uint8Array): Promise<void>
   get(key: string): Promise<Uint8Array | null>
+  /** removes the objects; a key that is already gone is not an error */
+  delete(keys: readonly string[]): Promise<void>
 }
 
 export class MemoryBlobs implements BlobStore {
@@ -14,6 +16,13 @@ export class MemoryBlobs implements BlobStore {
   }
   async get(key: string) {
     return this.m.get(key) ?? null
+  }
+  async delete(keys: readonly string[]) {
+    for (const k of keys) this.m.delete(k)
+  }
+  /** for tests */
+  keys(): string[] {
+    return [...this.m.keys()]
   }
 }
 
@@ -48,6 +57,16 @@ export class S3Blobs implements BlobStore {
   }
   async put(key: string, bytes: Uint8Array) {
     await this.client.send(new PutObjectCommand({ Bucket: this.cfg.bucket, Key: key, Body: bytes }))
+  }
+  async delete(keys: readonly string[]) {
+    // DeleteObjects takes at most 1000 keys and does not fail on a missing one
+    for (let i = 0; i < keys.length; i += 1000) {
+      const chunk = keys.slice(i, i + 1000)
+      const out = await this.client.send(
+        new DeleteObjectsCommand({ Bucket: this.cfg.bucket, Delete: { Objects: chunk.map((Key) => ({ Key })), Quiet: true } }),
+      )
+      if (out.Errors?.length) throw new Error(`Could not delete ${out.Errors.length} stored object(s): ${out.Errors[0]?.Message ?? 'unknown'}`)
+    }
   }
   async get(key: string) {
     try {

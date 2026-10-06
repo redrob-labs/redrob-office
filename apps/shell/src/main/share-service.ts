@@ -7,11 +7,13 @@ import {
   SyncError,
   isRole,
   type RemoteFile,
+  type RemoteFileDetail,
   type RemoteMember,
   type RemoteVersion,
   type Role,
   type ShareResult,
   type ShareStatus,
+  type SharedByMe,
   type SharedWithMe,
 } from '@genoffice/sync-client'
 import type { SharedLink } from '@genoffice/sync-client/node'
@@ -25,6 +27,8 @@ export interface ShareClient {
   members(fileId: string): Promise<RemoteMember[]>
   setMember(fileId: string, sub: string, role: Role, name: string): Promise<RemoteMember[]>
   removeMember(fileId: string, sub: string): Promise<void>
+  getFile(fileId: string): Promise<RemoteFileDetail>
+  deleteFile(fileId: string): Promise<void>
 }
 
 /** the parts of SharedIndex this service uses */
@@ -108,8 +112,10 @@ export class ShareService {
     const link = await this.deps.index.get(path)
     if (!link) return { available: true, shared: false }
     try {
+      // the owner may have changed this person's role since the index was written
+      const role = await this.refreshRole(path, link)
       const members = await this.deps.client!.members(link.fileId)
-      return { available: true, shared: true, role: link.role, members }
+      return { available: true, shared: true, role, members }
     } catch (e) {
       if (e instanceof SyncError && e.status === 404) {
         // the shared file is gone or this person was removed; the local copy stays
@@ -118,6 +124,49 @@ export class ShareService {
       }
       if (e instanceof SyncError && e.status === 401) return { available: false, reason: 'signed-out' }
       return { available: false, reason: 'unreachable' }
+    }
+  }
+
+  /** The role the service holds now, written back to the index when it moved. */
+  private async refreshRole(path: string, link: SharedLink): Promise<Role> {
+    const f = await this.deps.client!.getFile(link.fileId)
+    if (f.role !== link.role) await this.deps.index.set(path, { ...link, role: f.role })
+    return f.role
+  }
+
+  /** Stop sharing: only the owner may; everyone loses access and every local copy stays. */
+  async stop(path: unknown): Promise<ShareResult> {
+    const why = await this.unavailable()
+    if (why) return fail(this.reasonMessage(why))
+    if (!isShareablePath(path)) return fail(SHARE_MESSAGES.notShareable)
+    const link = await this.deps.index.get(path)
+    if (!link) return { ok: true, status: { available: true, shared: false } }
+    try {
+      if ((await this.refreshRole(path, link)) !== 'owner') return fail(SHARE_MESSAGES.notOwner)
+      await this.deps.client!.deleteFile(link.fileId)
+    } catch (e) {
+      // already gone on the service: the outcome the owner asked for
+      if (!(e instanceof SyncError && e.status === 404)) return fail(messageOf(e))
+    }
+    // the service closes the file's live connections itself
+    await this.deps.index.remove(path)
+    return { ok: true, status: { available: true, shared: false } }
+  }
+
+  /** Files this person shares with others. */
+  async sharedByMe(): Promise<SharedByMe[] | { error: string }> {
+    const why = await this.unavailable()
+    if (why) return { error: this.reasonMessage(why) }
+    try {
+      const files = await this.deps.client!.listFiles()
+      const out: SharedByMe[] = []
+      for (const f of files) {
+        if (f.role !== 'owner') continue
+        out.push({ id: f.id, name: f.name, localPath: await this.deps.index.pathOf(f.id), people: Math.max(0, (f.memberCount ?? 1) - 1) })
+      }
+      return out
+    } catch (e) {
+      return { error: messageOf(e) }
     }
   }
 
@@ -218,9 +267,16 @@ export class ShareService {
       const link = await this.deps.index.get(path)
       if (!link || (link.role !== 'owner' && link.role !== 'edit')) return
       if (!(await this.deps.signedIn())) return
-      const v = await client.upload(link.fileId, bytes)
-      await this.deps.index.set(path, { ...link, version: v.version })
-      this.deps.uploaded?.(link.fileId, v.version)
+      try {
+        const v = await client.upload(link.fileId, bytes)
+        await this.deps.index.set(path, { ...link, version: v.version })
+        this.deps.uploaded?.(link.fileId, v.version)
+      } catch (e) {
+        // a role taken away, or the file no longer shared: bring the index up to date
+        if (e instanceof SyncError && e.status === 403) await this.refreshRole(path, link).catch(() => undefined)
+        else if (e instanceof SyncError && e.status === 404) await this.deps.index.remove(path)
+        throw e
+      }
     } catch (e) {
       this.deps.log?.(`[share] upload after save failed: ${messageOf(e)}`)
     }
@@ -249,7 +305,9 @@ export class ShareService {
     ipc.handle(SHARE_CHANNELS.status, (_e, path) => this.status(path))
     ipc.handle(SHARE_CHANNELS.invite, (_e, path, account, role) => this.invite(path, account, role))
     ipc.handle(SHARE_CHANNELS.remove, (_e, path, account) => this.remove(path, account))
+    ipc.handle(SHARE_CHANNELS.stop, (_e, path) => this.stop(path))
     ipc.handle(SHARE_CHANNELS.sharedWithMe, () => this.sharedWithMe())
+    ipc.handle(SHARE_CHANNELS.sharedByMe, () => this.sharedByMe())
     ipc.handle(SHARE_CHANNELS.open, (_e, fileId) => this.open(fileId))
   }
 }

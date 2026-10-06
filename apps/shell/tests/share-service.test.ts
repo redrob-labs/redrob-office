@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { SHARE_CHANNELS, SyncError, type RemoteFile, type RemoteMember, type Role } from '@genoffice/sync-client'
+import { SHARE_CHANNELS, SyncError, type RemoteFile, type RemoteFileDetail, type RemoteMember, type Role } from '@genoffice/sync-client'
 import type { SharedLink } from '@genoffice/sync-client/node'
 import { SHARE_MESSAGES, ShareService, cleanAccount, isShareablePath, type ShareClient, type ShareIndex } from '../src/main/share-service'
 
@@ -32,6 +32,8 @@ function fakeClient(over: Partial<ShareClient> = {}) {
     removeMember: vi.fn(async (_id: string, sub: string) => {
       members = members.filter((m) => m.sub !== sub)
     }),
+    getFile: vi.fn(async (id: string): Promise<RemoteFileDetail> => ({ id, name: 'Plan.docx', ownerSub: 'me', createdAt: 'now', role: 'owner', latest: null })),
+    deleteFile: vi.fn(async () => undefined),
     ...over,
   }
   return client
@@ -188,6 +190,75 @@ describe('ShareService', () => {
     await index.set(FILE, { fileId: ID, role: 'edit', version: 1 })
     expect(await service({ client, index }).svc.status(FILE)).toEqual({ available: true, shared: false })
     expect(index.map.size).toBe(0)
+  })
+
+  it('status follows a role the owner changed since the index was written', async () => {
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'view', version: 2 })
+    const client = fakeClient({ getFile: vi.fn(async (id: string) => ({ id, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'now', role: 'edit' as const, latest: null })) })
+    const st = await service({ client, index }).svc.status(FILE)
+    expect(st).toMatchObject({ available: true, shared: true, role: 'edit' })
+    expect(await index.get(FILE)).toEqual({ fileId: ID, role: 'edit', version: 2 })
+  })
+
+  it('the owner stops sharing: the shared file is deleted and the local file stays', async () => {
+    const client = fakeClient()
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'owner', version: 3 })
+    const { svc } = service({ client, index })
+    expect(await svc.stop(FILE)).toEqual({ ok: true, status: { available: true, shared: false } })
+    expect(client.deleteFile).toHaveBeenCalledWith(ID)
+    expect(index.map.size).toBe(0)
+    // stopping a file that is not shared is already done
+    expect(await svc.stop(FILE)).toEqual({ ok: true, status: { available: true, shared: false } })
+    expect(client.deleteFile).toHaveBeenCalledTimes(1)
+  })
+
+  it('only the owner may stop sharing, checked against the service', async () => {
+    const client = fakeClient({ getFile: vi.fn(async (id: string) => ({ id, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'now', role: 'edit' as const, latest: null })) })
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    expect(await service({ client, index }).svc.stop(FILE)).toEqual({ ok: false, error: SHARE_MESSAGES.notOwner })
+    expect(client.deleteFile).not.toHaveBeenCalled()
+    expect((await index.get(FILE))?.role).toBe('edit')
+  })
+
+  it('a file already gone from the service counts as stopped; an outage does not', async () => {
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    const gone = fakeClient({ deleteFile: vi.fn(async () => Promise.reject(new SyncError(404, 'No such file.'))) })
+    expect((await service({ client: gone, index }).svc.stop(FILE)).ok).toBe(true)
+    await index.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    const down = fakeClient({ deleteFile: vi.fn(async () => Promise.reject(new SyncError(0, 'down'))) })
+    expect(await service({ client: down, index }).svc.stop(FILE)).toEqual({ ok: false, error: SHARE_MESSAGES.unreachable })
+    expect(index.map.size).toBe(1)
+  })
+
+  it('lists the files this person shares, with how many others have each', async () => {
+    const client = fakeClient({
+      listFiles: vi.fn(async (): Promise<RemoteFile[]> => [
+        { id: ID, name: 'Plan.docx', ownerSub: 'me', createdAt: 'now', role: 'owner', memberCount: 3 },
+        { id: '99999999-2222-4333-8444-555555555555', name: 'Theirs.docx', ownerSub: 'kim', createdAt: 'now', role: 'edit', memberCount: 2 },
+      ]),
+    })
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'owner', version: 1 })
+    expect(await service({ client, index }).svc.sharedByMe()).toEqual([{ id: ID, name: 'Plan.docx', localPath: FILE, people: 2 }])
+    expect(await service({ client: null }).svc.sharedByMe()).toEqual({ error: SHARE_MESSAGES.noService })
+  })
+
+  it('a save refused for a lost role brings the index up to date', async () => {
+    const client = fakeClient({
+      upload: vi.fn(async () => Promise.reject(new SyncError(403, 'Your role on this file does not allow that.'))),
+      getFile: vi.fn(async (id: string) => ({ id, name: 'Plan.docx', ownerSub: 'kim', createdAt: 'now', role: 'view' as const, latest: null })),
+    })
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'edit', version: 1 })
+    const { svc } = service({ client, index })
+    await svc.saved(FILE, new Uint8Array([1]))
+    expect((await index.get(FILE))?.role).toBe('view')
+    await svc.saved(FILE, new Uint8Array([1]))
+    expect(client.upload).toHaveBeenCalledTimes(1)
   })
 
   it('registers every share channel', () => {

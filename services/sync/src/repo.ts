@@ -34,7 +34,7 @@ export interface Repo {
   createFile(name: string, owner: { sub: string; name: string }): Promise<FileRecord>
   getFile(id: string): Promise<FileRecord | null>
   /** files this account is a member of, newest first */
-  listFiles(sub: string): Promise<Array<FileRecord & { role: Role }>>
+  listFiles(sub: string): Promise<Array<FileRecord & { role: Role; memberCount: number }>>
   deleteFile(id: string): Promise<void>
   roleOf(fileId: string, sub: string): Promise<Role | null>
   members(fileId: string): Promise<Member[]>
@@ -65,7 +65,11 @@ export class MemoryRepo implements Repo {
   async listFiles(sub: string) {
     return [...this.mem.values()]
       .filter((m) => m.sub === sub && this.files.has(m.fileId))
-      .map((m) => ({ ...this.files.get(m.fileId)!, role: m.role }))
+      .map((m) => ({
+        ...this.files.get(m.fileId)!,
+        role: m.role,
+        memberCount: [...this.mem.values()].filter((x) => x.fileId === m.fileId).length,
+      }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   }
   async deleteFile(id: string) {
@@ -103,6 +107,6 @@ export class MemoryRepo implements Repo {
     return this.docs.get(fileId) ?? null
   }
   async storeDoc(fileId: string, state: Uint8Array) {
-    this.docs.set(fileId, state)
+    if (this.files.has(fileId)) this.docs.set(fileId, state)
   }
 }

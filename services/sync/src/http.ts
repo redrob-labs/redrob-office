@@ -17,6 +17,9 @@ export interface AppDeps {
   /** present only with SYNC_DEV_ISSUER=1: serves its JWKS and mints development tokens */
   devIssuer?: DevIssuer | undefined
   maxFileBytes: number
+  /** drops every live connection to a file (the file was deleted) */
+  closeLive?: ((fileId: string) => void) | undefined
+  log?: ((message: string) => void) | undefined
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -103,10 +106,20 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       return { ...got.file, role: got.role, latest: await deps.repo.latestVersion(got.file.id) }
     })
 
+    // Stop sharing: the file, its members, versions and live state go; every
+    // member keeps the copy on their own computer.
     api.delete('/files/:id', async (req, reply) => {
       const got = await fileFor(req, reply, 'delete')
       if (!got) return
+      const keys = (await deps.repo.versions(got.file.id)).map((v) => v.blobKey)
       await deps.repo.deleteFile(got.file.id)
+      deps.closeLive?.(got.file.id)
+      try {
+        await deps.blobs.delete(keys)
+      } catch (err) {
+        // the file is already gone for everyone; stray bytes are only storage
+        deps.log?.(`sync: stored bytes of a deleted file were left behind: ${(err as Error).message}`)
+      }
       return reply.code(204).send()
     })
 

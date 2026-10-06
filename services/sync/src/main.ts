@@ -20,9 +20,17 @@ if (cfg.auth.kind === 'dev') {
   verifier = jwksVerifier(cfg.auth)
 }
 
-const app = buildApp({ repo, blobs, verifier, devIssuer: dev, maxFileBytes: cfg.maxFileBytes })
-await app.listen({ port: cfg.httpPort, host: cfg.host })
 const collab = buildCollab({ repo, verifier }, { port: cfg.collabPort, host: cfg.host })
+const app = buildApp({
+  repo,
+  blobs,
+  verifier,
+  devIssuer: dev,
+  maxFileBytes: cfg.maxFileBytes,
+  closeLive: (fileId) => collab.hocuspocus.closeConnections(fileId),
+  log: (m) => console.warn(m),
+})
+await app.listen({ port: cfg.httpPort, host: cfg.host })
 await collab.listen()
 console.log(`sync: http ${cfg.host}:${cfg.httpPort}, live documents ws ${cfg.host}:${cfg.collabPort}`)
 

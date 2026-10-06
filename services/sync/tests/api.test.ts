@@ -128,6 +128,44 @@ describe('HTTP API', () => {
     expect(list.json().files.map((f: { name: string; role: string }) => `${f.name}:${f.role}`)).toEqual(['NDA.docx:comment'])
   })
 
+  it('stop sharing removes the file, its bytes and its live room, for the owner only', async () => {
+    const dev = await devIssuer({ issuer: 'http://test/dev', audience: 'redrob-office-sync' })
+    const repo = new MemoryRepo()
+    const blobs = new MemoryBlobs()
+    const closed: string[] = []
+    const app = buildApp({ repo, blobs, verifier: dev, maxFileBytes: 1024, closeLive: (id) => void closed.push(id) })
+    const felix = { authorization: `Bearer ${await dev.sign({ sub: 'felix', name: 'Felix' })}` }
+    const jae = { authorization: `Bearer ${await dev.sign({ sub: 'jae', name: 'Jae' })}` }
+    const id = (await app.inject({ method: 'POST', url: '/files', headers: felix, payload: { name: 'Plan.docx' } })).json().id as string
+    for (const body of ['v1', 'v2']) {
+      await app.inject({ method: 'PUT', url: `/files/${id}/content`, headers: { ...felix, 'content-type': 'application/octet-stream' }, payload: Buffer.from(body) })
+    }
+    await app.inject({ method: 'PUT', url: `/files/${id}/members/jae`, headers: felix, payload: { role: 'edit' } })
+    await repo.storeDoc(id, new Uint8Array([1]))
+    expect(blobs.keys()).toHaveLength(2)
+
+    expect((await app.inject({ method: 'DELETE', url: `/files/${id}`, headers: jae })).statusCode).toBe(403)
+    expect((await app.inject({ method: 'DELETE', url: `/files/${id}`, headers: felix })).statusCode).toBe(204)
+    expect(blobs.keys()).toEqual([])
+    expect(closed).toEqual([id])
+    expect(await repo.loadDoc(id)).toBeNull()
+    // a room that closes afterwards does not bring the state back
+    await repo.storeDoc(id, new Uint8Array([2]))
+    expect(await repo.loadDoc(id)).toBeNull()
+    expect((await app.inject({ url: `/files/${id}`, headers: jae })).statusCode).toBe(404)
+    expect((await app.inject({ url: '/files', headers: jae })).json().files).toEqual([])
+  })
+
+  it('tells a member their current role and the latest version', async () => {
+    const { app, felix, jae, auth } = await setup()
+    const id = (await app.inject({ method: 'POST', url: '/files', headers: auth(felix), payload: { name: 'Plan.docx' } })).json().id as string
+    await app.inject({ method: 'PUT', url: `/files/${id}/members/jae`, headers: auth(felix), payload: { role: 'view' } })
+    expect((await app.inject({ url: `/files/${id}`, headers: auth(jae) })).json()).toMatchObject({ id, role: 'view', latest: null })
+    await app.inject({ method: 'PUT', url: `/files/${id}/members/jae`, headers: auth(felix), payload: { role: 'edit' } })
+    expect((await app.inject({ url: `/files/${id}`, headers: auth(jae) })).json().role).toBe('edit')
+    expect((await app.inject({ url: '/me', headers: auth(jae) })).json()).toEqual({ sub: 'jae', name: 'Jae Gardner' })
+  })
+
   it('treats a malformed id as no such file', async () => {
     const { app, felix, auth } = await setup()
     expect((await app.inject({ url: '/files/../../etc', headers: auth(felix) })).statusCode).toBe(404)
