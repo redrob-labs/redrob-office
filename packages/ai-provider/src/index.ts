@@ -104,3 +104,5 @@ export {
   toEngineModel,
 } from './engine-client'
 export type { EngineEvent, EngineModel, EnginePromptBody, EnginePromptPart } from './engine-client'
+export { EngineProvidersClient, EngineProvidersError } from './engine-providers'
+export type { ProviderConnection, ProviderMethod, ProviderOAuthStart } from './engine-providers'

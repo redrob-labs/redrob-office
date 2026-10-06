@@ -82,6 +82,12 @@
   color: var(--ink-primary);
 }
 
+.set-pane-subtitle {
+  margin: var(--space-6) 0 var(--space-2);
+  font: var(--text-title-5, var(--text-title-4));
+  color: var(--ink-primary);
+}
+
 .set-field {
   display: flex;
   align-items: center;

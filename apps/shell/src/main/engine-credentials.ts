@@ -13,14 +13,16 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import {
+  EngineClient,
   EngineIntegrationClient,
+  EngineProvidersClient,
   defaultAiSettings,
   resolveAiSettings,
   type AiSettings,
   type EngineIntegration,
 } from '@genoffice/ai-provider'
 import { custodyKeys, holdsKeys } from '@genoffice/ai-provider/node'
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, shell } from 'electron'
 
 import { getEngineTarget } from './engine-lifecycle'
 
@@ -90,6 +92,52 @@ export function registerEngineCredentialsIpc(): void {
       if (typeof key !== 'string' || !key.trim() || key.length > 4096) throw new Error('Enter a key.')
       await storeEngineKey(integrationId, key.trim(), typeof label === 'string' && label.trim() ? label.trim().slice(0, 80) : 'Redrob Office')
       return true
+    }),
+  )
+  ipcMain.handle('engine:providers', () => attempt(async () => new EngineProvidersClient(await getEngineTarget()).list()))
+  ipcMain.handle('engine:models', () =>
+    attempt(async () => (await new EngineClient(await getEngineTarget()).models()).filter((m) => m.enabled)),
+  )
+  ipcMain.handle('engine:provider-key', (_e, providerId: unknown, key: unknown) =>
+    attempt(async () => {
+      if (typeof providerId !== 'string' || !SAFE_ID.test(providerId)) throw new Error('Choose a provider.')
+      if (typeof key !== 'string' || !key.trim() || key.length > 4096) throw new Error('Enter a key.')
+      await new EngineProvidersClient(await getEngineTarget()).setKey(providerId, key.trim())
+      return true as const
+    }),
+  )
+  ipcMain.handle('engine:provider-remove', (_e, providerId: unknown) =>
+    attempt(async () => {
+      if (typeof providerId !== 'string' || !SAFE_ID.test(providerId)) throw new Error('Choose a provider.')
+      await new EngineProvidersClient(await getEngineTarget()).remove(providerId)
+      return true as const
+    }),
+  )
+  ipcMain.handle('engine:oauth-start', (_e, providerId: unknown, method: unknown, inputs: unknown) =>
+    attempt(async () => {
+      if (typeof providerId !== 'string' || !SAFE_ID.test(providerId)) throw new Error('Choose a provider.')
+      if (typeof method !== 'number' || !Number.isInteger(method) || method < 0) throw new Error('Choose a method.')
+      const clean: Record<string, string> = {}
+      if (inputs && typeof inputs === 'object') {
+        for (const [k, v] of Object.entries(inputs as Record<string, unknown>)) {
+          if (SAFE_ID.test(k) && typeof v === 'string' && v.length < 512) clean[k] = v
+        }
+      }
+      const started = await new EngineProvidersClient(await getEngineTarget()).startOAuth(providerId, method, clean)
+      // only https pages are opened; anything else is shown, not followed
+      if (/^https:\/\//i.test(started.url)) void shell.openExternal(started.url)
+      return started
+    }),
+  )
+  ipcMain.handle('engine:oauth-finish', (_e, providerId: unknown, method: unknown, code: unknown) =>
+    attempt(async () => {
+      if (typeof providerId !== 'string' || !SAFE_ID.test(providerId)) throw new Error('Choose a provider.')
+      if (typeof method !== 'number' || !Number.isInteger(method) || method < 0) throw new Error('Choose a method.')
+      return new EngineProvidersClient(await getEngineTarget()).finishOAuth(
+        providerId,
+        method,
+        typeof code === 'string' && code.trim() ? code.trim().slice(0, 2048) : undefined,
+      )
     }),
   )
   ipcMain.handle('engine:remove-credential', (_e, credentialId: unknown) =>

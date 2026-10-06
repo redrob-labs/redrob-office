@@ -173,8 +173,6 @@ export interface HomeApi {
   getAiSettings(): Promise<AiSettings>
   /** persist AI settings; open editors pick the change up on their next settings read */
   setAiSettings(settings: AiSettings): Promise<void>
-  /** provider catalog with each fixed endpoint's default base URL (empty for genspark/custom) */
-  getAiProviders(): AiCatalogEntry[]
   /** one-shot round trip against the given (possibly unsaved) settings — the settings-UI connection test */
   testAiSettings(settings: AiSettings): Promise<AiChatResponse>
   /**
@@ -195,6 +193,43 @@ export interface HomeApi {
   engineConnectKey(integrationId: string, key: string, label?: string): Promise<EngineResult<true>>
   /** Remove a stored credential from the engine. */
   engineRemoveCredential(credentialId: string): Promise<EngineResult<true>>
+  /** Providers the engine can authenticate, and whether each is connected. */
+  engineProviders(): Promise<EngineResult<EngineProviderView[]>>
+  /** Models the engine can run now, as `provider/model` ids. */
+  engineModels(): Promise<EngineResult<EngineModelView[]>>
+  /** Store a key for a provider in the engine. */
+  engineProviderKey(providerId: string, key: string): Promise<EngineResult<true>>
+  /** Remove every credential the engine holds for a provider. */
+  engineProviderRemove(providerId: string): Promise<EngineResult<true>>
+  /** Begin OAuth; main opens the https page in the browser. */
+  engineOAuthStart(providerId: string, method: number, inputs?: Record<string, string>): Promise<EngineResult<{ url: string; mode: 'auto' | 'code'; instructions: string }>>
+  /** Finish OAuth: waits for the browser in `auto` mode, takes the pasted code in `code` mode. */
+  engineOAuthFinish(providerId: string, method: number, code?: string): Promise<EngineResult<boolean>>
+}
+
+export interface EngineProviderView {
+  id: string
+  name: string
+  connected: boolean
+  viaEnv: boolean
+  methods: Array<
+    | { index: number; type: 'api'; label: string }
+    | {
+        index: number
+        type: 'oauth'
+        label: string
+        prompts: { key: string; message: string; type: 'text' | 'select'; options?: { label: string; value: string }[] }[]
+      }
+  >
+}
+
+export interface EngineModelView {
+  id: string
+  providerID: string
+  modelID: string
+  name: string
+  input: string[]
+  tools: boolean
 }
 
 export type EngineResult<T> = { ok: true; value: T } | { ok: false; error: string }

@@ -18,6 +18,8 @@ import type {
   RedrobConnectAttempt,
   RedrobConnectResult,
   EngineIntegrationView,
+  EngineModelView,
+  EngineProviderView,
   EngineResult,
 } from '../shared/home-api'
 import { HOME_CHANNELS, PROJECT_CHANNELS } from '../shared/home-api'
@@ -278,21 +280,6 @@ const homeApi: HomeApi = {
   async setAiSettings(settings) {
     await ipcRenderer.invoke('ai:set-settings', settings)
   },
-  getAiProviders() {
-    // One engine, no provider selection: the catalog is the single Redrob engine.
-    // The base URL and model are fixed by policy in the AI layer, so nothing here
-    // exposes a vendor choice or a configurable endpoint.
-    return [
-      {
-        id: 'genspark' as AiSettings['provider'],
-        label: 'Redrob',
-        models: [],
-        defaultModel: '',
-        keyPlaceholder: 'rk-...',
-        defaultBaseUrl: '',
-      },
-    ]
-  },
   async startRedrobConnect() {
     return (await ipcRenderer.invoke('redrob:connect-start')) as RedrobConnectAttempt
   },
@@ -311,6 +298,28 @@ const homeApi: HomeApi = {
   },
   async engineRemoveCredential(credentialId) {
     return (await ipcRenderer.invoke('engine:remove-credential', credentialId)) as EngineResult<true>
+  },
+  async engineProviders() {
+    return (await ipcRenderer.invoke('engine:providers')) as EngineResult<EngineProviderView[]>
+  },
+  async engineModels() {
+    return (await ipcRenderer.invoke('engine:models')) as EngineResult<EngineModelView[]>
+  },
+  async engineProviderKey(providerId, key) {
+    return (await ipcRenderer.invoke('engine:provider-key', providerId, key)) as EngineResult<true>
+  },
+  async engineProviderRemove(providerId) {
+    return (await ipcRenderer.invoke('engine:provider-remove', providerId)) as EngineResult<true>
+  },
+  async engineOAuthStart(providerId, method, inputs) {
+    return (await ipcRenderer.invoke('engine:oauth-start', providerId, method, inputs ?? {})) as EngineResult<{
+      url: string
+      mode: 'auto' | 'code'
+      instructions: string
+    }>
+  },
+  async engineOAuthFinish(providerId, method, code) {
+    return (await ipcRenderer.invoke('engine:oauth-finish', providerId, method, code)) as EngineResult<boolean>
   },
   async testAiSettings(settings) {
     const result: unknown = await ipcRenderer.invoke('ai:chat', {

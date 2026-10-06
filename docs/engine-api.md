@@ -76,6 +76,15 @@ answered from it.
 - `POST /api/integration/attempt/:attemptID/complete` `{ code? }`; `DELETE` cancels.
 - `PATCH|DELETE /api/credential/:credentialID` updates or removes a stored credential.
 - There is no route that returns a stored secret through the integration API.
+- **BYOK on v0.0.12.** `POST /api/integration/<id>/connect/key` answers 500 for any id the
+  v2 list does not contain (`anthropic` was tried). Keys for other providers go through v1
+  `PUT /auth/:id { type: "api", key }` (200), `DELETE /auth/:id` removes them, and OAuth is
+  `POST /provider/:id/oauth/authorize { method: <index>, inputs }` → `{ url, method, instructions }`
+  then `POST /provider/:id/oauth/callback { method, code? }`. Measured with an isolated
+  `HOME`/`XDG_*`: the credential is stored, but `GET /provider` and `GET /api/model` still
+  list only Redrob, even with `enabled_providers` set. So on this engine version a
+  connected vendor brings no models; the Settings pane says so, and the model list is
+  Console's (`redrob/auto`, `redrob/gpt-5.6-sol`, `redrob/claude-opus-5`, ...).
 
 ## Sessions and turns
 

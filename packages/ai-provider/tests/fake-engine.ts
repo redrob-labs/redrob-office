@@ -28,6 +28,8 @@ export type FakeEngine = {
   requests: { method: string; path: string; body: unknown }[]
   mcp: Map<string, { url: string; headers: Record<string, string> }>
   aborted: string[]
+  /** v1 `/auth/:id` store */
+  v1Auth: Map<string, unknown>
   /** keys handed to the credential store, in order */
   keys: { integration: string; key: string; label?: string | undefined }[]
   onPrompt: (fn: (ctx: FakePromptContext) => Promise<Record<string, unknown>>) => void
@@ -77,6 +79,7 @@ export async function startFakeEngine(): Promise<FakeEngine> {
   const mcp: FakeEngine['mcp'] = new Map()
   const aborted: string[] = []
   const keys: FakeEngine['keys'] = []
+  const v1Auth = new Map<string, unknown>()
   const streams = new Set<ServerResponse>()
   const sessionAbort = new Map<string, AbortController>()
   let promptFn: (ctx: FakePromptContext) => Promise<Record<string, unknown>> = async () => ({
@@ -141,6 +144,29 @@ export async function startFakeEngine(): Promise<FakeEngine> {
           },
         ],
       })
+    }
+    if (p === '/provider/auth') {
+      return send(200, {
+        redrob: [{ type: 'oauth', label: 'Connect Redrob' }, { type: 'api', label: 'Paste an API key' }],
+        'github-copilot': [{ type: 'oauth', label: 'Login with GitHub Copilot', prompts: [{ type: 'select', key: 'deploymentType', message: 'Type', options: [{ label: 'GitHub.com', value: 'github.com' }] }] }],
+        xai: [{ type: 'api', label: 'Manually enter API Key' }],
+      })
+    }
+    if (p === '/provider') return send(200, { all: [], default: {}, connected: ['redrob', ...v1Auth.keys()] })
+    const v1 = /^\/auth\/([^/]+)$/.exec(p)
+    if (v1 && req.method === 'PUT') {
+      v1Auth.set(decodeURIComponent(v1[1]!), body)
+      return send(200, true)
+    }
+    if (v1 && req.method === 'DELETE') {
+      const had = v1Auth.delete(decodeURIComponent(v1[1]!))
+      return had ? send(200, true) : send(404, { name: 'NotFound' })
+    }
+    const oauth = /^\/provider\/([^/]+)\/oauth\/(authorize|callback)$/.exec(p)
+    if (oauth && req.method === 'POST') {
+      if (oauth[2] === 'authorize') return send(200, { url: 'https://example.test/device', method: 'auto', instructions: 'Enter code ABCD' })
+      v1Auth.set(decodeURIComponent(oauth[1]!), { type: 'oauth' })
+      return send(200, true)
     }
     const connectKey = /^\/api\/integration\/([^/]+)\/connect\/key$/.exec(p)
     if (connectKey && req.method === 'POST') {
@@ -264,6 +290,7 @@ export async function startFakeEngine(): Promise<FakeEngine> {
     mcp,
     aborted,
     keys,
+    v1Auth,
     onPrompt: (fn) => {
       promptFn = fn
     },

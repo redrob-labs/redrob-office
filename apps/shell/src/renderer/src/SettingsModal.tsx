@@ -16,6 +16,7 @@ import type { AccountStatus, OfficePrefs, UiTheme } from '../../shared/home-api'
 import { ProviderLogo } from './provider-logos'
 import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import { RedrobPane } from './settings/RedrobPane'
+import { AiProvidersPane, ModelPicker } from './settings/AiProvidersPane'
 import { IdentityPane } from './home/IdentityPane'
 import './settings.css'
 
@@ -343,6 +344,19 @@ function AiModelPane({ t }: { t: TFunc }) {
           onBlur={commitMaxTokens}
         />
       </div>
+      <ModelPicker
+        t={t}
+        value={config.model}
+        onChange={(model) => {
+          setSettings({
+            ...settings,
+            provider: REDROB_ENGINE_SLOT,
+            providers: { ...settings.providers, [REDROB_ENGINE_SLOT]: { ...config, model } },
+          })
+          touch()
+        }}
+      />
+      <AiProvidersPane t={t} />
       <div className="set-pane-footer">
         <AiStatusPill
           status={
