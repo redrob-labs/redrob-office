@@ -27,6 +27,7 @@ import { createI18n, getUiLang } from '@genoffice/i18n'
 import type { AiSettings } from '@genoffice/ai-provider'
 import { generateImage } from '@genoffice/ai-provider/node'
 import { atomicWriteFile } from './atomic-write'
+import { emitDocumentSaved } from '@genoffice/electron-utils/document-saved'
 import {
   copyImageIntoOwnedAssets,
   discardPendingOwnedAssets,
@@ -605,6 +606,7 @@ function registerMarkdownIpc(): void {
           if (prepared) await rollbackPreparedSaveAsAssets(prepared).catch(() => {})
           throw error
         }
+        emitDocumentSaved({ path: target, bytes: new TextEncoder().encode(textToWrite), auto: false, editor: 'markdown' })
         savePathByWc.set(e.sender.id, target)
         // keep the reload path in sync — a stale openPathByWc would make a
         // reloaded renderer load the OLD file and then save it over the new one

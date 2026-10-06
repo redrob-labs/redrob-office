@@ -26,6 +26,7 @@ import { existsSync, mkdirSync } from 'node:fs'
 import { userInfo } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { cleanupExpiredGeneratedPages } from './generated-page-temp'
+import { emitDocumentSaved } from '@genoffice/electron-utils/document-saved'
 import {
   appMenuLabels,
   configuredDefaultSaveDir,
@@ -244,6 +245,15 @@ const lastSlidePaste = new Map<number, { afterIndex: number; undoLen: number }>(
 // Generated single-page pptx: marker strings travel in pageMarkers slots; only paths issued
 // by slides:local-page-generate are readable (the renderer can't point the reader at arbitrary files)
 const CLOUD_PAGE_PREFIX = 'cloudpptx:'
+
+/** Tell the shell (version history, sharing) what is on disk now. Never fails a save. */
+async function announceSaved(path: string): Promise<void> {
+  try {
+    emitDocumentSaved({ path, bytes: new Uint8Array(await readFile(path)), auto: false, editor: 'slides' })
+  } catch {
+    // the save itself succeeded
+  }
+}
 const issuedCloudPages = new Set<string>()
 import { registerPresenterIpc } from './presenter-show'
 import { registerAttachmentIpc } from './attachments-ipc'
@@ -3975,6 +3985,7 @@ export function registerSlidesIpc(): void {
     }
     try {
       await savePptxToFile(session.opened, session.path)
+      await announceSaved(session.path)
       autosaveBackoff.delete(session.path)
       void rm(autosavePathFor(session.path), { force: true }).catch(() => {})
       dropUntitledRecovery(e.sender.id)
@@ -4006,6 +4017,7 @@ export function registerSlidesIpc(): void {
     if (r.canceled || !r.filePath) return { ok: false }
     try {
       await savePptxToFile(session.opened, r.filePath)
+      await announceSaved(r.filePath)
       session.path = r.filePath
       autosaveBackoff.delete(r.filePath)
       dropUntitledRecovery(e.sender.id)

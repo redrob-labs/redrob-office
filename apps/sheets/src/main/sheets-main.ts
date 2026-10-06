@@ -134,6 +134,7 @@ import {
 } from '../shared/desktop-api'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
 import { atomicWriteFile } from './atomic-write'
+import { emitDocumentSaved } from '@genoffice/electron-utils/document-saved'
 import { closeGuardDecision } from './close-guard'
 import { SaveEditsTransferStore } from './save-edits-transfer'
 import { exportPdf } from './pdf-export'
@@ -2803,6 +2804,16 @@ export function registerSheetsIpc(): void {
       event.sender,
       (csvInPlace ? session.csvSourcePath : undefined) ?? targetPath,
     )
+    // Version history and sharing get the file the person sees: the .csv for a CSV
+    // in-place save, else the workbook the save landed on
+    {
+      const visible = (csvInPlace ? session.csvSourcePath : undefined) ?? targetPath
+      try {
+        emitDocumentSaved({ path: visible, bytes: new Uint8Array(await readFile(visible)), auto: false, editor: 'sheets' })
+      } catch {
+        // best-effort; the save itself succeeded
+      }
+    }
     // The file on disk now carries these edits
     clearWorkbookRecovery(targetPath)
     if (session.suggestSaveAs !== undefined) clearWorkbookRecovery(session.suggestSaveAs)

@@ -13,6 +13,7 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
+import { emitDocumentSaved } from '@genoffice/electron-utils/document-saved'
 import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
 import type {
@@ -441,7 +442,9 @@ function registerHangulIpc(): void {
         if (!target) return done({ ok: false, error: 'hangul: no save target' })
         const currentPath = savePathByWc.get(e.sender.id)
         const isNewPath = currentPath !== target
-        await atomicWriteFile(target, Buffer.from(request.base64, 'base64'))
+        const bytes = Buffer.from(request.base64, 'base64')
+        await atomicWriteFile(target, bytes)
+        emitDocumentSaved({ path: target, bytes: new Uint8Array(bytes), auto: false, editor: 'hangul' })
         savePathByWc.set(e.sender.id, target)
         openPathByWc.set(e.sender.id, target)
         const allowed = allowedByWc.get(e.sender.id) ?? new Set<string>()
