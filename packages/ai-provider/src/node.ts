@@ -20,5 +20,8 @@ export {
   transcriptParts,
 } from './engine-turn'
 export type { EngineTargetProvider } from './engine-turn'
+export { custodyKeys, holdsKeys, integrationForSlot, withoutKeys } from './key-custody'
+export type { CustodyResult } from './key-custody'
+export { currentEngineTarget } from './engine-turn'
 export { startMcpHost } from './mcp-host'
 export type { McpHost, McpToolResult } from './mcp-host'

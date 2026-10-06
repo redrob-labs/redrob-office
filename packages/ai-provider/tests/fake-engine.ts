@@ -28,6 +28,8 @@ export type FakeEngine = {
   requests: { method: string; path: string; body: unknown }[]
   mcp: Map<string, { url: string; headers: Record<string, string> }>
   aborted: string[]
+  /** keys handed to the credential store, in order */
+  keys: { integration: string; key: string; label?: string | undefined }[]
   onPrompt: (fn: (ctx: FakePromptContext) => Promise<Record<string, unknown>>) => void
   close: () => Promise<void>
 }
@@ -74,6 +76,7 @@ export async function startFakeEngine(): Promise<FakeEngine> {
   const requests: FakeEngine['requests'] = []
   const mcp: FakeEngine['mcp'] = new Map()
   const aborted: string[] = []
+  const keys: FakeEngine['keys'] = []
   const streams = new Set<ServerResponse>()
   const sessionAbort = new Map<string, AbortController>()
   let promptFn: (ctx: FakePromptContext) => Promise<Record<string, unknown>> = async () => ({
@@ -138,6 +141,13 @@ export async function startFakeEngine(): Promise<FakeEngine> {
           },
         ],
       })
+    }
+    const connectKey = /^\/api\/integration\/([^/]+)\/connect\/key$/.exec(p)
+    if (connectKey && req.method === 'POST') {
+      const b = body as { key?: string; label?: string }
+      if (!b?.key) return send(400, { name: 'BadRequest' })
+      keys.push({ integration: decodeURIComponent(connectKey[1]!), key: b.key, label: b.label })
+      return send(200, { location, data: true })
     }
     if (p === '/session' && req.method === 'POST') {
       const id = `ses_${++seq}`
@@ -253,6 +263,7 @@ export async function startFakeEngine(): Promise<FakeEngine> {
     requests,
     mcp,
     aborted,
+    keys,
     onPrompt: (fn) => {
       promptFn = fn
     },

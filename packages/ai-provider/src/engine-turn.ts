@@ -86,6 +86,21 @@ export function engineUnavailableMessage(detail?: string): string {
     : 'Redrob could not run this reply. Check the Redrob engine in Settings, then try again.'
 }
 
+/**
+ * The engine target the shell installed, started if needed. Main-process only. Throws
+ * an EngineUnavailableError with the reason, like a turn would.
+ */
+export async function currentEngineTarget(): Promise<EngineTarget> {
+  const provider = currentProvider()
+  if (!provider) throw new EngineUnavailableError(engineUnavailableMessage('the Redrob engine is not available in this window'))
+  try {
+    return await provider()
+  } catch (e) {
+    const why = e instanceof Error ? e.message : String(e)
+    throw new EngineUnavailableError(engineUnavailableMessage(`the engine did not start: ${why.split('\n')[0]}`), { cause: e })
+  }
+}
+
 async function clientFor(): Promise<EngineClient> {
   const targetProvider = currentProvider()
   if (!targetProvider) throw new EngineUnavailableError(engineUnavailableMessage('the Redrob engine is not available in this window'))

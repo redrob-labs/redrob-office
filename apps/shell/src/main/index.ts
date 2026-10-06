@@ -73,6 +73,7 @@ import {
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
 import { registerRedrobConnectIpc } from './redrob-connect'
 import { getEngineTarget, registerEngineIpc, teardownEngine } from './engine-lifecycle'
+import { migrateOfficeHeldKeys, registerEngineCredentialsIpc } from './engine-credentials'
 import { setEngineTargetProvider } from '@genoffice/ai-provider/node'
 import {
   ANALYTICS_ENABLED_KEY,
@@ -4491,8 +4492,11 @@ registerHomeIpc()
 registerRedrobConnectIpc()
 registerAskPromptIpc()
 registerEngineIpc()
+registerEngineCredentialsIpc()
 // every AI turn in every editor runs on the engine; the editor mains find it here
 setEngineTargetProvider(() => getEngineTarget())
+// a key an older build stored is handed to the engine and removed from disk
+void app.whenReady().then(() => migrateOfficeHeldKeys())
 registerTabsIpc()
 registerDroppedFilesIpc()
 

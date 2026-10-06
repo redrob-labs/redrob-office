@@ -67,7 +67,14 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
-import { chatForProvider, streamForProvider } from '@genoffice/ai-provider/node'
+import {
+  chatForProvider,
+  currentEngineTarget,
+  custodyKeys,
+  holdsKeys,
+  streamForProvider,
+  withoutKeys,
+} from '@genoffice/ai-provider/node'
 import {
   ensureGenofficeLogin,
   gskApiKey,
@@ -2644,7 +2651,8 @@ export function registerAiIpc(): void {
     const settings = resolveAiSettings(stored, defaultAiSettings())
     // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
     settings.provider = activeProvider(settings)
-    return settings
+    // a key left by an older build is the shell's to migrate; no renderer ever reads one
+    return withoutKeys(settings)
   })
 
   // Redrob account (gsk login state): auth source for AI features; the frontend uses it to prompt login when logged out
@@ -2662,8 +2670,12 @@ export function registerAiIpc(): void {
     ensureGenofficeLogin((url) => void shell.openExternal(url))
   })
 
-  ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
-    writeJson(SETTINGS_PATH(), settings)
+  // A key typed in Settings goes to the engine's credential store and is dropped here:
+  // the file keeps preferences and the model name only. If the engine refuses it, the
+  // save fails visibly and nothing is written, so the key is neither kept nor lost.
+  ipcMain.handle('ai:set-settings', async (_event, settings: AiSettings) => {
+    const next = holdsKeys(settings) ? (await custodyKeys(settings, await currentEngineTarget())).settings : withoutKeys(settings)
+    writeJson(SETTINGS_PATH(), next)
   })
 
   ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
@@ -2671,21 +2683,10 @@ export function registerAiIpc(): void {
     const tools = request.tools ?? []
     const maxTokens = request.maxTokens ?? maxOutputTokensOf(settings)
     const provider = settings.provider
-    let config = settings.providers?.[provider]
-    // the genspark key never enters the settings file; requests take it from the gsk login state
-    if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
-    }
+    // the engine holds the credential; the slot only names a model
+    const config = settings.providers?.[provider] ?? { apiKey: '', model: '' }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
-    }
-    if (!config?.apiKey) {
-      send({
-        requestId,
-        type: 'error',
-        error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
-      })
-      return
     }
     // The Redrob engine ignores settings.model and always wires `auto`; fresh
     // defaults leave model empty, so an empty model must not fail preflight.
@@ -2822,16 +2823,8 @@ export function registerAiIpc(): void {
   ipcMain.handle('ai:chat', async (_event, request: AiChatRequest) => {
     const { settings, system, user } = request
     const provider = settings.provider
-    let config = settings.providers?.[provider]
-    if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
-    }
-    if (!config?.apiKey) {
-      return {
-        ok: false,
-        error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
-      }
-    }
+    // the engine holds the credential; the slot only names a model
+    const config = settings.providers?.[provider] ?? { apiKey: '', model: '' }
     // The Redrob engine ignores settings.model and always wires `auto`; fresh
     // defaults leave model empty, so an empty model must not fail preflight.
     try {

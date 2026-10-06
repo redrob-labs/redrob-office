@@ -169,7 +169,7 @@ export interface HomeApi {
   cloudProjectsSync(): Promise<CloudProjectsSnapshot | null>
   /** open a cloud project (relative '/agents?id=...' URL) in the default browser */
   openCloudProject(projectUrl: string): Promise<void>
-  /** AI settings (userData/ai-settings.json, shared by every editor); the genspark key never appears here */
+  /** AI settings (userData/ai-settings.json, shared by every editor); never carries a key, the engine holds those */
   getAiSettings(): Promise<AiSettings>
   /** persist AI settings; open editors pick the change up on their next settings read */
   setAiSettings(settings: AiSettings): Promise<void>
@@ -183,12 +183,29 @@ export interface HomeApi {
    */
   startRedrobConnect(): Promise<RedrobConnectAttempt>
   /**
-   * Wait for that attempt to resolve. On success the workspace key is written to the
-   * AI settings by the main process and is deliberately NOT returned here.
+   * Wait for that attempt to resolve. On success the workspace key goes into the
+   * engine's credential store and is deliberately NOT returned here.
    */
   awaitRedrobConnect(id: string): Promise<RedrobConnectResult>
   /** Abandon an attempt (dialog closed); the loop stops before its next poll. */
   cancelRedrobConnect(id: string): Promise<void>
+  /** Integrations the engine knows, with whether each holds a credential. Never a secret. */
+  engineIntegrations(): Promise<EngineResult<EngineIntegrationView[]>>
+  /** Hand a key to the engine's credential store. Office keeps nothing. */
+  engineConnectKey(integrationId: string, key: string, label?: string): Promise<EngineResult<true>>
+  /** Remove a stored credential from the engine. */
+  engineRemoveCredential(credentialId: string): Promise<EngineResult<true>>
+}
+
+export type EngineResult<T> = { ok: true; value: T } | { ok: false; error: string }
+
+/** What Settings may know about an engine integration. */
+export interface EngineIntegrationView {
+  id: string
+  name: string
+  connected: boolean
+  methods: Array<{ type: 'oauth' | 'key' | 'env'; id: string; label?: string }>
+  connections: Array<{ type: 'credential'; id: string; label: string } | { type: 'env'; name: string }>
 }
 
 export interface RedrobConnectAttempt {

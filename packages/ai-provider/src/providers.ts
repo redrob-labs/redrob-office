@@ -1,12 +1,13 @@
 import type { AiProviderId, AiProviderMeta, AiSettings, LegacyAiSettings } from './types'
 
-// Redrob Office runs on ONE engine: the Redrob Console (see redrob-office/AGENTS.md).
-// There is no BYOK, no provider selection, no configurable inference server URL,
-// and no third-party vendor display name or vendor base URL in the exported
-// surface. GenOffice's per-vendor catalog (Claude/Gemini/OpenAI/DeepSeek/... with
-// their base URLs and product labels) is gone: every catalog entry is labeled as
-// the single Redrob engine, and the endpoint routing (in ./registry and, at
-// runtime, ./redrob-engine) is hard-pinned to the Console base.
+// Every AI turn runs on the bundled Redrob engine (./engine-turn), which holds every
+// provider credential and makes the call. BYOK and model choice are allowed as of
+// 2026-09-22 (redrob-office/AGENTS.md), but they live in the engine: a person connects
+// a provider in the engine's credential store and Office names a `provider/model`.
+// Office holds no key and honours no configured inference URL. So this catalog keeps
+// no vendor display name and no vendor base URL: GenOffice's per-vendor catalog is
+// gone, every entry is labeled as Redrob, and `resolveEndpoint` (./registry) reports
+// the fixed Console base whatever a settings file says.
 //
 // The ported GenOffice editors still pass a `provider` id and per-provider config
 // through this package exactly as upstream did, and their verbatim tests still
@@ -14,7 +15,7 @@ import type { AiProviderId, AiProviderMeta, AiSettings, LegacyAiSettings } from 
 // preserved for source/behavior compatibility. The ids are internal enum keys,
 // not user-facing labels, and none of them carries a routable vendor endpoint.
 
-/** The single engine slot the settings UI persists the Redrob Console key under. */
+/** The settings slot editors read their model from. It never holds a key: keys live in the engine. */
 export const REDROB_ENGINE_ID: AiProviderId = 'genspark'
 
 /**

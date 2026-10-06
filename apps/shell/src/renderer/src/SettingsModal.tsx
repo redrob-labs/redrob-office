@@ -23,13 +23,11 @@ import './settings.css'
 // Two-pane dialog: section nav on the left, fields on the right. All values go
 // through the existing home IPC; nothing is stored locally.
 //
-// AI is powered by the single Redrob engine (Redrob Console). There is no
-// provider picker, no BYOK vendor choice, and no configurable inference server
-// URL: the base and model are fixed by policy. The one field the person controls
-// is their Redrob Console key.
+// AI runs on the bundled Redrob engine, which keeps every provider credential. A key
+// typed here is handed to the engine and never stored by Office; there is no
+// configurable inference server URL.
 
-/** The single AI engine slot key in the stored settings. The engine is fixed to
- * Redrob Console, so a settings object always carries one Console key. */
+/** The settings slot editors read their model from. It never holds a key. */
 const REDROB_ENGINE_SLOT: AiSettings['provider'] = 'genspark'
 
 // selectable languages first, then the ones listed as "Not yet" (shown, never chosen)
@@ -120,6 +118,22 @@ function AiModelPane({ t }: { t: TFunc }) {
   const [testResult, setTestResult] = useState<{ ok: boolean; error?: string } | null>(null)
   /** free-typed value of the output-cap field; committed (and clamped) on blur */
   const [maxTokensDraft, setMaxTokensDraft] = useState<string | null>(null)
+  /** what the engine says about the Redrob connection; the key itself is never read back */
+  const [connection, setConnection] = useState<{ connected: boolean; label?: string; error?: string } | null>(null)
+  const refreshConnection = () => {
+    void window.aiOffice.engineIntegrations?.().then((r) => {
+      if (!r) return
+      if (!r.ok) return setConnection({ connected: false, error: r.error })
+      const redrob = r.value.find((i) => i.id === 'redrob')
+      const stored = redrob?.connections.find((c) => c.type === 'credential')
+      const env = redrob?.connections.find((c) => c.type === 'env')
+      setConnection({
+        connected: !!redrob?.connected,
+        label: stored && stored.type === 'credential' ? stored.label : env && env.type === 'env' ? env.name : 'Redrob',
+      })
+    })
+  }
+  useEffect(refreshConnection, [])
   /** live Connect Redrob attempt: the code to approve, and the attempt id to cancel */
   const [attempt, setAttempt] = useState<{ id: string; userCode: string; uri: string } | null>(null)
   /** what to tell the person about the last (or running) connect */
@@ -170,9 +184,13 @@ function AiModelPane({ t }: { t: TFunc }) {
   const save = () => {
     window.aiOffice
       .setAiSettings?.(settings)
-      .then(() => {
+      .then(async () => {
         setDirty(false)
         setSaved(true)
+        // the key went to the engine; re-read so the field shows what is stored (nothing)
+        const stored = await window.aiOffice.getAiSettings?.()
+        if (stored) setSettings({ ...stored, provider: REDROB_ENGINE_SLOT })
+        refreshConnection()
       })
       .catch((error) => {
         window.alert(error instanceof Error ? error.message : String(error))
@@ -213,6 +231,7 @@ function AiModelPane({ t }: { t: TFunc }) {
           if (stored) setSettings({ ...stored, provider: REDROB_ENGINE_SLOT })
           setDirty(false)
           setConnectNote(t('setAiConnectDone'))
+          refreshConnection()
         } else {
           setConnectNote(t('setAiConnectFailed', { reason: result.status }))
         }
@@ -279,6 +298,15 @@ function AiModelPane({ t }: { t: TFunc }) {
               {t('setAiConsoleKey')}
             </label>
             <div className="set-field-desc">{t('setAiConsoleKeyHint')}</div>
+            <div className="set-field-desc" role="status">
+              {connection?.error
+                ? t('setAiKeyEngineDown', { reason: connection.error })
+                : connection?.connected
+                  ? t('setAiKeyConnected', { label: connection.label ?? 'Redrob' })
+                  : connection
+                    ? t('setAiKeyNotConnected')
+                    : null}
+            </div>
           </div>
         </div>
         <Input

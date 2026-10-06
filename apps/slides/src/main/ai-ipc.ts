@@ -34,7 +34,7 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
-import { streamForProvider } from '@genoffice/ai-provider/node'
+import { currentEngineTarget, custodyKeys, holdsKeys, streamForProvider, withoutKeys } from '@genoffice/ai-provider/node'
 import { fetchRemoteImage } from '@genoffice/electron-utils'
 import {
   webSearch,
@@ -115,7 +115,7 @@ export function registerAiIpc(): void {
     const settings = resolveAiSettings(stored, defaultAiSettings())
     // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
     settings.provider = activeProvider(settings)
-    return settings
+    return withoutKeys(settings)
   })
 
   // Redrob account (gsk login state): the auth source for AI features; when logged out the frontend uses this to guide login
@@ -133,8 +133,10 @@ export function registerAiIpc(): void {
     ensureGenofficeLogin((url) => void shell.openExternal(url))
   })
 
-  ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
-    writeJson(AI_SETTINGS_PATH(), settings)
+  // keys go to the engine's credential store, never into this file
+  ipcMain.handle('ai:set-settings', async (_event, settings: AiSettings) => {
+    const next = holdsKeys(settings) ? (await custodyKeys(settings, await currentEngineTarget())).settings : withoutKeys(settings)
+    writeJson(AI_SETTINGS_PATH(), next)
   })
 
   ipcMain.handle('ai:log-run-failure', (_event, entry: AiRunFailure) => {
@@ -146,21 +148,10 @@ export function registerAiIpc(): void {
     const tools = request.tools ?? []
     const maxTokens = request.maxTokens ?? maxOutputTokensOf(settings)
     const provider = settings.provider
-    let config = settings.providers?.[provider]
-    // The genspark key never enters the settings file; it is fetched from the gsk login state per request
-    if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
-    }
+    // the engine holds the credential; the slot only names a model
+    const config = settings.providers?.[provider] ?? { apiKey: '', model: '' }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
-    }
-    if (!config?.apiKey) {
-      send({
-        requestId,
-        type: 'error',
-        error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
-      })
-      return
     }
     // The Redrob engine ignores settings.model and always wires `auto`; fresh
     // defaults leave model empty, so an empty model must not fail preflight.

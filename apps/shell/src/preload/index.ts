@@ -17,6 +17,8 @@ import type {
   UiLanguage,
   RedrobConnectAttempt,
   RedrobConnectResult,
+  EngineIntegrationView,
+  EngineResult,
 } from '../shared/home-api'
 import { HOME_CHANNELS, PROJECT_CHANNELS } from '../shared/home-api'
 import type { TabsApi, TabSummary } from '../shared/tabs-api'
@@ -299,6 +301,16 @@ const homeApi: HomeApi = {
   },
   async cancelRedrobConnect(id) {
     await ipcRenderer.invoke('redrob:connect-cancel', id)
+  },
+  // credentials live in the engine (apps/shell/src/main/engine-credentials.ts)
+  async engineIntegrations() {
+    return (await ipcRenderer.invoke('engine:integrations')) as EngineResult<EngineIntegrationView[]>
+  },
+  async engineConnectKey(integrationId, key, label) {
+    return (await ipcRenderer.invoke('engine:connect-key', integrationId, key, label)) as EngineResult<true>
+  },
+  async engineRemoveCredential(credentialId) {
+    return (await ipcRenderer.invoke('engine:remove-credential', credentialId)) as EngineResult<true>
   },
   async testAiSettings(settings) {
     const result: unknown = await ipcRenderer.invoke('ai:chat', {

@@ -22,8 +22,9 @@ internal exception. The static audit test
   the one set of editor names, used by the Home quick-create cards, the native
   File > New menu, and the untitled-tab fallbacks. The old `AI Docs` / `AI
   Sheets` / … labels are gone.
-- AI: **Redrob AI** (the single Redrob engine / Redrob Console). There is no
-  provider picker and no BYOK vendor choice.
+- AI: **Redrob AI**, run by the bundled Redrob engine. As of 2026-09-22 a person may
+  connect their own provider and pick a model, but the engine keeps the credential and
+  makes the call; Office names a model and holds no key (see `docs/engine-api.md`).
 - Em dashes (`—`) are removed from user-facing copy: the i18n / strings tables
   and the UI text they render. Two things are intentionally left and are NOT
   user-facing display copy: the lone `—` typographic "none/empty" glyph (an
