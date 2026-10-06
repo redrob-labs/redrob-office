@@ -14,6 +14,7 @@
 // and replayed after the commit unless the browser delivers it again itself.
 import type { CursorRect } from '@genoffice/hwp-core'
 import { CommandBus } from '../commands'
+import { copy, cut, fromDataTransfer, paste, toDataTransfer } from '../clipboard'
 import { fromEngine, sameContainer, type Pos } from '../position'
 import { collapsed, ordered, type Change, type Session } from '../session'
 import { resolveKey, type KeyLike } from './keymap'
@@ -72,6 +73,9 @@ export class EditorView {
     this.input.addEventListener('compositionstart', () => this.onCompositionStart())
     this.input.addEventListener('compositionupdate', (e) => this.onCompositionUpdate((e as CompositionEvent).data))
     this.input.addEventListener('compositionend', (e) => this.onCompositionEnd((e as CompositionEvent).data))
+    this.input.addEventListener('copy', (e) => this.onCopy(e as ClipboardEvent))
+    this.input.addEventListener('cut', (e) => this.onCut(e as ClipboardEvent))
+    this.input.addEventListener('paste', (e) => this.onPaste(e as ClipboardEvent))
     root.addEventListener('mousedown', (e) => this.onMouseDown(e))
     d.addEventListener('mousemove', (e) => this.onMouseMove(e))
     d.addEventListener('mouseup', () => (this.dragging = false))
@@ -193,6 +197,30 @@ export class EditorView {
         }
       }, 0)
     }
+  }
+
+  // ── Clipboard ─────────────────────────────────────────────────────────
+
+  onCopy(e: { clipboardData: DataTransfer | null; preventDefault(): void }): void {
+    const data = copy(this.session)
+    e.preventDefault()
+    if (data && e.clipboardData) toDataTransfer(e.clipboardData, data)
+  }
+
+  onCut(e: { clipboardData: DataTransfer | null; preventDefault(): void }): void {
+    e.preventDefault()
+    if (this.readOnly) return this.onCopy(e)
+    const r = cut(this.session)
+    if (r && e.clipboardData) toDataTransfer(e.clipboardData, r.data)
+    this.render()
+  }
+
+  onPaste(e: { clipboardData: DataTransfer | null; preventDefault(): void }): void {
+    e.preventDefault()
+    if (this.readOnly) return
+    const data = fromDataTransfer(e.clipboardData)
+    if (data) paste(this.session, data)
+    this.render()
   }
 
   // ── Mouse ─────────────────────────────────────────────────────────────

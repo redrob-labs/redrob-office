@@ -59,7 +59,7 @@ Requirement references are in brackets, e.g. [R2.1].
   shortcut map from 0.6. [R4.2]
 - [ ] 1.7 CommandBus and History (snapshot groups); editing in the body, tables, headers and
   footers, notes and text boxes; object move and resize. [R4.2, R4.3]
-- [ ] 1.8 Clipboard: E7 range export and import (extending upstream `paragraph_block/import`), HTML
+- [x] 1.8 Clipboard: E7 range export and import (extending upstream `paragraph_block/import`), HTML
   and Office paste. [R4.2]
 - [ ] 1.9 Performance benchmark on a 100-page Corpus document. Decide whether to move the Core into
   a worker. [R4.4]
