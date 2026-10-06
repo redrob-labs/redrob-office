@@ -331,6 +331,7 @@ export const strings = {
     aiTurnLimit: 'Reached the per-run step limit - send another instruction to continue.',
     aiUndelivered: 'Not sent',
     aiRetry: 'Retry',
+    aiSignIn: 'Sign in to Redrob',
     aiCopyReplyTitle: 'Copy reply',
     aiRegenerateTitle: 'Regenerate',
     aiSnapshotsTitle: 'Snapshots',

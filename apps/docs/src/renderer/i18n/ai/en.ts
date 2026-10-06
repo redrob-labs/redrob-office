@@ -158,4 +158,6 @@ export const en = {
   aiCmdImages: 'Updated {count} image(s)',
   aiCmdToc: 'Inserted a table of contents ({count} entries)',
   aiCmdSkipped: ' ({count} protected block(s) skipped)',
+  aiUndelivered: 'Not sent',
+  aiRetry: 'Retry',
 }

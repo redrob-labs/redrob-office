@@ -65,6 +65,8 @@ export const AI_CHANNELS = {
   webSearch: 'ai:web-search',
   imageSearch: 'ai:image-search',
   fetchImage: 'ai:fetch-image',
+  /** "Sign in to Redrob": the shell runs Console connect; the key goes to the engine */
+  signIn: 'ai:gsk-login',
 } as const
 
 export interface WebSearchResult {
@@ -160,6 +162,8 @@ export interface MarkdownApi extends OfficePrefsApi, Partial<VersionsApi>, Parti
    *  clicks produce no DOM event here) — dismiss open popovers */
   onChromePressed(handler: () => void): () => void
   getAiSettings(): Promise<AiSettings>
+  /** sign in to Redrob (offered only when a run failed on authentication) */
+  aiSignIn(): Promise<unknown>
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
   onAiStream(handler: (chunk: AiStreamChunk) => void): () => void

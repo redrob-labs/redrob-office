@@ -253,4 +253,6 @@ export const en = {
   aiSumSaveTemplate: 'Saved style template "{name}"',
   aiSumTemplatesEmpty: 'Style templates (empty)',
   aiSumListTemplates: 'Listed {count} style templates',
+  aiUndelivered: 'Not sent',
+  aiRetry: 'Retry',
 }

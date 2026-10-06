@@ -1,11 +1,11 @@
 import { shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { Lang } from '@genoffice/i18n'
 import type { AiStreamChunk } from '@genoffice/ai-provider'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
-import { AI_CHANNELS, PDF_CHANNELS } from '../shared/ipc'
+import { AI_CHANNELS, FILES_CHANNELS, PDF_CHANNELS } from '../shared/ipc'
 import type { PdfApi, UiTheme } from '../shared/ipc'
 
 const api: PdfApi = {
@@ -91,6 +91,13 @@ const api: PdfApi = {
   },
   getAiSettings: () => ipcRenderer.invoke(AI_CHANNELS.getSettings),
   gskStatus: () => ipcRenderer.invoke(AI_CHANNELS.gskStatus),
+  aiSignIn: () => ipcRenderer.invoke(AI_CHANNELS.signIn),
+  pickAttachments: () => ipcRenderer.invoke(FILES_CHANNELS.pick),
+  addAttachmentPaths: (paths) => ipcRenderer.invoke(FILES_CHANNELS.add, paths),
+  addPastedImage: (data, ext) => ipcRenderer.invoke(FILES_CHANNELS.addPastedImage, data, ext),
+  readAttachment: (path, offset, maxChars) => ipcRenderer.invoke(FILES_CHANNELS.read, path, offset, maxChars),
+  readAttachmentImage: (path) => ipcRenderer.invoke(FILES_CHANNELS.readImage, path),
+  getPathForFile: (file) => webUtils.getPathForFile(file),
   aiStream: (request) => ipcRenderer.invoke(AI_CHANNELS.stream, request),
   aiStreamCancel: (requestId) => ipcRenderer.invoke(AI_CHANNELS.streamCancel, requestId),
   onAiStream: (handler) => {

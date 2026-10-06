@@ -654,7 +654,56 @@ export const AI_CHANNELS = {
   streamCancel: 'ai:stream-cancel',
   imageSearch: 'ai:image-search',
   fetchImage: 'ai:fetch-image',
+  /** "Sign in to Redrob": the shell runs Console connect; the key goes to the engine */
+  signIn: 'ai:gsk-login',
 } as const
+
+/**
+ * Chat attachments: the shell's shared files:* handlers (registered once by
+ * docs-main). Files are parsed in the main process and never leave the machine.
+ */
+export const FILES_CHANNELS = {
+  pick: 'files:pick',
+  add: 'files:add',
+  read: 'files:read',
+  readImage: 'files:read-image',
+  addPastedImage: 'files:add-pasted-image',
+} as const
+
+/** Image attachment extensions: sent as images with the user message, never read as text */
+export const ATTACHMENT_IMAGE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp'])
+
+export interface AttachmentMeta {
+  /** absolute local path; the file never leaves the machine */
+  path: string
+  name: string
+  /** lowercased extension without the dot */
+  ext: string
+  sizeBytes: number
+}
+
+export interface AttachmentAddResult {
+  accepted: AttachmentMeta[]
+  /** per-file rejection messages (too large / unsupported type / unreadable) */
+  rejected: string[]
+}
+
+export interface AttachmentReadResult {
+  ok: boolean
+  error?: string
+  name?: string
+  totalChars?: number
+  text?: string
+  offset?: number
+}
+
+export interface AttachmentImageResult {
+  ok: boolean
+  /** raw base64 (no data: URL prefix) */
+  base64?: string
+  mime?: string
+  error?: string
+}
 
 export interface ImageSearchResponse {
   images: Array<{
@@ -765,6 +814,16 @@ export interface PdfApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, P
   getAiSettings(): Promise<AiSettings>
   /** whether Redrob-hosted image generation may be offered; gates generate_image */
   gskStatus(): Promise<{ loggedIn: boolean }>
+  /** sign in to Redrob (offered only when a run failed on authentication) */
+  aiSignIn(): Promise<unknown>
+  /** chat attachments for the AI panel (files skill) */
+  pickAttachments(): Promise<AttachmentAddResult | null>
+  addAttachmentPaths(paths: string[]): Promise<AttachmentAddResult>
+  addPastedImage(data: ArrayBuffer, ext: string): Promise<AttachmentAddResult>
+  readAttachment(path: string, offset: number, maxChars: number): Promise<AttachmentReadResult>
+  readAttachmentImage(path: string): Promise<AttachmentImageResult>
+  /** the local path of a dropped or pasted File ('' when it has none) */
+  getPathForFile(file: File): string
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
   onAiStream(handler: (chunk: AiStreamChunk) => void): () => void

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent, ReactElement } from 'react'
-import { AgentLoop } from '@genoffice/agent-core'
+import type { DragEvent as ReactDragEvent, PointerEvent as ReactPointerEvent, ReactElement } from 'react'
+import { AgentLoop, composeSkills, type AgentImage } from '@genoffice/agent-core'
 import type { AiSettings } from '@genoffice/ai-provider'
 import {
   AgentComposer,
@@ -11,13 +11,20 @@ import {
   AgentSteps,
   AgentUndelivered,
   AgentWorking,
+  Alert,
+  Button,
   Icon,
+  IconButton,
   Markdown,
   RedrobMark,
   RedrobStatus,
   useRedrobPrefs,
 } from '@genoffice/ui'
+import { ATTACHMENT_IMAGE_EXTS, type AttachmentAddResult, type AttachmentMeta } from '../../shared/ipc'
 import { aiLangDirective, t as tGlobal, useI18n } from '../i18n/locale'
+import { EditQueueCard } from './EditQueueCard'
+import { buildQueueInstruction, buildQueueSummary, type PdfQueueItem } from './edit-queue'
+import { createFilesSkill } from './files-skill'
 import { createPdfSkill } from './pdf-skill'
 import { createElectronTransport } from './transport'
 import { PDF_NAV_SCHEME, parsePdfNavHref } from './pdf-nav'
@@ -66,10 +73,33 @@ interface ChatEntry {
   isError?: boolean
   /** the run failed and this user message was rolled back out of the model context */
   undelivered?: boolean
+  /** the run failed on authentication: offer sign-in (and nothing else gets the button) */
+  loginRequired?: boolean
   tools?: ToolActivity[]
+  /** the document before this run's first edit; one press puts the whole run back */
+  snapshot?: { value: unknown }
+  /** files that went with this user message */
+  attachments?: AttachmentMeta[]
 }
 
 type Phase = 'thinking' | 'replying' | 'working'
+
+/** The editor's full edit state, for one-click rollback of an AI run (App's undo snapshot). */
+export interface PdfAiRollback {
+  capture(): unknown
+  /** put a captured state back; the editor keeps the current state on its undo stack */
+  restore(snapshot: unknown): void
+}
+
+/** Image attachments go with the message as images (at most this many) */
+const MAX_IMAGES_PER_MESSAGE = 20
+const PASTE_MIME_EXT: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp' }
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
 
 export function AiPanel({
   api,
@@ -79,7 +109,24 @@ export function AiPanel({
   onRunDone,
   onClearSelection,
   hosted = false,
+  rollback,
+  editQueue = [],
+  onQueueEdit,
+  onQueueRemove,
+  onQueueClear,
+  onQueueConsume,
+  onQueueFocus,
 }: {
+  /** one-click rollback of an AI run's edits; without it no rollback point is kept */
+  rollback?: PdfAiRollback
+  /** requests queued from the Ask AI popover, sent together as one run */
+  editQueue?: PdfQueueItem[]
+  onQueueEdit?: (qid: string, instruction: string) => void
+  onQueueRemove?: (qid: string) => void
+  onQueueClear?: () => void
+  /** the run took these items */
+  onQueueConsume?: (qids: string[]) => void
+  onQueueFocus?: (item: PdfQueueItem) => void
   api: PdfAiDeps
   /** Absolute path of the open PDF (chat history is keyed to it) */
   filePath?: string
@@ -276,6 +323,22 @@ export function AiPanel({
   onRunDoneRef.current = onRunDone
   /** Any tool in the current run reported mutated: true */
   const runMutatedRef = useRef(false)
+  const rollbackRef = useRef(rollback)
+  rollbackRef.current = rollback
+  /** the run's state before its first edit (wrapped: a captured state may itself be falsy) */
+  const runSnapshotRef = useRef<{ value: unknown } | null>(null)
+  /** composer attachments (consumed by the next message) and every attachment already sent */
+  const [attachments, setAttachments] = useState<AttachmentMeta[]>([])
+  const attachmentsRef = useRef(attachments)
+  attachmentsRef.current = attachments
+  const sentAttachmentsRef = useRef<AttachmentMeta[]>([])
+  const [attachNotice, setAttachNotice] = useState<string | null>(null)
+  /** what read_attachment can see: everything sent so far plus what waits in the composer */
+  const availableAttachments = (): AttachmentMeta[] => {
+    const seen = new Set<string>()
+    return [...sentAttachmentsRef.current, ...attachmentsRef.current].filter((a) => !seen.has(a.path) && !!seen.add(a.path))
+  }
+  const lastSendRef = useRef<{ instruction: string; display: string; attachments: AttachmentMeta[] } | null>(null)
 
   const patchLast = (patch: Partial<ChatEntry> | ((last: ChatEntry) => Partial<ChatEntry>)) => {
     setChat((prev) => {
@@ -330,9 +393,11 @@ export function AiPanel({
       gskTools: () => gskLoggedInRef.current && settingsRef.current?.gskToolsEnabled !== false,
       fetchImage: (url) => apiRef.current.fetchImage(url),
     }
-    loopRef.current = new AgentLoop({
+    loopRef.current = new AgentLoop<unknown>({
       transport: createElectronTransport(() => settingsRef.current!),
-      skill: createPdfSkill(deps),
+      skill: composeSkills('pdf+files', '', [createPdfSkill(deps), createFilesSkill(availableAttachments)]),
+      // the editor's whole edit state, taken before each tool until the run's first edit
+      captureSnapshot: () => rollbackRef.current?.capture(),
       systemSuffix: () => aiLangDirective(langRef.current),
       events: {
         onText: (text) => {
@@ -340,8 +405,10 @@ export function AiPanel({
           segTextRef.current = text
           patchLast({ text })
         },
-        onToolExecuted: ({ call, execution }) => {
+        onToolExecuted: ({ call, execution, snapshotBefore }) => {
           setPhase('working')
+          // the run's first pre-edit state wins, so one rollback undoes the whole run
+          if (snapshotBefore !== undefined && !runSnapshotRef.current) runSnapshotRef.current = { value: snapshotBefore }
           if (execution.mutated) runMutatedRef.current = true
           runToolsRef.current.push({
             name: call.name,
@@ -389,6 +456,7 @@ export function AiPanel({
           patchLast((last) => ({
             streaming: false,
             text: final || (last.tools?.length ? last.text : tGlobal('aiNoReply')),
+            ...(runSnapshotRef.current ? { snapshot: runSnapshotRef.current } : {}),
           }))
           setBusy(false)
           if (runMutatedRef.current) {
@@ -396,7 +464,7 @@ export function AiPanel({
             onRunDoneRef.current?.()
           }
         },
-        onError: (error) => {
+        onError: (error, code) => {
           setChat((prev) => {
             const next = [...prev]
             // the loop rolled this run's user message out of the model context — surface that
@@ -409,7 +477,16 @@ export function AiPanel({
             }
             const last = next.at(-1)
             if (last?.role === 'assistant') {
-              next[next.length - 1] = { ...last, streaming: false, text: error, isError: true }
+              next[next.length - 1] = {
+                ...last,
+                streaming: false,
+                text: error,
+                isError: true,
+                // only an authentication failure offers sign-in; the code is the contract, not the text
+                loginRequired: code === 'auth',
+                // a run that failed after editing still offers its rollback point
+                ...(runSnapshotRef.current ? { snapshot: runSnapshotRef.current } : {}),
+              }
             }
             return next
           })
@@ -431,18 +508,51 @@ export function AiPanel({
     stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
   }
 
-  const send = (text: string): void => {
+  const notice = (text: string): void => {
+    setAttachNotice(text)
+    window.setTimeout(() => setAttachNotice(null), 5000)
+  }
+
+  /** image attachments go with the message as images; a failed read is said, never silent */
+  const collectImages = async (atts: AttachmentMeta[]): Promise<AgentImage[]> => {
+    const imageAtts = atts.filter((a) => ATTACHMENT_IMAGE_EXTS.has(a.ext))
+    const images: AgentImage[] = []
+    const failures: string[] = []
+    for (const att of imageAtts.slice(0, MAX_IMAGES_PER_MESSAGE)) {
+      const r = await window.pdfApi.readAttachmentImage(att.path)
+      if (r.ok && r.base64 && r.mime) images.push({ base64: r.base64, mime: r.mime })
+      else failures.push(r.error ?? t('aiImageReadFail', { name: att.name }))
+    }
+    if (imageAtts.length > MAX_IMAGES_PER_MESSAGE) failures.push(t('aiTooManyImages', { max: MAX_IMAGES_PER_MESSAGE }))
+    if (failures.length > 0) notice(failures.join('; '))
+    return images
+  }
+
+  /**
+   * Sends one run. `display` is what the bubble shows (a queue batch shows a
+   * summary); `atts` overrides the composer's attachments (retry re-sends the
+   * ones that went with the failed message).
+   */
+  const send = (text: string, display = text, atts?: AttachmentMeta[]): void => {
     const instruction = text.trim()
     const loop = loopRef.current
     if (!instruction || !loop || loop.busy) return
+    const sentAtts = atts ?? attachmentsRef.current
+    if (!atts && sentAtts.length > 0) {
+      const seen = new Set(sentAttachmentsRef.current.map((a) => a.path))
+      sentAttachmentsRef.current = [...sentAttachmentsRef.current, ...sentAtts.filter((a) => !seen.has(a.path))]
+      setAttachments([])
+    }
+    lastSendRef.current = { instruction, display: display.trim() || instruction, attachments: sentAtts }
     stickToBottomRef.current = true
     persistMessage('user', instruction)
     segTextRef.current = ''
     runTextsRef.current = []
     runToolsRef.current = []
+    runSnapshotRef.current = null
     setChat((prev) => [
       ...prev,
-      { role: 'user', text: instruction },
+      { role: 'user', text: display.trim() || instruction, ...(sentAtts.length > 0 ? { attachments: sentAtts } : {}) },
       { role: 'assistant', text: '', streaming: true },
     ])
     setPrompt('')
@@ -452,7 +562,12 @@ export function AiPanel({
     void (async () => {
       try {
         settingsRef.current = await window.pdfApi.getAiSettings()
-        await loop.run(instruction)
+        // a rejected image read must not strand the run: degrade to a send without images
+        const images = await collectImages(sentAtts).catch((): AgentImage[] => {
+          notice(t('aiImagesSendFailed'))
+          return []
+        })
+        await loop.run(instruction, images)
       } catch (err) {
         patchLast({
           streaming: false,
@@ -465,6 +580,66 @@ export function AiPanel({
   }
 
   const stop = (): void => loopRef.current?.cancel()
+
+  /** re-sends the last message, with the files that went with it */
+  const retry = (): void => {
+    const last = lastSendRef.current
+    if (last) send(last.instruction, last.display, last.attachments)
+  }
+
+  /** submit every queued request as one batch run; the run consumes them */
+  const sendQueue = (): void => {
+    if (!loopRef.current || loopRef.current.busy || editQueue.length === 0) return
+    const instruction = buildQueueInstruction(editQueue)
+    const display = buildQueueSummary(t('aiQueueSubmitted', { count: editQueue.length }), editQueue)
+    onQueueConsume?.(editQueue.map((item) => item.qid))
+    send(instruction, display)
+  }
+
+  /**
+   * Puts the document back as it was before this run's first edit. The
+   * editor keeps the current state on its undo stack, so the rollback itself
+   * can be undone; this and every later rollback point are spent.
+   */
+  const rollbackTo = (entryIdx: number, snapshot: { value: unknown }): void => {
+    if (busy || !rollbackRef.current) return
+    rollbackRef.current.restore(snapshot.value)
+    setChat((prev) => prev.map((e, i) => (i >= entryIdx && e.snapshot ? { ...e, snapshot: undefined } : e)))
+  }
+
+  const mergeAttachments = (result: AttachmentAddResult | null): void => {
+    if (!result) return
+    if (result.accepted.length > 0) {
+      setAttachments((prev) => {
+        const seen = new Set(prev.map((a) => a.path))
+        return [...prev, ...result.accepted.filter((a) => !seen.has(a.path))]
+      })
+    }
+    if (result.rejected.length > 0) notice(result.rejected.join('; '))
+  }
+
+  const pickAttachments = async (): Promise<void> => mergeAttachments(await window.pdfApi.pickAttachments())
+
+  /** pasted files with a local path attach as they are; pure bitmaps (screenshots) go through a temp file */
+  const onPasteFiles = async (files: File[]): Promise<void> => {
+    const paths: string[] = []
+    for (const f of files) {
+      const p = window.pdfApi.getPathForFile(f)
+      if (p) paths.push(p)
+      else if (PASTE_MIME_EXT[f.type]) mergeAttachments(await window.pdfApi.addPastedImage(await f.arrayBuffer(), PASTE_MIME_EXT[f.type]!))
+    }
+    if (paths.length > 0) mergeAttachments(await window.pdfApi.addAttachmentPaths(paths))
+  }
+
+  const onDropFiles = async (e: ReactDragEvent): Promise<void> => {
+    if (!e.dataTransfer.types.includes('Files')) return
+    e.preventDefault()
+    e.stopPropagation()
+    const paths = Array.from(e.dataTransfer.files)
+      .map((f) => window.pdfApi.getPathForFile(f))
+      .filter(Boolean)
+    if (paths.length > 0) mergeAttachments(await window.pdfApi.addAttachmentPaths(paths))
+  }
 
   // One-click AI actions from the ribbon / Ask popover; while a run is active the
   // preset lands in the composer instead of being dropped silently (markdown parity)
@@ -612,27 +787,61 @@ export function AiPanel({
         )}
         {chat.map((entry, i) => {
           if (entry.role === 'user') {
+            // Retry re-sends the last message (and its files), so only the last user message offers it
+            const isLastUser = chat.map((e) => e.role).lastIndexOf('user') === i
             return (
               <AgentMessage key={i} role="user" author={t('aiYou')}>
-                {entry.text}
+                {entry.attachments && entry.attachments.length > 0 && (
+                  <ul className="ai-msg-attachments">
+                    {entry.attachments.map((a) => (
+                      <li key={a.path} className="ai-attachment-card">
+                        <span className="ai-attachment-card-meta">
+                          <span className="ai-attachment-card-name">{a.name}</span>
+                          <span className="ai-attachment-card-size">{formatSize(a.sizeBytes)}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <span className="ai-msg-text">{entry.text}</span>
                 {entry.undelivered && (
                   <AgentUndelivered
                     message={t('aiUndelivered')}
                     retryLabel={t('aiRetry')}
-                    onRetry={busy ? undefined : () => send(entry.text)}
+                    onRetry={busy || !isLastUser ? undefined : retry}
                   />
                 )}
               </AgentMessage>
             )
           }
+          const nextEntry = chat[i + 1]
+          const turnEnded = nextEntry ? nextEntry.role === 'user' : !busy
+          const rollbackPoint = entry.snapshot && turnEnded && rollback ? entry.snapshot : null
           const hasTools = (entry.tools?.length ?? 0) > 0
-          if (!entry.text && !hasTools) return null
+          if (!entry.text && !hasTools && !rollbackPoint) return null
           return (
             <AgentMessage
               key={i}
               role="assistant"
               author="Redrob AI"
               streaming={!!entry.streaming && !entry.isError && !!entry.text}
+              footer={
+                rollbackPoint ? (
+                  <div className="ai-msg-toolbar">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="ai-rollback-btn"
+                      disabled={busy}
+                      data-tip={t('aiRollbackTitle')}
+                      iconLeft={<Icon name="restore" size={14} />}
+                      onClick={() => rollbackTo(i, rollbackPoint)}
+                    >
+                      {t('aiRollback')}
+                    </Button>
+                  </div>
+                ) : undefined
+              }
             >
               {hasTools && (
                 <AgentSteps
@@ -645,7 +854,17 @@ export function AiPanel({
               )}
               {entry.isError ? (
                 // fail-closed: the engine's own message, never a silent retry elsewhere
-                <AgentFailure title={t('aiFailedTitle')} message={entry.text} />
+                <AgentFailure
+                  title={t('aiFailedTitle')}
+                  message={entry.text}
+                  action={
+                    entry.loginRequired ? (
+                      <Button size="sm" onClick={() => void window.pdfApi.aiSignIn()}>
+                        {t('aiSignIn')}
+                      </Button>
+                    ) : undefined
+                  }
+                />
               ) : (
                 entry.text && <Markdown text={entry.text} nav={pdfNav} />
               )}
@@ -656,10 +875,30 @@ export function AiPanel({
         {busy && <AgentWorking label={typingLabel} />}
       </div>
 
-      <div className="ai-composer">
+      <div className="ai-composer" onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()} onDrop={(e) => void onDropFiles(e)}>
+        {attachNotice && (
+          <Alert tone="info" className="ai-attach-notice">
+            {attachNotice}
+          </Alert>
+        )}
+        <EditQueueCard
+          items={editQueue}
+          busy={busy}
+          onEditInstruction={(qid, text) => onQueueEdit?.(qid, text)}
+          onRemove={(qid) => onQueueRemove?.(qid)}
+          onDiscardAll={() => onQueueClear?.()}
+          onSend={sendQueue}
+          onFocus={(item) => onQueueFocus?.(item)}
+        />
         <AgentComposer
           value={prompt}
           busy={busy}
+          leading={
+            <IconButton size="sm" label={t('aiAttachTitle')} onClick={() => void pickAttachments()}>
+              <Icon name="attachment" size={16} />
+            </IconButton>
+          }
+          onPasteFiles={(files) => void onPasteFiles(files)}
           status={
             <RedrobStatus
               lang={lang}
@@ -669,7 +908,29 @@ export function AiPanel({
             />
           }
           context={
-            hasScopeSelection && (
+            (hasScopeSelection || attachments.length > 0) && (
+              <>
+                {attachments.length > 0 && (
+                  <ul className="ai-attachments">
+                    {attachments.map((a) => (
+                      <li key={a.path} className="ai-attachment-card">
+                        <span className="ai-attachment-card-meta">
+                          <span className="ai-attachment-card-name">{a.name}</span>
+                          <span className="ai-attachment-card-size">{formatSize(a.sizeBytes)}</span>
+                        </span>
+                        <button
+                          type="button"
+                          className="ai-attachment-thumb-remove"
+                          aria-label={t('aiAttachRemove', { name: a.name })}
+                          onClick={() => setAttachments((prev) => prev.filter((x) => x.path !== a.path))}
+                        >
+                          <Icon name="close" size={12} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {hasScopeSelection && (
               <div className="ai-scope-row">
                 <span className="ai-scope-hint">
                   <button
@@ -708,6 +969,8 @@ export function AiPanel({
                   </div>
                 )}
               </div>
+                )}
+              </>
             )
           }
           placeholder={t('aiComposerPlaceholder')}

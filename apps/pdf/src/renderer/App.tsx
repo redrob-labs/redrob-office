@@ -9,7 +9,8 @@ import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 import { GlobalWorkerOptions, getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'
-import { AiPanel, GensparkMark } from './ai/AiPanel'
+import { AiPanel, GensparkMark, type PdfAiRollback } from './ai/AiPanel'
+import { EDIT_QUEUE_MAX, addToQueue, makeQueueItem, type PdfQueueItem } from './ai/edit-queue'
 import { AiAskPopover, type AskAnchorRect } from './AiAskPopover'
 import { loadSavedAnnots } from './annotation-catalog'
 import {
@@ -685,7 +686,9 @@ export default function App() {
     text: string
   } | null>(null)
   /** Ask-AI popover opened from the markup bar; the anchor rect is captured at open */
-  const [askPop, setAskPop] = useState<{ rect: AskAnchorRect; excerpt: string } | null>(null)
+  const [askPop, setAskPop] = useState<{ rect: AskAnchorRect; excerpt: string; page: number | null } | null>(null)
+  /** Requests queued from the Ask AI popover, sent to the assistant together (docs/markdown parity) */
+  const [aiQueue, setAiQueue] = useState<PdfQueueItem[]>([])
   /** Whole-document saved-annotation counts per original page for the AI context
       (scanned once per doc; kept per-page so deleted pages can be excluded) */
   const [aiAnnotCounts, setAiAnnotCounts] = useState<{
@@ -936,6 +939,8 @@ export default function App() {
       if (!saved) {
         setAiSelection(null)
         setAskPop(null)
+        // queued requests point at the previous document's pages
+        setAiQueue([])
         setMarkups([])
         setAnnotDeletes([])
         setNoteEdits([])
@@ -1539,6 +1544,23 @@ export default function App() {
     setSelected(null)
   }
 
+  /** AI rollback: the latest edit state, and putting one back (refs: the panel's loop is built once) */
+  const snapshotRef = useRef(snapshot)
+  snapshotRef.current = snapshot
+  const applySnapshotRef = useRef(applySnapshot)
+  applySnapshotRef.current = applySnapshot
+  const aiRollback = useMemo<PdfAiRollback>(
+    () => ({
+      capture: () => snapshotRef.current(),
+      restore: (s) => {
+        // the state being replaced goes on the undo stack, so Ctrl+Z undoes a rollback
+        pushUndoRef.current()
+        applySnapshotRef.current(s as EditSnapshot)
+      },
+    }),
+    [],
+  )
+
   const undo = () => {
     const top = undoStack[undoStack.length - 1]
     if (!top) return
@@ -1903,7 +1925,7 @@ export default function App() {
         : null
     if (!rect) return
     setSelPopup(null)
-    setAskPop({ rect, excerpt: aiSelection?.text ?? sel?.toString() ?? '' })
+    setAskPop({ rect, excerpt: aiSelection?.text ?? sel?.toString() ?? '', page: aiSelection?.page ?? null })
   }
 
   /** Markup types the whole current selection already carries — shown as pressed
@@ -6478,6 +6500,15 @@ export default function App() {
             onCollapse={() => setAiCollapsed(true)}
             onRunDone={() => void autoSaveAfterAiRun()}
             onClearSelection={() => setAiSelection(null)}
+            rollback={aiRollback}
+            editQueue={aiQueue}
+            onQueueEdit={(qid, instruction) =>
+              setAiQueue((q) => q.map((item) => (item.qid === qid ? { ...item, instruction } : item)))
+            }
+            onQueueRemove={(qid) => setAiQueue((q) => q.filter((item) => item.qid !== qid))}
+            onQueueClear={() => setAiQueue([])}
+            onQueueConsume={(qids) => setAiQueue((q) => q.filter((item) => !qids.includes(item.qid)))}
+            onQueueFocus={(item) => void aiApi.gotoPage(item.page)}
             hosted
           />
         }
@@ -7971,6 +8002,18 @@ export default function App() {
                   setAskPop(null)
                   runAiPreset(text)
                 }}
+                queueFull={aiQueue.length >= EDIT_QUEUE_MAX}
+                onQueue={
+                  askPop.page !== null
+                    ? (text) => {
+                        const item = makeQueueItem(askPop.page!, askPop.excerpt, text)
+                        setAskPop(null)
+                        if (!item) return
+                        setAiQueue((q) => addToQueue(q, item))
+                        setAiCollapsed(false)
+                      }
+                    : undefined
+                }
                 onClose={() => setAskPop(null)}
               />
             )}

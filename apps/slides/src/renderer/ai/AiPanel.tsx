@@ -42,6 +42,7 @@ import {
   AgentComposer,
   AgentEmpty,
   AgentFailure,
+  AgentUndelivered,
   AgentMessage,
   AgentPanelHeader,
   AgentSteps,
@@ -256,8 +257,10 @@ interface ChatEntry {
   text: string
   error?: string
   streaming?: boolean
-  /** the run failed because Genspark is signed out — render an inline sign-in button */
+  /** the run failed on authentication — render an inline sign-in button */
   loginRequired?: boolean
+  /** the run failed and the loop rolled this user message out of the model's context */
+  undelivered?: boolean
   tools?: ToolActivity[]
   /** Generation progress card (only one per turn, replaced in real time) */
   deckProgress?: DeckProgressSnapshot
@@ -1364,6 +1367,13 @@ export function AiPanel({
           qcPagesRef.current = []
           setChat((prev) => {
             const next = [...prev]
+            // the loop rolled this run's user message out of the model context: say so on it
+            for (let j = next.length - 1; j >= 0; j--) {
+              if (next[j]!.role === 'user') {
+                next[j] = { ...next[j]!, undelivered: true }
+                break
+              }
+            }
             const last = next.at(-1)
             if (last?.role === 'assistant') {
               next[next.length - 1] = {
@@ -2092,6 +2102,14 @@ export function AiPanel({
                 entry.text && <Markdown text={entry.text} />
               ) : (
                 entry.text
+              )}
+              {entry.role === 'user' && entry.undelivered && (
+                <AgentUndelivered
+                  message={t('aiUndelivered')}
+                  retryLabel={t('aiRetry')}
+                  // Retry re-sends the last instruction, so only the last user message offers it
+                  onRetry={busy || chat.map((e) => e.role).lastIndexOf('user') !== i ? undefined : retry}
+                />
               )}
               {entry.tools && entry.tools.length > 0 && (
                 <AgentSteps

@@ -1,8 +1,8 @@
 /**
  * Anchored "Ask AI" popover opened from the selection markup bar: captures one
- * instruction about the selected passage and sends it immediately as a normal
- * selection-scoped run (pdf deliberately has no edit queue — pending notes are
- * the durable way to mark work for later).
+ * instruction about the selected passage and either sends it now as a normal
+ * selection-scoped run or adds it to the edit queue (ai/edit-queue.ts), which
+ * is sent as one batch from the AI panel.
  *
  * Mounted at the app root with fixed positioning; the anchor rect is captured
  * when the popover opens (the native selection collapses once the input takes
@@ -33,6 +33,8 @@ export function AiAskPopover({
   excerpt,
   readOnly,
   onSend,
+  onQueue,
+  queueFull = false,
   onClose,
 }: {
   rect: AskAnchorRect
@@ -40,6 +42,10 @@ export function AiAskPopover({
   /** encrypted documents hide the edit-oriented chip */
   readOnly: boolean
   onSend: (text: string) => void
+  /** queue the request instead of sending it now; absent when the passage has no page */
+  onQueue?: ((text: string) => void) | undefined
+  /** the queue holds EDIT_QUEUE_MAX requests already */
+  queueFull?: boolean
   onClose: () => void
 }): ReactElement {
   const { t } = useI18n()
@@ -145,6 +151,20 @@ export function AiAskPopover({
         ))}
       </div>
       <div className="ai-ask-pop-foot">
+        {onQueue && (
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={!canSubmit || queueFull}
+            data-tip={queueFull ? t('aiQueueFull', { max: 10 }) : undefined}
+            onClick={() => {
+              const value = text.trim()
+              if (value) onQueue(value)
+            }}
+          >
+            {t('aiQueueAdd')}
+          </Button>
+        )}
         <Button size="sm" disabled={!canSubmit} onClick={submit}>
           {t('aiSend')}
         </Button>

@@ -92,6 +92,8 @@ interface ChatEntry {
   isError?: boolean
   /** the run failed and this user message was rolled back out of the model context */
   undelivered?: boolean
+  /** the run failed on authentication: offer sign-in (and nothing else gets the button) */
+  loginRequired?: boolean
   tools?: ToolActivity[]
   /** Plan mode: the plan this read-only run wrote */
   plan?: { request: string; steps: string[]; status: PlanStatus }
@@ -344,7 +346,7 @@ export function AiPanel({
           depsRef.current.onRunDone(runMutatedRef.current)
           setBusy(false)
         },
-        onError: (error) => {
+        onError: (error, code) => {
           setChat((prev) => {
             const next = [...prev]
             for (let i = next.length - 1; i >= 0; i--) {
@@ -361,6 +363,8 @@ export function AiPanel({
                 streaming: false,
                 text: error,
                 isError: true,
+                // only an authentication failure offers sign-in; the code is the contract, not the text
+                loginRequired: code === 'auth',
                 tools: last.tools?.filter((tl) => !tl.running),
               }
             }
@@ -761,7 +765,17 @@ export function AiPanel({
                 <AgentWorking label={hasTools ? t('aiWorking') : t('aiThinking')} />
               ) : entry.isError ? (
                 // fail-closed: the engine's own message, never a silent retry elsewhere
-                <AgentFailure title={t('aiFailedTitle')} message={entry.text} />
+                <AgentFailure
+                  title={t('aiFailedTitle')}
+                  message={entry.text}
+                  action={
+                    entry.loginRequired ? (
+                      <Button size="sm" onClick={() => void window.markdownApi.aiSignIn()}>
+                        {t('aiSignIn')}
+                      </Button>
+                    ) : undefined
+                  }
+                />
               ) : (
                 entry.text && <Markdown text={entry.text} nav={docNav} />
               )}

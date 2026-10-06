@@ -26,6 +26,7 @@ import {
   AgentComposer,
   AgentEmpty,
   AgentFailure,
+  AgentUndelivered,
   AgentMessage,
   AgentPanelHeader,
   AgentSteps,
@@ -90,8 +91,10 @@ interface ChatEntry {
   error?: string
   streaming?: boolean
   turnLimit?: boolean
-  /** the run failed because Genspark is signed out — render an inline sign-in button */
+  /** the run failed on authentication — render an inline sign-in button */
   loginRequired?: boolean
+  /** the run failed and the loop rolled this user message out of the model's context */
+  undelivered?: boolean
   /** tool executions performed during this assistant turn */
   tools?: ToolActivity[]
   /** document state before this turn's first edit — rendered as an inline roll-back action */
@@ -752,6 +755,13 @@ export function AiPanel({
         onError: (error, code) => {
           setChat((prev) => {
             const next = [...prev]
+            // the loop rolled this run's user message out of the model context: say so on it
+            for (let j = next.length - 1; j >= 0; j--) {
+              if (next[j]!.role === 'user') {
+                next[j] = { ...next[j]!, undelivered: true }
+                break
+              }
+            }
             const last = next.at(-1)
             if (last?.role === 'assistant') {
               next[next.length - 1] = {
@@ -1195,7 +1205,9 @@ export function AiPanel({
             }}
           />
         )}
-        {chat.map((entry, i) => {
+        {chat.map((entry, i, all) => {
+          // Retry re-sends the last instruction, so it is offered on the last user message only
+          const isLastUser = (idx: number) => all.map((e) => e.role).lastIndexOf('user') === idx
           if (
             entry.role === 'assistant' &&
             !entry.text &&
@@ -1268,6 +1280,13 @@ export function AiPanel({
                 )
               ) : (
                 <span dir="auto">{entry.text}</span>
+              )}
+              {entry.role === 'user' && entry.undelivered && (
+                <AgentUndelivered
+                  message={t('aiUndelivered')}
+                  retryLabel={t('aiRetry')}
+                  onRetry={busy || !isLastUser(i) ? undefined : retry}
+                />
               )}
               {entry.tools && entry.tools.length > 0 && (
                 <AgentSteps steps={entry.tools} strings={stepStrings(entry.tools)} />
