@@ -85,6 +85,8 @@ const header = {
 }
 writeFileSync(commandsPath, JSON.stringify({ ...header, count: unique.length, commands: unique }, null, 2) + '\n')
 writeFileSync(join(outDir, 'shortcuts.json'), JSON.stringify({ ...header, count: shortcuts.length, shortcuts }, null, 2) + '\n')
+// The editor reads the same map (packages/hwp-editor/src/view/keymap.ts).
+writeFileSync(join(root, 'packages/hwp-editor/src/view/hangul-shortcuts.json'), JSON.stringify({ ...header, shortcuts }, null, 2) + '\n')
 
 const groups = {}
 for (const c of unique) groups[c.group] = (groups[c.group] ?? 0) + 1

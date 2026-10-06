@@ -52,11 +52,10 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 1.2 E2 change stream (`Op`, `changeSeq`). Implemented at the editor's single mutation entry (`Session.edit`) instead of inside the engine's edit calls; see `packages/hwp-editor/src/session.ts`. [R4.5]
 - [ ] 1.3 E3 `getOutline` and `readNodes`. E8 font provider hook with a substitution report.
   [R2.4, R2.5, R6.1]
-- [ ] 1.4 `packages/hwp-editor`: Session, NodeIndex, PageView (virtualized, DPR-aware zoom),
+- [x] 1.4 `packages/hwp-editor`: Session, NodeIndex, PageView (virtualized, DPR-aware zoom),
   OverlayLayer. [R2.1, R2.3]
-- [ ] 1.5 Input proxy and IME: preedit overlay, composition commit. Automated composition tests plus
-  a manual matrix for Windows MS-IME, macOS 2-Set and Linux ibus/fcitx. [R4.1]
-- [ ] 1.6 Hit testing, caret and selection (text, cell, object). Keyboard navigation and the
+- [ ] 1.5 Input proxy and IME: preedit overlay, composition commit. Automated composition tests done (`view.test.ts`); still open: the manual matrix for Windows MS-IME, macOS 2-Set and Linux ibus/fcitx. [R4.1]
+- [x] 1.6 Hit testing, caret and selection (text, cell, object). Keyboard navigation and the
   shortcut map from 0.6. [R4.2]
 - [ ] 1.7 CommandBus and History (snapshot groups); editing in the body, tables, headers and
   footers, notes and text boxes; object move and resize. [R4.2, R4.3]
