@@ -1,3 +1,5 @@
+import { VersionsButton } from '@genoffice/ui'
+import '@genoffice/ui/versions.css'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type {
   GroupRenderNode,
@@ -2842,9 +2844,11 @@ export function App() {
         canUndo={histState.canUndo}
         canRedo={histState.canRedo}
         saveStatus={
-          hasDoc ? (
+          <VersionsButton path={path} fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')} api={window.slidesApi}>
+            {hasDoc ? (
             <span className="slides-save-status">{dirty ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}</span>
-          ) : undefined
+          ) : undefined}
+          </VersionsButton>
         }
         search={{ tools: frameTools, strings: frameText.search, onAsk: (q) => pushAiPreset(q) }}
         mode={{

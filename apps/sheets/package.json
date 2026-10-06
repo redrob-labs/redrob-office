@@ -33,6 +33,7 @@
     "@genoffice/file-parse": "workspace:*",
     "@genoffice/i18n": "workspace:*",
     "@genoffice/ui": "workspace:*",
+    "@genoffice/versions": "workspace:*",
     "@univerjs/core": "^0.25.1",
     "@univerjs/data-validation": "^0.25.1",
     "@univerjs/docs": "^0.25.1",

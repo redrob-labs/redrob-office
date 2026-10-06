@@ -158,3 +158,8 @@ export {
   type RunReport,
 } from './redrob/RedrobParts'
 export { useRedrobPrefs, type RedrobPrefsSource } from './redrob/useRedrobPrefs'
+// version history and catch-up, shared by every editor (styles: '@genoffice/ui/versions.css')
+export { VersionHistory, type VersionHistoryProps } from './versions/VersionHistory'
+export { VersionsButton, type VersionsButtonProps } from './versions/VersionsButton'
+export { CatchUp, catchUpLine, type CatchUpProps } from './versions/CatchUp'
+export { verT, type VerStringKey } from './versions/strings'

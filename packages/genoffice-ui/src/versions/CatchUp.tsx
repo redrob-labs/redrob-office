@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
-import { Button, Icon, IconButton } from '@genoffice/ui'
+import { Button, IconButton } from '../kit'
+import { Icon } from '../Icon'
 import type { CatchUpItem } from '@genoffice/versions'
 import { verT } from './strings'
 

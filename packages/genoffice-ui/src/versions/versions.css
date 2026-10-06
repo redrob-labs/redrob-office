@@ -140,3 +140,21 @@ button.docs-save-status:focus-visible {
 .doc-versions__row input:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
 }
+
+/* the save status as the way into version history */
+.go-versions-btn {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.go-versions-btn:hover {
+  background: var(--surface-sunken);
+}
+.go-versions-btn:focus-visible {
+  outline: 2px solid var(--border-strong);
+  outline-offset: 1px;
+}

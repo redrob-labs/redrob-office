@@ -17,6 +17,7 @@
     "@genoffice/electron-utils": "workspace:*",
     "@genoffice/i18n": "workspace:*",
     "@genoffice/ui": "workspace:*",
+    "@genoffice/versions": "workspace:*",
     "@rhwp/editor": "workspace:*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

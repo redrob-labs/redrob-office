@@ -1,3 +1,5 @@
+import { VersionsButton } from '@genoffice/ui'
+import '@genoffice/ui/versions.css'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
 // legacy build: the modern build relies on new APIs like Math.sumPrecise that the current
@@ -5716,7 +5718,8 @@ export default function App() {
         canUndo={undoStack.length > 0}
         canRedo={redoStack.length > 0}
         saveStatus={
-          <span className="pdf-save-status">
+          <VersionsButton path={filePath} fileName={filePath ? (filePath.split(/[\\/]/).pop() ?? filePath) : t('pdfUntitled')} api={window.pdfApi}>
+            {<span className="pdf-save-status">
             {saveState === 'saving'
               ? t('saving')
               : saveState === 'error'
@@ -5724,7 +5727,8 @@ export default function App() {
                 : dirty
                   ? t('unsaved')
                   : frameT(lang, 'saved')}
-          </span>
+          </span>}
+          </VersionsButton>
         }
         search={{ tools: frameTools, strings: frameText.search, onAsk: pdfActions.run }}
         mode={{

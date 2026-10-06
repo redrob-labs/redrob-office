@@ -5203,6 +5203,7 @@ export function App(): React.JSX.Element {
       )}
       <ExcelShell
         fileName={workbookFile?.name}
+        filePath={workbookFile && !workbookFile.needsSaveAs ? (workbookFile.csvPath ?? workbookFile.path ?? null) : null}
         prompt={prompt}
         preview={preview}
         sheetHasContent={sheetHasContent}

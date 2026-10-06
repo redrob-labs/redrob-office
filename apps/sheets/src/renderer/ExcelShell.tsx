@@ -1,3 +1,5 @@
+import { VersionsButton } from '@genoffice/ui'
+import '@genoffice/ui/versions.css'
 import { useEffect, useRef, useState } from 'react'
 import { platformShortcuts } from '@genoffice/i18n'
 import {
@@ -230,6 +232,8 @@ interface ExcelShellProps {
   readonly onAutoSaveChange: (on: boolean) => void
   /** the open workbook's file name, shown in the title bar with its format chip */
   readonly fileName?: string | undefined
+  /** the workbook on disk, for version history; null for an unsaved import */
+  readonly filePath?: string | null | undefined
   /// Non-null while a floating chart is selected in the grid.
   readonly selectedChart: SelectedChartRibbon | null
   /// Column choices of the active selection, read when the Sort dialog opens.
@@ -380,6 +384,7 @@ export function ExcelShell({
   calcManual,
   onGoalSeek,
   fileName,
+  filePath,
 }: ExcelShellProps): React.JSX.Element {
   const { t, lang } = useI18n()
   // the shared editor frame: toolbar choice, panel width and online state
@@ -527,7 +532,11 @@ export function ExcelShell({
         onRedo={canRedo ? onRedo : undefined}
         canUndo={canUndo}
         canRedo={canRedo}
-        saveStatus={<span className="sheets-save-status">{canSave ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}</span>}
+        saveStatus={
+          <VersionsButton path={filePath ?? null} fileName={fileName ?? t('appUntitledXlsx')} api={window.desktopApi}>
+            {<span className="sheets-save-status">{canSave ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}</span>}
+          </VersionsButton>
+        }
         search={{ tools: frameTools, strings: frameText.search, onAsk: sheetsActions.run }}
         mode={{
           value: 'editing',

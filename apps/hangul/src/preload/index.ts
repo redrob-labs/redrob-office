@@ -1,3 +1,4 @@
+import { versionsBridge } from '@genoffice/versions'
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
@@ -6,6 +7,8 @@ import { HANGUL_CHANNELS } from '../shared/ipc'
 import type { HangulApi, SaveMode, UiTheme } from '../shared/ipc'
 
 const api: HangulApi = {
+  // shell-owned version history and last visits (apps/shell/src/main/versions-service.ts)
+  ...versionsBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   studioOrigin: () => ipcRenderer.invoke(HANGUL_CHANNELS.studioOrigin),
   consumePending: () => ipcRenderer.invoke(HANGUL_CHANNELS.consumePending),

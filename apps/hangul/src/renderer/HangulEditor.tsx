@@ -1,3 +1,5 @@
+import { VersionsButton } from '@genoffice/ui'
+import '@genoffice/ui/versions.css'
 /**
  * The Hangul (.hwp/.hwpx) editor surface for the GenOffice / Redrob shell.
  *
@@ -54,6 +56,8 @@ export function HangulEditor(): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<RhwpEditor | null>(null)
   const fileNameRef = useRef<string>('')
+  /** the document on disk, for version history; null until opened or saved */
+  const [docPath, setDocPath] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saveState, setSaveState] = useState<SaveState>('idle')
@@ -100,6 +104,7 @@ export function HangulEditor(): React.JSX.Element {
         if (pending) {
           const { base64, fileName } = await window.hangulApi.readBytes(pending)
           fileNameRef.current = fileName
+          setDocPath(pending)
           const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
           if (cancelled) return
           await editor.loadFile(bytes, fileName)
@@ -136,6 +141,7 @@ export function HangulEditor(): React.JSX.Element {
         return false
       }
       if (result.path) {
+        setDocPath(result.path)
         fileNameRef.current = result.path.split(/[\\/]/).pop() ?? fileNameRef.current
       }
       window.hangulApi.setDirty(false)
@@ -263,7 +269,8 @@ export function HangulEditor(): React.JSX.Element {
         strings={frameText.frame}
         fileName={fileName}
         saveStatus={
-          <span className="hangul-status" role="status" aria-live="polite">
+          <VersionsButton path={docPath} fileName={fileName} api={window.hangulApi}>
+            {<span className="hangul-status" role="status" aria-live="polite">
             {saveState === 'saved' ? (
               <Badge tone="success" size="sm" dot>
                 {t('saved')}
@@ -274,7 +281,8 @@ export function HangulEditor(): React.JSX.Element {
                 {t('saveFailed', { error: saveError })}
               </Badge>
             ) : null}
-          </span>
+          </span>}
+          </VersionsButton>
         }
         search={{
           tools: [

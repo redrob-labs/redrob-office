@@ -1,3 +1,4 @@
+import { versionsBridge } from '@genoffice/versions'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { IpcRendererEvent } from 'electron'
@@ -88,6 +89,8 @@ import type {
 } from '../shared/ipc'
 
 const api: SlidesApi = {
+  // shell-owned version history and last visits (apps/shell/src/main/versions-service.ts)
+  ...versionsBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
   // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite

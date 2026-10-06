@@ -171,6 +171,9 @@ importers:
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@rhwp/editor':
         specifier: workspace:*
         version: link:../../packages/rhwp-editor
@@ -210,6 +213,9 @@ importers:
 
   apps/markdown:
     dependencies:
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@tiptap/extension-mathematics':
         specifier: 3.29.2
         version: 3.29.2(@tiptap/core@3.29.2(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2)(katex@0.16.47)
@@ -334,6 +340,9 @@ importers:
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17
@@ -412,6 +421,9 @@ importers:
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@univerjs/core':
         specifier: ^0.25.1
         version: 0.25.1(react@19.2.8)(rxjs@7.8.2)
@@ -648,6 +660,9 @@ importers:
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       acorn:
         specifier: ^8.18.0
         version: 8.18.0
@@ -905,6 +920,9 @@ importers:
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../pptx-render
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../versions
       '@redrob-labs/ui':
         specifier: 1.0.2
         version: 1.0.2(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
