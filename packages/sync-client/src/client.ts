@@ -31,6 +31,20 @@ export interface RemoteVersion {
   createdAt: string
 }
 
+/** A new thread carries its anchor (relative positions, as a live cursor does); a reply names its thread. */
+export type CommentInput = { text: string; anchor: { anchor: unknown; head: unknown } } | { text: string; parentId: string }
+export type CommentPatch = { done: boolean } | { text: string }
+
+export interface RemoteComment {
+  id: string
+  author: string
+  authorSub?: string
+  text: string
+  date: string
+  parentId?: string
+  done?: boolean
+}
+
 export interface RemoteInvite {
   email: string
   role: Role
@@ -142,6 +156,27 @@ export class SyncClient {
 
   async removeMember(fileId: string, sub: string): Promise<void> {
     await this.call(`/files/${this.id(fileId)}/members/${encodeURIComponent(sub)}`, { method: 'DELETE' })
+  }
+
+  /** A comment written into the live document by the service (for someone whose live session is read-only). */
+  async addComment(fileId: string, input: CommentInput): Promise<RemoteComment> {
+    const r = await this.call(`/files/${this.id(fileId)}/comments`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    return ((await r.json()) as { comment: RemoteComment }).comment
+  }
+
+  /** Resolve or reopen a thread, or change the words of one's own comment. */
+  async updateComment(fileId: string, commentId: string, patch: CommentPatch): Promise<RemoteComment> {
+    if (!/^\d{1,12}$/.test(commentId)) throw new SyncError(404, 'That comment is no longer here.')
+    const r = await this.call(`/files/${this.id(fileId)}/comments/${commentId}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+    return ((await r.json()) as { comment: RemoteComment }).comment
   }
 
   /** Pending invites by e-mail (owner only). */

@@ -35,6 +35,8 @@ function api(status: ShareStatus, over: Partial<ShareApi> = {}): ShareApi {
     shareStop: vi.fn(async () => ({ ok: true as const, status: { available: true as const, shared: false as const } })),
     sharedWithMe: vi.fn(async () => []),
     sharedByMe: vi.fn(async () => []),
+    shareCommentAdd: vi.fn(async () => ({ ok: true as const, id: '123456789' })),
+    shareCommentUpdate: vi.fn(async () => ({ ok: true as const })),
     openShared: vi.fn(async () => ({ ok: false as const, error: 'no' })),
     ...over,
   }

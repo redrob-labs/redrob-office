@@ -18,7 +18,9 @@ import { keydownHandler } from '@tiptap/pm/keymap'
 import * as Y from 'yjs'
 import { Awareness } from 'y-protocols/awareness'
 import {
+  absolutePositionToRelativePosition,
   defaultDeleteFilter,
+  relativePositionToAbsolutePosition,
   prosemirrorToYXmlFragment,
   redoCommand,
   undoCommand,
@@ -125,7 +127,41 @@ export interface CollabOptions {
 export interface CollabHandle {
   awareness: Awareness
   setPeers(peers: readonly LivePeer[]): void
+  /** an editor range as relative positions in the shared text (what a comment anchor travels as) */
+  toShared(from: number, to: number): LiveCursor | null
+  /** a shared range back into this editor, or null when the text it pointed at is gone */
+  fromShared(range: LiveCursor): { from: number; to: number } | null
   destroy(): void
+}
+
+type SyncState = { binding?: { mapping: Parameters<typeof absolutePositionToRelativePosition>[2] } } | undefined
+
+function sharedRange(editor: Editor, doc: Y.Doc, fragment: Y.XmlFragment) {
+  const mapping = () => (ySyncPluginKey.getState(editor.state) as SyncState)?.binding?.mapping
+  return {
+    toShared(from: number, to: number): LiveCursor | null {
+      const m = mapping()
+      if (!m || from >= to) return null
+      return {
+        anchor: Y.relativePositionToJSON(absolutePositionToRelativePosition(from, fragment, m)),
+        head: Y.relativePositionToJSON(absolutePositionToRelativePosition(to, fragment, m)),
+      }
+    },
+    fromShared(range: LiveCursor): { from: number; to: number } | null {
+      const m = mapping()
+      if (!m) return null
+      try {
+        const a = relativePositionToAbsolutePosition(doc, fragment, Y.createRelativePositionFromJSON(range.anchor), m)
+        const b = relativePositionToAbsolutePosition(doc, fragment, Y.createRelativePositionFromJSON(range.head), m)
+        if (a === null || b === null) return null
+        const from = Math.min(a, b)
+        const to = Math.max(a, b)
+        return from < to ? { from, to } : null
+      } catch {
+        return null
+      }
+    },
+  }
 }
 
 export function startCollab({ editor, doc, seed, readOnly, onCursor }: CollabOptions): CollabHandle {
@@ -189,6 +225,7 @@ export function startCollab({ editor, doc, seed, readOnly, onCursor }: CollabOpt
   return {
     awareness,
     setPeers: (peers) => applyPeers(awareness, peers),
+    ...sharedRange(editor, doc, fragment),
     destroy: () => {
       awareness.off('change', onChange)
       for (const key of [ySyncPluginKey, yCursorPluginKey, yUndoPluginKey, keysKey, guardKey]) {

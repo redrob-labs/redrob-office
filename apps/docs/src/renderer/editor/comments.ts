@@ -27,9 +27,14 @@ export function nextCommentId(comments: CommentInfo[]): string {
 
 /** attach `id` to every text node in the current selection; false when selection is empty */
 export function addCommentToSelection(editor: Editor, id: string): boolean {
+  const { from, to } = editor.state.selection
+  return addCommentToRange(editor, id, from, to)
+}
+
+/** attach `id` to every text node in [from, to); false when the range holds no text */
+export function addCommentToRange(editor: Editor, id: string, from: number, to: number): boolean {
   const { state } = editor
-  const { from, to } = state.selection
-  if (from === to) return false
+  if (from >= to) return false
   const markType = state.schema.marks.comment
   const tr = state.tr
   tr.setMeta(TRACK_IGNORE, true)
@@ -47,6 +52,7 @@ export function addCommentToSelection(editor: Editor, id: string): boolean {
     ids.add(id)
     tr.addMark(start, end, markType.create({ ids: [...ids].sort().join(' ') }))
   })
+  if (tr.steps.length === 0) return false
   editor.view.dispatch(tr)
   return true
 }

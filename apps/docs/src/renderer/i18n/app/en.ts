@@ -98,6 +98,7 @@ export const en = {
   appCommentSelectionLost: 'The selection is no longer valid; reselect the text to comment on',
   appCommentAdded: 'Comment added; written to the document on save',
   appCommentAnchorGone: "The original comment's anchor no longer exists; cannot reply",
+  appCommentDeleteNeedsEdit: 'Only someone who can edit this shared file can delete comments. You can resolve them.',
   appCommentReplied: 'Reply added; written to the document on save',
   appCommentResolvedMsg: 'Comment resolved',
   appCommentReopenedMsg: 'Comment reopened',

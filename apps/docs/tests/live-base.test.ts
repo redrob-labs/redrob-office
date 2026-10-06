@@ -49,7 +49,7 @@ function deps(doc: Y.Doc, over: Partial<LiveTextDeps> = {}, liveOver: Partial<Ex
     path: 'C:\\x\\Plan.docx',
     loadBytes: vi.fn(async () => true),
     rebaseParsed: vi.fn(async () => true),
-    comments: { get: () => [], set: vi.fn(), markDirty: vi.fn() },
+    comments: { get: () => [], set: vi.fn() },
     setStatus: vi.fn(),
     ...over,
   }

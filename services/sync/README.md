@@ -57,11 +57,35 @@ disclosed.
 | --- | --- |
 | `GET /files`, `POST /files` | signed in |
 | `GET /files/:id`, `GET /files/:id/content`, `GET /files/:id/versions`, `GET /files/:id/members` | view |
+| `GET /me` | signed in |
+| `GET /files/:id/comments` | view |
+| `POST /files/:id/comments` (`{ text, anchor }` or `{ text, parentId }`), `PATCH /files/:id/comments/:cid` (`{ done }` or `{ text }`, own words only) | comment |
 | `PUT /files/:id/content` (`application/octet-stream`) | edit |
 | `PUT /files/:id/members/:sub` (`{ role, name }`), `DELETE /files/:id/members/:sub`, `DELETE /files/:id` | owner |
+| `GET /files/:id/invites`, `PUT /files/:id/invites/:email` (`{ role }`), `DELETE /files/:id/invites/:email` | owner |
 
 The roles are `owner`, `edit`, `comment` and `view`. An owner can grant any
 role except owner, and cannot demote or remove themselves.
+
+- `DELETE /files/:id` stops sharing. It deletes the file's versions, stored
+  bytes and live state, and closes its live connections. Every member keeps
+  the copy on their own computer.
+- An invite by e-mail waits until someone signs in with that address. The
+  token must say `email_verified: true`. The invite is then claimed on
+  `GET /files`, `GET /me` or the first request for the file, and it never
+  changes an existing membership.
+- Comments are written into the live document's `comments` map by the
+  service. That way a commenter, whose live session is read-only, can still
+  comment. The author is the verified person. A new thread carries its range
+  as Yjs relative positions (`anchor`). The first view that may edit marks
+  the text and drops the anchor.
+
+## Schema
+
+`MIGRATIONS` in `src/pg-repo.ts` is a numbered list. Each step is applied once,
+in its own transaction, under an advisory lock, and recorded in
+`schema_migrations`. Add a new step at the end; never edit one that has
+shipped.
 
 ## Live documents
 

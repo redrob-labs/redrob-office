@@ -64,6 +64,22 @@ describe('SyncClient', () => {
     expect(inviteEmail('mina')).toBeNull()
   })
 
+  it('sends comments for the service to write, and refuses a malformed comment id', async () => {
+    const calls: string[] = []
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push(`${init?.method} ${url.replace('http://s', '')} ${init?.body}`)
+      return new Response(JSON.stringify({ comment: { id: '123456789', author: 'Jae', text: 'x', date: 'd' } }))
+    })
+    const c = new SyncClient({ baseUrl: 'http://s', token: async () => 't', fetch })
+    expect((await c.addComment(ID, { text: 'x', parentId: '1' })).id).toBe('123456789')
+    await c.updateComment(ID, '123456789', { done: true })
+    await expect(c.updateComment(ID, '../x', { done: true })).rejects.toMatchObject({ status: 404 })
+    expect(calls).toEqual([
+      `POST /files/${ID}/comments {"text":"x","parentId":"1"}`,
+      `PATCH /files/${ID}/comments/123456789 {"done":true}`,
+    ])
+  })
+
   it('refuses a malformed file id without a request, and says when the service is down', async () => {
     const fetch = vi.fn(async () => Promise.reject(new Error('ECONNREFUSED')))
     const c = new SyncClient({ baseUrl: 'http://127.0.0.1:8787', token: async () => 't', fetch })

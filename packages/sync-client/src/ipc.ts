@@ -1,4 +1,4 @@
-import type { Role } from './client'
+import type { CommentInput, CommentPatch, Role } from './client'
 
 /** Share over IPC: the shell talks to the sync service; editors and Home ask it. */
 export const SHARE_CHANNELS = {
@@ -9,6 +9,8 @@ export const SHARE_CHANNELS = {
   sharedWithMe: 'share:shared-with-me',
   sharedByMe: 'share:shared-by-me',
   open: 'share:open',
+  commentAdd: 'share:comment-add',
+  commentUpdate: 'share:comment-update',
 } as const
 
 export type ShareStatus =
@@ -55,6 +57,9 @@ export interface ShareApi {
   sharedWithMe(): Promise<SharedWithMe[] | { error: string }>
   sharedByMe(): Promise<SharedByMe[] | { error: string }>
   openShared(fileId: string): Promise<{ ok: true; path: string } | Failure>
+  /** a comment written by the service, for someone who may comment but not edit the live file */
+  shareCommentAdd(path: string, input: CommentInput): Promise<{ ok: true; id: string } | Failure>
+  shareCommentUpdate(path: string, commentId: string, patch: CommentPatch): Promise<{ ok: true } | Failure>
 }
 
 export interface ShareIpcLike {
@@ -85,6 +90,10 @@ export function shareBridge(ipc: ShareIpcLike): ShareApi {
         (r) => r as SharedByMe[] | { error: string },
         () => ({ error: NOT_HERE }),
       ),
+    shareCommentAdd: (path, input) =>
+      ipc.invoke(SHARE_CHANNELS.commentAdd, path, input).then((r) => r as { ok: true; id: string } | Failure, failed),
+    shareCommentUpdate: (path, commentId, patch) =>
+      ipc.invoke(SHARE_CHANNELS.commentUpdate, path, commentId, patch).then((r) => r as { ok: true } | Failure, failed),
     openShared: (fileId) =>
       ipc.invoke(SHARE_CHANNELS.open, fileId).then((r) => r as { ok: true; path: string } | Failure, failed),
   }

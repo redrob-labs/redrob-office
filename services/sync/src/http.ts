@@ -8,6 +8,8 @@ import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest }
 import { can, canGrant, isRole, type Action, type Role } from './access.ts'
 import { AuthError, bearer, normalEmail, type DevIssuer, type Identity, type Verifier } from './auth.ts'
 import type { BlobStore } from './blobs.ts'
+import type * as Y from 'yjs'
+import { CommentError, addComment, listComments, updateComment, type LiveDocs, type NewComment } from './comments.ts'
 import type { Repo } from './repo.ts'
 
 export interface AppDeps {
@@ -17,6 +19,8 @@ export interface AppDeps {
   /** present only with SYNC_DEV_ISSUER=1: serves its JWKS and mints development tokens */
   devIssuer?: DevIssuer | undefined
   maxFileBytes: number
+  /** the live documents, for comments written through the API */
+  liveDocs?: LiveDocs | undefined
   /** drops every live connection to a file (the file was deleted) */
   closeLive?: ((fileId: string) => void) | undefined
   log?: ((message: string) => void) | undefined
@@ -194,6 +198,47 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const email = normalEmail((req.params as { email?: string }).email)
       if (email) await deps.repo.removeInvite(got.file.id, email)
       return reply.code(204).send()
+    })
+
+    // Comments, written into the live document by the service on behalf of
+    // someone whose live session is read-only (see comments.ts).
+    const commentsCall = async <T>(reply: FastifyReply, fileId: string, fn: (doc: Y.Doc) => T) => {
+      if (!deps.liveDocs) {
+        reply.code(503).send({ error: 'Comments are not available from this service.' })
+        return undefined
+      }
+      try {
+        return await deps.liveDocs.change(fileId, fn)
+      } catch (err) {
+        if (err instanceof CommentError) {
+          reply.code(err.status).send({ error: err.message })
+          return undefined
+        }
+        throw err
+      }
+    }
+
+    api.get('/files/:id/comments', async (req, reply) => {
+      const got = await fileFor(req, reply, 'read')
+      if (!got) return
+      const comments = await commentsCall(reply, got.file.id, listComments)
+      return comments && { comments }
+    })
+
+    api.post('/files/:id/comments', async (req, reply) => {
+      const got = await fileFor(req, reply, 'comment')
+      if (!got) return
+      const comment = await commentsCall(reply, got.file.id, (doc) => addComment(doc, (req.body ?? {}) as NewComment, req.identity!))
+      return comment && reply.code(201).send({ comment })
+    })
+
+    api.patch('/files/:id/comments/:cid', async (req, reply) => {
+      const got = await fileFor(req, reply, 'comment')
+      if (!got) return
+      const cid = cleanName((req.params as { cid?: string }).cid, 20)
+      const patch = (req.body ?? {}) as { done?: unknown; text?: unknown }
+      const comment = await commentsCall(reply, got.file.id, (doc) => updateComment(doc, cid, patch, req.identity!))
+      return comment && { comment }
     })
 
     api.put('/files/:id/content', async (req, reply) => {

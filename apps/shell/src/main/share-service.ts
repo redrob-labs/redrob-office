@@ -7,6 +7,9 @@ import {
   SyncError,
   inviteEmail,
   isRole,
+  type CommentInput,
+  type CommentPatch,
+  type RemoteComment,
   type RemoteFile,
   type RemoteFileDetail,
   type RemoteInvite,
@@ -31,6 +34,8 @@ export interface ShareClient {
   removeMember(fileId: string, sub: string): Promise<void>
   getFile(fileId: string): Promise<RemoteFileDetail>
   deleteFile(fileId: string): Promise<void>
+  addComment(fileId: string, input: CommentInput): Promise<RemoteComment>
+  updateComment(fileId: string, commentId: string, patch: CommentPatch): Promise<RemoteComment>
   invites(fileId: string): Promise<RemoteInvite[]>
   invite(fileId: string, email: string, role: Exclude<Role, 'owner'>): Promise<RemoteInvite[]>
   cancelInvite(fileId: string, email: string): Promise<void>
@@ -74,6 +79,7 @@ export const SHARE_MESSAGES = {
   badRole: 'Choose edit, comment or view.',
   notOwner: 'Only the owner can change who has this file.',
   gone: 'That file is no longer shared with you.',
+  badComment: 'That comment could not be sent.',
 } as const
 
 /** An absolute path to a saved document of a kind the suite edits. */
@@ -164,6 +170,48 @@ export class ShareService {
     // the service closes the file's live connections itself
     await this.deps.index.remove(path)
     return { ok: true, status: { available: true, shared: false } }
+  }
+
+  /** The shared file behind a path, for a comment call; the role is checked by the service. */
+  private async commentTarget(path: unknown): Promise<{ fileId: string } | { error: string }> {
+    const why = await this.unavailable()
+    if (why) return { error: this.reasonMessage(why) }
+    if (!isShareablePath(path)) return { error: SHARE_MESSAGES.notShareable }
+    const link = await this.deps.index.get(path)
+    return link ? { fileId: link.fileId } : { error: SHARE_MESSAGES.gone }
+  }
+
+  async commentAdd(path: unknown, input: unknown): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+    const target = await this.commentTarget(path)
+    if ('error' in target) return { ok: false, error: target.error }
+    const i = (input ?? {}) as Record<string, unknown>
+    const text = typeof i.text === 'string' ? i.text : ''
+    const body: CommentInput | null =
+      typeof i.parentId === 'string'
+        ? { text, parentId: i.parentId }
+        : i.anchor && typeof i.anchor === 'object'
+          ? { text, anchor: i.anchor as { anchor: unknown; head: unknown } }
+          : null
+    if (!body || !text.trim()) return { ok: false, error: SHARE_MESSAGES.badComment }
+    try {
+      return { ok: true, id: (await this.deps.client!.addComment(target.fileId, body)).id }
+    } catch (e) {
+      return { ok: false, error: messageOf(e) }
+    }
+  }
+
+  async commentUpdate(path: unknown, commentId: unknown, patch: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+    const target = await this.commentTarget(path)
+    if ('error' in target) return { ok: false, error: target.error }
+    const p = (patch ?? {}) as Record<string, unknown>
+    const body: CommentPatch | null = typeof p.done === 'boolean' ? { done: p.done } : typeof p.text === 'string' ? { text: p.text } : null
+    if (typeof commentId !== 'string' || !body) return { ok: false, error: SHARE_MESSAGES.badComment }
+    try {
+      await this.deps.client!.updateComment(target.fileId, commentId, body)
+      return { ok: true }
+    } catch (e) {
+      return { ok: false, error: messageOf(e) }
+    }
   }
 
   /** Files this person shares with others. */
@@ -329,5 +377,7 @@ export class ShareService {
     ipc.handle(SHARE_CHANNELS.sharedWithMe, () => this.sharedWithMe())
     ipc.handle(SHARE_CHANNELS.sharedByMe, () => this.sharedByMe())
     ipc.handle(SHARE_CHANNELS.open, (_e, fileId) => this.open(fileId))
+    ipc.handle(SHARE_CHANNELS.commentAdd, (_e, path, input) => this.commentAdd(path, input))
+    ipc.handle(SHARE_CHANNELS.commentUpdate, (_e, path, id, patch) => this.commentUpdate(path, id, patch))
   }
 }

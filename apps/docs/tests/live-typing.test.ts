@@ -10,7 +10,7 @@ import * as Y from 'yjs'
 import type { CommentInfo } from '@genoffice/docx-engine'
 import type { LiveCursor } from '@genoffice/sync-client'
 import { editorExtensions } from '../src/renderer/editor/extensions'
-import { nextCommentId, setCommentIdSource } from '../src/renderer/editor/comments'
+import { addCommentToRange, nextCommentId, setCommentIdSource } from '../src/renderer/editor/comments'
 import { historyCan, historyUndo, isRemoteChange, startCollab, type CollabHandle } from '../src/renderer/live/collab'
 import { bindComments, commentsFromMap, liveCommentId } from '../src/renderer/live/comments-sync'
 
@@ -165,6 +165,44 @@ describe('live comments', () => {
     expect(commentsFromMap(docB.getMap('comments'))).toEqual([])
     a.destroy()
     b.destroy()
+  })
+
+  it("a commenter's thread, written by the service with an anchor, is marked in the text by a view that may edit", async () => {
+    const { a, b, docA, docB } = await pair({ readOnlyB: true })
+    // the commenter picks "Net 30" in their read-only view; the anchor travels as relative positions
+    const start = a.editor.state.doc.child(0).nodeSize + 1
+    const anchor = b.handle!.toShared(start, start + 6)!
+    expect(anchor).toBeTruthy()
+    const seenA: CommentInfo[][] = []
+    const bindA = bindComments(docA, {
+      initial: [],
+      seed: false,
+      onRemote: (l) => seenA.push(l),
+      materialise: (id, at) => {
+        const range = a.handle!.fromShared(at)
+        return !!range && addCommentToRange(a.editor, id, range.from, range.to)
+      },
+    })
+    // what the service writes into the shared document for the commenter
+    docB.getMap('comments').set('123456789', { id: '123456789', author: 'Jae', authorSub: 'jae', text: 'Is 30 right?', date: 'x', anchor })
+    await tick()
+    await tick()
+    expect(seenA.at(-1)).toEqual([{ id: '123456789', author: 'Jae', text: 'Is 30 right?', date: 'x' }])
+    const marked = (e: Editor) => {
+      let text = ''
+      e.state.doc.descendants((n) => {
+        if (n.isText && n.marks.some((m) => m.type.name === 'comment' && String(m.attrs.ids).split(' ').includes('123456789'))) text += n.text
+      })
+      return text
+    }
+    expect(marked(a.editor)).toBe('Net 30')
+    expect(marked(b.editor)).toBe('Net 30')
+    const entry = docB.getMap<Record<string, unknown>>('comments').get('123456789')!
+    expect(entry.anchor).toBeUndefined()
+    // a later push of the writer's own list keeps who wrote it
+    bindA.push([{ id: '123456789', author: 'Jae', text: 'Is 30 right?', date: 'x', done: true }])
+    expect(docB.getMap<Record<string, unknown>>('comments').get('123456789')).toMatchObject({ authorSub: 'jae', done: true })
+    bindA.destroy()
   })
 
   it('live comment ids are nine digits and never one already taken', () => {

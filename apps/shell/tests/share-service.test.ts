@@ -43,6 +43,8 @@ function fakeClient(over: Partial<ShareClient> = {}) {
     cancelInvite: vi.fn(async (_id: string, email: string) => {
       pending = pending.filter((i) => i.email !== email)
     }),
+    addComment: vi.fn(async (_id: string, input: { text: string }) => ({ id: '123456789', author: 'Me', text: input.text, date: 'now' })),
+    updateComment: vi.fn(async (_id: string, cid: string) => ({ id: cid, author: 'Me', text: 'x', date: 'now' })),
     ...over,
   }
   return client
@@ -293,6 +295,24 @@ describe('ShareService', () => {
     const st = await service({ client, index }).svc.status(FILE)
     expect(st.available && st.shared && st.pending).toBeUndefined()
     expect(client.invites).not.toHaveBeenCalled()
+  })
+
+  it('sends a commenter’s thread, reply and resolve to the service for the linked file', async () => {
+    const client = fakeClient()
+    const index = fakeIndex()
+    await index.set(FILE, { fileId: ID, role: 'comment', version: 1 })
+    const { svc } = service({ client, index })
+    const anchor = { anchor: { type: null, tname: 'prosemirror', item: null, assoc: 0 }, head: { assoc: 0 } }
+    expect(await svc.commentAdd(FILE, { text: 'Is this right?', anchor, author: 'Somebody else' })).toEqual({ ok: true, id: '123456789' })
+    expect(client.addComment).toHaveBeenCalledWith(ID, { text: 'Is this right?', anchor })
+    await svc.commentAdd(FILE, { text: 'Yes', parentId: '123456789' })
+    expect(client.addComment).toHaveBeenLastCalledWith(ID, { text: 'Yes', parentId: '123456789' })
+    expect(await svc.commentUpdate(FILE, '123456789', { done: true })).toEqual({ ok: true })
+    expect(client.updateComment).toHaveBeenCalledWith(ID, '123456789', { done: true })
+    // nothing to anchor or reply to, no words, or a file that is not shared
+    expect(await svc.commentAdd(FILE, { text: 'x' })).toEqual({ ok: false, error: SHARE_MESSAGES.badComment })
+    expect(await svc.commentAdd(FILE, { text: ' ', parentId: '1' })).toEqual({ ok: false, error: SHARE_MESSAGES.badComment })
+    expect(await svc.commentAdd(FILE.replace('Plan', 'Other'), { text: 'x', parentId: '1' })).toEqual({ ok: false, error: SHARE_MESSAGES.gone })
   })
 
   it('registers every share channel', () => {

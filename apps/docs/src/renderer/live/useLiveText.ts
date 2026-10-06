@@ -15,8 +15,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
 import type * as Y from 'yjs'
 import type { CommentInfo } from '@genoffice/docx-engine'
-import { LIVE_BASE_KEY, LIVE_META, type LiveApi, type LivePeer } from '@genoffice/sync-client'
-import { setCommentIdSource } from '../editor/comments'
+import { LIVE_BASE_KEY, LIVE_META, type LiveApi, type LiveCursor, type LivePeer } from '@genoffice/sync-client'
+import { addCommentToRange, setCommentIdSource } from '../editor/comments'
 import { FRAGMENT, startCollab, type CollabHandle } from './collab'
 import { bindComments, liveCommentId, type CommentsBinding } from './comments-sync'
 import { LIVE_STRINGS, type LiveState } from './useLive'
@@ -31,7 +31,7 @@ export interface LiveTextDeps {
   loadBytes: (bytes: Uint8Array) => Promise<boolean>
   /** re-parse these bytes as the original, leaving the editor's content alone */
   rebaseParsed: (bytes: Uint8Array) => Promise<boolean>
-  comments: { get: () => CommentInfo[]; set: (list: CommentInfo[]) => void; markDirty: () => void }
+  comments: { get: () => CommentInfo[]; set: (list: CommentInfo[]) => void }
   setStatus: (message: string) => void
 }
 
@@ -41,6 +41,8 @@ export function useLiveText(deps: LiveTextDeps): {
   status: LiveTextStatus
   /** write this view's comment list into the shared map */
   pushComments: (list: readonly CommentInfo[]) => void
+  /** an editor range as a shared anchor, for a comment sent through the service */
+  anchorFor: (from: number, to: number) => LiveCursor | null
 } {
   const [status, setStatusState] = useState<LiveTextStatus>('off')
   const depsRef = useRef(deps)
@@ -119,10 +121,16 @@ export function useLiveText(deps: LiveTextDeps): {
       const binding = bindComments(doc, {
         initial: c.get(),
         seed,
-        onRemote: (list) => {
-          depsRef.current.comments.set(list)
-          depsRef.current.comments.markDirty()
-        },
+        // someone else's comment is in the shared document already: it does
+        // not make this view unsaved (the next save writes it anyway)
+        onRemote: (list) => depsRef.current.comments.set(list),
+        // a commenter's thread arrives with an anchor; a view that may edit marks the text
+        materialise: readOnly
+          ? undefined
+          : (id, anchor) => {
+              const range = handle.fromShared(anchor)
+              return !!range && addCommentToRange(editor, id, range.from, range.to)
+            },
       })
       commentsRef.current = binding
       offs.push(() => binding.destroy())
@@ -159,6 +167,12 @@ export function useLiveText(deps: LiveTextDeps): {
     handleRef.current?.setPeers(deps.peers)
   }, [deps.peers])
 
-  const pushComments = useCallback((list: readonly CommentInfo[]) => commentsRef.current?.push(list), [])
-  return { status, pushComments }
+  // a read-only session never writes the shared document (the service would drop it, and this copy would drift)
+  const pushComments = useCallback((list: readonly CommentInfo[]) => {
+    const l = depsRef.current.live
+    if (l.kind === 'live' && l.readOnly) return
+    commentsRef.current?.push(list)
+  }, [])
+  const anchorFor = useCallback((from: number, to: number) => handleRef.current?.toShared(from, to) ?? null, [])
+  return { status, pushComments, anchorFor }
 }

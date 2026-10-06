@@ -267,6 +267,7 @@ import {
   submitNewComment as submitNewCommentImpl,
   submitNote as submitNoteImpl,
   type NotePrompt,
+  type RemoteComments,
   type ReviewContext,
 } from './review-actions'
 
@@ -1799,9 +1800,14 @@ export function App() {
 
   const [notePrompt, setNotePrompt] = useState<NotePrompt | null>(null)
 
+  /** set below, once the live room is known: a commenter's comments go through the service */
+  const remoteCommentsRef = useRef<RemoteComments | null>(null)
   /** App state bundle for the extracted review actions (review-actions.ts); refreshed every render. */
   const reviewCtxRef = useRef<ReviewContext>(null as unknown as ReviewContext)
   reviewCtxRef.current = {
+    get remoteComments() {
+      return remoteCommentsRef.current
+    },
     editor,
     doc,
     dirtyRef,
@@ -4386,10 +4392,29 @@ export function App() {
     comments: {
       get: () => commentsLiveRef.current,
       set: (list) => setComments(list),
-      markDirty: () => setCommentsDirty(true),
     },
     setStatus,
   })
+  // may comment but not edit: the service writes this person's comments into the shared document
+  {
+    const st = live.state
+    const path = doc?.filePath ?? null
+    const anchorFor = liveText.anchorFor
+    const canSend = !!shareApi?.shareCommentAdd && !!shareApi.shareCommentUpdate
+    remoteCommentsRef.current =
+      st.kind === 'live' && st.readOnly && st.role === 'comment' && liveText.status === 'on' && path && canSend
+        ? {
+            add: async (text, from, to) => {
+              const anchor = anchorFor(from, to)
+              if (!anchor) return { ok: false, error: t('appCommentSelectionLost') }
+              const r = await shareApi!.shareCommentAdd(path, { text, anchor })
+              return r.ok ? { ok: true } : r
+            },
+            reply: (parentId, text) => shareApi!.shareCommentAdd(path, { text, parentId }).then((r) => (r.ok ? { ok: true as const } : r)),
+            resolve: (id, done) => shareApi!.shareCommentUpdate(path, id, { done }),
+          }
+        : null
+  }
   const pushLiveComments = liveText.pushComments
   useEffect(() => {
     pushLiveComments(comments)

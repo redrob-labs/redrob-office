@@ -237,6 +237,8 @@ export interface DesktopApi {
   sharedWithMe?: ShareApi['sharedWithMe']
   sharedByMe?: ShareApi['sharedByMe']
   openShared?: ShareApi['openShared']
+  shareCommentAdd?: ShareApi['shareCommentAdd']
+  shareCommentUpdate?: ShareApi['shareCommentUpdate']
   /** Live documents through the shell (absent outside the suite) */
   liveJoin?: LiveApi['liveJoin']
   livePull?: LiveApi['livePull']

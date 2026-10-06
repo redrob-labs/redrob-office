@@ -52,6 +52,18 @@ export interface ReviewContext {
   setInkAnnotations: Dispatch<SetStateAction<InkAnnotation[]>>
   setInksDirty: (dirty: boolean) => void
   setCompareResult: (value: { otherName: string; entries: CompareEntry[] } | null) => void
+  /**
+   * Set while this person may comment on a live file but not edit it: their
+   * comments go through the sync service, which writes them into the shared
+   * document, and they arrive back in the list from there.
+   */
+  remoteComments?: RemoteComments | null
+}
+
+export interface RemoteComments {
+  add(text: string, from: number, to: number): Promise<{ ok: true } | { ok: false; error: string }>
+  reply(parentId: string, text: string): Promise<{ ok: true } | { ok: false; error: string }>
+  resolve(id: string, done: boolean): Promise<{ ok: true } | { ok: false; error: string }>
 }
 
 // ---- References: footnotes / endnotes ----
@@ -136,6 +148,17 @@ export function startNewComment(ctx: ReviewContext): void {
 export function submitNewComment(ctx: ReviewContext, text: string): string | null {
   if (!ctx.editor) return null
   setPendingCommentRange(ctx, null)
+  if (ctx.remoteComments) {
+    const { from, to } = ctx.editor.state.selection
+    ctx.setCommentComposing(false)
+    if (from === to) {
+      ctx.setStatus(t('appCommentSelectionLost'))
+      return null
+    }
+    // the thread comes back through the shared document, under the service's id
+    void ctx.remoteComments.add(text, from, to).then((r) => ctx.setStatus(r.ok ? t('appCommentAdded') : r.error))
+    return null
+  }
   const id = nextCommentId(ctx.comments)
   if (!addCommentToSelection(ctx.editor, id)) {
     ctx.setStatus(t('appCommentSelectionLost'))
@@ -159,6 +182,10 @@ export function replyToComment(
   author = 'User',
 ): boolean {
   if (!ctx.editor) return false
+  if (ctx.remoteComments) {
+    void ctx.remoteComments.reply(parentId, text).then((r) => ctx.setStatus(r.ok ? t('appCommentReplied') : r.error))
+    return true
+  }
   const id = nextCommentId(ctx.comments)
   if (!addReplyToCommentRange(ctx.editor, parentId, id)) {
     ctx.setStatus(t('appCommentAnchorGone'))
@@ -174,6 +201,12 @@ export function replyToComment(
 
 /** Resolve/reopen: the whole thread (parent + replies) gets done set together */
 export function resolveComment(ctx: ReviewContext, id: string, done: boolean): void {
+  if (ctx.remoteComments) {
+    void ctx.remoteComments
+      .resolve(id, done)
+      .then((r) => ctx.setStatus(r.ok ? (done ? t('appCommentResolvedMsg') : t('appCommentReopenedMsg')) : r.error))
+    return
+  }
   ctx.setComments((prev) =>
     prev.map((c) => (c.id === id || c.parentId === id ? { ...c, done } : c)),
   )
@@ -184,6 +217,11 @@ export function resolveComment(ctx: ReviewContext, id: string, done: boolean): v
 
 export function deleteComment(ctx: ReviewContext, id: string): void {
   if (!ctx.editor) return
+  // deleting takes the mark out of the shared text, which only an editor may change
+  if (ctx.remoteComments) {
+    ctx.setStatus(t('appCommentDeleteNeedsEdit'))
+    return
+  }
   // cascade: deleting a parent comment also deletes its replies (including their anchor marks)
   const victims = [id, ...ctx.comments.filter((c) => c.parentId === id).map((c) => c.id)]
   for (const v of victims) removeCommentFromDoc(ctx.editor, v)

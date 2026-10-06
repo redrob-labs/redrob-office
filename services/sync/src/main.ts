@@ -1,6 +1,7 @@
 import { devIssuer, jwksVerifier, type DevIssuer, type Verifier } from './auth.ts'
 import { S3Blobs } from './blobs.ts'
 import { buildCollab } from './collab.ts'
+import { hocuspocusDocs } from './comments.ts'
 import { loadConfig } from './config.ts'
 import { buildApp } from './http.ts'
 import { PgRepo } from './pg-repo.ts'
@@ -27,6 +28,7 @@ const app = buildApp({
   verifier,
   devIssuer: dev,
   maxFileBytes: cfg.maxFileBytes,
+  liveDocs: hocuspocusDocs(collab.hocuspocus),
   closeLive: (fileId) => collab.hocuspocus.closeConnections(fileId),
   log: (m) => console.warn(m),
 })
