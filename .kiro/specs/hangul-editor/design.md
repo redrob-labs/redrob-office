@@ -241,7 +241,7 @@ mirror the editable structure into a Y.Doc, the same way y-prosemirror mirrors P
 **Fallback.** A server-ordered `Op` log, where clients rebase pending ops onto acknowledged ones. This
 is simpler but needs our own transform rules for concurrent ops on the same node.
 
-**Decision gate (task 0.5).** A spike runs both designs on a two-client fuzz test (random concurrent
+**Decided (task 0.5, `docs/decisions/2026-10-hangul-collaboration.md`):** one `Y.Text` per section with paragraph breaks as characters, which replaces the per-paragraph `nodes` layout above. **Original gate (task 0.5).** A spike runs both designs on a two-client fuzz test (random concurrent
 edits, then convergence check and 한글 2024 open check). Pick the one that converges with fewer Core
 changes.
 

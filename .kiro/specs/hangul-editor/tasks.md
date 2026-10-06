@@ -32,7 +32,7 @@ Requirement references are in brackets, e.g. [R2.1].
   - pixelmatch diff and HTML report.
   [R1.1, R1.2, R2.2]
 - [x] 0.4 No-op save round trip for `.hwp` and `.hwpx` through 한글 2024 in the harness. [R1.4, R3.1]
-- [ ] 0.5 Live-collaboration spike: y-hwp mirror versus server-ordered op log. Two-client fuzz test;
+- [x] 0.5 Live-collaboration spike: y-hwp mirror versus server-ordered op log. Two-client fuzz test;
   check convergence and that 한글 2024 opens the result. [R9.4]
 - [x] 0.6 Generate (baseline in `coverage/`, from rhwp-studio plus the 검토 tab; reconcile per row on the runner) the 한글 2024 formatting coverage list for every supported object [R5.3] and the
   shortcut map [R4.2].
@@ -44,7 +44,7 @@ Requirement references are in brackets, e.g. [R2.1].
   Each produces golden fixture files and a written finding. [R7.1, R8.2]
 - [ ] 0.8 🚦 **Engine fitness decision**: continue with rhwp or build a new engine, based on the
   reports from 0.3 and 0.4, with failure causes classified. [R1.3]
-- [ ] 0.9 🚦 **Collaboration design decision** from 0.5. Fidelity threshold ratified for R2.2.
+- [ ] 0.9 🚦 **Collaboration design decision** from 0.5 (decided: one Y.Text per section, `docs/decisions/2026-10-hangul-collaboration.md`). Fidelity threshold ratified for R2.2 (waits for P-1).
 
 ## Phase 1: Core extensions and editing core
 
