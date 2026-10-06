@@ -49,6 +49,13 @@ answered from it.
   `redrob/claude-opus-5`, `redrob/claude-sonnet-5`, … (Console models, all `tools: true`).
   `capabilities.input` reports only `text` for Console models on v0.0.12, although Console's
   own `/v1/models` lists `imageInput` for several of them.
+- **Images.** For a model the engine believes is text-only, it replaces an attached image
+  with a note, and the model answers "unsupported". Declaring
+  `provider.redrob.models.<id>.modalities.input: ["text","image"]` in the inline config makes
+  the image reach the model; measured with `redrob/claude-sonnet-5` (a red test image was
+  named correctly). Office declares every Console model whose public `GET /v1/pricing`
+  entry has `imageInput: true` at spawn. With `redrob/auto` the image is sent, but the
+  routed model named the wrong colour in two runs, so auto plus image is not reliable yet.
 - `GET /api/provider` lists configured providers (also echoes the key in `request.body`).
 - `GET /provider/auth` (v1) lists auth methods for every known provider: `redrob` (oauth,
   api), `github-copilot` (oauth with prompts), `gitlab`, `poe`, `cloudflare-*`, `azure`,

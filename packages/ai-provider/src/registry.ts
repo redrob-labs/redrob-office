@@ -1,5 +1,6 @@
 import { AI_PROVIDERS } from './providers'
-import { engineCapabilities } from './console-capabilities'
+import { engineCapabilities, modelCapabilities } from './console-capabilities'
+import { engineModelOf } from './engine-model'
 import { REDROB_CONSOLE_API_BASE, REDROB_ENGINE_MODEL, REDROB_ENGINE_ROUTE } from './redrob-engine'
 import type { AiProviderConfig, AiProviderId, AiProviderMeta } from './types'
 
@@ -69,7 +70,10 @@ export function modelHasFixedSampling(model: string): boolean {
  * editor passes, so ported callers keep their upstream behaviour.
  */
 export function modelLacksVision(model: string): boolean {
-  if (model === REDROB_ENGINE_MODEL || model === REDROB_ENGINE_ROUTE) return !engineCapabilities().vision
+  // what the engine reported for this exact model wins
+  const known = modelCapabilities(engineModelOf({ model }))
+  if (known) return !known.vision
+  if (!model || model === REDROB_ENGINE_MODEL || model === REDROB_ENGINE_ROUTE) return !engineCapabilities().vision
   return /(^|\/)deep-?seek-v4-(?:pro(?:$|-)|flash(?!-vision))/.test(model)
 }
 

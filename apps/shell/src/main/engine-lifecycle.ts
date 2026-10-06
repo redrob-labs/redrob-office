@@ -18,7 +18,7 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { officeEngineConfig, type EngineTarget } from '@genoffice/ai-provider'
+import { fetchConsoleImageModels, officeEngineConfig, type EngineTarget } from '@genoffice/ai-provider'
 import { app, ipcMain } from 'electron'
 
 import { startEngine, type ManagedEngine } from './managed-engine'
@@ -72,17 +72,29 @@ export function engineStatus(): EngineStatus {
  * runtime, free a port, or fix a permission and retry, and a cached failure would make
  * the app need a restart to notice.
  */
+/** Console's public catalogue, read once per spawn with a short budget; never blocks a start for long. */
+let imageModels: () => Promise<string[]> = () => fetchConsoleImageModels({ timeoutMs: 3000 })
+
+/** Test seam. */
+export function setImageModelsSourceForTests(source: () => Promise<string[]>): void {
+  imageModels = source
+}
+
 export function ensureEngine(cwd: string): Promise<ManagedEngine> {
   if (state.status === 'running' && state.engine.isAlive()) return Promise.resolve(state.engine)
   if (state.status === 'starting') return state.promise
 
-  const promise = startEngine({
-    binary: engineBinaryPath(),
-    cwd,
-    // Office's agent and settings travel inline so the person's own engine config file,
-    // shared with Redrob Code, is never rewritten (docs/engine-api.md).
-    env: { REDROB_CONFIG_CONTENT: JSON.stringify(officeEngineConfig()) },
-  })
+  const promise = imageModels()
+    .then((images) =>
+      startEngine({
+        binary: engineBinaryPath(),
+        cwd,
+        // Office's agent and settings travel inline so the person's own engine config file,
+        // shared with Redrob Code, is never rewritten (docs/engine-api.md). The Console
+        // models that read images are named so attached images reach them.
+        env: { REDROB_CONFIG_CONTENT: JSON.stringify(officeEngineConfig(images)) },
+      }),
+    )
     .then((engine) => {
       state = { status: 'running', engine }
       return engine

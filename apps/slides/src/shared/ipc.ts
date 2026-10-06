@@ -14,6 +14,7 @@ import type {
   AiSettings,
   AiStreamChunk,
   AiStreamRequest,
+  EngineCapabilities,
   GenSparkAccountStatus,
 } from '@genoffice/ai-provider'
 
@@ -1563,6 +1564,8 @@ export interface SlidesApi extends Partial<OfficePrefsApi> {
   setAiSettings: (settings: AiSettings) => Promise<void>
   aiStream: (request: AiStreamRequest) => Promise<void>
   aiStreamCancel: (requestId: string) => Promise<void>
+  /** what the model can take, as the engine reports it; null outside the suite */
+  aiCapabilities?: (model: string) => Promise<EngineCapabilities | null>
   /** Genspark account status (gsk login state); with withEmail also fetches the email (needs a network request, slower) */
   aiGskStatus: (withEmail?: boolean) => Promise<GenSparkAccountStatus>
   /** Open the browser to log into Genspark (fire-and-forget; aiGskStatus turns logged-in once done) */

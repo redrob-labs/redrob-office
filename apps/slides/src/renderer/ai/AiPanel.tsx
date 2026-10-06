@@ -6,6 +6,7 @@ import {
   type AgentImage,
   type ToolDisplay,
 } from '@genoffice/agent-core'
+import { engineModelOf, setModelCapabilities } from '@genoffice/ai-provider'
 import type { RenderSlide } from '@genoffice/pptx-render'
 import type { AiSettings, AttachmentAddResult, AttachmentMeta } from '../../shared/ipc'
 import { ATTACHMENT_IMAGE_EXTS } from '../../shared/ipc'
@@ -488,6 +489,19 @@ export function AiPanel({
   onDeckProgressRef.current = onDeckProgress
   const settingsRef = useRef(settings)
   settingsRef.current = settings
+
+  // Ask the engine what the selected model takes, so the screenshot QC pass and image
+  // attachments follow the model actually chosen rather than a guess.
+  const selectedModel = engineModelOf(settings?.providers?.[settings.provider])
+  useEffect(() => {
+    let alive = true
+    void window.slidesApi.aiCapabilities?.(selectedModel).then((caps) => {
+      if (alive && caps) setModelCapabilities(selectedModel, caps)
+    })
+    return () => {
+      alive = false
+    }
+  }, [selectedModel])
 
   /** gsk login state for the cloud-tools gate (refreshed on mount and window focus) */
   const gskLoggedInRef = useRef(false)

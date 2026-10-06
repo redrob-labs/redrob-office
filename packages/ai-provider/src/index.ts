@@ -27,10 +27,15 @@ export { AI_PROVIDER_ADAPTERS, getProviderAdapter, modelLacksVision } from './re
 export {
   ENGINE_CAPABILITIES_TTL_MS,
   FALLBACK_ENGINE_CAPABILITIES,
+  capabilitiesFromEngineModel,
   engineCapabilities,
+  fetchConsoleImageModels,
+  imageModelsFromCatalogue,
   loadEngineCapabilities,
+  modelCapabilities,
   resetEngineCapabilitiesCache,
   selectEngineCapabilities,
+  setModelCapabilities,
 } from './console-capabilities'
 export type { EngineCapabilities } from './console-capabilities'
 export type {

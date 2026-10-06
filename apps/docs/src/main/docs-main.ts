@@ -72,6 +72,7 @@ import {
   currentEngineTarget,
   custodyKeys,
   holdsKeys,
+  readModelCapabilities,
   streamForProvider,
   withoutKeys,
 } from '@genoffice/ai-provider/node'
@@ -2742,6 +2743,11 @@ export function registerAiIpc(): void {
   ipcMain.handle('ai:stream-cancel', (_event, requestId: string) => {
     activeAiStreams.get(requestId)?.abort()
   })
+
+  // what a model can take, as the engine reports it (every editor shares this handler)
+  ipcMain.handle('ai:capabilities', (_event, model: unknown) =>
+    readModelCapabilities(typeof model === 'string' ? model : ''),
+  )
 
   // shared search tools (content + images): Serper with DuckDuckGo fallback (same source as slides/sheets)
   ipcMain.handle('ai:web-search', async (_event, query: string, maxResults?: number) => {

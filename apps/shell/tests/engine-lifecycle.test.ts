@@ -19,9 +19,17 @@ vi.mock('electron', () => ({
 }))
 vi.mock('../src/main/managed-engine', () => ({ startEngine }))
 
-const { ensureEngine, engineStatus, getEngineTarget, resetEngineStateForTests, teardownEngine, engineBinaryPath } = await import(
-  '../src/main/engine-lifecycle'
-)
+const {
+  ensureEngine,
+  engineStatus,
+  getEngineTarget,
+  resetEngineStateForTests,
+  setImageModelsSourceForTests,
+  teardownEngine,
+  engineBinaryPath,
+} = await import('../src/main/engine-lifecycle')
+// no network in tests: Console's catalogue answers at once
+setImageModelsSourceForTests(async () => ['auto', 'claude-sonnet-5'])
 
 function fakeEngine(alive = true) {
   return {
@@ -140,8 +148,13 @@ describe('engine lifecycle', () => {
     startEngine.mockResolvedValue(fakeEngine())
     await ensureEngine('/proj')
     const { env } = startEngine.mock.calls[0]![0] as { env: Record<string, string> }
-    const config = JSON.parse(env.REDROB_CONFIG_CONTENT!) as { agent: Record<string, { tools: Record<string, boolean> }> }
+    const config = JSON.parse(env.REDROB_CONFIG_CONTENT!) as {
+      agent: Record<string, { tools: Record<string, boolean> }>
+      provider: { redrob: { models: Record<string, { modalities: { input: string[] } }> } }
+    }
     expect(config.agent.office!.tools.bash).toBe(false)
+    // Console's image-reading models are declared so attached images reach them
+    expect(config.provider.redrob.models['claude-sonnet-5']!.modalities.input).toContain('image')
   })
 
   it('gives main-process callers the target, scoped to a directory', async () => {

@@ -108,9 +108,80 @@ export const ENGINE_CAPABILITIES_TTL_MS = 60 * 60 * 1000
 let cached: { value: EngineCapabilities; at: number } | null = null
 let inFlight: Promise<EngineCapabilities> | null = null
 
-/** The capabilities last read from the Console, or the conservative defaults until one arrives. */
-export function engineCapabilities(): EngineCapabilities {
-  return cached?.value ?? FALLBACK_ENGINE_CAPABILITIES
+/**
+ * Capabilities the engine reported per `provider/model` id (`GET /api/model`). Filled by
+ * `setModelCapabilities`: in a main process from the engine, in a renderer from what its
+ * main process answered over `ai:capabilities`.
+ */
+const perModel = new Map<string, EngineCapabilities>()
+
+export function setModelCapabilities(model: string, value: EngineCapabilities): void {
+  perModel.set(model, value)
+}
+
+/** What the engine said about `model`, or null when it has not been asked. */
+export function modelCapabilities(model: string): EngineCapabilities | null {
+  return perModel.get(model) ?? null
+}
+
+/**
+ * The capabilities for `model` (default route when omitted): the engine's per-model
+ * answer when known, else the Console catalogue for the default route, else the
+ * conservative defaults.
+ */
+export function engineCapabilities(model?: string): EngineCapabilities {
+  if (model) {
+    const known = perModel.get(model)
+    if (known) return known
+  }
+  return perModel.get('redrob/auto') ?? cached?.value ?? FALLBACK_ENGINE_CAPABILITIES
+}
+
+/** Engine model -> the capabilities Office asks about. */
+export function capabilitiesFromEngineModel(model: {
+  input: string[]
+  tools: boolean
+  outputTokens: number | null
+}): EngineCapabilities {
+  return {
+    vision: model.input.includes('image'),
+    tools: model.tools,
+    structuredOutputs: false,
+    maxOutputTokens: model.outputTokens,
+    thinkingLevels: [],
+  }
+}
+
+/**
+ * Console model ids that read images, from the public catalogue (`GET /v1/pricing`).
+ *
+ * Engine v0.0.12 lists every Console model as text-only and strips image parts for it,
+ * so Office tells the engine which ones read images (docs/engine-api.md). An unreachable
+ * catalogue yields `fallback`.
+ */
+export function imageModelsFromCatalogue(payload: unknown): string[] {
+  const models = (payload as { models?: unknown })?.models
+  if (!Array.isArray(models)) return []
+  return models
+    .filter((m): m is PublishedModel => typeof m === 'object' && m !== null)
+    .filter((m) => typeof m.id === 'string' && m.capabilities?.imageInput === true)
+    .map((m) => m.id as string)
+}
+
+export async function fetchConsoleImageModels(options: { timeoutMs?: number; fallback?: string[] } = {}): Promise<string[]> {
+  const fallback = options.fallback ?? [REDROB_ENGINE_MODEL]
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 3000)
+  try {
+    const response = await aiFetch(`${REDROB_CONSOLE_API_BASE}/pricing`, { method: 'GET', signal: controller.signal })
+    if (!response.ok) return fallback
+    const ids = imageModelsFromCatalogue(await response.json())
+    return ids.length ? ids : fallback
+  } catch {
+    return fallback
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /**
@@ -149,4 +220,5 @@ export async function loadEngineCapabilities(options: { force?: boolean; now?: n
 export function resetEngineCapabilitiesCache(): void {
   cached = null
   inFlight = null
+  perModel.clear()
 }

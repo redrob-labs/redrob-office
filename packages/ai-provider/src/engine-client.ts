@@ -47,13 +47,27 @@ export const OFFICE_AGENT = 'office'
  * person's own `~/.config/redrob/redrob.jsonc`, which Redrob Code on the same machine
  * reads too. An inline config lives and dies with the process Office owns.
  */
-export function officeEngineConfig(): Record<string, unknown> {
+export function officeEngineConfig(imageModels: string[] = ['auto']): Record<string, unknown> {
   const off = Object.fromEntries(ENGINE_BUILTIN_TOOLS.map((t) => [t, false]))
   const deny = Object.fromEntries(ENGINE_BUILTIN_TOOLS.map((t) => [t, 'deny']))
   return {
     $schema: 'https://code.redrob.ai/config.json',
     share: 'disabled',
     autoupdate: false,
+    ...(imageModels.length
+      ? {
+          // engine v0.0.12 lists every Console model as text-only and drops image parts
+          // for it; Console publishes which ones read images (GET /v1/pricing), and says
+          // so here so an attached image reaches the model
+          provider: {
+            redrob: {
+              models: Object.fromEntries(
+                imageModels.map((id) => [id, { modalities: { input: ['text', 'image'], output: ['text'] } }]),
+              ),
+            },
+          },
+        }
+      : {}),
     agent: {
       [OFFICE_AGENT]: {
         mode: 'primary',
