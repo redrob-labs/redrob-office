@@ -77,7 +77,7 @@ Requirement references are in brackets, e.g. [R2.1].
 
 - [ ] 2.1 Fill every `EditorFrame` slot that Docs fills: undo/redo, save status, search with Ask,
   file menu, mode, banner, status line. [R5.1]
-- [ ] 2.2 Classic Ribbon: 편집 / 입력 / 서식 / 쪽 / 검토 / 보기 tabs on `Toolbar`, driven by
+- [x] 2.2 Classic Ribbon (검토 tab arrives with Phase 4): 편집 / 입력 / 서식 / 쪽 / 검토 / 보기 tabs on `Toolbar`, driven by
   CommandBus state. Simple toolbar. [R5.1, R5.3]
 - [ ] 2.3 Dialogs on `@genoffice/ui`: character shape (per-language font, 자간, 장평), paragraph
   shape, style, page setup, table and cell, object, find and replace. [R5.3]

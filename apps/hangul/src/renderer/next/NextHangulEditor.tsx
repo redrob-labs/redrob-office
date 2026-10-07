@@ -17,11 +17,8 @@ import {
   Badge,
   Button,
   EditorFrame,
-  Icon,
   Input,
   StatusBar,
-  Toolbar,
-  ToolbarButton,
   frameCopy,
   frameT,
   useFrameState,
@@ -29,6 +26,8 @@ import {
 import { useI18n } from '../i18n/locale'
 import { HangulPanel } from '../HangulEditor'
 import type { SaveMode } from '../../shared/ipc'
+import { HangulRibbon, HangulSimpleToolbar, commandLabel } from './HangulRibbon'
+import { COMMAND_LABELS } from '../i18n/command-labels'
 import { HwpPasswordError, base64ToBytes, newDocument, openDocument, saveDocument, type OpenedDocument } from './document'
 
 type Phase =
@@ -123,6 +122,7 @@ export function NextHangulEditor(): React.JSX.Element {
     const bus = new CommandBus(opened.session)
     const view = new EditorView(host, opened.session, bus, {
       mac: isMac,
+      onRender: refresh,
       onUnhandledCommand: (id) => {
         if (id === 'file:save') return void doSave('save'), true
         if (id === 'file:save-as') return void doSave('saveAs'), true
@@ -197,26 +197,8 @@ export function NextHangulEditor(): React.JSX.Element {
     view?.focus()
     refresh()
   }
-  const toggle = (id: string, label: string, icon: string, shortcut: string) => (
-    <ToolbarButton
-      key={id}
-      label={label}
-      icon={<Icon name={icon as never} size={16} />}
-      shortcut={shortcut}
-      pressed={view ? view.bus.isActive(id) : false}
-      disabled={mode === 'viewing' || !view?.bus.isEnabled(id)}
-      onClick={run(id)}
-    />
-  )
-  const mod = isMac ? '⌘' : 'Ctrl+'
-  const tools = (classic: boolean) => (
-    <div className="hangul-toolbar">
-      <Toolbar label={t('nextFormatLabel')}>
-        {toggle('format:bold', t('nextBold'), 'bold', `${mod}B`)}
-        {toggle('format:italic', t('nextItalic'), 'italic', `${mod}I`)}
-        {toggle('format:underline', t('nextUnderline'), 'underline', `${mod}U`)}
-        {toggle('format:strikethrough', t('nextStrikethrough'), 'strikethrough', '')}
-      </Toolbar>
+  const fileButtons = (classic: boolean) => (
+    <div className="hangul-file-buttons">
       <Button size="sm" onClick={() => void doSave('save')} loading={saveState.kind === 'saving'}>
         {t('save')}
       </Button>
@@ -225,6 +207,13 @@ export function NextHangulEditor(): React.JSX.Element {
           {t('saveAs')}
         </Button>
       ) : null}
+    </div>
+  )
+  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh }
+  const tools = (classic: boolean) => (
+    <div className="hangul-toolbar">
+      {classic ? <HangulRibbon {...ribbonProps} /> : <HangulSimpleToolbar {...ribbonProps} />}
+      {fileButtons(classic)}
     </div>
   )
   const info = s.doc.info()
@@ -259,9 +248,7 @@ export function NextHangulEditor(): React.JSX.Element {
           tools: [
             { id: 'save', label: t('save'), run: () => void doSave('save') },
             { id: 'save-as', label: t('saveAs'), run: () => void doSave('saveAs') },
-            { id: 'bold', label: t('nextBold'), run: run('format:bold') },
-            { id: 'italic', label: t('nextItalic'), run: run('format:italic') },
-            { id: 'underline', label: t('nextUnderline'), run: run('format:underline') },
+            ...(view ? view.bus.ids().filter((id) => COMMAND_LABELS[id]).map((id) => ({ id, label: commandLabel(id, lang), run: run(id), disabled: !view.bus.isEnabled(id) })) : []),
             { id: 'ask', label: t('askRedrob'), keywords: ['redrob', 'ai'], run: () => setPanelOpen(true) },
           ],
           strings: frameText.search,

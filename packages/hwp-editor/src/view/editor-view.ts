@@ -28,6 +28,8 @@ export interface EditorViewOptions extends PageViewOptions {
   settleAfterMs?: number
   mac?: boolean
   readOnly?: boolean
+  /** Called after every render: caret or selection moved, or the document changed. */
+  onRender?: () => void
   /** Called for commands the bus doesn't have (file:save, dialogs…), so the host can handle them. */
   onUnhandledCommand?: (id: string, params?: unknown) => boolean
 }
@@ -84,6 +86,7 @@ export class EditorView {
     d.addEventListener('mousemove', (e) => this.onMouseMove(e))
     d.addEventListener('mouseup', () => (this.dragging = false))
 
+    this.registerViewCommands()
     this.unsubscribe = session.onChange((c) => this.onChange(c))
     this.unsubscribeSettle = session.onSettle(() => this.onSettled())
     this.render()
@@ -151,6 +154,38 @@ export class EditorView {
       }
       this.pages.reveal(caret.pageIndex, caret.y, caret.height)
     }
+    this.opts.onRender?.()
+  }
+
+  /** Zoom lives on the view, not the document: these change no bytes and record no history. */
+  private registerViewCommands(): void {
+    const zoom = (id: string, to: (z: number) => number) => {
+      if (this.bus.has(id)) return
+      this.bus.register({
+        id,
+        isEnabled: () => true,
+        run: () => {
+          this.pages.setZoom(to(this.pages.zoom))
+          this.overlay.redrawDecorations()
+          return null
+        },
+      })
+    }
+    const steps = [0.25, 0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2, 3, 4, 5]
+    zoom('view:zoom-in', (z) => steps.find((s) => s > z + 1e-6) ?? 5)
+    zoom('view:zoom-out', (z) => [...steps].reverse().find((s) => s < z - 1e-6) ?? 0.25)
+    zoom('view:zoom-100', () => 1)
+    zoom('view:zoom-fit-width', () => {
+      const page = this.pages.pages[0]
+      const width = this.root.clientWidth - 48
+      return page && width > 0 ? width / page.info.width : 1
+    })
+    zoom('view:zoom-fit-page', () => {
+      const page = this.pages.pages[0]
+      const w = this.root.clientWidth - 48
+      const h = this.root.clientHeight - 32
+      return page && w > 0 && h > 0 ? Math.min(w / page.info.width, h / page.info.height) : 1
+    })
   }
 
   // ── Keyboard and IME ──────────────────────────────────────────────────

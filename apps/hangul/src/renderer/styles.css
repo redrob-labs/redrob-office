@@ -133,3 +133,42 @@ body {
 .hangul-next-host .hwp-pages {
   margin: 0 auto;
 }
+
+/* The 한글 ribbon (next/HangulRibbon.tsx). */
+.hangul-toolbar { display: flex; align-items: flex-start; gap: 12px; width: 100%; }
+.hangul-ribbon { flex: 1; min-width: 0; }
+.hangul-ribbon__band { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0; }
+.hangul-ribbon-group {
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px;
+  border-inline-end: 1px solid var(--border-subtle, var(--surface-sunken));
+}
+.hangul-ribbon-group__controls { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+.hangul-ribbon-group__label { font-size: 11px; color: var(--ink-muted); text-align: center; padding-top: 2px; }
+.hangul-glyph { font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; }
+.hangul-picker--style { width: 110px; }
+.hangul-picker--font { width: 130px; }
+.hangul-picker--size { width: 64px; }
+.hangul-file-buttons { display: flex; gap: 6px; align-items: center; padding-top: 4px; }
+.hangul-color, .hangul-table-grid { position: relative; }
+.hangul-color__popover, .hangul-table-grid__popover {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  background: var(--surface-raised);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-md);
+  padding: 8px;
+}
+.hangul-table-grid__row { display: flex; gap: 2px; margin-bottom: 2px; }
+.hangul-table-grid__row button {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ink-muted);
+  background: var(--surface-base);
+  padding: 0;
+}
+.hangul-table-grid__row button.is-on { background: color-mix(in srgb, var(--action-primary) 35%, transparent); }
+.hangul-table-grid__size { font-size: 12px; color: var(--ink-secondary); padding-top: 4px; min-height: 1.2em; }
