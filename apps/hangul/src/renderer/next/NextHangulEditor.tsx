@@ -28,6 +28,7 @@ import { HangulPanel } from '../HangulEditor'
 import type { SaveMode } from '../../shared/ipc'
 import { CharShapeDialog, ParaShapeDialog } from './ShapeDialogs'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
+import { InsertPromptDialog, usePicturePicker, type InsertKind } from './InsertDialogs'
 import { HangulRibbon, HangulSimpleToolbar, commandLabel } from './HangulRibbon'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { HwpPasswordError, base64ToBytes, newDocument, openDocument, saveDocument, type OpenedDocument } from './document'
@@ -50,12 +51,13 @@ export function NextHangulEditor(): React.JSX.Element {
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
   const [panelOpen, setPanelOpen] = useState(false)
   const [mode, setMode] = useState<'editing' | 'viewing'>('editing')
-  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | null>(null)
+  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | InsertKind | null>(null)
   const [, refresh] = useReducer((n: number) => n + 1, 0)
   const openedRef = useRef<OpenedDocument | null>(null)
   const viewRef = useRef<EditorView | null>(null)
   const hostRef = useRef<HTMLDivElement | null>(null)
   const pathRef = useRef<string>('')
+  const picture = usePicturePicker(() => viewRef.current, refresh)
 
   const doSave = useCallback(async (saveMode: SaveMode): Promise<boolean> => {
     const opened = openedRef.current
@@ -217,7 +219,11 @@ export function NextHangulEditor(): React.JSX.Element {
       ) : null}
     </div>
   )
-  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => setDialog(({ 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup' } as const)[id as 'edit:find'] ?? null) }
+  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => {
+      if (id === 'insert:image') return picture.open()
+      const map: Record<string, NonNullable<typeof dialog>> = { 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup', 'insert:equation': 'insert:equation', 'insert:footnote': 'insert:footnote', 'insert:bookmark': 'insert:bookmark', 'page:header-create': 'page:header-create', 'page:footer-create': 'page:footer-create' }
+      setDialog(map[id] ?? null)
+    } }
   const tools = (classic: boolean) => (
     <div className="hangul-toolbar">
       {classic ? <HangulRibbon {...ribbonProps} /> : <HangulSimpleToolbar {...ribbonProps} />}
@@ -305,6 +311,8 @@ export function NextHangulEditor(): React.JSX.Element {
         <div ref={hostRef} className="hangul-next-host" lang="ko" />
         {view && dialog === 'char-shape' ? <CharShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && (dialog === 'find' || dialog === 'replace') ? <FindDialog view={view} replace={dialog === 'replace'} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {picture.input}
+        {view && dialog && dialog.includes(':') ? <InsertPromptDialog view={view} kind={dialog as InsertKind} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'page-setup' ? <PageSetupDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'para-shape' ? <ParaShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
       </EditorFrame>

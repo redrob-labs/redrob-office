@@ -12,6 +12,7 @@ import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
 import { CommandBus, EditorView, Session, type Pos } from '@genoffice/hwp-editor'
 import { CharShapeDialog, ParaShapeDialog } from '../src/renderer/next/ShapeDialogs'
 import { FindDialog, PageSetupDialog } from '../src/renderer/next/FindPageDialogs'
+import { InsertPromptDialog } from '../src/renderer/next/InsertDialogs'
 import { lineSpacingToEngine, paraLengthToEngine, pxToPt, setPerScript } from '../src/renderer/next/shape-units'
 
 const env = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -164,5 +165,26 @@ describe('편집 용지', () => {
     expect(def.landscape).toBe(true)
     expect(Math.round(def.marginLeft / (7200 / 25.4))).toBe(25)
     expect(view.session.changeSeq).toBe(1)
+  })
+})
+
+describe('insert prompts (task 2.4)', () => {
+  it('inserts an equation from its script and refuses an empty one', () => {
+    const view = editor()
+    view.session.select({ anchor: p(0, 2), head: p(0, 2) })
+    act(() => root.render(createElement(InsertPromptDialog, { view, kind: 'insert:equation', onClose: () => {}, onApplied: () => {} })))
+    expect(button('Insert').disabled).toBe(true)
+    type(field('Equation'), 'a over b')
+    act(() => button('Insert').click())
+    const kinds = view.session.doc.outline().sections[0]!.paragraphs[0]!.controls!.map((c) => c.kind)
+    expect(kinds).toContain('equation')
+  })
+
+  it('writes header text', () => {
+    const view = editor()
+    act(() => root.render(createElement(InsertPromptDialog, { view, kind: 'page:header-create', onClose: () => {}, onApplied: () => {} })))
+    type(field('Header text'), '행정안전부')
+    act(() => button('Insert').click())
+    expect(JSON.parse(HwpCoreDocument.open(view.session.export('hwp')).raw.getHeaderFooter(0, true, 0)).text).toBe('행정안전부')
   })
 })

@@ -180,3 +180,4 @@ body {
 .hangul-find { display: grid; gap: 12px; }
 .hangul-find__status { min-height: 1.2em; color: var(--ink-secondary); font-size: 13px; margin: 0; }
 .hangul-paper-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.hangul-hint { font-size: 12px; color: var(--ink-muted); margin: 8px 0 0; }

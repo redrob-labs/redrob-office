@@ -80,8 +80,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 2.2 Classic Ribbon (검토 tab arrives with Phase 4): 편집 / 입력 / 서식 / 쪽 / 검토 / 보기 tabs on `Toolbar`, driven by
   CommandBus state. Simple toolbar. [R5.1, R5.3]
 - [ ] 2.3 Dialogs on `@genoffice/ui`. Done: character shape (per-script font, 자간, 장평, relative size, position, attributes), paragraph shape (alignment, margins, indent, spacing, line spacing, pagination), find and replace, page setup. Open: style editor, table and cell properties, object properties. [R5.3]
-- [ ] 2.4 Insert flows: table, picture, shape, equation, chart, footnote and endnote,
-  header/footer, field, bookmark, hyperlink. [R5.3]
+- [ ] 2.4 Insert flows. Done: table, picture, equation, footnote and endnote, header/footer, bookmark. Open: shape, chart, field, hyperlink. [R5.3]
 - [ ] 2.5 i18n strings in both locales; visual baselines in `tests/visual`; accessibility pass.
   [R5.4, R5.5]
 - [ ] 2.7 Hancom attribution in the Hangul About and help surfaces, in both locales: 「본 제품은

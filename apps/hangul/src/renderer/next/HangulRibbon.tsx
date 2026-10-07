@@ -295,6 +295,20 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               {button('page:break', g('⤓'), { size: 'lg' })}
               {button('page:column-break', g('⫼'), { size: 'lg' })}
             </Group>
+            {props.onCommand ? (
+              <Group label={t('nextGroupObjects')}>
+                {(['insert:image', 'insert:equation'] as const).map((id) => (
+                  <ToolbarButton key={id} label={L(id)} icon={id === 'insert:image' ? <Icon name="image" size={24} /> : g('∑')} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled(id, { script: 'x', bytes: new Uint8Array(), extension: 'png', widthPx: 1, heightPx: 1 })} onClick={() => props.onCommand!(id)} />
+                ))}
+              </Group>
+            ) : null}
+            {props.onCommand ? (
+              <Group label={t('nextGroupNotes')}>
+                <ToolbarButton label={L('insert:footnote')} icon={g('¹')} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:footnote')} onClick={() => props.onCommand!('insert:footnote')} />
+                {button('insert:endnote', g('ⁱ'))}
+                <ToolbarButton label={L('insert:bookmark')} icon={<Icon name="bookmark" size={16} />} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:bookmark', { name: 'x' })} onClick={() => props.onCommand!('insert:bookmark')} />
+              </Group>
+            ) : null}
           </>
         ) : null}
         {active === 'format' ? (
@@ -351,6 +365,12 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               {button('page:break', g('⤓'), { size: 'lg' })}
               {button('page:column-break', g('⫼'), { size: 'lg' })}
             </Group>
+            {props.onCommand ? (
+              <Group label={t('nextGroupHeaderFooter')}>
+                <ToolbarButton label={L('page:header-create')} icon={g('▔')} disabled={!view || props.readOnly} onClick={() => props.onCommand!('page:header-create')} />
+                <ToolbarButton label={L('page:footer-create')} icon={g('▁')} disabled={!view || props.readOnly} onClick={() => props.onCommand!('page:footer-create')} />
+              </Group>
+            ) : null}
           </>
         ) : null}
         {active === 'view' ? (
