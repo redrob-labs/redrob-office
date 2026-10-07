@@ -370,7 +370,7 @@ export const en = {
   setupShowAdvance: 'Advance slides',
   setupShowManual: 'Manually',
   setupShowTimings: 'Using timings, if present',
-  setupShowCustomKept: "This file names one of PowerPoint's custom shows. Choosing All or From–To replaces it.",
+  setupShowCustomKept: "This file names one of PowerPoint's custom shows. Choosing All or From and To replaces it.",
   setupShowSaved: 'Set Up Show saved',
   ribbonRecordTip: 'Record narration: run the show from the start and record your voice and timing on each slide (saved to pptx)',
   narrationMicDenied: 'The microphone is not available. Allow it in system settings to record narration.',

@@ -62,7 +62,7 @@ install. Neither job is a required check, so today they inform rather than block
 - `apps/markdown`, `apps/hangul`: additional editors.
 - `packages/agent-core`: shared ReAct loop, tool execution, history and compaction.
 - `packages/ai-provider`: the route to the Redrob engine. BYOK and provider selection are ALLOWED as
-  of 2026-09-22 — a user may connect their own Anthropic, OpenAI, Gemini, Copilot or OpenRouter
+  of 2026-09-22 - a user may connect their own Anthropic, OpenAI, Gemini, Copilot or OpenRouter
   access, because that is the only path those vendors permit a third-party app (see redrob-code
   `docs/PROVIDER-AUTH.md`). This reverses the earlier "one engine, no BYOK" rule, so an older
   instruction forbidding it is now wrong.
@@ -112,7 +112,8 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
   runs in the build job instead because it needs a resolved install, so the check named for licences
   is not the one that checks dependency licences.
 - `build & test (ubuntu-latest)` installs with `--frozen-lockfile`, then runs `pnpm check:licenses`,
-  `pnpm typecheck`, `pnpm build`, `pnpm test`.
+  `pnpm check:ui-tokens`, `pnpm check:ipc`, `pnpm check:copy` (English copy uses short dashes
+  only), `pnpm typecheck`, `pnpm build`, `pnpm test`.
 - The Windows and macOS legs are one matrix job named `build & test (${{ matrix.os }})`, which
   expands to `build & test (windows-latest)` and `build & test (macos-latest)`. Neither name is a
   required check, and the job is gated to `schedule` and `workflow_dispatch`, so it never reports on
@@ -140,6 +141,26 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 - It runs locally and in CI only, through `services/sync/docker-compose.yml`: Postgres, a SeaweedFS
   S3 gateway and the service. MinIO images stopped being published in 2026, so SeaweedFS stands in;
   the service speaks plain S3. There is no production deployment; do not add one without asking.
+- `infra/sync` is Terraform for running it on AWS: a VPC, an ALB with `sync.` and `live.` hosts,
+  one ECS Fargate task, RDS Postgres, S3, ECR and CloudWatch. It is **plan only**. Nothing has been
+  applied, and `.github/workflows/infra.yml` (`terraform fmt & validate`) never applies; it plans
+  only when run by hand with a read-only role. Do not apply it, or add an apply step, without
+  asking.
+- The service runs as one task on purpose. Live rooms live in one process, so `desired_count` is
+  held to 1 until the Hocuspocus Redis extension is added.
+- Production configuration (`NODE_ENV=production`) refuses to start unless:
+  - `SYNC_JWKS_URL` and `SYNC_ISSUER` are https URLs;
+  - `SYNC_AUDIENCE` is set explicitly;
+  - `SYNC_DB_CA_FILE` names the CA that Postgres TLS is verified against.
+- Without an S3 key pair or endpoint, the service uses the task role and the regional endpoint.
+- Operations:
+  - `/health` is liveness, and `/ready` checks the database and the store.
+  - Rate limits apply per address, per account and per invite-link look-up, in memory and per
+    instance.
+  - JSON bodies are capped by `SYNC_BODY_LIMIT_BYTES`; only uploads take `SYNC_MAX_FILE_BYTES`.
+  - Logs are JSON lines, with invite-link tokens and query strings redacted.
+  - SIGTERM drains: readiness fails first, then live rooms, requests and the pool close.
+  - Activity is pruned after `SYNC_EVENT_RETENTION_DAYS`.
 - Every Compose port binds to 127.0.0.1. The stack runs the development issuer
   (`SYNC_DEV_ISSUER=1`), which mints a token for anyone who asks; the service refuses it when
   `NODE_ENV=production`. Real identity is Redrob Console tokens checked against Console's JWKS.
@@ -159,23 +180,43 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 - **Identity.**
   - Console, through OpenID discovery at `https://console.redrob.ai`, with client `redrob-office`
     and audience `redrob-office-sync`. An endpoint outside Console's origin is refused.
+  - The session keeps the token whose `aud` names `redrob-office-sync`, normally the access token.
+    A reply without one fails with `wrong_audience`.
+  - What Console must provide is in `docs/console-requests/office-sync-identity.md`. Until Console
+    ships it, only the development issuer works.
   - The development issuer is used only when `REDROB_IDENTITY=dev`, with a loopback sync URL, and
     never in a packaged app.
   - Settings shows this as the **Sharing** section. The words "Account" and "Sign in" are kept out
     of that pane because `cloud-account-hidden.test.ts` guards the retired cloud account.
-- **Where the service is.**
-  - `REDROB_SYNC_URL` if set. Otherwise a development build uses the local Compose stack
-    (`http://127.0.0.1:8787`), and a packaged build has none, so Share says it is not available yet.
-  - The live server is the same host on port 8788 (`REDROB_SYNC_LIVE_URL` overrides it).
+- **Where the service is** (`apps/shell/src/main/sync-endpoints.ts`).
+  - A packaged build uses what its release baked into `package.json` (`redrobSync`).
+    `electron-builder.cjs` writes it from `REDROB_SYNC_URL` and `REDROB_SYNC_LIVE_URL`, which the
+    release workflows pass from repository variables.
+  - Both packaging and run time refuse anything but an `https` API and a `wss` live server on a
+    public host: no loopback, no private or link-local addresses. An environment override in a
+    packaged app must pass the same rules.
+  - With nothing baked there is no service, and Share says it is not available yet.
+  - A development build uses `REDROB_SYNC_URL`, or the local Compose stack
+    (`http://127.0.0.1:8787`). The live server is the same host on port 8788 unless
+    `REDROB_SYNC_LIVE_URL` says otherwise.
 - **Sharing.**
   - The first invite uploads the saved file.
   - A Docs save by an owner or editor uploads a new version (through `setDocSavedHook`).
   - Home's "Shared with you" downloads a file into `Documents/Redrob Office/Shared` on open.
   - `shared-files.json` in userData maps local paths to shared files, with the version on disk.
-- **Live documents (Docs only).**
+- **Live documents.**
   - One room per shared file lives in the shell (`LiveHub`). Each view mirrors the Y.Doc over IPC.
-  - While live, the editor is bound with y-prosemirror (`apps/docs/src/renderer/live/collab.ts`).
-    The editor's own history is off, and undo is Yjs's, scoped to the person.
+  - Docs and Markdown are bound with y-prosemirror through `packages/live-text`, which takes a
+    structural editor type because the two apps pin different tiptap versions. Docs uses the thin
+    adapter `apps/docs/src/renderer/live/collab.ts`. The editor's own history is off, and undo is
+    Yjs's, scoped to the person.
+  - Markdown's front matter is a shared text of its own.
+  - Sheets shares cell values and formulas, and Slides shares committed text-box text. Both are
+    last writer wins per entry, through `packages/sync-client/src/live-models.ts`.
+  - Slides addresses a box by slide part and `<p:cNvPr id>`. Someone else's edit is journaled but
+    takes no undo step.
+  - Other changes (formatting, structure) travel with the next saved version.
+  - PDF and Hangul are versioned sharing only.
   - Comments live in the shared `comments` map, with random nine-digit ids.
   - Someone else's typing never marks a view unsaved.
   - View and comment roles are read-only live.
@@ -198,6 +239,8 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 - There is no CDN. Downloads and the updater feed are the same release assets. The feed target is
   baked in from `GENOFFICE_UPDATE_REPO` (`owner/repo`); unset means no publish config and no
   in-app auto-update, which is what a fork or a local build gets.
+- The sync service is baked in the same way, from `REDROB_SYNC_URL` and `REDROB_SYNC_LIVE_URL`
+  (repository variables). See "Where the service is".
 - `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` must be visible to this repository; the Windows job fails
   fast when either is unset. A self-signed certificate has an
   Authenticode signer but may report `UnknownError`/`NotTrusted` and still trigger SmartScreen.
@@ -247,4 +290,22 @@ The suite's chrome is the Redrob design system, `@redrob-labs/ui` (pinned exactl
   `apps/pdf`, `apps/markdown` and `apps/hangul`, and `ipc-channels.ts` in `apps/sheets`. The shell has
   no `ipc.ts`; its contracts are `home-api.ts`, `tabs-api.ts`, `update-api.ts` and
   `pdf-password-api.ts`. The shell should host editors rather than reach into their renderer state.
+- Docs and Slides name every channel through `DOCS_CHANNELS` and `SLIDES_CHANNELS` in their
+  `src/shared/ipc.ts`. A preload or main there never spells a channel as a string.
+  `pnpm check:ipc` (`scripts/check-ipc.mjs`, run in the build job) fails on:
+  - a string channel;
+  - a name that is not in the map;
+  - an invoke nothing handles;
+  - a listener nothing sends to.
+  Add a new channel to the map first.
+- Linked figures are shared across editors through `packages/facts/src/figures.ts` (kept text,
+  rewrites, use sync, field names) and `@genoffice/ui`'s `LinkedFigurePicker`.
+  - Docs uses a `DOCVARIABLE RedrobFact_<id>` field.
+  - Slides uses a `<a:fld type="RedrobFact_<id>">` text field.
+  - Markdown uses `[text](redrob-fact:<id>)`.
+  - `RedrobFactWords_<id>` and `#sentence` mark the sentence form.
+- Hosted image generation and search call Console routes that do not exist yet, through an engine
+  relay that does not exist yet (`docs/console-requests/office-ai-routes.md`, `docs/engine-api.md`).
+  Until both exist they say "not available from Redrob yet", and never fall back to another
+  provider.
 - Do not commit credentials, local model files, generated package output, or test user-data profiles.

@@ -91,3 +91,17 @@ Verifying the wire is not the same as verifying the app. The engine contract tes
 (`office/src/main/redrob-code/engine-contract.test.ts`) is what exercises Office's
 own tools and policy prompts against a real engine, and it is what to run when
 that integration changes.
+
+## Requested, not live yet
+
+Office is written against these, but Console does not serve them yet.
+Each has a request file to paste into a Console session:
+
+- `POST /v1/images/generations`, `POST /v1/search`, and a `features` block in
+  `GET /v1/pricing`: `docs/console-requests/office-ai-routes.md`. Until they
+  exist, Office's image generation and Redrob search say they are not available
+  (`packages/ai-provider/src/hosted-tools.ts`). A 404, 405 or 501 is read as
+  "not yet".
+- OIDC device sign-in for sharing (client `redrob-office`, audience
+  `redrob-office-sync`, JWKS, refresh): `docs/console-requests/office-sync-identity.md`.
+  The sync service (`services/sync`) trusts only these tokens in production.

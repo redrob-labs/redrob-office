@@ -114,3 +114,18 @@ answered from it.
 - Tools are offered to the model as `<name>_<tool>`. `POST /mcp/:name/disconnect` drops one.
 - The engine speaks streamable HTTP JSON-RPC; a plain `application/json` answer is accepted.
 - Register MCP servers only after any config change (see above).
+
+## Requested from redrob-code: a Console relay
+
+Office holds no Console key, so hosted image generation and search go through
+the engine. `packages/ai-provider/src/hosted-tools.ts` calls
+`POST /api/console/relay/v1/images/generations` and
+`POST /api/console/relay/v1/search` on the engine, with the engine's own
+Authorization. The engine is expected to forward the body to Console's same
+path with its stored Redrob credential, and to return Console's status and
+body unchanged.
+
+The relay only ever forwards to Console's fixed base URL; a caller cannot name
+the host. That is the same rule as `resolveEndpoint`. Engine v0.0.12 has no
+such route; a 404 from it is read as "not available yet". The Console side is
+in `docs/console-requests/office-ai-routes.md`.

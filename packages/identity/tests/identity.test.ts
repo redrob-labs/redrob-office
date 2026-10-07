@@ -115,19 +115,42 @@ describe('Console device sign-in', () => {
   }
 
   it('polls through pending and slow_down, then signs in', async () => {
-    const token = jwt({ sub: 'felix', name: 'Felix Kim', exp: 2_000_000_000 })
+    const token = jwt({ sub: 'felix', name: 'Felix Kim', exp: 2_000_000_000, aud: 'aud' })
+    const idToken = jwt({ sub: 'felix', name: 'Felix Kim', exp: 2_000_000_000, aud: 'redrob-office' })
     const fetch = fake([
       { status: 400, body: { error: 'authorization_pending' } },
       { status: 400, body: { error: 'slow_down' } },
-      { status: 200, body: { id_token: token, refresh_token: 'r1', expires_in: 3600 } },
+      { status: 200, body: { id_token: idToken, access_token: token, refresh_token: 'r1', expires_in: 3600 } },
     ])
     const sleeps: number[] = []
     const p = consoleProvider({ issuer: ISSUER, clientId: 'redrob-office', audience: 'aud', fetch, sleep: async (ms) => void sleeps.push(ms) })
     const start = (await p.start())!
     expect(start.userCode).toBe('ABCD-EFGH')
     const out = await p.finish(start, () => false)
-    expect(out).toMatchObject({ status: 'signed-in', session: { sub: 'felix', refreshToken: 'r1' } })
+    // the session keeps the token issued for the sync service, not the id token
+    expect(out).toMatchObject({ status: 'signed-in', session: { sub: 'felix', refreshToken: 'r1', token } })
     expect(sleeps).toEqual([1000, 1000, 6000])
+  })
+
+  it('refuses a reply with no token for the sync audience', async () => {
+    const idToken = jwt({ sub: 'felix', exp: 2_000_000_000, aud: 'redrob-office' })
+    const opaque = 'not-a-jwt'
+    const p = consoleProvider({
+      issuer: ISSUER,
+      clientId: 'redrob-office',
+      audience: 'redrob-office-sync',
+      fetch: fake([{ status: 200, body: { id_token: idToken, access_token: opaque } }]),
+      sleep: async () => {},
+    })
+    expect(await p.finish((await p.start())!, () => false)).toEqual({ status: 'failed', code: 'wrong_audience' })
+    const both = consoleProvider({
+      issuer: ISSUER,
+      clientId: 'redrob-office',
+      audience: 'redrob-office-sync',
+      fetch: fake([{ status: 200, body: { id_token: jwt({ sub: 'felix', exp: 2_000_000_000, aud: ['redrob-office', 'redrob-office-sync'] }) } }]),
+      sleep: async () => {},
+    })
+    expect(await both.finish((await both.start())!, () => false)).toMatchObject({ status: 'signed-in' })
   })
 
   it('says when the person declined, and stops when cancelled', async () => {

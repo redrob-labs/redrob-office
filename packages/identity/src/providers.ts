@@ -6,7 +6,7 @@
  * issues identity tokens; it is only offered when the configured sync service
  * is on this computer.
  */
-import { sessionFromToken, type Session } from './session'
+import { jwtClaims, sessionFromToken, type Session } from './session'
 
 export type Fetch = (url: string, init?: RequestInit) => Promise<Response>
 
@@ -124,8 +124,17 @@ export function consoleProvider(opts: ConsoleOptions): IdentityProvider {
     return { ok: r.ok, body }
   }
 
+  // The sync service checks `aud` against its audience, so the session keeps the
+  // token issued for it: normally the access token (requested with `audience`).
+  // An id token is addressed to the client id and is kept only if it names the
+  // audience too. A reply with neither is a Console misconfiguration, not a sign-in.
+  const forAudience = (t: unknown): t is string => {
+    if (typeof t !== 'string') return false
+    const aud = jwtClaims(t)?.aud
+    return aud === opts.audience || (Array.isArray(aud) && aud.includes(opts.audience))
+  }
   const sessionFrom = (body: Record<string, unknown>): Session | null => {
-    const token = typeof body.id_token === 'string' ? body.id_token : typeof body.access_token === 'string' ? body.access_token : null
+    const token = [body.access_token, body.id_token].find(forAudience) ?? null
     if (!token) return null
     return sessionFromToken('console', token, {
       refreshToken: typeof body.refresh_token === 'string' ? body.refresh_token : undefined,
@@ -172,7 +181,7 @@ export function consoleProvider(opts: ConsoleOptions): IdentityProvider {
         }
         if (res.ok) {
           const session = sessionFrom(res.body)
-          return session ? { status: 'signed-in', session } : { status: 'failed', code: 'bad_token' }
+          return session ? { status: 'signed-in', session } : { status: 'failed', code: 'wrong_audience' }
         }
         const err = res.body.error
         if (err === 'authorization_pending') continue
@@ -190,7 +199,9 @@ export function consoleProvider(opts: ConsoleOptions): IdentityProvider {
       if (!session.refreshToken) return null
       try {
         const res = await tokenRequest({ grant_type: 'refresh_token', refresh_token: session.refreshToken })
-        return res.ok ? sessionFrom(res.body) : null
+        const next = res.ok ? sessionFrom(res.body) : null
+        // a refresh that does not rotate the refresh token keeps the one it used
+        return next && !next.refreshToken ? { ...next, refreshToken: session.refreshToken } : next
       } catch {
         return null
       }
