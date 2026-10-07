@@ -7,6 +7,7 @@
  * (including unsaved changes) without re-reading from disk.
  */
 import { BrowserWindow, ipcMain, screen } from 'electron'
+import { SLIDES_CHANNELS } from '../shared/ipc'
 import type { WebContents } from 'electron'
 import type { AudienceNavAction, ShowInkEvent, ShowSyncState } from '../shared/ipc'
 import { runtime, sessions, viewerWcIds, windowRefs } from './session-state'
@@ -53,7 +54,7 @@ function closePresenterShow(presenterId: number): void {
 
 /** Register the slides:presenter-* / slides:audience-* channels (called from registerSlidesIpc). */
 export function registerPresenterIpc(): void {
-  ipcMain.handle('slides:presenter-start', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.presenterStart, (e) => {
     const existing = presenterShows.get(e.sender.id)
     if (existing) return { audience: existing.audienceWin != null }
     const show: PresenterShow = { presenterWc: e.sender, audienceWin: null, lastSync: null }
@@ -105,20 +106,20 @@ export function registerPresenterIpc(): void {
     return { audience: true }
   })
 
-  ipcMain.on('slides:presenter-sync', (e, state: ShowSyncState) => {
+  ipcMain.on(SLIDES_CHANNELS.presenterSync, (e, state: ShowSyncState) => {
     const show = presenterShows.get(e.sender.id)
     if (!show) return
     show.lastSync = state
     const wc = show.audienceWin?.webContents
-    if (wc && !wc.isDestroyed()) wc.send('slides:show-sync', state)
+    if (wc && !wc.isDestroyed()) wc.send(SLIDES_CHANNELS.showSync, state)
   })
 
-  ipcMain.on('slides:presenter-ink', (e, ev: ShowInkEvent) => {
+  ipcMain.on(SLIDES_CHANNELS.presenterInk, (e, ev: ShowInkEvent) => {
     const wc = presenterShows.get(e.sender.id)?.audienceWin?.webContents
-    if (wc && !wc.isDestroyed()) wc.send('slides:show-ink', ev)
+    if (wc && !wc.isDestroyed()) wc.send(SLIDES_CHANNELS.showInk, ev)
   })
 
-  ipcMain.handle('slides:presenter-swap', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.presenterSwap, (e) => {
     const show = presenterShows.get(e.sender.id)
     const aWin = show?.audienceWin
     const host = presenterHostWindow(e.sender)
@@ -144,18 +145,18 @@ export function registerPresenterIpc(): void {
     return true
   })
 
-  ipcMain.handle('slides:presenter-end', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.presenterEnd, (e) => {
     closePresenterShow(e.sender.id)
   })
 
-  ipcMain.handle('slides:audience-ready', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.audienceReady, (e) => {
     const pid = audiencePresenter.get(e.sender.id)
     return (pid != null ? presenterShows.get(pid)?.lastSync : null) ?? null
   })
 
-  ipcMain.on('slides:audience-nav', (e, action: AudienceNavAction) => {
+  ipcMain.on(SLIDES_CHANNELS.audienceNav, (e, action: AudienceNavAction) => {
     const pid = audiencePresenter.get(e.sender.id)
     const wc = pid != null ? presenterShows.get(pid)?.presenterWc : null
-    if (wc && !wc.isDestroyed()) wc.send('slides:audience-nav', action)
+    if (wc && !wc.isDestroyed()) wc.send(SLIDES_CHANNELS.audienceNav, action)
   })
 }

@@ -18,6 +18,7 @@ import {
   webContents,
   WebContentsView,
 } from 'electron'
+import { SLIDES_CHANNELS } from '../shared/ipc'
 import type { WebContents } from 'electron'
 import { execFile } from 'node:child_process'
 import { readFile, writeFile, rm, stat, mkdir, open } from 'node:fs/promises'
@@ -425,7 +426,7 @@ function syncAttachedPaths(session: Session, path: string): void {
     slidesOpenedHook?.(wc, path)
     // Peer renderers keep the path in React state (Save As defaults, path-keyed
     // guides); the saver also gets it from its own IPC result — idempotent
-    wc.send('slides:renamed', path)
+    wc.send(SLIDES_CHANNELS.renamed, path)
     const win = standaloneWindows.get(id)
     if (win && !win.isDestroyed()) win.setTitle(basename(path))
   }
@@ -482,7 +483,7 @@ export async function replaceSlidesRecentFile(oldPath: string, newPath: string):
 export function slidesFileRenamed(wc: WebContents, oldPath: string, newPath: string): void {
   const session = sessions.get(wc.id)
   if (session && session.path === oldPath) session.path = newPath
-  wc.send('slides:renamed', newPath)
+  wc.send(SLIDES_CHANNELS.renamed, newPath)
 }
 
 // ── Autosave (crash recovery): dirty sessions write a recovery copy every 30s; a normal save cleans it up ──
@@ -568,11 +569,11 @@ const closeSaveWaiters = new Map<number, (ok: boolean) => void>()
 /** Autosave toggle mirrored from the renderer: files with it on save silently on close and proceed, no dialog */
 const autoSavePrefByWc = new Map<number, boolean>()
 
-ipcMain.on('slides:autosave-pref', (event, on: unknown) => {
+ipcMain.on(SLIDES_CHANNELS.autosavePref, (event, on: unknown) => {
   autoSavePrefByWc.set(event.sender.id, on === true)
 })
 
-ipcMain.on('slides:close-save-result', (event, ok: unknown) => {
+ipcMain.on(SLIDES_CHANNELS.closeSaveResult, (event, ok: unknown) => {
   const waiter = closeSaveWaiters.get(event.sender.id)
   if (!waiter) return
   closeSaveWaiters.delete(event.sender.id)
@@ -590,7 +591,7 @@ function requestRendererSave(contents: WebContents): Promise<boolean> {
       clearTimeout(timer)
       resolve(ok)
     })
-    contents.send('slides:close-save-request')
+    contents.send(SLIDES_CHANNELS.closeSaveRequest)
   })
 }
 
@@ -1042,8 +1043,8 @@ export function registerSlidesIpc(): void {
   void cleanupExpiredGeneratedPages(app.getPath('temp'))
 
   // shared with the other editor modules — last (identical) registration wins
-  ipcMain.removeHandler('app:get-language')
-  ipcMain.handle('app:get-language', () => getUiLang())
+  ipcMain.removeHandler(SLIDES_CHANNELS.appGetLanguage)
+  ipcMain.handle(SLIDES_CHANNELS.appGetLanguage, () => getUiLang())
 
   // Screen recording: source dispatch for the renderer's navigator.mediaDevices.getDisplayMedia.
   // macOS prefers the system picker (with its permission flow), falling back to the first screen.
@@ -1066,8 +1067,8 @@ export function registerSlidesIpc(): void {
     }
   })
 
-  ipcMain.handle('slides:private-font-faces', () => listPrivateFontFaces())
-  ipcMain.handle('slides:private-font-data', (_e, id: string) => getPrivateFontData(id))
+  ipcMain.handle(SLIDES_CHANNELS.privateFontFaces, () => listPrivateFontFaces())
+  ipcMain.handle(SLIDES_CHANNELS.privateFontData, (_e, id: string) => getPrivateFontData(id))
 
   initFontStore()
   // Fonts changed (download or local install): rebuild every open session with a fresh
@@ -1083,13 +1084,13 @@ export function registerSlidesIpc(): void {
         size: { cx: session.opened.deck.size.cx, cy: session.opened.deck.size.cy },
       }
       for (const id of attachedIds(session))
-        webContents.fromId(id)?.send('slides:deck-changed', payload)
+        webContents.fromId(id)?.send(SLIDES_CHANNELS.deckChanged, payload)
       void wcId
     }
-    for (const wc of webContents.getAllWebContents()) wc.send('slides:fonts-changed')
+    for (const wc of webContents.getAllWebContents()) wc.send(SLIDES_CHANNELS.fontsChanged)
   }
-  ipcMain.handle('slides:font-catalog', () => listFontCatalog())
-  ipcMain.handle('slides:font-download', async (_e, family: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.fontCatalog, () => listFontCatalog())
+  ipcMain.handle(SLIDES_CHANNELS.fontDownload, async (_e, family: string) => {
     try {
       await downloadFontFamily(family)
       afterFontsChanged()
@@ -1098,7 +1099,7 @@ export function registerSlidesIpc(): void {
       return { ok: false, error: err instanceof Error ? err.message : String(err) }
     }
   })
-  ipcMain.handle('slides:font-install-local', async () => {
+  ipcMain.handle(SLIDES_CHANNELS.fontInstallLocal, async () => {
     const r = await showOpenDialogWithMemory(dialog, dialogParent(), {
       properties: ['openFile', 'multiSelections'],
       filters: [{ name: 'Fonts', extensions: ['ttf', 'otf', 'ttc', 'otc'] }],
@@ -1108,7 +1109,7 @@ export function registerSlidesIpc(): void {
     if (families.length) afterFontsChanged()
     return { families }
   })
-  ipcMain.handle('slides:font-missing', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.fontMissing, (e) => {
     const session = sessions.get(e.sender.id)
     return session ? missingCatalogFonts(session.opened) : []
   })
@@ -1152,7 +1153,7 @@ export function registerSlidesIpc(): void {
     return r
   }
 
-  ipcMain.handle('slides:open', async (e, fitWidthPx: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.open, async (e, fitWidthPx: number) => {
     const parent = dialogParent()
     const options = {
       properties: ['openFile' as const],
@@ -1164,13 +1165,13 @@ export function registerSlidesIpc(): void {
     return openAndBuild(e.sender, r.filePaths[0], fitWidthPx)
   })
 
-  ipcMain.handle('slides:open-path', async (e, path: string, fitWidthPx: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.openPath, async (e, path: string, fitWidthPx: number) => {
     if (!path || !existsSync(path)) return null
     if (await rejectLegacyPpt(path)) return null
     return openAndBuild(e.sender, path, fitWidthPx)
   })
 
-  ipcMain.handle('slides:consume-pending-open', async (e, fitWidthPx: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.consumePendingOpen, async (e, fitWidthPx: number) => {
     // renderer app just mounted: safe to reveal the vibrancy material behind
     // the (now painted) page without flashing raw desktop during load
     vibFlip.get(e.sender.id)?.('#00000000')
@@ -1210,7 +1211,7 @@ export function registerSlidesIpc(): void {
 
   // Shim over the canonical setText op (rich-text rebuild, link rels, resource cleanup,
   // level rematerialization live in the op); autofit is a render concern and stays here.
-  ipcMain.handle('slides:edit-text', (e, op: EditTextOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editText, (e, op: EditTextOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     pushHistory(session)
@@ -1240,7 +1241,7 @@ export function registerSlidesIpc(): void {
   })
 
   // Linked figures: RedrobFact_<id> text fields in the deck (linked-figures.ts)
-  ipcMain.handle('slides:linked-figures', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.linkedFigures, (e) => {
     const session = sessions.get(e.sender.id)
     return session ? slideFigures(session.opened.deck.slides).map(({ slideIndex, fact, part, text }) => ({ slideIndex, fact, part, text })) : []
   })
@@ -1248,7 +1249,7 @@ export function registerSlidesIpc(): void {
   // A kept update rewrites the figures' cached text. Journaled (a save writes it) but not an
   // undo step: undoing it would only bring back a value this file already moved on from.
   ipcMain.handle(
-    'slides:refresh-linked-figures',
+    SLIDES_CHANNELS.refreshLinkedFigures,
     (e, rewrites: Array<{ fact: string; part: 'figures' | 'sentence'; text: string }>): RenderSlide[] | null => {
       const session = sessions.get(e.sender.id)
       if (!session || !Array.isArray(rewrites)) return null
@@ -1273,7 +1274,7 @@ export function registerSlidesIpc(): void {
 
   // Live Slides: the address every copy of the file agrees on for a text box
   // (see live-address.ts). Asked before a local edit is sent to the room.
-  ipcMain.handle('slides:live-address', (e, op: { slideIndex: number; sourceId: string; groupId?: string }) => {
+  ipcMain.handle(SLIDES_CHANNELS.liveAddress, (e, op: { slideIndex: number; sourceId: string; groupId?: string }) => {
     const session = sessions.get(e.sender.id)
     if (!session || !op || typeof op.sourceId !== 'string' || !Number.isInteger(op.slideIndex)) return null
     return liveTextAddress(
@@ -1288,7 +1289,7 @@ export function registerSlidesIpc(): void {
   // local edit runs, journaled (a save here writes it), but no undo step — it
   // is not this person's edit to take back.
   ipcMain.handle(
-    'slides:live-apply-text',
+    SLIDES_CHANNELS.liveApplyText,
     (e, edit: { slideId: string; shapeId: string; paragraphs: unknown }): { slideIndex: number; slide: RenderSlide | null } | null => {
       const session = sessions.get(e.sender.id)
       if (!session || !edit || typeof edit.slideId !== 'string' || typeof edit.shapeId !== 'string') return null
@@ -1314,7 +1315,7 @@ export function registerSlidesIpc(): void {
   // Shim over the canonical setFont op: one per_op transaction covers the whole
   // selection (non-text elements fail their own op and are skipped, matching the
   // legacy "changed if any succeeded" semantics).
-  ipcMain.handle('slides:set-element-font', (e, op: SetElementFontOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setElementFont, (e, op: SetElementFontOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const font = {
@@ -1349,7 +1350,7 @@ export function registerSlidesIpc(): void {
   })
 
   // Shim over the canonical setParagraphFormat op (same per_op selection semantics as setFont).
-  ipcMain.handle('slides:set-element-paragraph-format', (e, op: SetElementParagraphFormatOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setElementParagraphFormat, (e, op: SetElementParagraphFormatOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const format = {
@@ -1394,7 +1395,7 @@ export function registerSlidesIpc(): void {
 
   // Shim over the canonical setTransform op. Preview-gesture undo bookkeeping and the
   // px→EMU (and group-local scale) translation are surface concerns and stay here.
-  ipcMain.handle('slides:edit-transform', (e, op: EditTransformOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editTransform, (e, op: EditTransformOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -1471,7 +1472,7 @@ export function registerSlidesIpc(): void {
 
   // Connector endpoint drag: box+flip re-derived from the two endpoints;
   // attach/detach writes a:stCxn/a:endCxn so the connector follows later shape moves
-  ipcMain.handle('slides:edit-connector-endpoints', (e, op: EditConnectorEndpointsOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editConnectorEndpoints, (e, op: EditConnectorEndpointsOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const baseWidthPx = session.opened.deck.size.cx / EMU_PER_PX_96
@@ -1493,7 +1494,7 @@ export function registerSlidesIpc(): void {
   })
 
   // Read-only: RenderSlide for every page of the current session (E2E driver/debug use, no state change)
-  ipcMain.handle('slides:get-render-slides', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.getRenderSlides, (e) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     return session.opened.deck.slides.map((_, i) => rebuildSlide(session, i))
@@ -1501,7 +1502,7 @@ export function registerSlidesIpc(): void {
 
   // Shim: the whole selection is one atomic transaction of setTransform ops — the
   // executor's plan step reproduces the legacy "every element must exist" gate.
-  ipcMain.handle('slides:batch-edit-transform', (e, op: BatchEditTransformOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.batchEditTransform, (e, op: BatchEditTransformOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const baseWidthPx = session.opened.deck.size.cx / EMU_PER_PX_96
@@ -1522,7 +1523,7 @@ export function registerSlidesIpc(): void {
   // AI batch surface: raw ops arrive as one transaction. The registry validates
   // (guided errors), the executor owns atomicity/rollback/journal; dry-run
   // rehearses the plan without touching the deck or its history.
-  ipcMain.handle('slides:apply-txn', (e, req: ApplyTxnOp): ApplyTxnResult | null => {
+  ipcMain.handle(SLIDES_CHANNELS.applyTxn, (e, req: ApplyTxnOp): ApplyTxnResult | null => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const ops = Array.isArray(req?.ops) ? (req.ops as Parameters<typeof runTxn>[1]['ops']) : []
@@ -1614,7 +1615,7 @@ export function registerSlidesIpc(): void {
   // single IPC, compile to ops (script-map), and apply atomically — the executor
   // owns validation, rollback and the journal. Autofit is a render concern and
   // stays here, mirroring the per-op shims the script used to fan out to.
-  ipcMain.handle('slides:apply-edit-script', (e, op: ApplyEditScriptOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.applyEditScript, (e, op: ApplyEditScriptOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const ops = mapScriptOps(session.opened, op)
@@ -1648,7 +1649,7 @@ export function registerSlidesIpc(): void {
   // the renderer's LLM call is built directly into a one-slide pptx with pptx-engine
   // primitives — no HTML intermediate. Returns a marker that slides:land-generated-pages redeems.
   ipcMain.handle(
-    'slides:local-page-generate',
+    SLIDES_CHANNELS.localPageGenerate,
     async (
       _e,
       op: { specJson: string },
@@ -1704,7 +1705,7 @@ export function registerSlidesIpc(): void {
   )
 
   ipcMain.handle(
-    'slides:land-generated-pages',
+    SLIDES_CHANNELS.landGeneratedPages,
     async (
       e,
       pageMarkers: string[],
@@ -1929,7 +1930,7 @@ export function registerSlidesIpc(): void {
     },
   )
 
-  ipcMain.handle('slides:new-blank', async (e, fitWidthPx: number): Promise<OpenResult> => {
+  ipcMain.handle(SLIDES_CHANNELS.newBlank, async (e, fitWidthPx: number): Promise<OpenResult> => {
     const opened = await openPptx(await createBlankPptx())
     sessions.set(e.sender.id, { path: '', opened, fitWidthPx, undoStack: [], redoStack: [] })
     scheduleHistoryNotify(sessions.get(e.sender.id)!)
@@ -1941,7 +1942,7 @@ export function registerSlidesIpc(): void {
     }
   })
 
-  ipcMain.handle('slides:add-element', (e, op: AddElementOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addElement, (e, op: AddElementOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const baseWidthPx = session.opened.deck.size.cx / EMU_PER_PX_96
@@ -1979,7 +1980,7 @@ export function registerSlidesIpc(): void {
 
   // Shim over the canonical op (see main/ops): the op owns validation/mutation/journal;
   // the shim keeps session lookup, undo bookkeeping, and RenderSlide rebuilding.
-  ipcMain.handle('slides:delete-element', (e, op: DeleteElementOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.deleteElement, (e, op: DeleteElementOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     pushHistory(session)
@@ -1995,7 +1996,7 @@ export function registerSlidesIpc(): void {
 
   // Shim over the canonical setStroke op: pt→EMU/angle conversion is surface translation
   // and stays here; validation/mutation/journal live in the op.
-  ipcMain.handle('slides:edit-stroke', (e, op: EditStrokeOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editStroke, (e, op: EditStrokeOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const patch = op.stroke
@@ -2036,7 +2037,7 @@ export function registerSlidesIpc(): void {
 
   // Mirror elements across their own axis: flipH/flipV is the only way to
   // point an arrow the other way — rotation cannot express a single-axis mirror
-  ipcMain.handle('slides:flip-elements', (e, op: FlipElementOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.flipElements, (e, op: FlipElementOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2053,7 +2054,7 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:edit-picture-src-rect', (e, op: EditPictureSrcRectOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editPictureSrcRect, (e, op: EditPictureSrcRectOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     let box: { x: number; y: number; cx: number; cy: number } | undefined
@@ -2081,7 +2082,7 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:group-elements', (e, op: GroupElementsOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.groupElements, (e, op: GroupElementsOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2092,7 +2093,7 @@ export function registerSlidesIpc(): void {
     return renderSlide ? { slide: renderSlide, groupId: r.records![0]!.created![0]! } : null
   })
 
-  ipcMain.handle('slides:ungroup-element', (e, op: UngroupElementOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.ungroupElement, (e, op: UngroupElementOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2103,7 +2104,7 @@ export function registerSlidesIpc(): void {
 
   // Shim over the canonical setBackground op (one slide per op; apply-to-all fans out;
   // the full-bleed backdrop repaint lives in the op). File dialogs stay here.
-  ipcMain.handle('slides:edit-background', async (e, op: EditBackgroundOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editBackground, async (e, op: EditBackgroundOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slides = session.opened.deck.slides
@@ -2192,7 +2193,7 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, op.fitWidthPx)
   })
 
-  ipcMain.handle('slides:edit-image-fill', async (e, op: EditFillImageOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editImageFill, async (e, op: EditFillImageOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -2248,7 +2249,7 @@ export function registerSlidesIpc(): void {
     return rebuildSlide(session, op.slideIndex)
   })
 
-  ipcMain.handle('slides:insert-image', async (e, slideIndex: number, fitWidthPx: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.insertImage, async (e, slideIndex: number, fitWidthPx: number) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[slideIndex]
@@ -2311,7 +2312,7 @@ export function registerSlidesIpc(): void {
 
   // Shim over the canonical setFill op: gradient normalization is surface translation
   // and stays here; validation/mutation/journal live in the op.
-  ipcMain.handle('slides:edit-fill', (e, op: EditFillOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editFill, (e, op: EditFillOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const fill =
@@ -2347,7 +2348,7 @@ export function registerSlidesIpc(): void {
     return rebuildSlide(session, op.slideIndex)
   })
 
-  ipcMain.handle('slides:add-slide', (e, op: AddSlideOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addSlide, (e, op: AddSlideOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2368,7 +2369,7 @@ export function registerSlidesIpc(): void {
   })
 
   // App-wide, so a slide copied in one tab can be pasted into another deck.
-  ipcMain.handle('slides:copy-slide', (e, slideIndex: number, pngBase64?: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.copySlide, (e, slideIndex: number, pngBase64?: string) => {
     const session = sessions.get(e.sender.id)
     if (!session) return false
     const bundle = copySlide(session.opened, slideIndex)
@@ -2379,7 +2380,7 @@ export function registerSlidesIpc(): void {
     return true
   })
 
-  ipcMain.handle('slides:has-slide-clipboard', () => slideClipboard !== null)
+  ipcMain.handle(SLIDES_CHANNELS.hasSlideClipboard, () => slideClipboard !== null)
 
   const performSlidePaste = (
     session: Session,
@@ -2409,7 +2410,7 @@ export function registerSlidesIpc(): void {
     }
   }
 
-  ipcMain.handle('slides:paste-slide', (e, op: PasteSlideOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.pasteSlide, (e, op: PasteSlideOp) => {
     const session = sessions.get(e.sender.id)
     if (!session || !slideClipboard) return null
     pushHistory(session)
@@ -2427,7 +2428,7 @@ export function registerSlidesIpc(): void {
 
   // Paste-options floater: undo the just-completed paste and redo it with another
   // mode. Refused when anything (edits, ⌘Z) touched the deck in between.
-  ipcMain.handle('slides:repaste-slide', (e, op: RepasteSlideOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.repasteSlide, (e, op: RepasteSlideOp) => {
     const session = sessions.get(e.sender.id)
     const rec = lastSlidePaste.get(e.sender.id)
     if (!session || !slideClipboard || !rec) return null
@@ -2449,7 +2450,7 @@ export function registerSlidesIpc(): void {
     return r
   })
 
-  ipcMain.handle('slides:add-blank-slide', (e, op: AddBlankSlideOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addBlankSlide, (e, op: AddBlankSlideOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2475,7 +2476,7 @@ export function registerSlidesIpc(): void {
     )
   }
 
-  ipcMain.handle('slides:add-slide-with-layout', (e, op: AddSlideWithLayoutOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addSlideWithLayout, (e, op: AddSlideWithLayoutOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     // 'builtin:' resolution may inject a layout part — do it before the undo snapshot
@@ -2498,7 +2499,7 @@ export function registerSlidesIpc(): void {
     }
   })
 
-  ipcMain.handle('slides:get-layouts', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.getLayouts, (e) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const layouts = listSlideLayouts(session.opened.archive)
@@ -2540,7 +2541,7 @@ export function registerSlidesIpc(): void {
     return buildMasterRenderSlide(session)
   }
 
-  ipcMain.handle('slides:master-enter', (e, fitWidthPx: number): MasterEnterResult | null => {
+  ipcMain.handle(SLIDES_CHANNELS.masterEnter, (e, fitWidthPx: number): MasterEnterResult | null => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     session.fitWidthPx = fitWidthPx
@@ -2559,7 +2560,7 @@ export function registerSlidesIpc(): void {
     return items.length ? { items } : null
   })
 
-  ipcMain.handle('slides:master-open', (e, partPath: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.masterOpen, (e, partPath: string) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = parseMasterPart(session.opened.archive, partPath)
@@ -2568,7 +2569,7 @@ export function registerSlidesIpc(): void {
     return buildMasterRenderSlide(session)
   })
 
-  ipcMain.handle('slides:master-close', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.masterClose, (e) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     session.masterEdit = null
@@ -2576,7 +2577,7 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, session.fitWidthPx)
   })
 
-  ipcMain.handle('slides:master-edit-text', (e, op: MasterEditTextOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.masterEditText, (e, op: MasterEditTextOp) => {
     const session = sessions.get(e.sender.id)
     const me = session?.masterEdit
     if (!session || !me) return null
@@ -2589,7 +2590,7 @@ export function registerSlidesIpc(): void {
     return masterEditDone(session)
   })
 
-  ipcMain.handle('slides:master-edit-transform', (e, op: MasterEditTransformOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.masterEditTransform, (e, op: MasterEditTransformOp) => {
     const session = sessions.get(e.sender.id)
     const me = session?.masterEdit
     if (!session || !me) return null
@@ -2632,7 +2633,7 @@ export function registerSlidesIpc(): void {
     return masterEditDone(session)
   })
 
-  ipcMain.handle('slides:master-edit-fill', (e, op: MasterEditFillOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.masterEditFill, (e, op: MasterEditFillOp) => {
     const session = sessions.get(e.sender.id)
     const me = session?.masterEdit
     if (!session || !me) return null
@@ -2660,7 +2661,7 @@ export function registerSlidesIpc(): void {
     return masterEditDone(session)
   })
 
-  ipcMain.handle('slides:master-edit-stroke', (e, op: MasterEditStrokeOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.masterEditStroke, (e, op: MasterEditStrokeOp) => {
     const session = sessions.get(e.sender.id)
     const me = session?.masterEdit
     if (!session || !me) return null
@@ -2675,7 +2676,7 @@ export function registerSlidesIpc(): void {
     return masterEditDone(session)
   })
 
-  ipcMain.handle('slides:master-delete-element', (e, op: MasterDeleteElementOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.masterDeleteElement, (e, op: MasterDeleteElementOp) => {
     const session = sessions.get(e.sender.id)
     const me = session?.masterEdit
     if (!session || !me) return null
@@ -2687,7 +2688,7 @@ export function registerSlidesIpc(): void {
     return masterEditDone(session)
   })
 
-  ipcMain.handle('slides:edit-picture-opacity', (e, op: EditPictureOpacityOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editPictureOpacity, (e, op: EditPictureOpacityOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2702,7 +2703,7 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:set-slide-size', (e, op: SetSlideSizeOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setSlideSize, (e, op: SetSlideSizeOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, { ops: [{ op: 'setSlideSize', cx: op.cx, cy: op.cy }] })
@@ -2711,12 +2712,12 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, session.fitWidthPx)
   })
 
-  ipcMain.handle('slides:get-slide-size', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.getSlideSize, (e) => {
     const session = sessions.get(e.sender.id)
     return session ? { ...session.opened.deck.size } : null
   })
 
-  ipcMain.handle('slides:set-slide-layout', (e, op: SetSlideLayoutOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setSlideLayout, (e, op: SetSlideLayoutOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     pushHistory(session)
@@ -2741,7 +2742,7 @@ export function registerSlidesIpc(): void {
     return rebuildSlide(session, op.slideIndex)
   })
 
-  ipcMain.handle('slides:find-replace', (e, op: FindReplaceOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.findReplace, (e, op: FindReplaceOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2762,14 +2763,14 @@ export function registerSlidesIpc(): void {
     return { count, slides: buildAllRenderSlides(session.opened, session.fitWidthPx) }
   })
 
-  ipcMain.handle('slides:delete-slide', (e, slideIndex: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.deleteSlide, (e, slideIndex: number) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, { ops: [{ op: 'deleteSlide', target: { slide: slideIndex } }] })
     return r ? buildAllRenderSlides(session.opened, session.fitWidthPx) : null
   })
 
-  ipcMain.handle('slides:edit-table-cell', (e, op: EditTableCellOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editTableCell, (e, op: EditTableCellOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2786,7 +2787,7 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:table-merge', (e, op: TableMergeIpcOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.tableMerge, (e, op: TableMergeIpcOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2807,7 +2808,7 @@ export function registerSlidesIpc(): void {
       : null
   })
 
-  ipcMain.handle('slides:table-structure', (e, op: TableStructureIpcOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.tableStructure, (e, op: TableStructureIpcOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2828,7 +2829,7 @@ export function registerSlidesIpc(): void {
       : null
   })
 
-  ipcMain.handle('slides:set-table-row-height', (e, op: SetTableRowHeightOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setTableRowHeight, (e, op: SetTableRowHeightOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const baseWidthPx = session.opened.deck.size.cx / EMU_PER_PX_96
@@ -2846,7 +2847,7 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:set-table-cell-anchor', (e, op: SetTableCellAnchorOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setTableCellAnchor, (e, op: SetTableCellAnchorOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -2863,7 +2864,7 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:set-table-col-width', (e, op: SetTableColWidthOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setTableColWidth, (e, op: SetTableColWidthOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const baseWidthPx = session.opened.deck.size.cx / EMU_PER_PX_96
@@ -2881,7 +2882,7 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:edit-table-style', (e, op: EditTableStyleOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editTableStyle, (e, op: EditTableStyleOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -2951,7 +2952,7 @@ export function registerSlidesIpc(): void {
     return { slide: rebuilt, sourceId: newId }
   })
 
-  ipcMain.handle('slides:edit-chart', async (e, op: EditChartOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.editChart, async (e, op: EditChartOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -3009,12 +3010,12 @@ export function registerSlidesIpc(): void {
     return { slide: rebuilt, sourceId: newId }
   })
 
-  ipcMain.handle('slides:chart-color-schemes', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.chartColorSchemes, (e) => {
     const session = sessions.get(e.sender.id)
     return session ? chartColorSchemes(session.opened) : null
   })
 
-  ipcMain.handle('slides:get-chart-data', (e, slideIndex: number, sourceId: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.getChartData, (e, slideIndex: number, sourceId: string) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[slideIndex]
@@ -3022,7 +3023,7 @@ export function registerSlidesIpc(): void {
     return getChartElementData(slide, sourceId)
   })
 
-  ipcMain.handle('slides:reorder-element', (e, op: ReorderElementOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.reorderElement, (e, op: ReorderElementOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -3034,7 +3035,7 @@ export function registerSlidesIpc(): void {
   })
 
   ipcMain.handle(
-    'slides:change-shape',
+    SLIDES_CHANNELS.changeShape,
     (e, op: { slideIndex: number; sourceId: string; prst: string; groupId?: string }) => {
       const session = sessions.get(e.sender.id)
       if (!session) return null
@@ -3053,7 +3054,7 @@ export function registerSlidesIpc(): void {
   )
 
   ipcMain.handle(
-    'slides:set-shape-adjust',
+    SLIDES_CHANNELS.setShapeAdjust,
     (
       e,
       op: {
@@ -3103,7 +3104,7 @@ export function registerSlidesIpc(): void {
   )
 
   ipcMain.handle(
-    'slides:set-text-anchor',
+    SLIDES_CHANNELS.setTextAnchor,
     (e, op: { slideIndex: number; sourceId: string; anchor: 'top' | 'middle' | 'bottom' }) => {
       const session = sessions.get(e.sender.id)
       if (!session) return null
@@ -3121,7 +3122,7 @@ export function registerSlidesIpc(): void {
   )
 
   ipcMain.handle(
-    'slides:set-text-body-props',
+    SLIDES_CHANNELS.setTextBodyProps,
     (
       e,
       op: {
@@ -3162,7 +3163,7 @@ export function registerSlidesIpc(): void {
   )
 
   ipcMain.handle(
-    'slides:set-effects',
+    SLIDES_CHANNELS.setEffects,
     (e, op: { slideIndex: number; sourceId: string; effects: SetEffectsPatch }) => {
       const session = sessions.get(e.sender.id)
       if (!session) return null
@@ -3189,7 +3190,7 @@ export function registerSlidesIpc(): void {
     }
   }
 
-  ipcMain.handle('slides:clipboard-external', () => {
+  ipcMain.handle(SLIDES_CHANNELS.clipboardExternal, () => {
     if (slideClipboard && clipboardMarker('io.genoffice.slides.slide')) return { kind: 'slide' }
     if (elementClipboard && clipboardMarker('io.genoffice.slides.elements'))
       return { kind: 'internal' }
@@ -3201,14 +3202,14 @@ export function registerSlidesIpc(): void {
   })
 
   // Menu-enable probe: is there anything a paste would act on? (no image decode)
-  ipcMain.handle('slides:clipboard-probe', () => {
+  ipcMain.handle(SLIDES_CHANNELS.clipboardProbe, () => {
     if (slideClipboard && clipboardMarker('io.genoffice.slides.slide')) return true
     if (elementClipboard && clipboardMarker('io.genoffice.slides.elements')) return true
     if (clipboard.availableFormats().some((f) => f.startsWith('image/'))) return true
     return clipboard.readText().trim().length > 0
   })
 
-  ipcMain.handle('slides:copy-elements', (e, op: CopyElementsOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.copyElements, (e, op: CopyElementsOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return 0
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -3225,7 +3226,7 @@ export function registerSlidesIpc(): void {
     return items.length
   })
 
-  ipcMain.handle('slides:paste-elements', (e, op: PasteElementsOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.pasteElements, (e, op: PasteElementsOp) => {
     const session = sessions.get(e.sender.id)
     const clip = elementClipboard
     if (!session || !clip?.items.length) return null
@@ -3253,7 +3254,7 @@ export function registerSlidesIpc(): void {
   })
 
   // Duplicate in place (⌘D / Option+drag copy): does not touch the app clipboard; the caller supplies the offset
-  ipcMain.handle('slides:duplicate-elements', (e, op: DuplicateElementsOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.duplicateElements, (e, op: DuplicateElementsOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -3283,7 +3284,7 @@ export function registerSlidesIpc(): void {
     return rebuilt ? { slide: rebuilt, sourceIds: r.records![0]!.created! } : null
   })
 
-  ipcMain.handle('slides:add-table', (e, op: AddTableOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addTable, (e, op: AddTableOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     if (!session.opened.deck.slides[op.slideIndex]) return null
@@ -3310,7 +3311,7 @@ export function registerSlidesIpc(): void {
   // Freehand ink stroke commit: one transparent PNG picture element per stroke (cNvPr name has
   // the aislides-ink prefix, descr stores the vector points as JSON); undo/save/thumbnails all
   // go through the existing picture-element pipeline.
-  ipcMain.handle('slides:add-ink', (e, op: AddInkOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addInk, (e, op: AddInkOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -3344,7 +3345,7 @@ export function registerSlidesIpc(): void {
 
   // ── New insert capabilities: charts / SmartArt / icon bitmaps / audio-video / 3D / links / header-footer ──
 
-  ipcMain.handle('slides:add-chart', (e, op: AddChartOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addChart, (e, op: AddChartOp) => {
     const session = sessions.get(e.sender.id)
     if (!session || !session.opened.deck.slides[op.slideIndex]) return null
     const baseWidthPx = session.opened.deck.size.cx / EMU_PER_PX_96
@@ -3370,7 +3371,7 @@ export function registerSlidesIpc(): void {
     return rebuilt ? { slide: rebuilt, sourceId: r.records![0]!.created![0]! } : null
   })
 
-  ipcMain.handle('slides:add-smartart', (e, op: AddSmartArtOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addSmartart, (e, op: AddSmartArtOp) => {
     const session = sessions.get(e.sender.id)
     if (!session || !session.opened.deck.slides[op.slideIndex]) return null
     const baseWidthPx = session.opened.deck.size.cx / EMU_PER_PX_96
@@ -3393,7 +3394,7 @@ export function registerSlidesIpc(): void {
     return rebuilt ? { slide: rebuilt, sourceId: r.records![0]!.created![0]! } : null
   })
 
-  ipcMain.handle('slides:add-image-bytes', (e, op: AddImageBytesOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addImageBytes, (e, op: AddImageBytesOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -3424,7 +3425,7 @@ export function registerSlidesIpc(): void {
     return rebuilt ? { slide: rebuilt, sourceId: r.records![0]!.created![0]! } : null
   })
 
-  ipcMain.handle('slides:replace-picture-bytes', (e, op: ReplacePictureBytesOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.replacePictureBytes, (e, op: ReplacePictureBytesOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const slide = session.opened.deck.slides[op.slideIndex]
@@ -3446,7 +3447,7 @@ export function registerSlidesIpc(): void {
 
   // Show a dialog to pick video/audio and embed it. Video poster frame prefers the system thumbnail (QuickLook), falling back to a solid color on failure.
   ipcMain.handle(
-    'slides:insert-media',
+    SLIDES_CHANNELS.insertMedia,
     async (e, slideIndex: number, kind: 'video' | 'audio', fitWidthPx: number) => {
       const session = sessions.get(e.sender.id)
       if (!session || !session.opened.deck.slides[slideIndex]) return null
@@ -3561,7 +3562,7 @@ export function registerSlidesIpc(): void {
     aac: 'audio/aac',
     ogg: 'audio/ogg',
   }
-  ipcMain.handle('slides:media-data', (e, slideIndex: number, sourceId: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.mediaData, (e, slideIndex: number, sourceId: string) => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[slideIndex]
     if (!session || !slide) return null
@@ -3583,7 +3584,7 @@ export function registerSlidesIpc(): void {
   })
 
   // Media recorded by the renderer (screen-recording webm): placed centered at 16:9
-  ipcMain.handle('slides:add-media-bytes', (e, op: AddMediaBytesOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addMediaBytes, (e, op: AddMediaBytesOp) => {
     const session = sessions.get(e.sender.id)
     if (!session || !session.opened.deck.slides[op.slideIndex]) return null
     const deckSize = session.opened.deck.size
@@ -3615,7 +3616,7 @@ export function registerSlidesIpc(): void {
 
   // Record narration: per slide, replace any earlier narration clip with the new one (a small
   // speaker icon in the bottom-right corner) and save the dwell as the slide's timing — one undo step.
-  ipcMain.handle('slides:add-narration', (e, op: AddNarrationOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addNarration, (e, op: AddNarrationOp) => {
     const session = sessions.get(e.sender.id)
     if (!session || !op || !Array.isArray(op.items)) return null
     const slides = session.opened.deck.slides
@@ -3661,7 +3662,7 @@ export function registerSlidesIpc(): void {
   })
 
   // 3D model (simplified): glb embed + poster placeholder image
-  ipcMain.handle('slides:insert-model3d', async (e, slideIndex: number, fitWidthPx: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.insertModel3d, async (e, slideIndex: number, fitWidthPx: number) => {
     const session = sessions.get(e.sender.id)
     if (!session || !session.opened.deck.slides[slideIndex]) return null
     const parent = dialogParent()
@@ -3711,7 +3712,7 @@ export function registerSlidesIpc(): void {
     return rebuilt ? { slide: rebuilt, sourceId: txn.records![0]!.created![0]! } : null
   })
 
-  ipcMain.handle('slides:set-link', (e, op: SetLinkOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setLink, (e, op: SetLinkOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -3720,13 +3721,13 @@ export function registerSlidesIpc(): void {
     return r ? rebuildSlide(session, op.slideIndex) : null
   })
 
-  ipcMain.handle('slides:get-link', (e, slideIndex: number, sourceId: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.getLink, (e, slideIndex: number, sourceId: string) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     return getElementLink(session.opened, slideIndex, sourceId)
   })
 
-  ipcMain.handle('slides:get-slide-links', (e, slideIndex: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.getSlideLinks, (e, slideIndex: number) => {
     const session = sessions.get(e.sender.id)
     if (!session) return []
     return getSlideLinks(session.opened, slideIndex).map(({ elementId, target }) => ({
@@ -3735,7 +3736,7 @@ export function registerSlidesIpc(): void {
     }))
   })
 
-  ipcMain.handle('slides:get-run-links', (e, slideIndex: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.getRunLinks, (e, slideIndex: number) => {
     const session = sessions.get(e.sender.id)
     if (!session) return []
     return getRunLinks(session.opened, slideIndex).map(({ elementId, ...rest }) => ({
@@ -3744,7 +3745,7 @@ export function registerSlidesIpc(): void {
     }))
   })
 
-  ipcMain.handle('slides:apply-header-footer', (e, op: HeaderFooterOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.applyHeaderFooter, (e, op: HeaderFooterOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -3765,7 +3766,7 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, op.fitWidthPx)
   })
 
-  ipcMain.handle('slides:get-header-footer', (e, slideIndex: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.getHeaderFooter, (e, slideIndex: number) => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[slideIndex]
     return slide ? readHeaderFooter(slide) : { footer: null, slideNum: false, date: null }
@@ -3776,7 +3777,7 @@ export function registerSlidesIpc(): void {
   // (real-world decks have almost entirely explicit colors, so swapping only the theme changes
   // nothing visually). Element resolved colors come from the parse-time inheritance chain, so
   // after the surgery the deck reparses in memory; undo snapshots roll back as usual.
-  ipcMain.handle('slides:apply-theme', (e, op: ApplyThemeOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.applyTheme, (e, op: ApplyThemeOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const payload = {
@@ -3811,7 +3812,7 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, op.fitWidthPx)
   })
 
-  ipcMain.handle('slides:set-transition', (e, op: SetTransitionOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setTransition, (e, op: SetTransitionOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return false
     const slides = session.opened.deck.slides
@@ -3824,14 +3825,14 @@ export function registerSlidesIpc(): void {
     return r !== null
   })
 
-  ipcMain.handle('slides:get-transition', (e, slideIndex: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.getTransition, (e, slideIndex: number) => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[slideIndex]
     return slide ? getSlideTransition(slide) : 'none'
   })
 
   // Rehearsal timing save: batch-write each page's auto-advance time (<p:transition advTm>, ms)
-  ipcMain.handle('slides:set-advance-times', (e, op: SetAdvanceTimesOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setAdvanceTimes, (e, op: SetAdvanceTimesOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return false
     const slides = session.opened.deck.slides
@@ -3848,18 +3849,18 @@ export function registerSlidesIpc(): void {
   })
 
   // Saved auto-advance times per slide (ms, null = advance on click): what a show on timings follows
-  ipcMain.handle('slides:get-advance-times', (e): Array<number | null> => {
+  ipcMain.handle(SLIDES_CHANNELS.getAdvanceTimes, (e): Array<number | null> => {
     const session = sessions.get(e.sender.id)
     return session ? session.opened.deck.slides.map((s) => getSlideAdvanceTime(s)) : []
   })
 
   // ── Set Up Show (ppt/presProps.xml <p:showPr>) ──
-  ipcMain.handle('slides:get-show-settings', (e): ShowSettings => {
+  ipcMain.handle(SLIDES_CHANNELS.getShowSettings, (e): ShowSettings => {
     const session = sessions.get(e.sender.id)
     return session ? getShowSettings(session.opened) : { ...DEFAULT_SHOW_SETTINGS }
   })
 
-  ipcMain.handle('slides:set-show-settings', (e, settings: ShowSettings): ShowSettings | null => {
+  ipcMain.handle(SLIDES_CHANNELS.setShowSettings, (e, settings: ShowSettings): ShowSettings | null => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, { ops: [{ op: 'setShowSettings', settings }] })
@@ -3869,7 +3870,7 @@ export function registerSlidesIpc(): void {
   })
 
   // ── Shape animations (<p:timing>; the spid <-> temporary element id mapping happens here) ──
-  ipcMain.handle('slides:get-animations', (e, slideIndex: number): AnimationItem[] => {
+  ipcMain.handle(SLIDES_CHANNELS.getAnimations, (e, slideIndex: number): AnimationItem[] => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[slideIndex]
     if (!slide) return []
@@ -3906,7 +3907,7 @@ export function registerSlidesIpc(): void {
   })
 
   // Pairing keys for Morph transitions: sourceId changes on every reparse, so match across pages by cNvPr id/name
-  ipcMain.handle('slides:get-shape-keys', (e, slideIndex: number): ShapeKey[] => {
+  ipcMain.handle(SLIDES_CHANNELS.getShapeKeys, (e, slideIndex: number): ShapeKey[] => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[slideIndex]
     if (!slide) return []
@@ -3917,7 +3918,7 @@ export function registerSlidesIpc(): void {
     }))
   })
 
-  ipcMain.handle('slides:set-animations', (e, op: SetAnimationsOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setAnimations, (e, op: SetAnimationsOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return false
     const r = sessionTxn(session, {
@@ -3926,7 +3927,7 @@ export function registerSlidesIpc(): void {
     return r !== null
   })
 
-  ipcMain.handle('slides:set-hidden', (e, op: SetSlideHiddenOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setHidden, (e, op: SetSlideHiddenOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -3936,7 +3937,7 @@ export function registerSlidesIpc(): void {
   })
 
   // ── Section management: presentation.xml surgery, riding on snapshot undo and savePptx ──
-  ipcMain.handle('slides:get-sections', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.getSections, (e) => {
     const session = sessions.get(e.sender.id)
     return session ? getSections(session.opened) : []
   })
@@ -3951,27 +3952,27 @@ export function registerSlidesIpc(): void {
     return r.records![0]!.after
   }
 
-  ipcMain.handle('slides:set-sections', (e, sections: SectionInfo[]) => {
+  ipcMain.handle(SLIDES_CHANNELS.setSections, (e, sections: SectionInfo[]) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     if (!sectionShim(e, { op: 'setSections', sections })) return null
     return getSections(session.opened)
   })
 
-  ipcMain.handle('slides:add-section', (e, op: AddSectionOp) =>
+  ipcMain.handle(SLIDES_CHANNELS.addSection, (e, op: AddSectionOp) =>
     sectionShim(e, { op: 'addSection', atSlideIndex: op.atSlideIndex, name: op.name }),
   )
 
-  ipcMain.handle('slides:rename-section', (e, op: RenameSectionOp) =>
+  ipcMain.handle(SLIDES_CHANNELS.renameSection, (e, op: RenameSectionOp) =>
     sectionShim(e, { op: 'renameSection', id: op.id, name: op.name }),
   )
 
-  ipcMain.handle('slides:remove-section', (e, op: RemoveSectionOp) =>
+  ipcMain.handle(SLIDES_CHANNELS.removeSection, (e, op: RemoveSectionOp) =>
     sectionShim(e, { op: 'removeSection', id: op.id }),
   )
 
   // Drag to reorder slides (sldIdLst + deck.slides + section membership); must send back the full RenderSlide set
-  ipcMain.handle('slides:move-slide', (e, op: MoveSlideOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.moveSlide, (e, op: MoveSlideOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const r = sessionTxn(session, {
@@ -3986,7 +3987,7 @@ export function registerSlidesIpc(): void {
   })
 
   // Moving a whole section changes slide order (sldIdLst + deck.slides); must send back the full RenderSlide set
-  ipcMain.handle('slides:move-section', (e, op: MoveSectionOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.moveSection, (e, op: MoveSectionOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const sections = sectionShim(e, { op: 'moveSection', id: op.id, dir: op.dir })
@@ -3998,13 +3999,13 @@ export function registerSlidesIpc(): void {
   })
 
   // ── Speaker notes / comments (archive surgery, riding on snapshot undo and savePptx) ────
-  ipcMain.handle('slides:get-notes', (e, slideIndex: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.getNotes, (e, slideIndex: number) => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[slideIndex]
     return session && slide ? getSlideNotes(session.opened.archive, slide.path) : ''
   })
 
-  ipcMain.handle('slides:set-notes', (e, op: SetNotesOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.setNotes, (e, op: SetNotesOp) => {
     const session = sessions.get(e.sender.id)
     if (!session) return false
     const r = sessionTxn(session, {
@@ -4014,13 +4015,13 @@ export function registerSlidesIpc(): void {
     return r !== null
   })
 
-  ipcMain.handle('slides:get-comments', (e, slideIndex: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.getComments, (e, slideIndex: number) => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[slideIndex]
     return session && slide ? getSlideComments(session.opened.archive, slide.path) : []
   })
 
-  ipcMain.handle('slides:add-comment', (e, op: AddCommentOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.addComment, (e, op: AddCommentOp) => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[op.slideIndex]
     if (!session || !slide) return null
@@ -4039,7 +4040,7 @@ export function registerSlidesIpc(): void {
     return getSlideComments(session.opened.archive, slide.path)
   })
 
-  ipcMain.handle('slides:delete-comment', (e, op: DeleteCommentOp) => {
+  ipcMain.handle(SLIDES_CHANNELS.deleteComment, (e, op: DeleteCommentOp) => {
     const session = sessions.get(e.sender.id)
     const slide = session?.opened.deck.slides[op.slideIndex]
     if (!session || !slide) return null
@@ -4059,27 +4060,27 @@ export function registerSlidesIpc(): void {
   })
 
   // System clipboard while text-editing (menu commands are echoed back by the renderer per context)
-  ipcMain.handle('slides:native-clipboard', (e, op: 'cut' | 'copy' | 'paste') => {
+  ipcMain.handle(SLIDES_CHANNELS.nativeClipboard, (e, op: 'cut' | 'copy' | 'paste') => {
     if (op === 'cut') e.sender.cut()
     else if (op === 'copy') e.sender.copy()
     else e.sender.paste()
   })
 
-  ipcMain.handle('slides:history-batch-begin', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.historyBatchBegin, (e) => {
     const session = sessions.get(e.sender.id)
     if (!session) return false
     beginHistoryBatch(session)
     return true
   })
 
-  ipcMain.handle('slides:history-batch-end', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.historyBatchEnd, (e) => {
     const session = sessions.get(e.sender.id)
     if (!session) return null
     const before = endHistoryBatch(session)
     return before ? registerAiSnapshot(session, before) : null
   })
 
-  ipcMain.handle('slides:ai-snapshot-restore', (e, id: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.aiSnapshotRestore, (e, id: number) => {
     const session = sessions.get(e.sender.id)
     if (!session || session.masterEdit || session.historyBatch) return null
     if (!restoreAiSnapshot(session, id)) return null
@@ -4087,7 +4088,7 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, session.fitWidthPx)
   })
 
-  ipcMain.handle('slides:undo', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.undo, (e) => {
     const session = sessions.get(e.sender.id)
     // Undo disabled in master view: the masterEdit.slide model cannot roll back with snapshots (v1 trade-off; undoable after exiting)
     if (!session || session.masterEdit) return null
@@ -4100,7 +4101,7 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, session.fitWidthPx)
   })
 
-  ipcMain.handle('slides:redo', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.redo, (e) => {
     const session = sessions.get(e.sender.id)
     if (!session || session.masterEdit) return null
     settleStaleHistoryBatch(session)
@@ -4112,7 +4113,7 @@ export function registerSlidesIpc(): void {
     return buildAllRenderSlides(session.opened, session.fitWidthPx)
   })
 
-  ipcMain.handle('slides:is-dirty', (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.isDirty, (e) => {
     const session = sessions.get(e.sender.id)
     if (!session) return false
     return (
@@ -4123,7 +4124,7 @@ export function registerSlidesIpc(): void {
     )
   })
 
-  ipcMain.handle('slides:save', async (e) => {
+  ipcMain.handle(SLIDES_CHANNELS.save, async (e) => {
     const session = sessions.get(e.sender.id)
     if (!session) return { ok: false, error: 'no file open' }
     // Untitled (new blank file): the first save lands silently in the drafts folder (Save As keeps its dialog)
@@ -4156,7 +4157,7 @@ export function registerSlidesIpc(): void {
     }
   })
 
-  ipcMain.handle('slides:save-as', async (e, defaultName: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.saveAs, async (e, defaultName: string) => {
     const session = sessions.get(e.sender.id)
     if (!session) return { ok: false, error: 'no file open' }
     const parent = dialogParent()
@@ -4188,7 +4189,7 @@ export function registerSlidesIpc(): void {
 
   // ── Export (PDF / images): the renderer renders hi-res PNGs with offscreen Konva; the main process handles dialogs/writing ──
 
-  ipcMain.handle('slides:pick-export-dir', async () => {
+  ipcMain.handle(SLIDES_CHANNELS.pickExportDir, async () => {
     const parent = dialogParent()
     const options = {
       title: tm('dlgPickExportDir'),
@@ -4200,7 +4201,7 @@ export function registerSlidesIpc(): void {
   })
 
   ipcMain.handle(
-    'slides:export-images',
+    SLIDES_CHANNELS.exportImages,
     async (_e, op: ExportImagesOp): Promise<ExportImagesResult> => {
       try {
         // Zero-padding width follows the total page count (3 digits for ≥100 pages)
@@ -4218,7 +4219,7 @@ export function registerSlidesIpc(): void {
     },
   )
 
-  ipcMain.handle('slides:pick-export-pdf-path', async (_e, defaultName: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.pickExportPdfPath, async (_e, defaultName: string) => {
     const parent = dialogParent()
     const options = {
       title: tm('dlgExportPdf'),
@@ -4229,7 +4230,7 @@ export function registerSlidesIpc(): void {
     return r.canceled || !r.filePath ? null : r.filePath
   })
 
-  ipcMain.handle('slides:export-pdf', async (_e, op: ExportPdfOp): Promise<ExportPdfResult> => {
+  ipcMain.handle(SLIDES_CHANNELS.exportPdf, async (_e, op: ExportPdfOp): Promise<ExportPdfResult> => {
     // PDF page size: fixed 7.5in height, width by slide ratio (16:9 -> 13.333in, 4:3 -> 10in)
     const heightIn = 7.5
     const widthIn = Math.round((op.widthPx / op.heightPx) * heightIn * 1000) / 1000
@@ -4268,7 +4269,7 @@ html, body { margin: 0; padding: 0; }
   })
 
   ipcMain.handle(
-    'slides:print',
+    SLIDES_CHANNELS.print,
     async (e, op: PrintSlidesOp): Promise<{ ok: boolean; error?: string }> => {
       // Page assembly is shared with the renderer's print-preview pane (print-html.ts)
       const html = buildPrintDocumentHtml({
@@ -4327,7 +4328,7 @@ html, body { margin: 0; padding: 0; }
     },
   )
 
-  ipcMain.handle('slides:recent', () => readRecent())
+  ipcMain.handle(SLIDES_CHANNELS.recent, () => readRecent())
 
   // ── Show fullscreen: macOS native fullscreen is an animated Space transition, so
   // the slideshow would render windowed for ~1s mid-flight. Instead one call covers
@@ -4340,7 +4341,7 @@ html, body { margin: 0; padding: 0; }
   // presenter→show handoffs flip off→on within a tick, and honoring the off
   // immediately makes the window visibly bounce. ──
   let showFsRelease: ReturnType<typeof setTimeout> | null = null
-  ipcMain.handle('slides:show-fullscreen', (e, on: boolean) => {
+  ipcMain.handle(SLIDES_CHANNELS.showFullscreen, (e, on: boolean) => {
     const win = BrowserWindow.fromWebContents(e.sender) ?? windowRefs.shellWindow
     if (!win || win.isDestroyed()) return
     const wc = e.sender
@@ -4403,7 +4404,7 @@ export function registerProjectIpc(): void {
   slidesProjectIpcRegistered = true
 
   ipcMain.handle(
-    'project:resolveChat',
+    SLIDES_CHANNELS.projectResolveChat,
     (_event, args: { filePath: string | null; tempChatId?: string }) => {
       const store = getSlidesProjectStore()
       store.ensureDefaultProject()
@@ -4415,7 +4416,7 @@ export function registerProjectIpc(): void {
   )
 
   ipcMain.handle(
-    'project:appendChat',
+    SLIDES_CHANNELS.projectAppendChat,
     (
       _event,
       args: {
@@ -4444,14 +4445,14 @@ export function registerProjectIpc(): void {
   )
 
   ipcMain.handle(
-    'project:loadChat',
+    SLIDES_CHANNELS.projectLoadChat,
     (_event, args: { projectId: string; chatId: string; limit?: number }) => {
       return getSlidesProjectStore().loadChat(args.projectId, args.chatId, args.limit ?? 200)
     },
   )
 
   ipcMain.handle(
-    'project:rebindChat',
+    SLIDES_CHANNELS.projectRebindChat,
     (
       _event,
       args: { projectId: string; tempChatId: string; newChatId?: string; newFilePath?: string },
@@ -4515,7 +4516,7 @@ export function createSlidesWindow(openPath?: string | null): BrowserWindow {
     win.webContents.once('did-finish-load', async () => {
       try {
         const result = await openAndBuild(win.webContents, openPath, 1280)
-        win.webContents.send('slides:opened', result)
+        win.webContents.send(SLIDES_CHANNELS.opened, result)
       } catch {
         /* ignore */
       }
@@ -4582,7 +4583,7 @@ export function setSlidesCloseTabHook(fn: (() => void) | null): void {
 export function buildSlidesMenu(): Menu {
   const send = (cmd: string) =>
     (windowRefs.activeWebContents ?? BrowserWindow.getFocusedWindow()?.webContents)?.send(
-      'slides:menu',
+      SLIDES_CHANNELS.menu,
       cmd,
     )
   const isMac = process.platform === 'darwin'
@@ -4742,7 +4743,7 @@ export function startSlidesStandalone(): void {
       const win = BrowserWindow.getAllWindows()[0]
       if (win) {
         openAndBuild(win.webContents, path, 1280).then((r) =>
-          win.webContents.send('slides:opened', r),
+          win.webContents.send(SLIDES_CHANNELS.opened, r),
         )
         win.focus()
       } else createSlidesWindow(path)

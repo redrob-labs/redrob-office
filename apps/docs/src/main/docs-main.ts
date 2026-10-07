@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { DOCS_CHANNELS } from '../shared/ipc'
 import {
   existsSync,
   mkdirSync,
@@ -2058,7 +2059,7 @@ export function openExternalDocx(filePath: string | null): void {
       if (win.isMinimized()) win.restore()
       win.show()
       win.focus()
-      win.webContents.send('docs:opened', result)
+      win.webContents.send(DOCS_CHANNELS.opened, result)
     })
     .catch((err) => dialog.showErrorBox(tm('dlgOpenDoc'), String(err)))
 }
@@ -2135,7 +2136,7 @@ export function docsFileRenamed(wc: WebContents, oldPath: string, newPath: strin
   // an encrypted document's password must follow the path, or the next save
   // finds no password under the new name and silently writes plaintext
   renameDocPassword(wc.id, oldPath, newPath)
-  wc.send('docs:renamed', { oldPath, newPath })
+  wc.send(DOCS_CHANNELS.renamed, { oldPath, newPath })
 }
 
 /** keep a renamed file at its old position in the recent/starred lists */
@@ -2322,7 +2323,7 @@ export function teardownDocsRenderer(contents: WebContents): void {
   pdfWritablePaths.delete(contents.id)
   docDiskStates.delete(contents.id)
   forgetDocPasswords(contents.id)
-  if (!contents.isDestroyed()) contents.send('docs:teardown')
+  if (!contents.isDestroyed()) contents.send(DOCS_CHANNELS.teardown)
 }
 
 // ── Crash recovery: dirty renderers push a copy every 30s
@@ -2627,7 +2628,7 @@ const activeAiStreams = new Map<string, AbortController>()
  * sheets' standalone AI handlers use the same channel names.
  */
 export function registerAiIpc(): void {
-  ipcMain.handle('ai:get-settings', (): AiSettings => {
+  ipcMain.handle(DOCS_CHANNELS.aiGetSettings, (): AiSettings => {
     const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(SETTINGS_PATH(), {})
     // pre-lock legacy file: genspark selected with cloud tools opted out. The
     // settings UI locks the tools switch on with genspark and apps read this
@@ -2648,20 +2649,20 @@ export function registerAiIpc(): void {
   // Whether Redrob-hosted image tools may be offered: false only once the route is known
   // to be missing (docs/console-requests/office-ai-routes.md). The channel name is kept from
   // the port for the renderers; nothing behind it talks to Genspark.
-  ipcMain.handle('ai:gsk-status', (): GenSparkAccountStatus => ({ loggedIn: hostedToolSupport().images !== false }))
+  ipcMain.handle(DOCS_CHANNELS.aiGskStatus, (): GenSparkAccountStatus => ({ loggedIn: hostedToolSupport().images !== false }))
 
   // "Sign in to Redrob": the shell runs Console connect and hands the key to the engine
-  ipcMain.handle('ai:gsk-login', () => redrobSignIn())
+  ipcMain.handle(DOCS_CHANNELS.aiGskLogin, () => redrobSignIn())
 
   // A key typed in Settings goes to the engine's credential store and is dropped here:
   // the file keeps preferences and the model name only. If the engine refuses it, the
   // save fails visibly and nothing is written, so the key is neither kept nor lost.
-  ipcMain.handle('ai:set-settings', async (_event, settings: AiSettings) => {
+  ipcMain.handle(DOCS_CHANNELS.aiSetSettings, async (_event, settings: AiSettings) => {
     const next = holdsKeys(settings) ? (await custodyKeys(settings, await currentEngineTarget())).settings : withoutKeys(settings)
     writeJson(SETTINGS_PATH(), next)
   })
 
-  ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
+  ipcMain.handle(DOCS_CHANNELS.aiStream, async (event, request: AiStreamRequest) => {
     const { requestId, settings, system, messages } = request
     const tools = request.tools ?? []
     const maxTokens = request.maxTokens ?? maxOutputTokensOf(settings)
@@ -2669,7 +2670,7 @@ export function registerAiIpc(): void {
     // the engine holds the credential; the slot only names a model
     const config = settings.providers?.[provider] ?? { apiKey: '', model: '' }
     const send = (chunk: AiStreamChunk) => {
-      if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
+      if (!event.sender.isDestroyed()) event.sender.send(DOCS_CHANNELS.aiStreamChunk, chunk)
     }
     // The Redrob engine ignores settings.model and always wires `auto`; fresh
     // defaults leave model empty, so an empty model must not fail preflight.
@@ -2726,17 +2727,17 @@ export function registerAiIpc(): void {
     }
   })
 
-  ipcMain.handle('ai:stream-cancel', (_event, requestId: string) => {
+  ipcMain.handle(DOCS_CHANNELS.aiStreamCancel, (_event, requestId: string) => {
     activeAiStreams.get(requestId)?.abort()
   })
 
   // what a model can take, as the engine reports it (every editor shares this handler)
-  ipcMain.handle('ai:capabilities', (_event, model: unknown) =>
+  ipcMain.handle(DOCS_CHANNELS.aiCapabilities, (_event, model: unknown) =>
     readModelCapabilities(typeof model === 'string' ? model : ''),
   )
 
   // shared search tools (content + images): Serper with DuckDuckGo fallback (same source as slides/sheets)
-  ipcMain.handle('ai:web-search', async (_event, query: string, maxResults?: number) => {
+  ipcMain.handle(DOCS_CHANNELS.aiWebSearch, async (_event, query: string, maxResults?: number) => {
     try {
       return await webSearch(
         String(query),
@@ -2746,7 +2747,7 @@ export function registerAiIpc(): void {
       return { results: [], method: 'error', error: String(err) }
     }
   })
-  ipcMain.handle('ai:image-search', async (_event, query: string, maxResults?: number) => {
+  ipcMain.handle(DOCS_CHANNELS.aiImageSearch, async (_event, query: string, maxResults?: number) => {
     try {
       return await imageSearch(
         String(query),
@@ -2759,7 +2760,7 @@ export function registerAiIpc(): void {
 
   // download image from URL → base64+mime (download in the main process avoids CORS; the renderer builds the image node and measures size itself)
   ipcMain.handle(
-    'ai:fetch-image',
+    DOCS_CHANNELS.aiFetchImage,
     async (_event, url: string): Promise<{ base64: string; mime: string } | null> => {
       try {
         // the URL originates from AI tool calls (prompt-injectable via web search
@@ -2785,7 +2786,7 @@ export function registerAiIpc(): void {
   // docs-owned (like pdf:generate-image): slides' ai:generate-image is only
   // registered once a slides view exists, so docs needs its own channel
   ipcMain.handle(
-    'docs:ai-generate-image',
+    DOCS_CHANNELS.aiGenerateImage,
     async (_event, op: { prompt?: unknown; aspectRatio?: unknown }) => {
       const prompt = String(op?.prompt ?? '').trim()
       if (!prompt) return { error: 'prompt must not be empty' }
@@ -2801,7 +2802,7 @@ export function registerAiIpc(): void {
     },
   )
 
-  ipcMain.handle('ai:chat', async (_event, request: AiChatRequest) => {
+  ipcMain.handle(DOCS_CHANNELS.aiChat, async (_event, request: AiChatRequest) => {
     const { settings, system, user } = request
     const provider = settings.provider
     // the engine holds the credential; the slot only names a model
@@ -2892,7 +2893,7 @@ export function registerProjectIpc(): void {
 
   /** Resolve projectId + chatId from a file path (sheets without a path resolves via sessionId) */
   ipcMain.handle(
-    'project:resolveChat',
+    DOCS_CHANNELS.projectResolveChat,
     (event, args: { filePath: string | null; tempChatId?: string; sessionId?: string }) => {
       const store = getProjectStore()
       store.ensureDefaultProject()
@@ -2912,7 +2913,7 @@ export function registerProjectIpc(): void {
 
   /** Append a message */
   ipcMain.handle(
-    'project:appendChat',
+    DOCS_CHANNELS.projectAppendChat,
     (
       _event,
       args: {
@@ -2943,7 +2944,7 @@ export function registerProjectIpc(): void {
 
   /** Read history */
   ipcMain.handle(
-    'project:loadChat',
+    DOCS_CHANNELS.projectLoadChat,
     (
       _event,
       args: {
@@ -2959,7 +2960,7 @@ export function registerProjectIpc(): void {
 
   /** rebind chat (called after a file first hits disk): newFilePath/sessionId take priority; the main process computes chatId and records fileMap */
   ipcMain.handle(
-    'project:rebindChat',
+    DOCS_CHANNELS.projectRebindChat,
     (
       event,
       args: {
@@ -2986,17 +2987,17 @@ export function registerProjectIpc(): void {
   // ── P1 extension IPC ─────────────────────────────────────
 
   /** List all projects (with file count + last-active time) */
-  ipcMain.handle('project:list', () => {
+  ipcMain.handle(DOCS_CHANNELS.projectList, () => {
     return getProjectStore().listProjectsSummary()
   })
 
   /** List existing files belonging to one project */
-  ipcMain.handle('project:files', (_event, args: { projectId: string }) => {
+  ipcMain.handle(DOCS_CHANNELS.projectFiles, (_event, args: { projectId: string }) => {
     return getProjectStore().listProjectFiles(args.projectId)
   })
 
   /** Create a project */
-  ipcMain.handle('project:create', (_event, args: { name: string }) => {
+  ipcMain.handle(DOCS_CHANNELS.projectCreate, (_event, args: { name: string }) => {
     const store = getProjectStore()
     const data = store.createProject(args.name)
     // returns ProjectSummary shape
@@ -3004,22 +3005,22 @@ export function registerProjectIpc(): void {
   })
 
   /** Rename a project */
-  ipcMain.handle('project:rename', (_event, args: { id: string; name: string }) => {
+  ipcMain.handle(DOCS_CHANNELS.projectRename, (_event, args: { id: string; name: string }) => {
     getProjectStore().renameProject(args.id, args.name)
   })
 
   /** Soft-delete a project */
-  ipcMain.handle('project:delete', (_event, args: { id: string }) => {
+  ipcMain.handle(DOCS_CHANNELS.projectDelete, (_event, args: { id: string }) => {
     getProjectStore().deleteProject(args.id)
   })
 
   /** Move a file into the given project */
-  ipcMain.handle('project:moveFile', (_event, args: { filePath: string; projectId: string }) => {
+  ipcMain.handle(DOCS_CHANNELS.projectMoveFile, (_event, args: { filePath: string; projectId: string }) => {
     getProjectStore().moveFileToProject(args.filePath, args.projectId)
   })
 
   /** Get the project timeline */
-  ipcMain.handle('project:timeline', (_event, args: { projectId: string; limit?: number }) => {
+  ipcMain.handle(DOCS_CHANNELS.projectTimeline, (_event, args: { projectId: string; limit?: number }) => {
     return getProjectStore().getProjectTimeline(args.projectId, args.limit ?? 20)
   })
 }
@@ -3030,15 +3031,15 @@ export function registerDocsIpc(): void {
   setRescueFetch((url, init) => net.fetch(url, init))
 
   // shared with the other editor modules — last (identical) registration wins
-  ipcMain.removeHandler('app:get-language')
-  ipcMain.handle('app:get-language', () => getUiLang())
+  ipcMain.removeHandler(DOCS_CHANNELS.appGetLanguage)
+  ipcMain.handle(DOCS_CHANNELS.appGetLanguage, () => getUiLang())
 
   configureMetricsCache(userDataPath('font-metrics'))
-  ipcMain.handle('docs:font-metrics', (_event, family: string) =>
+  ipcMain.handle(DOCS_CHANNELS.fontMetrics, (_event, family: string) =>
     typeof family === 'string' ? familyVerticalMetrics(family) : null,
   )
 
-  ipcMain.handle('docs:open', async (event) => {
+  ipcMain.handle(DOCS_CHANNELS.open, async (event) => {
     const result = await openDialog(event, {
       title: tm('dlgOpenDoc'),
       filters: [{ name: tm('filterWord'), extensions: ['docx'] }],
@@ -3048,12 +3049,12 @@ export function registerDocsIpc(): void {
     return loadDocx(result.filePaths[0], event.sender.id)
   })
 
-  ipcMain.handle('docs:open-path', (event, filePath: string) => loadDocx(filePath, event.sender.id))
+  ipcMain.handle(DOCS_CHANNELS.openPath, (event, filePath: string) => loadDocx(filePath, event.sender.id))
 
   // Review > Protect > Encrypt with Password: set/clear the open password.
   // Takes effect on the next save (docs:save / save-as / save-new all consult the store).
   ipcMain.handle(
-    'docs:set-password',
+    DOCS_CHANNELS.setPassword,
     (event, filePath: string | null, password: string | null): { ok: boolean } => {
       if (tornDownWcIds.has(event.sender.id)) return { ok: false }
       if (filePath !== null && typeof filePath !== 'string') return { ok: false }
@@ -3067,13 +3068,13 @@ export function registerDocsIpc(): void {
     },
   )
 
-  ipcMain.handle('docs:password-intent-revision', (event): number => {
+  ipcMain.handle(DOCS_CHANNELS.passwordIntentRevision, (event): number => {
     if (tornDownWcIds.has(event.sender.id)) return -1
     return currentDocPasswordIntentRevision()
   })
 
   ipcMain.handle(
-    'docs:discard-password-intents',
+    DOCS_CHANNELS.discardPasswordIntents,
     (event, throughRevision: unknown): { ok: boolean } => {
       if (tornDownWcIds.has(event.sender.id)) return { ok: false }
       if (
@@ -3090,7 +3091,7 @@ export function registerDocsIpc(): void {
 
   // decrypt-and-open a password-protected docx; wrong-password keeps the renderer's prompt open
   ipcMain.handle(
-    'docs:open-decrypt',
+    DOCS_CHANNELS.openDecrypt,
     async (event, filePath: string, password: string): Promise<DecryptOpenResult> => {
       if (typeof filePath !== 'string' || typeof password !== 'string' || password.length === 0) {
         return { ok: false, reason: 'error', error: 'invalid arguments' }
@@ -3110,7 +3111,7 @@ export function registerDocsIpc(): void {
     },
   )
 
-  ipcMain.handle('docs:consume-pending-open', (event) => {
+  ipcMain.handle(DOCS_CHANNELS.consumePendingOpen, (event) => {
     rendererReady = true
     // a tab spawned via New Tab loads the document queued for it specifically
     const queued = pendingWindowOpens.get(event.sender.id)
@@ -3124,7 +3125,7 @@ export function registerDocsIpc(): void {
   })
 
   /** returns true when this tab was opened via "New Document" and should start blank */
-  ipcMain.handle('docs:consume-new-blank', (event) => {
+  ipcMain.handle(DOCS_CHANNELS.consumeNewBlank, (event) => {
     rendererReady = true
     if (pendingNewBlankIds.has(event.sender.id)) {
       pendingNewBlankIds.delete(event.sender.id)
@@ -3134,14 +3135,14 @@ export function registerDocsIpc(): void {
   })
 
   /** one-shot AI content queued by create_document for this tab; null when none */
-  ipcMain.handle('docs:consume-ai-doc-content', (event): AiDocContent | null => {
+  ipcMain.handle(DOCS_CHANNELS.consumeAiDocContent, (event): AiDocContent | null => {
     const content = pendingAiDocContents.get(event.sender.id) ?? null
     pendingAiDocContents.delete(event.sender.id)
     return content
   })
 
   ipcMain.handle(
-    'docs:save',
+    DOCS_CHANNELS.save,
     async (event, filePath: string, data: ArrayBuffer, auto?: boolean) => {
       try {
         // only paths this renderer opened or chose via save-as may be overwritten
@@ -3209,7 +3210,7 @@ export function registerDocsIpc(): void {
   )
 
   // crash-recovery copy from a dirty renderer; best-effort, never surfaces
-  ipcMain.handle('docs:write-recovery', async (event, filePath: string, data: ArrayBuffer) => {
+  ipcMain.handle(DOCS_CHANNELS.writeRecovery, async (event, filePath: string, data: ArrayBuffer) => {
     try {
       if (tornDownWcIds.has(event.sender.id)) return { ok: false }
       if (typeof filePath !== 'string' || !canDocWrite(event.sender.id, filePath))
@@ -3243,7 +3244,7 @@ export function registerDocsIpc(): void {
   })
 
   ipcMain.handle(
-    'docs:save-as',
+    DOCS_CHANNELS.saveAs,
     async (event, defaultName: string, data: ArrayBuffer, sourcePath?: string | null) => {
       // an orphaned (closed-tab) renderer must not open dialogs or land new files
       if (tornDownWcIds.has(event.sender.id)) return { ok: false }
@@ -3283,7 +3284,7 @@ export function registerDocsIpc(): void {
     },
   )
 
-  ipcMain.handle('docs:save-new', async (event, defaultName: string, data: ArrayBuffer) => {
+  ipcMain.handle(DOCS_CHANNELS.saveNew, async (event, defaultName: string, data: ArrayBuffer) => {
     try {
       // a discarded draft in an orphaned renderer must not silently persist
       // itself to the default folder after the user chose Don't Save
@@ -3316,16 +3317,16 @@ export function registerDocsIpc(): void {
   })
 
   ipcMain.handle(
-    'docs:create-document',
+    DOCS_CHANNELS.createDocument,
     (_event, request: CreateDocumentRequest): Promise<CreateDocumentResult> =>
       createAiDocument(request),
   )
 
-  ipcMain.handle('docs:recent', () =>
+  ipcMain.handle(DOCS_CHANNELS.recent, () =>
     readJson<string[]>(RECENT_PATH(), []).filter((p) => existsSync(p)),
   )
 
-  ipcMain.handle('docs:pick-image', async (event) => {
+  ipcMain.handle(DOCS_CHANNELS.pickImage, async (event) => {
     const result = await openDialog(event, {
       title: tm('dlgInsertImage'),
       filters: [{ name: tm('filterImages'), extensions: ['png', 'jpg', 'jpeg', 'gif'] }],
@@ -3343,7 +3344,7 @@ export function registerDocsIpc(): void {
     }
   })
 
-  ipcMain.handle('files:pick', async (event): Promise<AttachmentAddResult | null> => {
+  ipcMain.handle(DOCS_CHANNELS.filesPick, async (event): Promise<AttachmentAddResult | null> => {
     const result = await openDialog(event, {
       title: tm('dlgAddAttachment'),
       filters: [
@@ -3356,10 +3357,10 @@ export function registerDocsIpc(): void {
     return collectAttachments(result.filePaths)
   })
 
-  ipcMain.handle('files:add', (_event, paths: string[]) => collectAttachments(paths))
+  ipcMain.handle(DOCS_CHANNELS.filesAdd, (_event, paths: string[]) => collectAttachments(paths))
 
   ipcMain.handle(
-    'files:read',
+    DOCS_CHANNELS.filesRead,
     async (
       _event,
       filePath: string,
@@ -3390,7 +3391,7 @@ export function registerDocsIpc(): void {
   )
 
   // image attachments read raw bytes → base64; AiPanel puts them into the user message's images for multimodal
-  ipcMain.handle('files:read-image', (_event, filePath: string): AttachmentImageResult => {
+  ipcMain.handle(DOCS_CHANNELS.filesReadImage, (_event, filePath: string): AttachmentImageResult => {
     const name = basename(filePath)
     const ext = name.split('.').pop()?.toLowerCase() ?? ''
     const mime = ATTACHMENT_IMAGE_MIME[ext]
@@ -3408,7 +3409,7 @@ export function registerDocsIpc(): void {
 
   // clipboard-pasted images (screenshots and other bitmaps with no local path): saved to a temp file then use the regular attachment path
   ipcMain.handle(
-    'files:add-pasted-image',
+    DOCS_CHANNELS.filesAddPastedImage,
     (_event, data: unknown, ext: unknown): AttachmentAddResult => {
       const filePath = savePastedImage(data, ext)
       return filePath
@@ -3421,7 +3422,7 @@ export function registerDocsIpc(): void {
   // apps (Gmail pasted blank) plus plain <img> html for cross-document paste
   // (the protected wrapper round-tripped as a "protected content" shell).
   ipcMain.handle(
-    'docs:copy-image-to-clipboard',
+    DOCS_CHANNELS.copyImageToClipboard,
     (_event, dataUrl: unknown, meta: unknown): boolean => {
       if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) return false
       const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1)
@@ -3455,7 +3456,7 @@ export function registerDocsIpc(): void {
     },
   )
 
-  ipcMain.handle('docs:print', async (event) => {
+  ipcMain.handle(DOCS_CHANNELS.print, async (event) => {
     // print the calling tab's own content; zero margins — the docx page padding provides them.
     // Resolves when the system dialog is dismissed; the print dialog stays open on cancel
     // (ok=false without error) and surfaces real failures.
@@ -3470,7 +3471,7 @@ export function registerDocsIpc(): void {
   })
 
   ipcMain.handle(
-    'docs:export-pdf',
+    DOCS_CHANNELS.exportPdf,
     async (
       event,
       defaultName: string,
@@ -3515,7 +3516,7 @@ export function registerDocsIpc(): void {
 
   // mixed paper-size export: the renderer prints group by group per size (other pages hidden via CSS); this produces one group's bytes
   ipcMain.handle(
-    'docs:print-pdf-buffer',
+    DOCS_CHANNELS.printPdfBuffer,
     async (event, pageWidthTwips: number, pageHeightTwips: number) => {
       try {
         const data = await event.sender.printToPDF({
@@ -3535,7 +3536,7 @@ export function registerDocsIpc(): void {
 
   // merge grouped PDF fragments into one file in page order (pdf-lib)
   ipcMain.handle(
-    'docs:save-merged-pdf',
+    DOCS_CHANNELS.saveMergedPdf,
     async (event, defaultName: string, base64Parts: string[], outPath?: string) => {
       let filePath = outPath ?? null
       if (filePath && !canPdfWrite(event.sender.id, filePath)) {
@@ -3568,7 +3569,7 @@ export function registerDocsIpc(): void {
     },
   )
 
-  ipcMain.handle('win:new', (_event, openPath: string | null) => {
+  ipcMain.handle(DOCS_CHANNELS.winNew, (_event, openPath: string | null) => {
     // A pathless new tab/window starts as a blank document, not the start screen
     const path = openPath ?? undefined
     if (shellHooks) shellHooks.openTab(path, path ? undefined : { newBlank: true })
@@ -3578,7 +3579,7 @@ export function registerDocsIpc(): void {
     }
   })
 
-  ipcMain.handle('win:list', (): DocsTabInfo[] => {
+  ipcMain.handle(DOCS_CHANNELS.winList, (): DocsTabInfo[] => {
     if (shellHooks) return shellHooks.listTabs()
     return BrowserWindow.getAllWindows().map((w) => ({
       id: String(w.id),
@@ -3587,7 +3588,7 @@ export function registerDocsIpc(): void {
     }))
   })
 
-  ipcMain.handle('win:focus', (_event, id: string) => {
+  ipcMain.handle(DOCS_CHANNELS.winFocus, (_event, id: string) => {
     if (shellHooks) {
       shellHooks.focusTab(id)
       return
@@ -3693,7 +3694,7 @@ export async function createAiDocument(
 // ---- application menu ----
 
 function sendCommand(command: MenuCommand, payload?: string): void {
-  activeDocsWebContents()?.send('menu:command', command, payload)
+  activeDocsWebContents()?.send(DOCS_CHANNELS.menuCommand, command, payload)
 }
 
 /**
@@ -4048,7 +4049,7 @@ interface DocsCloseState {
 const closeCheckWaiters = new Map<number, (state: DocsCloseState) => void>()
 const closeSaveWaiters = new Map<number, (ok: boolean) => void>()
 
-ipcMain.on('docs:view-menu-state', (event, state: unknown) => {
+ipcMain.on(DOCS_CHANNELS.viewMenuState, (event, state: unknown) => {
   const s = state as { aiSidebar?: unknown; darkCanvas?: unknown } | null
   const next = { aiSidebar: s?.aiSidebar === true, darkCanvas: s?.darkCanvas === true }
   if (!viewMenuStateByWebContents.has(event.sender.id)) {
@@ -4066,7 +4067,7 @@ ipcMain.on('docs:view-menu-state', (event, state: unknown) => {
   if (dark) dark.checked = next.darkCanvas
 })
 
-ipcMain.on('docs:close-check-result', (event, state: unknown) => {
+ipcMain.on(DOCS_CHANNELS.closeCheckResult, (event, state: unknown) => {
   const waiter = closeCheckWaiters.get(event.sender.id)
   if (!waiter) return
   closeCheckWaiters.delete(event.sender.id)
@@ -4082,7 +4083,7 @@ ipcMain.on('docs:close-check-result', (event, state: unknown) => {
   )
 })
 
-ipcMain.on('docs:close-save-result', (event, ok: unknown) => {
+ipcMain.on(DOCS_CHANNELS.closeSaveResult, (event, ok: unknown) => {
   const waiter = closeSaveWaiters.get(event.sender.id)
   if (!waiter) return
   closeSaveWaiters.delete(event.sender.id)
@@ -4108,7 +4109,7 @@ function queryCloseState(contents: WebContents): Promise<DocsCloseState> {
       clearTimeout(timer)
       resolve(state)
     })
-    contents.send('docs:close-check')
+    contents.send(DOCS_CHANNELS.closeCheck)
   }).finally(() => closeStateQueries.delete(contents.id))
   closeStateQueries.set(contents.id, query)
   return query
@@ -4129,7 +4130,7 @@ function requestRendererSave(contents: WebContents): Promise<boolean> {
       clearTimeout(timer)
       resolve(ok)
     })
-    contents.send('docs:close-save-request')
+    contents.send(DOCS_CHANNELS.closeSaveRequest)
   })
 }
 

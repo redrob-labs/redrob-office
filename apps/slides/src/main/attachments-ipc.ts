@@ -6,6 +6,7 @@
  * channels via docs.
  */
 import { app, dialog, ipcMain } from 'electron'
+import { SLIDES_CHANNELS } from '../shared/ipc'
 import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { showOpenDialogWithMemory } from '@genoffice/electron-utils'
@@ -152,7 +153,7 @@ async function extractAttachmentText(filePath: string): Promise<string> {
 
 /** Register the slides:files-* attachment channels (called from registerSlidesIpc). */
 export function registerAttachmentIpc(): void {
-  ipcMain.handle('slides:files-pick', async (): Promise<AttachmentAddResult | null> => {
+  ipcMain.handle(SLIDES_CHANNELS.filesPick, async (): Promise<AttachmentAddResult | null> => {
     const parent = dialogParent()
     const options = {
       title: tm('dlgAddAttachment'),
@@ -167,10 +168,10 @@ export function registerAttachmentIpc(): void {
     return collectAttachments(r.filePaths)
   })
 
-  ipcMain.handle('slides:files-add', (_e, paths: string[]) => collectAttachments(paths))
+  ipcMain.handle(SLIDES_CHANNELS.filesAdd, (_e, paths: string[]) => collectAttachments(paths))
 
   ipcMain.handle(
-    'slides:files-read',
+    SLIDES_CHANNELS.filesRead,
     async (
       _e,
       filePath: string,
@@ -201,7 +202,7 @@ export function registerAttachmentIpc(): void {
   )
 
   // Image attachments read raw bytes -> base64; AiPanel puts them into the user message's images for multimodal
-  ipcMain.handle('slides:files-read-image', (_e, filePath: string): AttachmentImageResult => {
+  ipcMain.handle(SLIDES_CHANNELS.filesReadImage, (_e, filePath: string): AttachmentImageResult => {
     const name = basename(filePath)
     const ext = name.split('.').pop()?.toLowerCase() ?? ''
     const mime = ATTACHMENT_IMAGE_MIME[ext]
@@ -219,7 +220,7 @@ export function registerAttachmentIpc(): void {
 
   // Clipboard-pasted images (screenshots and other bitmaps without a local path): saved to a temp file then take the regular attachment chain
   ipcMain.handle(
-    'slides:files-add-pasted-image',
+    SLIDES_CHANNELS.filesAddPastedImage,
     (_e, data: unknown, ext: unknown): AttachmentAddResult => {
       const filePath = savePastedImage(data, ext)
       return filePath

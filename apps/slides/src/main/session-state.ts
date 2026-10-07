@@ -5,6 +5,7 @@
  * references, and RenderSlide rebuild helpers.
  */
 import { BrowserWindow, webContents } from 'electron'
+import { SLIDES_CHANNELS } from '../shared/ipc'
 import type { WebContents } from 'electron'
 import { join } from 'node:path'
 import {
@@ -161,7 +162,7 @@ export function scheduleHistoryNotify(session: Session): void {
     // A shared session (second window on the same file, presenter audience) has
     // several attached webContents; the undo/redo button states change for all.
     for (const id of attachedIds(session)) {
-      webContents.fromId(id)?.send('slides:history-changed', {
+      webContents.fromId(id)?.send(SLIDES_CHANNELS.historyChanged, {
         canUndo: session.undoStack.length > 0,
         canRedo: session.redoStack.length > 0,
       })
@@ -207,7 +208,7 @@ export function scheduleDeckBroadcast(session: Session): void {
       slides: buildAllRenderSlides(session.opened, session.fitWidthPx),
       size: { cx: session.opened.deck.size.cx, cy: session.opened.deck.size.cy },
     }
-    for (const id of ids) webContents.fromId(id)?.send('slides:deck-changed', payload)
+    for (const id of ids) webContents.fromId(id)?.send(SLIDES_CHANNELS.deckChanged, payload)
   })
 }
 

@@ -5,6 +5,7 @@
  * (image generation, media analysis, style templates).
  */
 import { app, ipcMain, nativeImage, net, shell } from 'electron'
+import { SLIDES_CHANNELS } from '../shared/ipc'
 import {
   appendFileSync,
   existsSync,
@@ -111,7 +112,7 @@ export function registerAiIpc(): void {
   // Node fetch (undici) direct connections get reset under VPN/tun setups; retry over Chromium's stack
   setRescueFetch((url, init) => net.fetch(url, init))
 
-  ipcMain.handle('ai:get-settings', (): AiSettings => {
+  ipcMain.handle(SLIDES_CHANNELS.aiGetSettings, (): AiSettings => {
     const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(AI_SETTINGS_PATH(), {})
     const settings = resolveAiSettings(stored, defaultAiSettings())
     // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
@@ -122,22 +123,22 @@ export function registerAiIpc(): void {
   // Whether Redrob-hosted image tools may be offered: false only once the route is known
   // to be missing (docs/console-requests/office-ai-routes.md). The channel name is kept from
   // the port for the renderers; nothing behind it talks to Genspark.
-  ipcMain.handle('ai:gsk-status', (): GenSparkAccountStatus => ({ loggedIn: hostedToolSupport().images !== false }))
+  ipcMain.handle(SLIDES_CHANNELS.aiGskStatus, (): GenSparkAccountStatus => ({ loggedIn: hostedToolSupport().images !== false }))
 
   // "Sign in to Redrob": the shell runs Console connect and hands the key to the engine
-  ipcMain.handle('ai:gsk-login', () => redrobSignIn())
+  ipcMain.handle(SLIDES_CHANNELS.aiGskLogin, () => redrobSignIn())
 
   // keys go to the engine's credential store, never into this file
-  ipcMain.handle('ai:set-settings', async (_event, settings: AiSettings) => {
+  ipcMain.handle(SLIDES_CHANNELS.aiSetSettings, async (_event, settings: AiSettings) => {
     const next = holdsKeys(settings) ? (await custodyKeys(settings, await currentEngineTarget())).settings : withoutKeys(settings)
     writeJson(AI_SETTINGS_PATH(), next)
   })
 
-  ipcMain.handle('ai:log-run-failure', (_event, entry: AiRunFailure) => {
+  ipcMain.handle(SLIDES_CHANNELS.aiLogRunFailure, (_event, entry: AiRunFailure) => {
     appendRunFailure(entry)
   })
 
-  ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
+  ipcMain.handle(SLIDES_CHANNELS.aiStream, async (event, request: AiStreamRequest) => {
     const { requestId, settings, system, messages } = request
     const tools = request.tools ?? []
     const maxTokens = request.maxTokens ?? maxOutputTokensOf(settings)
@@ -145,7 +146,7 @@ export function registerAiIpc(): void {
     // the engine holds the credential; the slot only names a model
     const config = settings.providers?.[provider] ?? { apiKey: '', model: '' }
     const send = (chunk: AiStreamChunk) => {
-      if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
+      if (!event.sender.isDestroyed()) event.sender.send(SLIDES_CHANNELS.aiStreamChunk, chunk)
     }
     // The Redrob engine ignores settings.model and always wires `auto`; fresh
     // defaults leave model empty, so an empty model must not fail preflight.
@@ -211,12 +212,12 @@ export function registerAiIpc(): void {
     }
   })
 
-  ipcMain.handle('ai:stream-cancel', (_event, requestId: string) => {
+  ipcMain.handle(SLIDES_CHANNELS.aiStreamCancel, (_event, requestId: string) => {
     activeAiStreams.get(requestId)?.abort()
   })
 
   // Search tools (content + images), Serper with DuckDuckGo fallback
-  ipcMain.handle('ai:web-search', async (_event, query: string, maxResults?: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.aiWebSearch, async (_event, query: string, maxResults?: number) => {
     try {
       return await webSearch(
         String(query),
@@ -227,7 +228,7 @@ export function registerAiIpc(): void {
     }
   })
 
-  ipcMain.handle('ai:image-search', async (_event, query: string, maxResults?: number) => {
+  ipcMain.handle(SLIDES_CHANNELS.aiImageSearch, async (_event, query: string, maxResults?: number) => {
     try {
       return await imageSearch(
         String(query),
@@ -247,7 +248,7 @@ export function registerAiIpc(): void {
 export function registerSlidesOnlyAiIpc(): void {
   // Redrob-hosted image generation and media analysis on the engine
   ipcMain.handle(
-    'ai:generate-image',
+    SLIDES_CHANNELS.aiGenerateImage,
     async (
       _event,
       op: {
@@ -274,7 +275,7 @@ export function registerSlidesOnlyAiIpc(): void {
   )
 
   ipcMain.handle(
-    'ai:analyze-media',
+    SLIDES_CHANNELS.aiAnalyzeMedia,
     async (_event, op: { mediaUrls: string[]; requirements: string; model?: string }) => {
       // a chat turn on the engine with the media attached, on a model that reads it
       try {
@@ -293,7 +294,7 @@ export function registerSlidesOnlyAiIpc(): void {
 
   // Download an image from a URL and insert it into the given page (image search -> insert in one step; download in the main process avoids CORS)
   ipcMain.handle(
-    'ai:insert-image-url',
+    SLIDES_CHANNELS.aiInsertImageUrl,
     async (
       e,
       op: {
@@ -357,7 +358,7 @@ export function registerSlidesOnlyAiIpc(): void {
   // Download an image from a URL and swap it into an existing picture in place
   // (frame/z-order/effects survive). Same URL hardening as ai:insert-image-url.
   ipcMain.handle(
-    'ai:replace-picture-url',
+    SLIDES_CHANNELS.aiReplacePictureUrl,
     async (e, op: { slideIndex: number; sourceId: string; url: string; keepSrcRect?: boolean }) => {
       const session = sessions.get(e.sender.id)
       if (!session) return null
@@ -408,7 +409,7 @@ export function registerSlidesOnlyAiIpc(): void {
 
   // ── Style Skill sidecar persistence: write a same-named .styleskill.json next to the draft (fail-open)
   ipcMain.handle(
-    'ai:save-sidecar',
+    SLIDES_CHANNELS.aiSaveSidecar,
     async (
       event,
       data: { topic: string; styleSkill: string; createdAt: string },
@@ -430,7 +431,7 @@ export function registerSlidesOnlyAiIpc(): void {
   const STYLE_TEMPLATES_DIR = () => join(app.getPath('userData'), 'style-templates')
 
   ipcMain.handle(
-    'ai:save-style-template',
+    SLIDES_CHANNELS.aiSaveStyleTemplate,
     (
       _event,
       name: string,
@@ -452,7 +453,7 @@ export function registerSlidesOnlyAiIpc(): void {
 
   // ── Style template list
   ipcMain.handle(
-    'ai:list-style-templates',
+    SLIDES_CHANNELS.aiListStyleTemplates,
     (): Array<{ name: string; topic: string; createdAt: string }> => {
       try {
         const dir = STYLE_TEMPLATES_DIR()
@@ -485,7 +486,7 @@ export function registerSlidesOnlyAiIpc(): void {
 
   // ── Style template load
   ipcMain.handle(
-    'ai:load-style-template',
+    SLIDES_CHANNELS.aiLoadStyleTemplate,
     (
       _event,
       name: string,
