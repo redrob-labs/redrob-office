@@ -11,6 +11,7 @@
 // The 한글 2024 half (opens without a repair prompt, renders like the golden)
 // runs on the Windows runner from the saved files `writeScenarioOutputs` keeps.
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { inflateRawSync } from 'node:zlib'
 import { join } from 'node:path'
 import { HwpCoreDocument, type HwpFormat } from '@genoffice/hwp-core/node'
 import { CommandBus, Session, paste, type Pos } from '@genoffice/hwp-editor'
@@ -132,8 +133,50 @@ export interface ScenarioResult {
   format: HwpFormat
   pass: boolean
   problems: string[]
+  /**
+   * Set when an HWPX save leaves out stored line layout for paragraphs the engine
+   * laid out itself (by design, so 한글 recomputes them; serializer/hwpx/section.rs,
+   * #5847). A paint difference on reopen is then rhwp's recomputation, and only the
+   * 한글 2024 runner can say which layout is right
+   * (docs/decisions/2026-10-hangul-edit-scenarios.md, finding C2).
+   */
+  recomputedOnOpen?: number
   pages: number
   bytes: number
+}
+
+/** Section XML parts of an HWPX package (minimal ZIP reader: stored or deflated entries). */
+function hwpxSections(zip: Uint8Array): string[] {
+  const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength)
+  let eocd = zip.length - 22
+  while (eocd >= 0 && view.getUint32(eocd, true) !== 0x06054b50) eocd--
+  if (eocd < 0) return []
+  const count = view.getUint16(eocd + 10, true)
+  let at = view.getUint32(eocd + 16, true)
+  const out: string[] = []
+  for (let i = 0; i < count; i++) {
+    const method = view.getUint16(at + 10, true)
+    const size = view.getUint32(at + 20, true)
+    const nameLen = view.getUint16(at + 28, true)
+    const extra = view.getUint16(at + 30, true)
+    const comment = view.getUint16(at + 32, true)
+    const local = view.getUint32(at + 42, true)
+    const name = new TextDecoder().decode(zip.subarray(at + 46, at + 46 + nameLen))
+    if (/^Contents\/section\d+\.xml$/.test(name)) {
+      const start = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true)
+      const raw = zip.subarray(start, start + size)
+      out.push(new TextDecoder().decode(method === 0 ? raw : inflateRawSync(raw)))
+    }
+    at += 46 + nameLen + extra + comment
+  }
+  return out
+}
+
+/** Paragraphs in a saved HWPX without stored line layout (no `<hp:linesegarray>`). */
+export function countOmittedLineLayout(hwpx: Uint8Array): number {
+  let n = 0
+  for (const xml of hwpxSections(hwpx)) for (const m of xml.matchAll(/<hp:p [^>]*>[\s\S]*?<\/hp:p>/g)) if (!m[0].includes('<hp:linesegarray')) n++
+  return n
 }
 
 function bodyText(doc: HwpCoreDocument): string[] {
@@ -204,11 +247,12 @@ export function runScenario(docId: string, bytes: Uint8Array, scenario: Scenario
     } catch (e) {
       p.push(`save or reopen failed: ${e instanceof Error ? e.message : String(e)}`)
     }
+    const omitted = saved && format === 'hwpx' ? countOmittedLineLayout(saved) : 0
     if (outDir && saved) {
       mkdirSync(outDir, { recursive: true })
       writeFileSync(join(outDir, `${docId}--${scenario.id}.${format}`), saved)
     }
-    results.push({ doc: docId, scenario: scenario.id, format, pass: p.length === 0, problems: p, pages, bytes: saved?.length ?? 0 })
+    results.push({ doc: docId, scenario: scenario.id, format, pass: p.length === 0, problems: p, pages, bytes: saved?.length ?? 0, ...(omitted ? { recomputedOnOpen: omitted } : {}) })
   }
   session.dispose()
   doc.dispose()

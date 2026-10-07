@@ -70,3 +70,32 @@ whose value depends on earlier pages):
 
 The sweep now passes 406 of 430. The rest are groups A and B, neither of which comes from our
 editing.
+
+## Finding C2: the last edit-dependent case is a deliberate omission
+
+`hwp3-sample10-hwpx.hwpx` has 763 pages. After an HTML paste it has 763 pages in memory and 765
+on reopen. A pasted plain-text paragraph or a single-paragraph paste reopens at 763, so the trigger
+is specifically a pasted paragraph that is new.
+
+**What happens**
+1. The engine lays out a pasted paragraph itself and tags its lines as synthetic
+   (`TAG_IMPLEMENTATION_PROPERTY`, bit 31).
+2. The HWPX serializer deliberately writes no `<hp:linesegarray>` for such a paragraph, so 한글
+   recomputes it (`serializer/hwpx/section.rs`, upstream #5847). Upstream added that rule after
+   writing these synthetic values made 한글 2022 throw away a whole document's layout (81 → 5
+   pages).
+3. On reopen, rhwp has no stored layout for the paragraph either, and its recomputation in this
+   long HWP3-origin document lands two pages later. The first page that moves is 311, about 60
+   pages before the edit.
+
+**Why it stays open**
+- The file is valid and is written exactly as designed.
+- Which of rhwp's two layouts 한글 agrees with can only be measured on the 한글 2024 runner (P-1).
+  Writing our own computed line layout instead would bring back the upstream #5847 failure.
+
+**What changes now:** the harness labels these cases instead of treating them as unexplained.
+`runScenario` reports `recomputedOnOpen` (the number of paragraphs saved without stored line layout),
+and `countOmittedLineLayout` counts them in any HWPX.
+
+**Task 1.12** is closed here as diagnosed. The fix, if one is needed, depends on the runner result
+and is listed as task 1.13.

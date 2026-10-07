@@ -37,3 +37,15 @@ describe('scripted edit scenarios (task 1.11)', () => {
     for (const s of SCENARIOS) for (const r of runScenario('sample', sample, s)) expect(r.problems, `${s.id} ${r.format}`).toEqual([])
   })
 })
+
+describe('stored line layout accounting', () => {
+  it('counts HWPX paragraphs saved without stored line layout', async () => {
+    const { HwpCoreDocument } = await import('@genoffice/hwp-core/node')
+    const { countOmittedLineLayout } = await import('../src')
+    const d = HwpCoreDocument.blank()
+    d.insertText(0, 0, 0, '문단')
+    expect(countOmittedLineLayout(d.export('hwpx'))).toBe(0)
+    d.raw.pasteHtml(0, 0, 2, '<p>A</p><p>B</p>')
+    expect(countOmittedLineLayout(d.export('hwpx'))).toBeGreaterThan(0)
+  })
+})

@@ -70,7 +70,8 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 1.11 Harness: scripted edit scenarios (engine half; findings in `docs/decisions/2026-10-hangul-edit-scenarios.md`; the 한글 2024 open check waits for P-1) saved and checked in 한글 2024 for both formats. Run in
   CI nightly. [R3.2, R3.3, R3.5]
 
-- [ ] 1.12 Fix finding C from 1.11. Done: page-number carry across sections. Open: `hwp3-sample10-hwpx.hwpx` gains 2 pages on reopen after an HTML paste (stored line layout of pasted paragraphs). [R3.2]
+- [x] 1.12 Finding C from 1.11: page-number carry across sections fixed (#73); the remaining case is a deliberate omission of stored line layout for engine-laid-out paragraphs (finding C2), labelled by the harness. [R3.2]
+- [ ] 1.13 On the 한글 2024 runner: open the C2 files, compare 한글's page count with rhwp's in-memory and reopened layouts, and fix whichever side disagrees. Waits for P-1. [R3.2]
 
 ## Phase 2: Chrome and design parity
 
