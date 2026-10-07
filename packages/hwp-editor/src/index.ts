@@ -1,6 +1,7 @@
 export * from './position'
 export * from './session'
 export * from './commands'
+export * from './format-commands'
 export * from './navigation'
 export * from './clipboard'
 export * from './view/page-view'
