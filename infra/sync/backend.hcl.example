@@ -1,0 +1,6 @@
+# terraform init -backend-config=backend.hcl (copy this file; backend.hcl is ignored by git)
+bucket         = "example-terraform-state"
+key            = "redrob-office/sync.tfstate"
+region         = "ap-northeast-2"
+dynamodb_table = "example-terraform-locks"
+encrypt        = true

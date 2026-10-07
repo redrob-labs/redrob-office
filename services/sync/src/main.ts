@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { devIssuer, jwksVerifier, type DevIssuer, type Verifier } from './auth.ts'
 import { S3Blobs } from './blobs.ts'
 import { buildCollab } from './collab.ts'
@@ -7,7 +8,9 @@ import { buildApp, loggerOptions } from './http.ts'
 import { PgRepo } from './pg-repo.ts'
 
 const cfg = loadConfig()
-const repo = await PgRepo.connect(cfg.databaseUrl)
+const repo = await PgRepo.connect(cfg.databaseUrl, {
+  ca: cfg.databaseTls.kind === 'verify' ? readFileSync(cfg.databaseTls.caFile, 'utf8') : undefined,
+})
 const blobs = new S3Blobs(cfg.s3)
 await blobs.ensureBucket()
 

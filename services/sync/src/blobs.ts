@@ -35,10 +35,13 @@ export class S3Blobs implements BlobStore {
   constructor(cfg: SyncConfig['s3']) {
     this.cfg = cfg
     this.client = new S3Client({
-      endpoint: cfg.endpoint,
+      ...(cfg.endpoint ? { endpoint: cfg.endpoint } : {}),
       region: cfg.region,
       forcePathStyle: cfg.forcePathStyle,
-      credentials: { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey },
+      // no key pair: the SDK's default chain (on ECS, the task role)
+      ...(cfg.accessKeyId && cfg.secretAccessKey
+        ? { credentials: { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey } }
+        : {}),
     })
   }
   /** Creates the bucket when it is missing; the store may still be starting, so it retries for a while. */

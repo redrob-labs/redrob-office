@@ -21,6 +21,7 @@ const PROD = {
   SYNC_JWKS_URL: 'https://console.redrob.ai/.well-known/jwks.json',
   SYNC_ISSUER: 'https://console.redrob.ai',
   SYNC_AUDIENCE: 'redrob-office-sync',
+  SYNC_DB_CA_FILE: '/srv/rds-global-bundle.pem',
 }
 
 describe('production config', () => {
@@ -31,6 +32,10 @@ describe('production config', () => {
     expect(() => loadConfig(noJwks)).toThrow(/SYNC_JWKS_URL/)
     expect(() => loadConfig(noIssuer)).toThrow(/SYNC_ISSUER/)
     expect(() => loadConfig(noAudience)).toThrow(/SYNC_AUDIENCE/)
+    const { SYNC_DB_CA_FILE: _c, ...noCa } = PROD
+    expect(() => loadConfig(noCa)).toThrow(/SYNC_DB_CA_FILE/)
+    expect(loadConfig(PROD).databaseTls).toEqual({ kind: 'verify', caFile: '/srv/rds-global-bundle.pem' })
+    expect(loadConfig({ ...ENV, SYNC_DEV_ISSUER: '1' }).databaseTls).toEqual({ kind: 'off' })
   })
 
   it('refuses a plain-http JWKS URL or issuer in production', () => {
@@ -47,6 +52,19 @@ describe('production config', () => {
     expect(c.limits).toEqual({ perAddressPerMinute: 600, perAccountPerMinute: 300, linksPerHour: 30 })
     expect(c.eventRetentionDays).toBe(180)
     expect(c.logLevel).toBe('info')
+  })
+
+  it('uses the task role and the regional endpoint when no key pair or endpoint is set', () => {
+    const { S3_ENDPOINT: _e, S3_ACCESS_KEY_ID: _k, S3_SECRET_ACCESS_KEY: _s, ...aws } = PROD
+    expect(loadConfig({ ...aws, S3_FORCE_PATH_STYLE: '0' }).s3).toEqual({
+      endpoint: undefined,
+      region: 'us-east-1',
+      bucket: 'office',
+      accessKeyId: undefined,
+      secretAccessKey: undefined,
+      forcePathStyle: false,
+    })
+    expect(() => loadConfig({ ...aws, S3_ACCESS_KEY_ID: 'k' })).toThrow(/both S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY/)
   })
 
   it('checks the numbers it is given', () => {

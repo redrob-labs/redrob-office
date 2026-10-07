@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars (ignored by git) and fill in. Hosts are examples.
+region    = "ap-northeast-2"
+zone_name = "redrob.ai"
+sync_host = "sync.office.redrob.ai"
+live_host = "live.office.redrob.ai"
+image_tag = "0.1.0"
+
+# Console (see docs/console-requests/office-sync-identity.md)
+console_issuer   = "https://console.redrob.ai"
+console_jwks_url = "https://console.redrob.ai/.well-known/jwks.json"
+audience         = "redrob-office-sync"
+
+# alarm_topic_arn = "arn:aws:sns:ap-northeast-2:111111111111:office-alerts"

@@ -1,0 +1,97 @@
+name: Sync infrastructure (plan only)
+
+# infra/sync is Terraform for running services/sync on AWS. Nothing in it has
+# been applied, and this workflow never applies: it checks formatting and
+# validity on every pull request that touches it, and writes a plan only when
+# a person runs it by hand with a read-only AWS role configured. Not a
+# required check.
+on:
+  pull_request:
+    paths:
+      - 'infra/sync/**'
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TF_IN_AUTOMATION: '1'
+  TF_INPUT: '0'
+
+jobs:
+  check:
+    name: terraform fmt & validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: infra/sync
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Format
+        run: terraform fmt -check -recursive -diff
+
+      - name: Validate
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+  plan:
+    name: terraform plan
+    # by hand only, and only where a read-only plan role has been set up
+    if: github.event_name == 'workflow_dispatch' && vars.SYNC_INFRA_PLAN_ROLE_ARN != ''
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: infra/sync
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.SYNC_INFRA_PLAN_ROLE_ARN }}
+          aws-region: ${{ vars.SYNC_INFRA_REGION }}
+
+      - name: Init (state backend from repository variables)
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.SYNC_INFRA_STATE_BUCKET }}" \
+            -backend-config="key=redrob-office/sync.tfstate" \
+            -backend-config="region=${{ vars.SYNC_INFRA_REGION }}" \
+            -backend-config="dynamodb_table=${{ vars.SYNC_INFRA_LOCK_TABLE }}" \
+            -backend-config="encrypt=true"
+
+      - name: Plan (never applied)
+        run: |
+          terraform plan -lock=false -no-color \
+            -var="region=${{ vars.SYNC_INFRA_REGION }}" \
+            -var="zone_name=${{ vars.SYNC_INFRA_ZONE }}" \
+            -var="sync_host=${{ vars.SYNC_INFRA_SYNC_HOST }}" \
+            -var="live_host=${{ vars.SYNC_INFRA_LIVE_HOST }}" \
+            -var="image_tag=${{ vars.SYNC_INFRA_IMAGE_TAG }}" \
+            -out=sync.tfplan | tee plan.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sync-plan
+          path: infra/sync/plan.txt
+          retention-days: 7

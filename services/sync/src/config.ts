@@ -7,12 +7,16 @@ export interface SyncConfig {
   /** bind address; 127.0.0.1 unless the container needs 0.0.0.0 */
   host: string
   databaseUrl: string
+  /** TLS to Postgres: off (local Compose), or verified against a CA file (RDS) */
+  databaseTls: { kind: 'off' } | { kind: 'verify'; caFile: string }
   s3: {
-    endpoint: string
+    /** unset on AWS: the SDK's regional endpoint */
+    endpoint: string | undefined
     region: string
     bucket: string
-    accessKeyId: string
-    secretAccessKey: string
+    /** unset on AWS: the SDK's default chain (the ECS task role) */
+    accessKeyId: string | undefined
+    secretAccessKey: string | undefined
     forcePathStyle: boolean
   }
   auth:
@@ -69,6 +73,27 @@ function httpsUrl(key: string, value: string): string {
   return value
 }
 
+/**
+ * Any S3 store. Locally (SeaweedFS) an endpoint and a key pair are given; on
+ * AWS both are left unset, so the SDK uses its regional endpoint and the task
+ * role. A key without its secret, or the reverse, is refused.
+ */
+function s3Config(env: NodeJS.ProcessEnv): SyncConfig['s3'] {
+  const accessKeyId = env.S3_ACCESS_KEY_ID || undefined
+  const secretAccessKey = env.S3_SECRET_ACCESS_KEY || undefined
+  if (!accessKeyId !== !secretAccessKey) {
+    throw new Error('Set both S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY, or neither to use the task role.')
+  }
+  return {
+    endpoint: env.S3_ENDPOINT || undefined,
+    region: env.S3_REGION ?? 'us-east-1',
+    bucket: need(env, 'S3_BUCKET'),
+    accessKeyId,
+    secretAccessKey,
+    forcePathStyle: env.S3_FORCE_PATH_STYLE !== '0',
+  }
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): SyncConfig {
   const dev = env.SYNC_DEV_ISSUER === '1'
   const production = env.NODE_ENV === 'production'
@@ -83,6 +108,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): SyncConfig {
     need(env, 'SYNC_AUDIENCE')
   }
   const audience = env.SYNC_AUDIENCE ?? 'redrob-office-sync'
+  // a database reached over a network is reached over verified TLS in production
+  const caFile = env.SYNC_DB_CA_FILE || undefined
+  if (production && !caFile) throw new Error('Missing SYNC_DB_CA_FILE: production reaches Postgres over verified TLS.')
   const logLevel = (env.SYNC_LOG_LEVEL ?? 'info') as SyncConfig['logLevel']
   if (!LOG_LEVELS.includes(logLevel)) throw new Error(`SYNC_LOG_LEVEL must be one of ${LOG_LEVELS.join(', ')}.`)
   return {
@@ -90,14 +118,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): SyncConfig {
     collabPort: port(env, 'SYNC_COLLAB_PORT', 8788),
     host: env.SYNC_HOST ?? '127.0.0.1',
     databaseUrl: need(env, 'DATABASE_URL'),
-    s3: {
-      endpoint: need(env, 'S3_ENDPOINT'),
-      region: env.S3_REGION ?? 'us-east-1',
-      bucket: need(env, 'S3_BUCKET'),
-      accessKeyId: need(env, 'S3_ACCESS_KEY_ID'),
-      secretAccessKey: need(env, 'S3_SECRET_ACCESS_KEY'),
-      forcePathStyle: env.S3_FORCE_PATH_STYLE !== '0',
-    },
+    databaseTls: caFile ? { kind: 'verify', caFile } : { kind: 'off' },
+    s3: s3Config(env),
     auth: dev
       ? { kind: 'dev', issuer: env.SYNC_ISSUER ?? 'http://localhost:8787/dev', audience }
       : { kind: 'jwks', jwksUrl: need(env, 'SYNC_JWKS_URL'), issuer: need(env, 'SYNC_ISSUER'), audience },

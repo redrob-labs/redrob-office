@@ -174,8 +174,17 @@ export class PgRepo implements Repo {
     this.pool = pool
   }
 
-  static async connect(url: string): Promise<PgRepo> {
-    const pool = new pg.Pool({ connectionString: url, max: 10 })
+  /**
+   * `ca`: PEM of the authorities the server's certificate must chain to (RDS's
+   * bundle); without it the connection is plain, as on the local Compose stack.
+   * A password left out of the URL comes from PGPASSWORD (an ECS secret).
+   */
+  static async connect(url: string, opts: { ca?: string | undefined } = {}): Promise<PgRepo> {
+    const pool = new pg.Pool({
+      connectionString: url,
+      max: 10,
+      ...(opts.ca ? { ssl: { ca: opts.ca, rejectUnauthorized: true } } : {}),
+    })
     await migrate(pool)
     return new PgRepo(pool)
   }
