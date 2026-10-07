@@ -54,3 +54,19 @@ collaboration spike.
 - **A and B are pre-existing engine fidelity issues**, and are candidates to report upstream.
 - **The 한글 2024 half of R3.2** (opens without a repair prompt, renders like the golden) runs on
   the Windows runner from the files `runScenario(..., outDir)` writes.
+
+## Update: group C narrowed, one engine bug fixed
+
+A second look at group C, after ignoring the per-page `textSources` index (`source.id`, an index
+whose value depends on earlier pages):
+
+- 3 of the 6 were index noise: the same glyphs and pixels.
+- **One was an engine bug, now fixed.** After an edit added a page to section 0, the clean section
+  1 kept its cached page numbers. A page then showed "- 9 -" on screen where the saved file (and
+  한글) had "- 10 -". The engine now repaginates a section whose incoming page-number carry
+  changed. Pinned by `packages/hwp-core/tests/page-numbers.test.ts`.
+- **1 remains:** `hwp3-sample10-hwpx.hwpx` (763 pages) gains 2 pages on reopen after an HTML paste.
+  This is task 1.12.
+
+The sweep now passes 406 of 430. The rest are groups A and B, neither of which comes from our
+editing.

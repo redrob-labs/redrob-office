@@ -15,11 +15,11 @@
     "wasmOpt": "117",
     "command": "scripts/build-hwp-core.sh"
   },
-  "sourceSha256": "2c171456336704f0c61dae8152eee5ef589e7653fecea6336f60db2c8c7b5cfa",
+  "sourceSha256": "6708c5b85f589b4e02888b5a19cf50d1268dbf40e87eea6e21e406c2a37cfc2c",
   "artifacts": {
     "rhwp.js": "3d078e180cd3d86096f1f459b8179fdd7d318c33b3fe1bf5a1cbc8aaaeb9592d",
     "rhwp.d.ts": "665e79bfee9e44d7a7359b598b625e7234a5f92046876d2c330c9c005a527052",
-    "rhwp_bg.wasm": "c64512a00ad81976867e82dc5e7331ea4092a10b78764ee4b151659d39134206",
+    "rhwp_bg.wasm": "76d09722bb71eb690d25907c6b14cc11c609281373d9ccdca605e769b68257d5",
     "rhwp_bg.wasm.d.ts": "f01aab57e0247f42fee2dad8d61bb85770a7b6cd0b89b170306ac0ba437fd75b"
   }
 }

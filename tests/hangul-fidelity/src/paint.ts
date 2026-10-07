@@ -19,7 +19,9 @@ interface TextRunOp {
   [key: string]: unknown
 }
 
-const RUN_GEOMETRY = new Set(['type', 'text', 'bbox', 'placement', 'clusters', 'sourceNodeId'])
+// `source` points into the page's textSources table by index; the index depends on how many
+// sources earlier pages registered, not on what this run paints.
+const RUN_GEOMETRY = new Set(['type', 'text', 'bbox', 'placement', 'clusters', 'sourceNodeId', 'source'])
 
 function style(op: TextRunOp): string {
   const s: Record<string, unknown> = {}

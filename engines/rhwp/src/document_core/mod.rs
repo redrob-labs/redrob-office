@@ -241,6 +241,8 @@ pub struct DocumentCore {
     /// [Redrob E1] Next session node id. Monotonic for the life of the document, so an id is
     /// never reused after its paragraph is deleted.
     pub(crate) next_node_id: u64,
+    /// [Redrob] Page-number carry each section was last paginated with (see paginate_pass).
+    pub(crate) pagination_carry_in: Vec<u32>,
     /// [#2424] 아직 full pagination에 반영되지 않은 target descriptor.
     pub(crate) deferred_pagination_descriptor: Option<DeferredPaginationDescriptor>,
     /// [#2424] 공개 pagination과 분리된 shadow continuation job.
@@ -542,6 +544,7 @@ impl DocumentCore {
             para_column_map: Vec::new(),
             deferred_pagination_revision: 0,
             next_node_id: 1,
+            pagination_carry_in: Vec::new(),
             deferred_pagination_descriptor: None,
             pending_pagination_job: None,
             page_tree_cache: RefCell::new(Vec::new()),

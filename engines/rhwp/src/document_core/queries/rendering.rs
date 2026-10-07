@@ -5058,6 +5058,17 @@ impl DocumentCore {
         let mut issue2424_typeset_elapsed = std::time::Duration::ZERO;
         let mut issue2424_postprocess_elapsed = std::time::Duration::ZERO;
         for (idx, section) in self.document.sections.iter().enumerate() {
+            // [Redrob] A clean section's page numbers continue from the previous section's last
+            // page number. If an edit earlier in the document changed that carry, the cached
+            // pagination has stale numbers (a new page in section 0 left section 1 showing the
+            // old numbers until reopen), so the section is paginated again.
+            let carry_in = carry_last_page_number;
+            if !self.dirty_sections[idx]
+                && idx > 0
+                && self.pagination_carry_in.get(idx).copied() != Some(carry_in)
+            {
+                self.dirty_sections[idx] = true;
+            }
             if !self.dirty_sections[idx] {
                 // dirty가 아닌 구역에서도 carry를 업데이트
                 if let Some(pages) = self.pagination.get(idx) {
@@ -5645,6 +5656,10 @@ impl DocumentCore {
                 }
             }
             self.pagination[idx] = result;
+            if self.pagination_carry_in.len() <= idx {
+                self.pagination_carry_in.resize(idx + 1, u32::MAX);
+            }
+            self.pagination_carry_in[idx] = carry_in;
             self.dirty_sections[idx] = false;
             // 문단 dirty 비트맵 초기화 (모든 문단 clean)
             let para_count = section.paragraphs.len();
