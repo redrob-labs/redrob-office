@@ -1,4 +1,4 @@
-import type { ShareApi } from '@genoffice/sync-client'
+import type { LiveApi, ShareApi } from '@genoffice/sync-client'
 import type { VersionsApi } from '@genoffice/versions'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { FactsBridgeApi } from '@genoffice/facts'
@@ -2661,7 +2661,7 @@ export interface RecoveryPromptPayload {
   savedAtMs: number
 }
 
-export interface DesktopApi extends Partial<OfficePrefsApi>, Partial<FactsBridgeApi>, Partial<VersionsApi>, Partial<ShareApi> {
+export interface DesktopApi extends Partial<OfficePrefsApi>, Partial<FactsBridgeApi>, Partial<VersionsApi>, Partial<ShareApi>, Partial<LiveApi> {
   /** current UI language (persisted by the shell in app-settings.json) */
   getLanguage(): Promise<'zh' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'th' | 'id' | 'ru' | 'ar'>
   /** language switched from the shell home page */

@@ -1,4 +1,4 @@
-import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import { ShareButton } from '@genoffice/ui'
 import '@genoffice/ui/share.css'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
@@ -25,7 +25,20 @@ import { TableMenu } from './components/TableMenu'
 import { FrontmatterPanel } from './components/FrontmatterPanel'
 import { AiAskPopover } from './components/AiAskPopover'
 import { AiPanel, type AiPreset, type MarkdownAiDeps } from './ai/AiPanel'
-import { EditorFrame, StatusBar, frameCopy, frameT, useFrameState } from '@genoffice/ui'
+import { EditorFrame, PresenceFaces, StatusBar, frameCopy, frameT, useFrameState } from '@genoffice/ui'
+import {
+  LIVE_STRINGS,
+  historyCan,
+  historyRedo,
+  historyUndo,
+  isRemoteChange,
+  useEditorPresence,
+  useLiveEditor,
+  useLiveRoom,
+} from '@genoffice/live-text'
+import '@genoffice/live-text/live.css'
+import { bindFrontmatter, type FrontmatterBinding } from './live/frontmatter-sync'
+import { MD_TEXT_BLOCKS } from './live/text-blocks'
 import { SimpleToolbar, countMdWords, mdCommands, mdTools } from './components/SimpleToolbar'
 import { EDIT_QUEUE_MAX, selectionForAnchor, type EditQueueItem } from './ai/edit-queue'
 import { addQueueAnchor, clearQueueAnchors, removeQueueAnchors } from './editor/aiQueueAnchors'
@@ -191,9 +204,10 @@ export default function App() {
     content: '',
     autofocus: true,
     editorProps: { attributes: { class: 'doc-editor' } },
-    // uiOnly transactions (toggle fold state) never reach the file — not dirty
+    // uiOnly transactions (toggle fold state) never reach the file, and
+    // someone else's live typing is already in the shared text — neither is dirty
     onUpdate: ({ transaction }) => {
-      if (!transaction.getMeta('uiOnly')) markDirty()
+      if (!transaction.getMeta('uiOnly') && !isRemoteChange(transaction)) markDirty()
     },
   })
   editorRef.current = editor
@@ -245,10 +259,62 @@ export default function App() {
     }
   }, [editor])
 
+  // ── live: a shared file is edited together; the shell holds the connection ──
+  const liveRoom = useLiveRoom({ api: window.markdownApi, path: status === 'ready' ? filePath : null })
+  useEditorPresence(liveRoom.state, editor, window.markdownApi)
+  const [liveNote, setLiveNote] = useState<string | null>(null)
+  const fmBindingRef = useRef<FrontmatterBinding | null>(null)
+  const fmTextRef = useRef(fmText)
+  fmTextRef.current = fmText
+  /** the properties block as someone else left it (never makes this view unsaved) */
+  const takeFrontmatter = useCallback((inner: string) => {
+    setFmText(inner)
+    envelopeRef.current.frontmatter = buildFrontmatterRaw(inner)
+    if (inner) setFmOpen(true)
+  }, [])
+  const liveEditor = useLiveEditor({
+    editor,
+    live: liveRoom.state,
+    peers: liveRoom.peers,
+    api: window.markdownApi,
+    path: filePath,
+    // a newer shared version than this computer has: it becomes the open document (unsaved here)
+    loadBytes: async (bytes) => {
+      const current = editorRef.current
+      if (!current) return false
+      const envelope = parseDocText(new TextDecoder().decode(bytes))
+      envelopeRef.current = envelope
+      current
+        .chain()
+        .setMeta('addToHistory', false)
+        .setContent(stripLegacyFencedDivs(envelope.body), { contentType: 'markdown' })
+        .run()
+      takeFrontmatter(frontmatterInner(envelope.frontmatter))
+      dirtyRef.current = true
+      setDirty(true)
+      window.markdownApi.setDirty(true)
+      return true
+    },
+    // a save writes the whole file from the editor, so there is nothing to rebase
+    setStatus: setLiveNote,
+    protectedBlocks: MD_TEXT_BLOCKS,
+    onBound: (doc, { seed, readOnly }) => {
+      const binding = bindFrontmatter(doc, { initial: fmTextRef.current, seed, readOnly, onRemote: takeFrontmatter })
+      fmBindingRef.current = binding
+      return () => {
+        fmBindingRef.current = null
+        binding.destroy()
+      }
+    },
+  })
+  const liveReadOnly = liveRoom.state.kind === 'live' && liveRoom.state.readOnly
+  const liveOn = liveEditor.status === 'on'
+
   const onFrontmatterChange = useCallback(
     (inner: string) => {
       setFmText(inner)
       envelopeRef.current.frontmatter = buildFrontmatterRaw(inner)
+      fmBindingRef.current?.push(inner)
       markDirty()
     },
     [markDirty],
@@ -614,11 +680,27 @@ export default function App() {
         <EditorFrame
           strings={frameText.frame}
           fileName={fileName ?? t('mdUntitled')}
-          onUndo={() => editor?.chain().focus().undo().run()}
-          onRedo={() => editor?.chain().focus().redo().run()}
-          canUndo={!!editor?.can().undo()}
-          canRedo={!!editor?.can().redo()}
-          share={<ShareButton path={filePath} fileName={fileName ?? t('mdUntitled')} api={window.markdownApi} note={SHARE_STRINGS.fileOnlyNote} />}
+          // while live, undo is Yjs's and covers only this person's own changes
+          onUndo={() => editor && historyUndo(editor)}
+          onRedo={() => editor && historyRedo(editor)}
+          canUndo={!!editor && historyCan(editor).canUndo}
+          canRedo={!!editor && historyCan(editor).canRedo}
+          faces={
+            liveOn ? (
+              <PresenceFaces
+                people={liveRoom.faces}
+                strings={{
+                  label: LIVE_STRINGS.facesLabel,
+                  person: LIVE_STRINGS.person,
+                  personHere: LIVE_STRINGS.personHere,
+                  more: LIVE_STRINGS.more,
+                  joined: LIVE_STRINGS.joined,
+                  left: LIVE_STRINGS.left,
+                }}
+              />
+            ) : undefined
+          }
+          share={<ShareButton path={filePath} fileName={fileName ?? t('mdUntitled')} api={window.markdownApi} />}
           saveStatus={
           <VersionsButton path={filePath} fileName={fileName ?? t('mdUntitled')} api={window.markdownApi}>
             {statusText ? <span className={`md-save-status status-${saveState}`}>{statusText}</span> : undefined}
@@ -684,6 +766,8 @@ export default function App() {
               items={[
                 frameT(lang, 'words', { n: wordCount }),
                 frameText.mode[viewing ? 'viewing' : 'editing'],
+                ...(liveOn ? [liveReadOnly ? LIVE_STRINGS.readOnly : LIVE_STRINGS.liveOn] : []),
+                ...(liveNote ? [liveNote] : []),
               ]}
               connection={{ online: frame.online, onlineLabel: frameT(lang, 'online'), offlineLabel: frameT(lang, 'offline') }}
               zoom={
@@ -713,7 +797,9 @@ export default function App() {
           <div className="app-content">
             <div className="editor-scroll" ref={scrollRef}>
               <div className="doc-page" style={{ zoom: zoom / 100 }}>
-                {fmOpen && <FrontmatterPanel value={fmText} onChange={onFrontmatterChange} />}
+                {fmOpen && (
+                  <FrontmatterPanel value={fmText} onChange={liveReadOnly ? () => undefined : onFrontmatterChange} />
+                )}
                 <EditorContent editor={editor} />
               </div>
             </div>

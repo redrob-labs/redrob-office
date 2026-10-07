@@ -1,4 +1,4 @@
-import { shareBridge } from '@genoffice/sync-client'
+import { liveBridge, shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
@@ -14,6 +14,8 @@ const api: MarkdownApi = {
   ...versionsBridge(ipcRenderer),
   // shell-owned sharing (apps/shell/src/main/share-service.ts)
   ...shareBridge(ipcRenderer),
+  // shell-owned live rooms (apps/shell/src/main/live-service.ts): the token stays in main
+  ...liveBridge(ipcRenderer),
   consumePending: () => ipcRenderer.invoke(MARKDOWN_CHANNELS.consumePending),
   readFile: (path) => ipcRenderer.invoke(MARKDOWN_CHANNELS.readFile, path),
   save: (request) => ipcRenderer.invoke(MARKDOWN_CHANNELS.save, request),

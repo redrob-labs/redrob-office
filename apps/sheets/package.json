@@ -32,6 +32,7 @@
     "@genoffice/facts": "workspace:*",
     "@genoffice/file-parse": "workspace:*",
     "@genoffice/i18n": "workspace:*",
+    "@genoffice/live-text": "workspace:*",
     "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
     "@genoffice/versions": "workspace:*",
@@ -65,6 +66,7 @@
     "react-dom": "^19.2.4",
     "rxjs": "^7.8.2",
     "undici": "^6.28.0",
+    "yjs": "13.6.33",
     "zod": "^4.3.6"
   },
   "devDependencies": {

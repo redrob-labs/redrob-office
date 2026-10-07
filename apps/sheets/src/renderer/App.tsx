@@ -1,4 +1,7 @@
 import { useLinkedCells } from './useLinkedCells'
+import { PresenceFaces } from '@genoffice/ui'
+import { LIVE_STRINGS } from '@genoffice/live-text/room'
+import { useLiveCells } from './live/useLiveCells'
 import {
   absRangeRef,
   activateFormulaClosure,
@@ -479,6 +482,10 @@ export function App(): React.JSX.Element {
   const [preview, setPreview] = useState<ChangePlan | null>(null)
   const [_revision, setRevision] = useState(0)
   const [workbookFile, setWorkbookFile] = useState<WorkbookFile | null>(null)
+  /// the file on disk that sharing, versions and live editing key on (null until it has one)
+  const liveFilePath = workbookFile && !workbookFile.needsSaveAs ? (workbookFile.csvPath ?? workbookFile.path ?? null) : null
+  // a shared workbook: cell contents typed elsewhere arrive as they are typed
+  const liveCells = useLiveCells({ api: window.desktopApi, path: liveFilePath, runtime: () => univerRef.current })
   const [pendingEdits, setPendingEdits] = useState(0)
   /// Whether any cell in the workbook has content — the ribbon's one-click AI
   /// action buttons are greyed out on a fully empty sheet.
@@ -5202,8 +5209,23 @@ export function App(): React.JSX.Element {
         />
       )}
       <ExcelShell
+        liveFaces={
+          liveCells.live ? (
+            <PresenceFaces
+              people={liveCells.faces}
+              strings={{
+                label: LIVE_STRINGS.facesLabel,
+                person: LIVE_STRINGS.person,
+                personHere: LIVE_STRINGS.personHere,
+                more: LIVE_STRINGS.more,
+                joined: LIVE_STRINGS.joined,
+                left: LIVE_STRINGS.left,
+              }}
+            />
+          ) : undefined
+        }
         fileName={workbookFile?.name}
-        filePath={workbookFile && !workbookFile.needsSaveAs ? (workbookFile.csvPath ?? workbookFile.path ?? null) : null}
+        filePath={liveFilePath}
         prompt={prompt}
         preview={preview}
         sheetHasContent={sheetHasContent}

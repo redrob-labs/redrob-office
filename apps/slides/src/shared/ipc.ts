@@ -1,4 +1,4 @@
-import type { ShareApi } from '@genoffice/sync-client'
+import type { LiveApi, ShareApi } from '@genoffice/sync-client'
 import type { VersionsApi } from '@genoffice/versions'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 /**
@@ -1163,7 +1163,7 @@ export type MenuCommand =
   | 'copy'
   | 'paste'
 
-export interface SlidesApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi> {
+export interface SlidesApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi>, Partial<LiveApi> {
   /** a request typed into Home's composer, for the Redrob panel to answer (one-shot) */
   consumeAskPrompt?: () => Promise<string | null>
   /** current UI language (persisted by the shell in app-settings.json) */
@@ -1241,6 +1241,10 @@ export interface SlidesApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
     specJson: string
   }) => Promise<{ ok: boolean; marker?: string; error?: string; imageFailures?: string[] }>
   editText: (op: EditTextOp) => Promise<RenderSlide | null>
+  /** Live Slides: the durable address of a text box (slide part + cNvPr id), shared with the room */
+  liveAddress?: (op: { slideIndex: number; sourceId: string; groupId?: string }) => Promise<{ slideId: string; shapeId: string } | null>
+  /** Live Slides: apply someone else's text box; journaled, no undo step; null when this copy lacks it */
+  liveApplyText?: (edit: { slideId: string; shapeId: string; paragraphs: unknown[] }) => Promise<{ slideIndex: number; slide: RenderSlide | null } | null>
   /** Change font/size on selected elements wholesale (elements without text ignored; returns null if all ignored) */
   setElementFont: (op: SetElementFontOp) => Promise<RenderSlide | null>
   /** Change paragraph format on selected elements (bullet/line spacing/paragraph spacing/align; elements without text ignored) */

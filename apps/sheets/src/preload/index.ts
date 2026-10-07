@@ -1,4 +1,4 @@
-import { shareBridge } from '@genoffice/sync-client'
+import { liveBridge, shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
@@ -61,6 +61,8 @@ const desktopApi: DesktopApi = {
   ...versionsBridge(ipcRenderer),
   // shell-owned sharing (apps/shell/src/main/share-service.ts)
   ...shareBridge(ipcRenderer),
+  // shell-owned live rooms (apps/shell/src/main/live-service.ts): the token stays in main
+  ...liveBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   // shell-owned linked figures (apps/shell/src/main/facts-service.ts)
   ...factsBridge(ipcRenderer),

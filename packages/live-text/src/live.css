@@ -1,0 +1,41 @@
+/* Other people in a live file: their carets and selections in the text.
+ * Document colours (they sit in the document area, not the chrome); an app
+ * may set --live-peer-paper-1..6 and --live-peer-paper-ink to its own. Each
+ * default carries white name text at 4.5:1 or better. */
+
+.live-peer-caret {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 2px solid var(--live-peer);
+  word-break: normal;
+  pointer-events: none;
+}
+
+.live-peer-caret__name {
+  position: absolute;
+  top: -1.3em;
+  left: -2px;
+  padding: 1px 4px;
+  border-radius: 3px 3px 3px 0;
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  user-select: none;
+  background: var(--live-peer);
+  color: var(--live-peer-paper-ink, #ffffff);
+}
+
+.live-peer-sel {
+  background: color-mix(in srgb, var(--live-peer) 18%, transparent);
+}
+
+.live-peer--1 { --live-peer: var(--live-peer-paper-1, #0f766e); }
+.live-peer--2 { --live-peer: var(--live-peer-paper-2, #6d28d9); }
+.live-peer--3 { --live-peer: var(--live-peer-paper-3, #c2410c); }
+.live-peer--4 { --live-peer: var(--live-peer-paper-4, #be185d); }
+.live-peer--5 { --live-peer: var(--live-peer-paper-5, #0369a1); }
+.live-peer--6 { --live-peer: var(--live-peer-paper-6, #4d7c0f); }

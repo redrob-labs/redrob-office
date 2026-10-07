@@ -1,4 +1,4 @@
-import { shareBridge } from '@genoffice/sync-client'
+import { liveBridge, shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
@@ -94,6 +94,8 @@ const api: SlidesApi = {
   ...versionsBridge(ipcRenderer),
   // shell-owned sharing (apps/shell/src/main/share-service.ts)
   ...shareBridge(ipcRenderer),
+  // shell-owned live rooms (apps/shell/src/main/live-service.ts): the token stays in main
+  ...liveBridge(ipcRenderer),
   ...officePrefsBridge(ipcRenderer),
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
   // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite
@@ -151,6 +153,10 @@ const api: SlidesApi = {
   localGeneratePage: (op: { specJson: string }) =>
     ipcRenderer.invoke('slides:local-page-generate', op),
   editText: (op: EditTextOp) => ipcRenderer.invoke('slides:edit-text', op),
+  liveAddress: (op: { slideIndex: number; sourceId: string; groupId?: string }) =>
+    ipcRenderer.invoke('slides:live-address', op),
+  liveApplyText: (edit: { slideId: string; shapeId: string; paragraphs: unknown[] }) =>
+    ipcRenderer.invoke('slides:live-apply-text', edit),
   setElementFont: (op: SetElementFontOp) => ipcRenderer.invoke('slides:set-element-font', op),
   setElementParagraphFormat: (op: SetElementParagraphFormatOp) =>
     ipcRenderer.invoke('slides:set-element-paragraph-format', op),

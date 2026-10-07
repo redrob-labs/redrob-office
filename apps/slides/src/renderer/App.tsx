@@ -1,5 +1,7 @@
-import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import { PresenceFaces, ShareButton } from '@genoffice/ui'
 import '@genoffice/ui/share.css'
+import { LIVE_STRINGS } from '@genoffice/live-text/room'
+import { SLIDES_LIVE_NOTE, useLiveShapes } from './live/useLiveShapes'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -354,6 +356,13 @@ export function App() {
   /** Theme body default font (fallback for the font box when the selection has no text element) */
   const [defaultFont, setDefaultFont] = useState<string | null>(null)
   const [current, setCurrent] = useState(0)
+  // a shared deck: text boxes typed elsewhere arrive as they are committed (never marks this window unsaved)
+  const liveShapes = useLiveShapes({
+    api: window.slidesApi,
+    path,
+    current,
+    onRemoteSlide: (slideIndex, updated) => setSlides((s) => s.map((sl, i) => (i === slideIndex ? updated : sl))),
+  })
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   /** Group being edited from inside (double-click to enter, click outside/Esc to exit); the selection may contain its children */
   const [enteredGroupId, setEnteredGroupId] = useState<string | null>(null)
@@ -2264,6 +2273,8 @@ export function App() {
   const commitEdit = useCallback(
     async (paragraphs: EditParagraph[]) => {
       if (!editing) return
+      // asked first: the parse-time id may not survive the edit's rebuild
+      const shared = await liveShapes.addressFor(current, editing.sourceId, editing.groupId ?? undefined)
       const updated = await window.slidesApi.editText({
         slideIndex: current,
         sourceId: editing.sourceId,
@@ -2273,11 +2284,12 @@ export function App() {
       if (updated) {
         setSlides((s) => s.map((sl, i) => (i === current ? updated : sl)))
         setDirty(true)
+        if (shared) liveShapes.push(shared, paragraphs)
       }
       setEditing(null)
       setSelectedIds([editing.sourceId]) // Back to shape-selected state after committing
     },
-    [editing, current],
+    [editing, current, liveShapes.addressFor, liveShapes.push],
   )
 
   // ⌘+click on a linked run while editing: jump in the editor / open externally (same routing as the show)
@@ -2845,7 +2857,22 @@ export function App() {
         onRedo={hasDoc ? () => void redo() : undefined}
         canUndo={histState.canUndo}
         canRedo={histState.canRedo}
-        share={<ShareButton path={path} fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')} api={window.slidesApi} note={SHARE_STRINGS.fileOnlyNote} />}
+        faces={
+          liveShapes.live ? (
+            <PresenceFaces
+              people={liveShapes.faces}
+              strings={{
+                label: LIVE_STRINGS.facesLabel,
+                person: LIVE_STRINGS.person,
+                personHere: LIVE_STRINGS.personHere,
+                more: LIVE_STRINGS.more,
+                joined: LIVE_STRINGS.joined,
+                left: LIVE_STRINGS.left,
+              }}
+            />
+          ) : undefined
+        }
+        share={<ShareButton path={path} fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')} api={window.slidesApi} note={SLIDES_LIVE_NOTE} />}
         saveStatus={
           <VersionsButton path={path} fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')} api={window.slidesApi}>
             {hasDoc ? (

@@ -47,6 +47,9 @@ importers:
       '@genoffice/font-metrics':
         specifier: workspace:*
         version: link:../../packages/font-metrics
+      '@genoffice/live-text':
+        specifier: workspace:*
+        version: link:../../packages/live-text
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../../packages/pptx-render
@@ -216,6 +219,9 @@ importers:
 
   apps/markdown:
     dependencies:
+      '@genoffice/live-text':
+        specifier: workspace:*
+        version: link:../../packages/live-text
       '@genoffice/versions':
         specifier: workspace:*
         version: link:../../packages/versions
@@ -225,6 +231,9 @@ importers:
       katex:
         specifier: ^0.16.47
         version: 0.16.47
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
     devDependencies:
       '@genoffice/agent-core':
         specifier: workspace:*
@@ -427,6 +436,9 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/live-text':
+        specifier: workspace:*
+        version: link:../../packages/live-text
       '@genoffice/sync-client':
         specifier: workspace:*
         version: link:../../packages/sync-client
@@ -526,6 +538,9 @@ importers:
       undici:
         specifier: ^6.28.0
         version: 6.28.0
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
       zod:
         specifier: ^4.3.6
         version: 4.4.3
@@ -706,6 +721,9 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/live-text':
+        specifier: workspace:*
+        version: link:../../packages/live-text
       '@genoffice/pptx-engine':
         specifier: workspace:*
         version: link:../../packages/pptx-engine
@@ -775,6 +793,9 @@ importers:
       vitest:
         specifier: ^4.1.0
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
 
   packages/agent-core:
     devDependencies:
@@ -989,6 +1010,70 @@ importers:
         version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
       vitest:
         specifier: ^4.1.0
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  packages/live-text:
+    dependencies:
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../sync-client
+      prosemirror-history:
+        specifier: 1.5.0
+        version: 1.5.0
+      prosemirror-keymap:
+        specifier: 1.2.3
+        version: 1.2.3
+      prosemirror-model:
+        specifier: 1.25.11
+        version: 1.25.11
+      prosemirror-state:
+        specifier: 1.4.4
+        version: 1.4.4
+      prosemirror-view:
+        specifier: 1.42.1
+        version: 1.42.1
+      y-prosemirror:
+        specifier: 1.3.7
+        version: 1.3.7(prosemirror-model@1.25.11)(prosemirror-state@1.4.4)(prosemirror-view@1.42.1)(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33)
+      y-protocols:
+        specifier: 1.0.7
+        version: 1.0.7(yjs@13.6.33)
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
+    devDependencies:
+      '@tiptap/core':
+        specifier: 3.29.2
+        version: 3.29.2(@tiptap/pm@3.29.2)
+      '@tiptap/pm':
+        specifier: 3.29.2
+        version: 3.29.2
+      '@tiptap/starter-kit':
+        specifier: 3.29.2
+        version: 3.29.2
+      '@types/react':
+        specifier: 19.2.17
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+      jsdom:
+        specifier: ^28.0.0
+        version: 28.1.0(@noble/hashes@2.2.0)
+      react:
+        specifier: ^19.2.4
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.8(react@19.2.8)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.10
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
   packages/pdf2docx:

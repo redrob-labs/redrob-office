@@ -48,8 +48,10 @@
   },
   "author": "Redrob",
   "dependencies": {
+    "@genoffice/live-text": "workspace:*",
     "@genoffice/versions": "workspace:*",
     "@tiptap/extension-mathematics": "3.29.2",
-    "katex": "^0.16.47"
+    "katex": "^0.16.47",
+    "yjs": "13.6.33"
   }
 }

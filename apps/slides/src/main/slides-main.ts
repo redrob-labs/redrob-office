@@ -110,6 +110,7 @@ import {
   type RenderSlide,
 } from '@genoffice/pptx-render'
 import { refineComplexWidths, shapedMetricsReady } from './shaped-metrics'
+import { cleanLiveParagraphs, liveTextAddress, resolveLiveText } from './live-address'
 import { cfbKind, isCfbHeader } from './cfb-sniff'
 import { unplayableAudioCodec } from './mp4-audio-sniff'
 import type {
@@ -1227,6 +1228,46 @@ export function registerSlidesIpc(): void {
     )
     return syncAutofitScale(session, op.slideIndex, op.sourceId, rendered)
   })
+
+  // Live Slides: the address every copy of the file agrees on for a text box
+  // (see live-address.ts). Asked before a local edit is sent to the room.
+  ipcMain.handle('slides:live-address', (e, op: { slideIndex: number; sourceId: string; groupId?: string }) => {
+    const session = sessions.get(e.sender.id)
+    if (!session || !op || typeof op.sourceId !== 'string' || !Number.isInteger(op.slideIndex)) return null
+    return liveTextAddress(
+      session.opened.deck.slides,
+      op.slideIndex,
+      op.sourceId,
+      typeof op.groupId === 'string' ? op.groupId : undefined,
+    )
+  })
+
+  // Someone else's text box, as it arrives from the room: the same setText op a
+  // local edit runs, journaled (a save here writes it), but no undo step — it
+  // is not this person's edit to take back.
+  ipcMain.handle(
+    'slides:live-apply-text',
+    (e, edit: { slideId: string; shapeId: string; paragraphs: unknown }): { slideIndex: number; slide: RenderSlide | null } | null => {
+      const session = sessions.get(e.sender.id)
+      if (!session || !edit || typeof edit.slideId !== 'string' || typeof edit.shapeId !== 'string') return null
+      const paragraphs = cleanLiveParagraphs(edit.paragraphs)
+      if (!paragraphs) return null
+      const at = resolveLiveText(session.opened.deck.slides, { slideId: edit.slideId, shapeId: edit.shapeId })
+      if (!at) return null
+      const r = journaledTxn(session, 'edit', {
+        ops: [
+          {
+            op: 'setText',
+            target: { slide: at.slideIndex, el: at.el },
+            paragraphs,
+            ...(at.group ? { group: at.group } : {}),
+          },
+        ],
+      })
+      if (!r.applied) return null
+      return { slideIndex: at.slideIndex, slide: rebuildSlide(session, at.slideIndex) }
+    },
+  )
 
   // Shim over the canonical setFont op: one per_op transaction covers the whole
   // selection (non-text elements fail their own op and are skipped, matching the

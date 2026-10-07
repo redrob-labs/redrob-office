@@ -1,4 +1,8 @@
-import { SHARE_STRINGS, ShareButton } from '@genoffice/ui'
+import { ShareButton } from '@genoffice/ui'
+
+/// What live editing covers for a workbook (English master, like the rest of the Share copy)
+export const SHEETS_LIVE_NOTE =
+  'Cell contents and formulas change for everyone as they are typed. Formatting, rows and columns, charts and new sheets reach the others with your next save.'
 import '@genoffice/ui/share.css'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
@@ -164,6 +168,8 @@ function ToolSymbol({ symbol }: { readonly symbol: string }): React.JSX.Element 
 }
 
 interface ExcelShellProps {
+  /// Who else has this shared file open live (the title bar's faces); absent when not live.
+  readonly liveFaces?: React.ReactNode
   readonly prompt: string
   readonly preview: ChangePlan | null
   readonly selectionFormat: SelectionFormat | null
@@ -317,6 +323,7 @@ export interface PageLayoutEcho {
 }
 
 export function ExcelShell({
+  liveFaces,
   prompt,
   preview,
   selectionFormat,
@@ -534,7 +541,8 @@ export function ExcelShell({
         onRedo={canRedo ? onRedo : undefined}
         canUndo={canUndo}
         canRedo={canRedo}
-        share={<ShareButton path={filePath ?? null} fileName={fileName ?? t('appUntitledXlsx')} api={window.desktopApi} note={SHARE_STRINGS.fileOnlyNote} />}
+        faces={liveFaces}
+        share={<ShareButton path={filePath ?? null} fileName={fileName ?? t('appUntitledXlsx')} api={window.desktopApi} note={SHEETS_LIVE_NOTE} />}
         saveStatus={
           <VersionsButton path={filePath ?? null} fileName={fileName ?? t('appUntitledXlsx')} api={window.desktopApi}>
             {<span className="sheets-save-status">{canSave ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}</span>}
