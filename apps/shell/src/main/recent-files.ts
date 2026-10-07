@@ -42,18 +42,33 @@ export function statPathEntries(
 
 export function normalizeRecentQuery(
   raw: unknown,
-): Required<Omit<RecentQuery, 'ext'>> & { ext?: string } {
+): Required<Omit<RecentQuery, 'ext' | 'q'>> & { ext?: string; q?: string } {
   const query = (raw ?? {}) as RecentQuery
   const offset = Number.isFinite(query.offset) ? Math.max(0, Math.floor(query.offset!)) : 0
   const limit = Number.isFinite(query.limit)
     ? Math.min(RECENT_PAGE_MAX, Math.max(0, Math.floor(query.limit!)))
     : RECENT_PAGE_DEFAULT
   const ext = typeof query.ext === 'string' && query.ext ? query.ext.toLowerCase() : undefined
-  return { offset, limit, ext }
+  const q =
+    typeof query.q === 'string' && query.q.trim() ? query.q.trim().toLowerCase().slice(0, 200) : undefined
+  return { offset, limit, ext, q }
 }
 
 /** sidebar filter keys that stand for a family of extensions, not one exact ext */
 const EXT_FAMILY: Record<string, readonly string[]> = { xlsx: ['xlsx', 'xlsm'] }
+
+/** entries of one extension family whose name contains q (case-insensitive) */
+export function filterRecentEntries<T extends { ext: string; name: string }>(
+  all: readonly T[],
+  ext: string | undefined,
+  q: string | undefined,
+): T[] {
+  const family = ext ? (EXT_FAMILY[ext] ?? [ext]) : undefined
+  return all.filter(
+    (entry) =>
+      (!family || family.includes(entry.ext)) && (!q || entry.name.toLowerCase().includes(q)),
+  )
+}
 
 /** Page over the recents paths, preserving the source's newest-first order (unavailable paths stay, flagged missing). */
 export function pageRecentPaths(
@@ -61,10 +76,9 @@ export function pageRecentPaths(
   raw: unknown,
   starredPaths: ReadonlySet<string>,
 ): RecentPage {
-  const { offset, limit, ext } = normalizeRecentQuery(raw)
+  const { offset, limit, ext, q } = normalizeRecentQuery(raw)
   const all = statPathEntries(paths, starredPaths)
-  const family = ext ? (EXT_FAMILY[ext] ?? [ext]) : undefined
-  const filtered = family ? all.filter((entry) => family.includes(entry.ext)) : all
+  const filtered = filterRecentEntries(all, ext, q)
   return {
     entries: limit === 0 ? [] : filtered.slice(offset, offset + limit),
     total: filtered.length,

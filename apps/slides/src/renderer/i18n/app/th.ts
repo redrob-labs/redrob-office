@@ -1,6 +1,8 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
+  appSlideRail: 'สไลด์',
+  appSlideLabel: 'สไลด์ {n}',
   appPhPromptTitle: 'คลิกเพื่อเพิ่มชื่อเรื่อง',
   appPhPromptSubtitle: 'คลิกเพื่อเพิ่มชื่อเรื่องรอง',
   appPhPromptBody: 'คลิกเพื่อเพิ่มข้อความ',
@@ -225,4 +227,4 @@ export const th = {
   appSettingsCancel: 'ยกเลิก',
   appSettingsSave: 'บันทึก',
   appCropHint: 'กด Enter เพื่อยืนยัน · Esc เพื่อยกเลิก · คลิกด้านนอกเพื่อยืนยัน',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

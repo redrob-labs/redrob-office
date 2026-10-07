@@ -113,7 +113,7 @@ describe('AiPanel teardown', () => {
     typeInto(textarea, 'keep streaming')
 
     await act(async () => {
-      container.querySelector<HTMLButtonElement>('.ai-send-btn')!.click()
+      container.querySelector<HTMLButtonElement>('.rr-composer__send')!.click()
       await Promise.resolve()
       await Promise.resolve()
     })

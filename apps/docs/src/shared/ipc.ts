@@ -1,3 +1,8 @@
+import type { OfficePrefs } from '@genoffice/electron-utils/office-prefs'
+import type { FactsCommand, FactsState } from '@genoffice/facts'
+import type { VersionsApi } from '@genoffice/versions'
+import type { LiveApi, ShareApi } from '@genoffice/sync-client'
+
 export interface OpenFileResult {
   path: string
   name: string
@@ -213,6 +218,36 @@ export interface DesktopApi {
   /** returns true when this tab was created via "New Document" and should start blank */
   consumeNewBlankDoc(): Promise<boolean>
   /** AI-authored content queued for this tab by create_document; one-shot, null when none */
+  /** a request typed into Home's composer, for the Redrob panel to answer (one-shot) */
+  consumeAskPrompt(): Promise<string | null>
+  /** Toolbar, Plan or Run and Cross-check defaults, owned by the shell (null outside it) */
+  getOfficePrefs?(): Promise<OfficePrefs | null>
+  setOfficePrefs?(patch: Partial<OfficePrefs>): Promise<OfficePrefs | null>
+  onOfficePrefsChanged?(handler: (prefs: OfficePrefs) => void): () => void
+  /** Version history and last visits, owned by the shell (empty / null outside it) */
+  listVersions?: VersionsApi['listVersions']
+  nameVersion?: VersionsApi['nameVersion']
+  restoreVersion?: VersionsApi['restoreVersion']
+  markVisit?: VersionsApi['markVisit']
+  /** Sharing through the shell's sync client (absent outside the suite) */
+  shareStatus?: ShareApi['shareStatus']
+  shareInvite?: ShareApi['shareInvite']
+  shareRemove?: ShareApi['shareRemove']
+  sharedWithMe?: ShareApi['sharedWithMe']
+  openShared?: ShareApi['openShared']
+  /** Live documents through the shell (absent outside the suite) */
+  liveJoin?: LiveApi['liveJoin']
+  livePull?: LiveApi['livePull']
+  liveUpdate?: LiveApi['liveUpdate']
+  livePresence?: LiveApi['livePresence']
+  liveLeave?: LiveApi['liveLeave']
+  onLiveUpdate?: LiveApi['onLiveUpdate']
+  onLivePeers?: LiveApi['onLivePeers']
+  /** The shell's linked-figure index (null outside the suite or when it failed to read) */
+  getFacts?(): Promise<FactsState | null>
+  /** Rejects when the shell refused or could not save the command */
+  factsCommand?(cmd: FactsCommand): Promise<FactsState>
+  onFactsChanged?(handler: (state: FactsState) => void): () => void
   consumeAiDocContent(): Promise<AiDocContent | null>
   /** AI create_document: build a new standalone file and open it in a new tab */
   createDocument(request: CreateDocumentRequest): Promise<CreateDocumentResult>

@@ -1,3 +1,4 @@
+import { Button, Icon, IconButton } from '@genoffice/ui'
 import { useI18n } from './locale'
 import './star-prompt.css'
 
@@ -20,14 +21,6 @@ interface StarPromptCardProps {
   onClose: () => void
 }
 
-function StarIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z" />
-    </svg>
-  )
-}
-
 export function StarPromptCard({ docOpens, onClose }: StarPromptCardProps) {
   const { t } = useI18n()
 
@@ -43,41 +36,42 @@ export function StarPromptCard({ docOpens, onClose }: StarPromptCardProps) {
 
   return (
     <div className="star-prompt" role="dialog" aria-label={title}>
-      <button
+      <IconButton
         className="star-prompt-close"
-        aria-label={t('starPromptLater')}
+        size="sm"
+        label={t('starPromptLater')}
         onClick={() => react('later')}
       >
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <path
-            d="M2 2l8 8M10 2L2 10"
-            stroke="currentColor"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-          />
-        </svg>
-      </button>
+        <Icon name="close" size={14} />
+      </IconButton>
       <div className="star-prompt-head">
         <span className="star-prompt-icon">
-          <StarIcon />
+          <Icon name="star" size={18} />
         </span>
         <h3 className="star-prompt-title">{title}</h3>
       </div>
       <p className="star-prompt-body">{t('starPromptBody')}</p>
       <div className="star-prompt-actions">
-        <button
+        <Button
           className="star-prompt-go"
+          variant="primary"
+          size="sm"
+          iconLeft={<Icon name="star" size={14} />}
           onClick={() => {
             void window.aiOffice.openGitHubRepo().catch(() => {})
             react('starred')
           }}
         >
-          <StarIcon />
           {t('starPromptGo')}
-        </button>
-        <button className="star-prompt-done" onClick={() => react('starred')}>
+        </Button>
+        <Button
+          className="star-prompt-done"
+          variant="ghost"
+          size="sm"
+          onClick={() => react('starred')}
+        >
           {t('starPromptDone')}
-        </button>
+        </Button>
       </div>
     </div>
   )

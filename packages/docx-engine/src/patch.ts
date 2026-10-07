@@ -57,6 +57,8 @@ import type {
   ThemeFonts,
 } from './types'
 import { PAGE_MARK, TOTAL_PAGES_MARK } from './types'
+import type { PersonInfo } from './types'
+import { PEOPLE_CONTENT_TYPE, PEOPLE_PART, PEOPLE_REL_TYPE, buildPeopleXml } from './people'
 import { patchParagraphTexts } from './text-patch'
 import { WATERMARK_NS, watermarkParagraphXml } from './watermark'
 import { escapeXmlAttr, escapeXmlText } from './xml-utils'
@@ -166,6 +168,12 @@ export interface SaveOptions {
    * (plain-text bodies). undefined = keep the part byte-identical.
    */
   comments?: CommentInfo[]
+  /**
+   * people to list in word/people.xml (comment authors, mentioned people).
+   * Only people the file does not list yet are added; existing entries stay
+   * byte-identical. undefined = keep the part as it is.
+   */
+  people?: PersonInfo[]
   /** editing restriction; null removes w:documentProtection, undefined keeps */
   protection?: DocProtection | null
   /** password to modify / read-only recommended; null removes w:writeProtection, undefined keeps */
@@ -860,6 +868,18 @@ export async function saveDocx(
     }
   }
 
+  // ---- people: add new authors to word/people.xml, leave listed ones untouched ----
+  let peopleXml: string | null = null
+  let peopleIsNew = false
+  if (options.people && options.people.length > 0) {
+    const peopleFile = zip.file(PEOPLE_PART)
+    peopleXml = buildPeopleXml(options.people, peopleFile ? await peopleFile.async('string') : null)
+    if (peopleXml !== null && !peopleFile) {
+      peopleIsNew = true
+      newRels.push({ rId: `rId${nextRelNum++}`, type: PEOPLE_REL_TYPE, target: 'people.xml', external: false })
+    }
+  }
+
   // ---- footnotes / endnotes: regenerate the part from the full desired list ----
   const notesParts: Array<{ path: string; xml: string; isNew: boolean; kind: NoteKind }> = []
   const planNotes = async (kind: NoteKind, notes: NoteInfo[] | undefined) => {
@@ -1160,6 +1180,7 @@ export async function saveDocx(
           'application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtended+xml',
         )
       }
+      if (peopleIsNew) addOverride(`/${PEOPLE_PART}`, PEOPLE_CONTENT_TYPE)
       if (settingsIsNew) {
         addOverride(
           '/word/settings.xml',
@@ -1213,6 +1234,8 @@ export async function saveDocx(
       out.file(name, commentsXml, { date: entry.date })
     } else if (name === commentsExtPath && commentsExtXml !== null) {
       out.file(name, commentsExtXml, { date: entry.date })
+    } else if (name === PEOPLE_PART && peopleXml !== null) {
+      out.file(name, peopleXml, { date: entry.date })
     } else if (name === numberingPath && numberingXmlOut !== null) {
       out.file(name, numberingXmlOut, { date: entry.date })
     } else if (name === stylesPath && stylesXmlOut !== null) {
@@ -1244,6 +1267,9 @@ export async function saveDocx(
   }
   if (commentsIsNew && commentsXml !== null) {
     out.file(commentsPath, commentsXml)
+  }
+  if (peopleIsNew && peopleXml !== null) {
+    out.file(PEOPLE_PART, peopleXml)
   }
   if (commentsExtIsNew && commentsExtXml !== null) {
     out.file(commentsExtPath, commentsExtXml)

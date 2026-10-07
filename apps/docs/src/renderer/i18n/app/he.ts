@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const he = {
   appScTitle: 'קיצורי מקלדת',
@@ -343,4 +343,4 @@ export const he = {
   appUpdateStyleTip: 'עדכון סגנון זה לפי הקטע המסומן הנוכחי (נכתב חזרה אל styles.xml)',
   appNewStyleFromSelection: 'סגנון חדש מהקטע המסומן הנוכחי',
   appStyleNamePlaceholder: 'שם הסגנון',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

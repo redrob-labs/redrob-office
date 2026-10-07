@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pt = {
+  aiYou: 'Você',
+  aiFailedTitle: 'O assistente não conseguiu concluir',
+  aiStepRunning: 'Em execução',
+  aiStepDone: 'Concluído',
+  aiStepFailed: 'Falhou',
+  aiStartersLabel: 'Perguntas sugeridas',
   aiInputPlaceholderGen: 'Descreva o deck a gerar, ou pergunte algo',
   aiEmptyGenTitle: 'Deixe a IA gerar sua apresentação',
   aiEmptyGenBody1: 'Descreva o tema, a ocasião e o número aproximado de páginas;',
@@ -248,4 +254,4 @@ export const pt = {
   aiSumSaveTemplate: 'Modelo de estilo "{name}" salvo',
   aiSumTemplatesEmpty: 'Modelos de estilo (vazio)',
   aiSumListTemplates: '{count} modelos de estilo listados',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

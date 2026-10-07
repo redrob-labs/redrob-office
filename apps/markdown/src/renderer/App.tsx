@@ -20,7 +20,9 @@ import { ToastHost } from './components/toast'
 import { TableMenu } from './components/TableMenu'
 import { FrontmatterPanel } from './components/FrontmatterPanel'
 import { AiAskPopover } from './components/AiAskPopover'
-import { AiPanel, GensparkMark, type AiPreset, type MarkdownAiDeps } from './ai/AiPanel'
+import { AiPanel, type AiPreset, type MarkdownAiDeps } from './ai/AiPanel'
+import { EditorFrame, StatusBar, frameCopy, frameT, useFrameState } from '@genoffice/ui'
+import { SimpleToolbar, countMdWords, mdCommands, mdTools } from './components/SimpleToolbar'
 import { EDIT_QUEUE_MAX, selectionForAnchor, type EditQueueItem } from './ai/edit-queue'
 import { addQueueAnchor, clearQueueAnchors, removeQueueAnchors } from './editor/aiQueueAnchors'
 import { DOCX_MAX_IMAGE_PX, exportDocxBytes } from './export/docxExport'
@@ -111,7 +113,10 @@ export function deriveAutoFileName(editor: Editor): string {
 }
 
 export default function App() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  // the shared editor frame: toolbar choice, panel width, online, and Viewing
+  const frame = useFrameState(window.markdownApi, 'mdapp-frame-panel-width')
+  const [viewing, setViewing] = useState(false)
   const [status, setStatus] = useState<LoadStatus>('loading')
   const [filePath, setFilePath] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
@@ -576,6 +581,20 @@ export default function App() {
             ? t('savedOk')
             : ''
 
+  // Viewing: read only; Markdown has no comments, so it reads
+  useEffect(() => {
+    editor?.setEditable(!viewing)
+  }, [editor, viewing])
+  const frameText = frameCopy(lang)
+  const runInPanel = (text: string) => {
+    setAiOpen(true)
+    setAiPreset((prev) => ({ text, nonce: (prev?.nonce ?? 0) + 1 }))
+  }
+  const mdRedrob = { ask: () => setAiOpen(true), run: runInPanel }
+  const mdCmd = mdCommands(editor)
+  const frameTools = mdTools(t, mdCmd, mdRedrob, status === 'ready' && !viewing)
+  const wordCount = editor ? countMdWords(editor.state.doc.textContent) : 0
+
   if (status === 'error') {
     return (
       <div className="app">
@@ -586,100 +605,111 @@ export default function App() {
 
   return (
     <div className="app">
-      <Ribbon
-        editor={editor}
-        disabled={status !== 'ready'}
-        dirty={dirty}
-        onSave={() => void doSave('save')}
-        autoSave={autoSave}
-        onToggleAutoSave={setAutoSave}
-        imageEnabled={Boolean(filePath)}
-        onInsertImage={insertImage}
-        frontmatterOpen={fmOpen}
-        onToggleFrontmatter={() => setFmOpen((v) => !v)}
-        aiOpen={aiOpen}
-        onToggleAi={() => setAiOpen((v) => !v)}
-        onAiPreset={(text) => {
-          setAiOpen(true)
-          setAiPreset((prev) => ({ text, nonce: (prev?.nonce ?? 0) + 1 }))
-        }}
-      />
       {status === 'loading' && <div className="center-note">{t('loading')}</div>}
-      <div className="app-main" style={status === 'ready' ? undefined : { display: 'none' }}>
-        <div className={`ai-dock${aiOpen ? '' : ' collapsed'}`}>
-          {!aiOpen && (
-            <button
-              className="ai-rail"
-              data-tip={t('aiOpenAssistant')}
-              aria-label={t('aiOpenAssistant')}
-              onClick={() => setAiOpen(true)}
-            >
-              <GensparkMark size={22} />
-            </button>
-          )}
-          {/* mounted only after the file is loaded so chat history resolves against the real path */}
-          {status === 'ready' && (
-            <AiPanel
-              deps={aiDeps}
-              filePath={filePath}
-              preset={aiPreset}
-              onCollapse={() => setAiOpen(false)}
-              editQueue={editQueue}
-              onQueueEditInstruction={queueUpdate}
-              onQueueRemove={queueRemove}
-              onQueueClear={queueClear}
-              onQueueFocus={queueFocus}
-              onQueueConsume={queueConsume}
+      <div className="md-frame-host" style={status === 'ready' ? undefined : { display: 'none' }}>
+        <EditorFrame
+          strings={frameText.frame}
+          fileName={fileName ?? t('mdUntitled')}
+          onUndo={() => editor?.chain().focus().undo().run()}
+          onRedo={() => editor?.chain().focus().redo().run()}
+          canUndo={!!editor?.can().undo()}
+          canRedo={!!editor?.can().redo()}
+          saveStatus={statusText ? <span className={`md-save-status status-${saveState}`}>{statusText}</span> : undefined}
+          search={{ tools: frameTools, strings: frameText.search, onAsk: runInPanel }}
+          mode={{
+            value: viewing ? 'viewing' : 'editing',
+            onChange: (m) => setViewing(m === 'viewing'),
+            strings: frameText.mode,
+            // Markdown has no tracked-change model to suggest with yet
+            unavailable: ['suggesting'],
+          }}
+          toolbar={frame.toolbar}
+          onToolbarChange={frame.setToolbar}
+          toolbarStrings={frameText.toolbar}
+          simpleToolbar={<SimpleToolbar editor={editor} cmd={mdCmd} redrob={mdRedrob} canEdit={status === 'ready' && !viewing} />}
+          classicToolbar={
+          <Ribbon
+            editor={editor}
+            disabled={status !== 'ready'}
+            dirty={dirty}
+            onSave={() => void doSave('save')}
+            autoSave={autoSave}
+            onToggleAutoSave={setAutoSave}
+            imageEnabled={Boolean(filePath)}
+            onInsertImage={insertImage}
+            frontmatterOpen={fmOpen}
+            onToggleFrontmatter={() => setFmOpen((v) => !v)}
+            aiOpen={aiOpen}
+            onToggleAi={() => setAiOpen((v) => !v)}
+            onAiPreset={(text) => {
+              setAiOpen(true)
+              setAiPreset((prev) => ({ text, nonce: (prev?.nonce ?? 0) + 1 }))
+            }}
+          />
+          }
+          panel={
+            // mounted only after the file is loaded so chat history resolves against the real path
+            status === 'ready' ? (
+              <AiPanel
+                deps={aiDeps}
+                filePath={filePath}
+                preset={aiPreset}
+                onCollapse={() => setAiOpen(false)}
+                editQueue={editQueue}
+                onQueueEditInstruction={queueUpdate}
+                onQueueRemove={queueRemove}
+                onQueueClear={queueClear}
+                onQueueFocus={queueFocus}
+                onQueueConsume={queueConsume}
+                hosted
+              />
+            ) : undefined
+          }
+          panelOpen={aiOpen}
+          onPanelOpenChange={setAiOpen}
+          panelWidth={frame.panelWidth}
+          onPanelWidthChange={frame.setPanelWidth}
+          status={
+            <StatusBar
+              label={frameT(lang, 'status')}
+              items={[
+                frameT(lang, 'words', { n: wordCount }),
+                frameText.mode[viewing ? 'viewing' : 'editing'],
+              ]}
+              connection={{ online: frame.online, onlineLabel: frameT(lang, 'online'), offlineLabel: frameT(lang, 'offline') }}
+              zoom={
+                <span className="status-zoom">
+                  <button type="button" className="zoom-btn" aria-label={frameT(lang, 'zoomOut')} onClick={zoomOut} disabled={zoom <= MIN_ZOOM}>
+                    -
+                  </button>
+                  <input
+                    className="zoom-slider"
+                    type="range"
+                    min={MIN_ZOOM}
+                    max={MAX_ZOOM}
+                    step={ZOOM_STEP}
+                    value={Math.round(zoom)}
+                    aria-label={frameT(lang, 'zoom')}
+                    onChange={(event) => setZoom(Number(event.target.value))}
+                  />
+                  <button type="button" className="zoom-btn" aria-label={frameT(lang, 'zoomIn')} onClick={zoomIn} disabled={zoom >= MAX_ZOOM}>
+                    +
+                  </button>
+                  <span className="zoom-value">{Math.round(zoom)}%</span>
+                </span>
+              }
             />
-          )}
-        </div>
-        <div className="app-content">
-          <div className="editor-scroll" ref={scrollRef}>
-            <div className="doc-page" style={{ zoom: zoom / 100 }}>
-              {fmOpen && <FrontmatterPanel value={fmText} onChange={onFrontmatterChange} />}
-              <EditorContent editor={editor} />
+          }
+        >
+          <div className="app-content">
+            <div className="editor-scroll" ref={scrollRef}>
+              <div className="doc-page" style={{ zoom: zoom / 100 }}>
+                {fmOpen && <FrontmatterPanel value={fmText} onChange={onFrontmatterChange} />}
+                <EditorContent editor={editor} />
+              </div>
             </div>
           </div>
-          <footer className="status-bar">
-            <div className="status-left">
-              {fileName && <span className="status-item status-file">{fileName}</span>}
-            </div>
-            <div className="status-right">
-              {statusText && (
-                <span className={`status-save status-${saveState}`}>{statusText}</span>
-              )}
-              <button
-                type="button"
-                className="zoom-btn"
-                aria-label="Zoom out"
-                onClick={zoomOut}
-                disabled={zoom <= MIN_ZOOM}
-              >
-                −
-              </button>
-              <input
-                className="zoom-slider"
-                type="range"
-                min={MIN_ZOOM}
-                max={MAX_ZOOM}
-                step={ZOOM_STEP}
-                value={Math.round(zoom)}
-                aria-label="Zoom"
-                onChange={(event) => setZoom(Number(event.target.value))}
-              />
-              <button
-                type="button"
-                className="zoom-btn"
-                aria-label="Zoom in"
-                onClick={zoomIn}
-                disabled={zoom >= MAX_ZOOM}
-              >
-                +
-              </button>
-              <span className="zoom-value">{Math.round(zoom)}%</span>
-            </div>
-          </footer>
-        </div>
+        </EditorFrame>
       </div>
       <SlashMenu ref={slashMenuRef} state={slashState} onDismiss={() => setSlashState(null)} />
       <ToastHost />

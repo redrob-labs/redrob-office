@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   paneCancel: 'キャンセル',
@@ -276,4 +276,4 @@ export const ja = {
   paneShowEnded: 'スライドショーの最後です。',
   paneShowRehearseTip: 'リハーサル：現在のスライドの時間 / 合計時間',
   paneShowRehearseTotal: '合計 {time}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

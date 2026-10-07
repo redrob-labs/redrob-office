@@ -45,6 +45,30 @@ export function isLang(value: unknown): value is Lang {
   return typeof value === 'string' && (LANGS as readonly string[]).includes(value)
 }
 
+/**
+ * Languages a person can choose today. English is the master key set and the
+ * only complete one; every other table stays in the repo, listed as "Not yet"
+ * in the language pickers, until it is brought back up to the English keys.
+ * Turning a language back on is adding it here.
+ */
+export const SELECTABLE_LANGS: readonly Lang[] = ['en']
+
+/** the language every missing string falls back to */
+export const MASTER_LANG = 'en' satisfies Lang
+
+export function isSelectableLang(value: unknown): value is Lang {
+  return isLang(value) && SELECTABLE_LANGS.includes(value)
+}
+
+/**
+ * The language the interface actually runs in for a stored or detected one:
+ * itself when selectable, otherwise English. A profile saved with a language
+ * that is no longer offered therefore opens in English.
+ */
+export function toSelectableLang(lang: Lang | null | undefined): Lang {
+  return isSelectableLang(lang) ? lang : MASTER_LANG
+}
+
 /** map a raw locale string ('zh-CN', 'zh-Hans', 'ja-JP', 'ko-KR', …) to a supported Lang */
 export function normalizeLang(raw: string | null | undefined): Lang {
   const value = raw?.trim().toLowerCase()
@@ -81,6 +105,53 @@ const HTML_LANGS: Record<Lang, string> = {
   he: 'he-IL',
   hi: 'hi-IN',
   'zh-TW': 'zh-TW',
+}
+
+/** each language's own name for itself, as a language picker lists it */
+export const LANG_NATIVE_NAMES: Record<Lang, string> = {
+  ar: 'العربية',
+  de: 'Deutsch',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  he: 'עברית',
+  hi: 'हिन्दी',
+  id: 'Bahasa Indonesia',
+  it: 'Italiano',
+  ja: '日本語',
+  ko: '한국어',
+  ms: 'Bahasa Melayu',
+  nl: 'Nederlands',
+  pl: 'Polski',
+  pt: 'Português',
+  ru: 'Русский',
+  th: 'ไทย',
+  zh: '简体中文',
+  'zh-TW': '繁體中文',
+}
+
+export interface LanguageOption {
+  value: Lang
+  /** the language's own name */
+  label: string
+  /** `false` for a language listed as "Not yet": shown, never chosen */
+  selectable: boolean
+}
+
+/**
+ * Every language for a picker: the selectable ones first, then the rest in
+ * ISO 639 code order (native-script names share no alphabet, so the code is
+ * the ordering key), each marked whether it can be chosen yet.
+ */
+export function languageOptions(): LanguageOption[] {
+  const byCode = [...LANGS].sort((a, b) => a.localeCompare(b))
+  const ready = byCode.filter((l) => SELECTABLE_LANGS.includes(l))
+  const later = byCode.filter((l) => !SELECTABLE_LANGS.includes(l))
+  return [...ready, ...later].map((value) => ({
+    value,
+    label: LANG_NATIVE_NAMES[value],
+    selectable: SELECTABLE_LANGS.includes(value),
+  }))
 }
 
 /** BCP-47 tag for document.documentElement.lang (drives CSS :lang() and Chromium's per-language font fallback) */
@@ -147,14 +218,19 @@ export function format(template: string, params?: Params): string {
   )
 }
 
-/** per-language dictionaries; zh defines the key set, all others must match it */
-export type LangDicts<D extends Record<string, string>> = { zh: D } & {
-  [L in Exclude<Lang, 'zh'>]: Record<keyof D, string>
+/**
+ * Per-language dictionaries. English defines the key set and must be
+ * complete; every other language may be partial, and a missing string falls
+ * back to English at runtime.
+ */
+export type LangDicts<D extends Record<string, string>> = { en: D } & {
+  [L in Exclude<Lang, 'en'>]?: Partial<Record<keyof D, string>>
 }
 
 /**
- * Identity helper for dictionary shards: keeps literal key inference while
- * type-checking that every other language covers exactly the zh key set.
+ * Identity helper for dictionary shards: keeps literal key inference from the
+ * English table while type-checking that no other language uses a key English
+ * does not define.
  */
 export function defineStrings<D extends Record<string, string>>(dicts: LangDicts<D>): LangDicts<D> {
   return dicts
@@ -164,7 +240,7 @@ export function defineStrings<D extends Record<string, string>>(dicts: LangDicts
 // Used by Electron main-process code (shell + editor main modules share one
 // bundle, so one holder). Renderers get the language over IPC instead.
 
-let uiLang: Lang = 'zh'
+let uiLang: Lang = MASTER_LANG
 const langListeners = new Set<(lang: Lang) => void>()
 
 export function getUiLang(): Lang {
@@ -182,13 +258,23 @@ export function onUiLangChange(listener: (lang: Lang) => void): () => void {
   return () => langListeners.delete(listener)
 }
 
+/** one string from a dictionary set: the language's own, else English */
+export function lookup<D extends Record<string, string>>(
+  dicts: LangDicts<D>,
+  lang: Lang,
+  key: keyof D,
+): string {
+  const own = lang === MASTER_LANG ? undefined : dicts[lang]?.[key]
+  // the key itself is the last resort only for a key outside the typed set
+  return own ?? dicts.en[key] ?? String(key)
+}
+
 /**
- * Build a translator over per-language dictionaries. The zh dictionary defines
- * the key set; every other language must cover exactly the same keys
- * (compile-time checked), so a missing translation is a type error, not a
- * runtime fallback.
+ * Build a translator over per-language dictionaries. English defines the key
+ * set (compile-time checked); a string another language lacks falls back to
+ * English, so an incomplete table never shows a key or an empty label.
  */
 export function createI18n<D extends Record<string, string>>(dicts: LangDicts<D>) {
   return (lang: Lang, key: keyof D, params?: Params): string =>
-    platformShortcuts(format(dicts[lang][key], params))
+    platformShortcuts(format(lookup(dicts, lang, key), params))
 }

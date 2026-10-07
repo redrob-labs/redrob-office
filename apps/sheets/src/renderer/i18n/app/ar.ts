@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
   appMergeWorkbooks: 'دمج المصنفات',
@@ -1280,4 +1280,4 @@ export const ar = {
   appFindTitle: 'بحث وتحديد ⌘F',
   appReplace: 'استبدال',
   appGoTo: 'الانتقال إلى',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

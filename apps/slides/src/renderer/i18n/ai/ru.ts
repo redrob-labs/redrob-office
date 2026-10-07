@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ru = {
+  aiYou: 'Вы',
+  aiFailedTitle: 'Ассистенту не удалось завершить',
+  aiStepRunning: 'Выполняется',
+  aiStepDone: 'Готово',
+  aiStepFailed: 'Ошибка',
+  aiStartersLabel: 'Предлагаемые вопросы',
   aiInputPlaceholderGen: 'Опишите презентацию для создания или задайте вопрос',
   aiEmptyGenTitle: 'Пусть ИИ создаст вашу презентацию',
   aiEmptyGenBody1: 'Опишите тему, аудиторию и примерное число страниц;',
@@ -248,4 +254,4 @@ export const ru = {
   aiSumSaveTemplate: 'Сохранён шаблон стиля «{name}»',
   aiSumTemplatesEmpty: 'Шаблоны стиля (пусто)',
   aiSumListTemplates: 'Показано шаблонов стиля: {count}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
   ribbonAiCreditNote: 'يستدعي الذكاء الاصطناعي ويستهلك الرصيد',
@@ -719,4 +719,4 @@ export const ar = {
   ribbonEqStdDev: 'الانحراف المعياري',
   ribbonEqFourier: 'تحويل فورييه',
   ribbonEqNormalDist: 'التوزيع الطبيعي',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

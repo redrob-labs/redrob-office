@@ -1,6 +1,8 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const it = {
+  appSlideRail: 'Diapositive',
+  appSlideLabel: 'Diapositiva {n}',
   appPhPromptTitle: 'Fai clic per aggiungere un titolo',
   appPhPromptSubtitle: 'Fai clic per aggiungere un sottotitolo',
   appPhPromptBody: 'Fai clic per aggiungere del testo',
@@ -236,12 +238,11 @@ export const it = {
   appSettingsChecking: 'Verifica in corso…',
   appSettingsLoggedIn: 'Accesso effettuato',
   appSettingsLoggedInEmail: 'Accesso effettuato: {email}',
-  appSettingsLoggedOut:
-    'Accesso non effettuato (le funzionalità IA richiedono un account Redrob)',
+  appSettingsLoggedOut: 'Accesso non effettuato (le funzionalità IA richiedono un account Redrob)',
   appSettingsLoginPending: "In attesa dell'accesso dal browser…",
   appSettingsLogin: 'Accedi a Redrob',
   appSettingsModel: 'Modello',
   appSettingsCancel: 'Annulla',
   appSettingsSave: 'Salva',
   appCropHint: "Invio per confermare · Esc per annullare · Fai clic all'esterno per confermare",
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -354,7 +354,7 @@ export function IconShapeStyle(props: IconProps) {
   return (
     <Svg {...props}>
       <rect x="4" y="5" width="11" height="9" rx="1.5" />
-      <rect x="9.5" y="10.5" width="10.5" height="8.5" rx="1.5" fill="var(--surface)" />
+      <rect x="9.5" y="10.5" width="10.5" height="8.5" rx="1.5" fill="var(--surface-base)" />
     </Svg>
   )
 }
@@ -432,7 +432,14 @@ export function IconShapes(props: IconProps) {
   return (
     <Svg {...props}>
       <circle cx="9.42" cy="9.42" r="4.64" />
-      <rect x="11.36" y="11.36" width="8.39" height="8.39" rx="1.03" fill="var(--surface, #fff)" />
+      <rect
+        x="11.36"
+        y="11.36"
+        width="8.39"
+        height="8.39"
+        rx="1.03"
+        fill="var(--surface-base, #fff)"
+      />
     </Svg>
   )
 }
@@ -617,7 +624,7 @@ export function IconOrientation(props: IconProps) {
   return (
     <Svg {...props}>
       <rect x="4.8" y="7.2" width="9" height="12" rx="0.96" />
-      <rect x="9" y="11.4" width="10.8" height="7.8" rx="0.96" fill="var(--surface, #fff)" />
+      <rect x="9" y="11.4" width="10.8" height="7.8" rx="0.96" fill="var(--surface-base, #fff)" />
       <path d="M 15.6 5.04 a 6 6 0 0 1 3.6 3.12 M 19.2 5.4 v 3 h -3" />
     </Svg>
   )
@@ -638,7 +645,7 @@ export function IconApplyAll(props: IconProps) {
   return (
     <Svg {...props}>
       <rect x="9.1" y="5.25" width="10.2" height="7" rx="0.92" />
-      <rect x="4.7" y="9.15" width="12.2" height="9.6" rx="0.92" fill="var(--surface, #fff)" />
+      <rect x="4.7" y="9.15" width="12.2" height="9.6" rx="0.92" fill="var(--surface-base, #fff)" />
       <path d="M 8 14.15 l 2.3 2.3 l 4.6 -4.6" />
     </Svg>
   )
@@ -834,7 +841,10 @@ export function IconTrackChanges(props: IconProps) {
     <Svg {...props}>
       {PAGE}
       <path d="M8.25 8.25 h7.5 M8.25 12 h4.5" />
-      <path d="M12.75 19.8 20.4 12.15 l1.8 1.8 -7.65 7.65 -2.7 0.9 z" fill="var(--surface, #fff)" />
+      <path
+        d="M12.75 19.8 20.4 12.15 l1.8 1.8 -7.65 7.65 -2.7 0.9 z"
+        fill="var(--surface-base, #fff)"
+      />
     </Svg>
   )
 }
@@ -1395,7 +1405,14 @@ export function IconPresenterView(props: IconProps) {
   return (
     <Svg {...props}>
       <rect x="4.49" y="5.65" width="10.4" height="8.09" rx="0.92" />
-      <rect x="12.58" y="11.42" width="6.93" height="5.78" rx="0.92" fill="var(--surface, #fff)" />
+      <rect
+        x="12.58"
+        y="11.42"
+        width="6.93"
+        height="5.78"
+        rx="0.92"
+        fill="var(--surface-base, #fff)"
+      />
       <circle cx="16.04" cy="13.4" r="1.15" fill="currentColor" stroke="none" />
       <path d="M 13.84 16.35 a 2.2 1.45 0 0 1 4.4 0 z" fill="currentColor" stroke="none" />
     </Svg>
@@ -1559,7 +1576,7 @@ export function IconDateTime(props: IconProps) {
     <Svg {...props}>
       <rect x="4.93" y="6.3" width="10.83" height="10.83" rx="1.37" />
       <path d="M 4.93 9.72 h 10.83 M 8.01 4.93 V 7.44 M 13.14 4.93 V 7.44" />
-      <circle cx="16.56" cy="15.99" r="3.42" fill="var(--surface, #fff)" />
+      <circle cx="16.56" cy="15.99" r="3.42" fill="var(--surface-base, #fff)" />
       <path d="M 16.56 14.28 v 1.71 l 1.25 1.03" />
     </Svg>
   )

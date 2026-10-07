@@ -67,7 +67,7 @@ function dragHandlePlugin(editor: Editor): Plugin {
       handle.append(plus, grip)
 
       const menu = document.createElement('div')
-      menu.className = 'md-block-menu'
+      menu.className = 'md-block-menu rr-menu__list'
       menu.style.display = 'none'
 
       const previousContainerPosition = container?.style.position ?? ''
@@ -185,7 +185,7 @@ function dragHandlePlugin(editor: Editor): Plugin {
           ...MENU_ITEMS.map((item) => {
             const btn = document.createElement('button')
             btn.type = 'button'
-            btn.className = `md-block-menu-item${item.danger ? ' danger' : ''}`
+            btn.className = `md-block-menu-item rr-menu__item${item.danger ? ' rr-menu__item--danger' : ''}`
             btn.textContent = t(item.labelKey)
             btn.addEventListener(
               'click',

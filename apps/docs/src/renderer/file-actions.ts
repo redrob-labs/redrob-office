@@ -67,6 +67,7 @@ import { setDocFontTable } from './line-metrics'
 import { defaultEastAsiaFontFor } from './font-list'
 import { hasPrintableHeaderFooter } from './pagination'
 import { showToast } from './components/toast-bus'
+import { commentPeople } from './comments/mentions'
 
 /** An export waiting for the pagination preview to mount; resolve settles the caller's exportPdf promise. */
 export type PendingPdfExport = { outPath?: string; resolve: (ok: boolean) => void }
@@ -228,6 +229,31 @@ function resetEditorHistory(editor: Editor): void {
   if (!plugin) return
   editor.unregisterPlugin('history')
   editor.registerPlugin(history((plugin.spec as { config?: object }).config))
+}
+
+/**
+ * Live file: another person saved, so the shared text's docxIndex anchors
+ * now point into their bytes. Re-parse those bytes as this view's original
+ * (what the next save patches) without touching the editor's content, which
+ * comes from the shared text. False when the bytes do not parse.
+ */
+export async function rebaseParsed(ctx: FileActionContext, bytes: Uint8Array): Promise<boolean> {
+  const { editor } = ctx
+  if (!editor || !ctx.doc) return false
+  let parsed: ParsedDocFull
+  try {
+    parsed = await parseDocx(bytes)
+  } catch {
+    return false
+  }
+  setDocFontTable(parsed.fontTable)
+  editor.storage.listNumbering.styles = parsed.styles
+  editor.storage.listNumbering.docDefaults = parsed.docDefaults
+  editor.storage.listNumbering.defs = parsed.numbering
+  applyDocLayoutSettings(editor, parsed)
+  ctx.setDocCss(docStyleCss(parsed))
+  ctx.setDoc((prev) => (prev ? { ...prev, parsed } : prev))
+  return true
 }
 
 /** doc-level layout inputs living outside CSS: default tab grid + hyphenation lang */
@@ -580,6 +606,8 @@ export async function buildDocBytes(ctx: FileActionContext): Promise<Uint8Array 
     partXml: Object.keys(partXml).length > 0 ? partXml : undefined,
     partBinary: Object.keys(partBinary).length > 0 ? partBinary : undefined,
     comments: ctx.commentsDirty ? ctx.comments : undefined,
+    // comment authors join word/people.xml, as Word records them
+    people: ctx.commentsDirty ? commentPeople(ctx.comments) : undefined,
     protection: ctx.protectionDirty ? ctx.protection : undefined,
     writeProtection: ctx.writeProtectionDirty ? ctx.writeProtection : undefined,
     removePersonalInfo: ctx.removePersonalInfoDirty ? ctx.removePersonalInfo : undefined,

@@ -29,6 +29,7 @@
     "@genoffice/ai-search": "workspace:*",
     "@genoffice/docx-engine": "workspace:*",
     "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/facts": "workspace:*",
     "@genoffice/file-parse": "workspace:*",
     "@genoffice/i18n": "workspace:*",
     "@genoffice/ui": "workspace:*",

@@ -1,0 +1,60 @@
+# Local and CI stack for Redrob Office sync: Postgres, an S3 store and the service.
+# Every port binds to 127.0.0.1, and the service runs the development issuer,
+# which mints a token for anyone who asks. This is not a deployment.
+#
+# The S3 store is SeaweedFS's S3 gateway. MinIO was the plan, but its images
+# are no longer published (Docker Hub stopped serving minio/minio on
+# 2026-09-12); the service speaks plain S3, so any S3 store works.
+name: redrob-office-sync
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sync
+      POSTGRES_PASSWORD: sync-local-only
+      POSTGRES_DB: sync
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sync -d sync"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  s3:
+    image: chrislusf/seaweedfs:4.48
+    command: server -s3 -s3.port=8333 -dir=/data -volume.max=4
+    ports:
+      - "127.0.0.1:58333:8333"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9333/cluster/status"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  sync:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      s3:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      SYNC_HOST: 0.0.0.0
+      SYNC_DEV_ISSUER: "1"
+      SYNC_ISSUER: http://localhost:8787/dev
+      DATABASE_URL: postgres://sync:sync-local-only@postgres:5432/sync
+      S3_ENDPOINT: http://s3:8333
+      S3_BUCKET: office
+      S3_ACCESS_KEY_ID: sync
+      S3_SECRET_ACCESS_KEY: sync-local-only
+    ports:
+      - "127.0.0.1:8787:8787"
+      - "127.0.0.1:8788:8788"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 60

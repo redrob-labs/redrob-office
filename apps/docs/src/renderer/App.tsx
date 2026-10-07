@@ -12,7 +12,37 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import type { Editor } from '@tiptap/core'
 import { DOMParser as PmDOMParser, type Mark as PmMark } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
-import { Dropdown } from '@genoffice/ui'
+import {
+  Button,
+  Dropdown,
+  EditorFrame,
+  OldFormatBanner,
+  PANEL_DEFAULT,
+  PresenceFaces,
+  StatusBar,
+  clampPanelWidth,
+  formatOf,
+  frameCopy,
+  frameT,
+  type EditMode,
+  type ToolbarChoice,
+} from '@genoffice/ui'
+import { SimpleToolbar, docsCommands, docsTools } from './components/SimpleToolbar'
+import { useLinkedFigures } from './linked/useLinkedFigures'
+import { MENTION_STRINGS, mentionPeople, mentionsRedrob, redrobCommentPrompt } from './comments/mentions'
+import { catchUpItems, type CatchUpItem } from '@genoffice/versions'
+import { VersionHistory } from './versions/VersionHistory'
+import { CatchUp } from './versions/CatchUp'
+import { collectRevisions as catchUpRevisions } from './versions/revisions'
+import './versions/versions.css'
+import type { ShareApi } from '@genoffice/sync-client'
+import { SHARE_STRINGS, ShareDialog } from './share/ShareDialog'
+import './share/share.css'
+import { LIVE_STRINGS, useLive } from './live/useLive'
+import { useLiveText } from './live/useLiveText'
+import { historyCan, historyRedo, historyUndo, isRemoteChange } from './live/collab'
+import './live/live.css'
+import { verT } from './versions/strings'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
   BLANK_BULLET_NUM_ID,
@@ -211,6 +241,7 @@ import {
   loadFile as loadFileImpl,
   newFile as newFileImpl,
   printDoc as printDocImpl,
+  rebaseParsed as rebaseParsedImpl,
   save as saveImpl,
   writeRecoveryCopy as writeRecoveryCopyImpl,
   type FileActionContext,
@@ -253,6 +284,17 @@ function hashStr(str: string): number {
 }
 
 const EMPTY_BLOCKS: Block[] = []
+
+/** the Redrob panel's width in the shared frame (320 to 720px), kept per window */
+const FRAME_PANEL_WIDTH_KEY = 'docs-frame-panel-width'
+function loadFramePanelWidth(): number {
+  try {
+    const saved = Number(localStorage.getItem(FRAME_PANEL_WIDTH_KEY))
+    return Number.isFinite(saved) && saved > 0 ? clampPanelWidth(saved) : PANEL_DEFAULT
+  } catch {
+    return PANEL_DEFAULT
+  }
+}
 
 // O(doc) derivations cached by PM doc reference: caret moves and unrelated
 // state updates reuse the last result instead of re-walking the whole document
@@ -465,7 +507,7 @@ export function App() {
   const { lang } = useI18n()
   const [doc, setDoc] = useState<DocState | null>(null)
   /** true until the pending-open / new-blank boot checks settle; the start screen stays hidden meanwhile */
-  const bootPendingRef = useRef<Promise<[OpenDocxResult, boolean, AiDocContent | null]> | null>(
+  const bootPendingRef = useRef<Promise<[OpenDocxResult, boolean, AiDocContent | null, string | null]> | null>(
     null,
   )
   const bootHandledRef = useRef(false)
@@ -671,6 +713,52 @@ export function App() {
   const [showNav, setShowNav] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('print')
   const [readMode, setReadMode] = useState(false)
+  // ── shared editor frame (EditorFrame) ──
+  /** Viewing: read and comment only (Editing / Suggesting / Viewing in the title bar) */
+  const [viewing, setViewing] = useState(false)
+  /** Simple or Classic, from Settings; the switch and Ctrl+F1 change it for every file */
+  const [toolbarChoice, setToolbarChoice] = useState<ToolbarChoice>('simple')
+  const [panelWidth, setPanelWidth] = useState(() => loadFramePanelWidth())
+  const [oldFormatDismissed, setOldFormatDismissed] = useState(false)
+  /** Share dialog; sharing exists only inside the suite, where the shell holds the sync client */
+  const [shareOpen, setShareOpen] = useState(false)
+  const shareApi: ShareApi | undefined = window.desktop?.shareStatus ? (window.desktop as ShareApi) : undefined
+  const liveApi = window.desktop?.liveJoin ? window.desktop : undefined
+  const [online, setOnline] = useState(() => navigator.onLine)
+  useEffect(() => {
+    let live = true
+    void window.desktop
+      .getOfficePrefs?.()
+      .then((p) => {
+        if (live && p) setToolbarChoice(p.toolbar)
+      })
+      .catch(() => {})
+    const off = window.desktop.onOfficePrefsChanged?.((p) => setToolbarChoice(p.toolbar))
+    const up = () => setOnline(true)
+    const down = () => setOnline(false)
+    window.addEventListener('online', up)
+    window.addEventListener('offline', down)
+    return () => {
+      live = false
+      off?.()
+      window.removeEventListener('online', up)
+      window.removeEventListener('offline', down)
+    }
+  }, [])
+  const changeToolbar = useCallback((next: ToolbarChoice) => {
+    setToolbarChoice(next)
+    // outside the suite there is no shell to store it: the choice lasts this window
+    void window.desktop.setOfficePrefs?.({ toolbar: next }).catch(() => {})
+  }, [])
+  const changePanelWidth = useCallback((w: number) => {
+    const next = clampPanelWidth(w)
+    setPanelWidth(next)
+    try {
+      localStorage.setItem(FRAME_PANEL_WIDTH_KEY, String(next))
+    } catch {
+      /* private storage: the width lasts this window */
+    }
+  }, [])
   const [showGrid, setShowGrid] = useState(false)
   const [splitView, setSplitView] = useState(false)
   const [showPagePreview, setShowPagePreview] = useState(false)
@@ -950,8 +1038,9 @@ export function App() {
     onSelectionUpdate: () => forceRender(),
     // typing in the main document takes ribbon routing back from any textbox
     onFocus: () => setActiveSubEditor(null),
-    onUpdate: () => {
-      dirtyRef.current = true
+    onUpdate: ({ transaction }) => {
+      // someone else's typing in a live file is theirs to save, not this view's change
+      if (!isRemoteChange(transaction)) dirtyRef.current = true
       forceRender()
     },
   })
@@ -1016,14 +1105,14 @@ export function App() {
   // Read Mode / Protect Document: the document becomes read-only; Esc leaves Read Mode
   useEffect(() => {
     if (!editor) return
-    editor.setEditable(!readMode && !isProtected)
+    editor.setEditable(!readMode && !isProtected && !viewing)
     if (!readMode) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setReadMode(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [editor, readMode, isProtected])
+  }, [editor, readMode, isProtected, viewing])
 
   // Track Changes: the recorder plugin reads its toggle from extension storage
   useEffect(() => {
@@ -1270,9 +1359,10 @@ export function App() {
       // Still consume the one-shot new-blank flag so it doesn't leak into the next open
       window.desktop.consumeNewBlankDoc(),
       window.desktop.consumeAiDocContent(),
+      window.desktop.consumeAskPrompt?.() ?? Promise.resolve(null),
     ])
     void bootPendingRef.current
-      .then(async ([pending, , aiContent]) => {
+      .then(async ([pending, , aiContent, askPrompt]) => {
         if (bootHandledRef.current) return
         bootHandledRef.current = true
         // A failed open (corrupt file etc.) falls back to a blank document —
@@ -1287,6 +1377,11 @@ export function App() {
             await new Promise((resolve) => setTimeout(resolve, 20))
           }
           await applyAiDocContentImpl(fileCtxRef.current, aiContent)
+        }
+        // Home's composer: open the panel and run the request through the agent loop
+        if (askPrompt && !pending) {
+          setShowAi(true)
+          setAiPreset({ text: askPrompt, nonce: Date.now(), autoRun: true })
         }
       })
       // Open failures also land on a blank document, or the tab stays at "Opening…" forever
@@ -1759,13 +1854,26 @@ export function App() {
 
   const cancelNewComment = useCallback(() => cancelNewCommentImpl(reviewCtxRef.current), [])
   const startNewComment = useCallback(() => startNewCommentImpl(reviewCtxRef.current), [])
+  // @Redrob in a comment: the panel answers in that thread (reply_comment), without editing
+  const askRedrobInThread = useCallback((threadId: string, text: string) => {
+    setShowAi(true)
+    setAiPreset({ text: redrobCommentPrompt(threadId, text), nonce: Date.now(), autoRun: true })
+    setStatus(MENTION_STRINGS.asked)
+  }, [])
   const submitNewComment = useCallback(
-    (text: string) => submitNewCommentImpl(reviewCtxRef.current, text),
-    [],
+    (text: string) => {
+      const id = submitNewCommentImpl(reviewCtxRef.current, text)
+      if (id && mentionsRedrob(text)) askRedrobInThread(id, text)
+    },
+    [askRedrobInThread],
   )
   const replyToComment = useCallback(
-    (parentId: string, text: string) => replyToCommentImpl(reviewCtxRef.current, parentId, text),
-    [],
+    (parentId: string, text: string) => {
+      const ok = replyToCommentImpl(reviewCtxRef.current, parentId, text)
+      if (ok && mentionsRedrob(text)) askRedrobInThread(parentId, text)
+      return ok
+    },
+    [askRedrobInThread],
   )
   const resolveComment = useCallback(
     (id: string, done: boolean) => resolveCommentImpl(reviewCtxRef.current, id, done),
@@ -3740,10 +3848,10 @@ export function App() {
           void save(true)
           break
         case 'undo':
-          editor?.chain().focus().undo().run()
+          if (editor) historyUndo(editor)
           break
         case 'redo':
-          editor?.chain().focus().redo().run()
+          if (editor) historyRedo(editor)
           break
         case 'zoom-in':
           setZoom((z) => Math.min(200, Math.round(z) + 10))
@@ -4201,12 +4309,101 @@ export function App() {
   }, [cancelNewComment])
 
   const hasDoc = !!doc
+  // linked figures: the index lives in the shell, the figures in this file
+  const linked = useLinkedFigures({
+    editor,
+    filePath: doc?.filePath ?? null,
+    clean: hasDoc && !hasUnsavedChanges,
+    editable: hasDoc && formatState.editable && !viewing,
+    setStatus,
+  })
+  // version history (behind the save status) and the catch-up on open
+  const [versionsOpen, setVersionsOpen] = useState(false)
+  const [catchUp, setCatchUp] = useState<{ since: string; items: CatchUpItem[] } | null>(null)
+  const visitedPath = useRef<string | null>(null)
+  const waitingFiguresRef = useRef(0)
+  waitingFiguresRef.current = linked.waitingCount
+  useEffect(() => {
+    const path = doc?.filePath ?? null
+    if (!path || !editor || visitedPath.current === path || !window.desktop?.markVisit) return
+    visitedPath.current = path
+    setCatchUp(null)
+    void window.desktop.markVisit(path).then((since) => {
+      if (!since || visitedPath.current !== path) return
+      const items = catchUpItems({
+        since,
+        me: null,
+        comments: commentsLiveRef.current,
+        revisions: catchUpRevisions(editor.state.doc),
+        waitingFigures: waitingFiguresRef.current,
+      })
+      if (items.length === 0) return
+      setCatchUp({ since, items })
+      setShowAi(true)
+    })
+  }, [doc?.filePath, editor])
+  const showCatchUpItem = (item: CatchUpItem) => {
+    if (!editor) return
+    if (item.kind === 'comment') {
+      setShowComments(true)
+      const span = [...document.querySelectorAll<HTMLElement>('.ProseMirror .doc-comment')].find((s) =>
+        (s.dataset.commentIds ?? '').split(' ').includes(item.commentId),
+      )
+      span?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else if (item.kind === 'suggestion') {
+      const at = Math.min(item.at, editor.state.doc.content.size)
+      editor.chain().focus().setTextSelection(at).scrollIntoView().run()
+    } else {
+      linked.openSources()
+    }
+  }
   // Undo/redo availability: refreshed on every transaction so the QAT buttons grey out when empty
+  // a shared file's live room: who else is in it, and the shared text and comments
+  const live = useLive({ api: liveApi, path: doc?.filePath ?? null, editor })
+  const liveLoadBytes = useCallback(async (bytes: Uint8Array) => {
+    const cur = fileCtxRef.current.doc
+    if (!cur?.filePath) return false
+    const data = bytes.slice().buffer as ArrayBuffer
+    const outcome = await loadFileImpl(fileCtxRef.current, {
+      path: cur.filePath,
+      name: cur.fileName,
+      data,
+      hash: cur.hash,
+      encrypted: cur.encrypted,
+    })
+    if (outcome !== 'ok') return false
+    // the newer shared content is not on disk yet
+    dirtyRef.current = true
+    return true
+  }, [])
+  const liveRebase = useCallback((bytes: Uint8Array) => rebaseParsedImpl(fileCtxRef.current, bytes), [])
+  const liveText = useLiveText({
+    editor,
+    live: live.state,
+    peers: live.peers,
+    api: liveApi,
+    path: doc?.filePath ?? null,
+    loadBytes: liveLoadBytes,
+    rebaseParsed: liveRebase,
+    comments: {
+      get: () => commentsLiveRef.current,
+      set: (list) => setComments(list),
+      markDirty: () => setCommentsDirty(true),
+    },
+    setStatus,
+  })
+  const pushLiveComments = liveText.pushComments
+  useEffect(() => {
+    pushLiveComments(comments)
+  }, [comments, pushLiveComments])
+  const liveReadOnly = live.state.kind === 'live' && live.state.readOnly && liveText.status === 'on'
+  useEffect(() => {
+    if (liveReadOnly) setStatus(LIVE_STRINGS.readOnly)
+  }, [liveReadOnly])
   const [histState, setHistState] = useState({ canUndo: false, canRedo: false })
   useEffect(() => {
     if (!editor) return
-    const refresh = () =>
-      setHistState({ canUndo: editor.can().undo(), canRedo: editor.can().redo() })
+    const refresh = () => setHistState(historyCan(editor))
     refresh()
     editor.on('transaction', refresh)
     return () => {
@@ -4230,7 +4427,7 @@ export function App() {
           data-tip={t('appUndo')}
           aria-label={t('appUndo')}
           disabled={!hasDoc || !histState.canUndo}
-          onClick={() => editor?.chain().focus().undo().run()}
+          onClick={() => editor && historyUndo(editor)}
         >
           <IconUndo size={16} />
         </button>
@@ -4239,7 +4436,7 @@ export function App() {
           data-tip={t('appRedo')}
           aria-label={t('appRedo')}
           disabled={!hasDoc || !histState.canRedo}
-          onClick={() => editor?.chain().focus().redo().run()}
+          onClick={() => editor && historyRedo(editor)}
         >
           <IconRedo size={16} />
         </button>
@@ -4262,6 +4459,100 @@ export function App() {
   if (!editor) return null
 
   const wordCount = wordCountOfDoc(editor.state.doc)
+
+  // ── the shared editor frame: title bar, toolbar switch, panel, status bar ──
+  const frameText = frameCopy(lang)
+  const frameFileName = doc?.filePath
+    ? (doc.filePath.split(/[\\/]/).pop() ?? doc.filePath)
+    : t('appUntitledDocx')
+  const editMode: EditMode = viewing ? 'viewing' : trackChanges ? 'suggesting' : 'editing'
+  const changeEditMode = (next: EditMode) => {
+    setViewing(next === 'viewing')
+    // Suggesting is Track Changes with the current author; a protected file that
+    // forces tracking stays in Suggesting
+    if (next === 'suggesting') setTrackChanges(true)
+    else if (!trackChangesForced) setTrackChanges(false)
+  }
+  const runInPanel = (prompt: string) => {
+    setShowAi(true)
+    setAiPreset({ text: prompt, nonce: Date.now(), autoRun: true })
+  }
+  const askRedrob = (q: string) => runInPanel(q)
+  const redrobActions = {
+    ask: () => setShowAi(true),
+    run: runInPanel,
+    comment: startNewComment,
+  }
+  const docsCmd = docsCommands(editor, allocateListNumId, doc?.parsed.blocks ?? EMPTY_BLOCKS)
+  const frameTools = [...docsTools(t, docsCmd, redrobActions, hasDoc && formatState.editable), ...(hasDoc ? linked.tools : [])]
+  const openComments = comments.filter((c) => !c.parentId && c.done !== true).length
+  const docsStatusBar = (
+    <StatusBar
+      label={frameT(lang, 'status')}
+      items={[
+        doc ? frameT(lang, 'pageOf', { current: pageInfo.current, total: pageInfo.total }) : t('appReady'),
+        doc ? (
+          <button
+            key="words"
+            type="button"
+            className="status-item status-wordcount"
+            data-tip={t('appWordCountTitle')}
+            onClick={openStats}
+          >
+            {frameT(lang, 'words', { n: wordCount })}
+          </button>
+        ) : null,
+        doc ? frameText.mode[editMode] : null,
+        doc && openComments > 0 ? (
+          <button
+            key="comments"
+            type="button"
+            className="status-item"
+            onClick={() => setShowComments(true)}
+          >
+            {frameT(lang, 'comments', { n: openComments })}
+          </button>
+        ) : null,
+        status ? <span className="status-msg">{status}</span> : null,
+      ]}
+      connection={{
+        online,
+        onlineLabel: frameT(lang, 'online'),
+        offlineLabel: frameT(lang, 'offline'),
+      }}
+      zoom={
+        <span className="status-zoom">
+          <button
+            type="button"
+            className="zoom-btn"
+            aria-label={frameT(lang, 'zoomOut')}
+            onClick={() => setZoom((z) => Math.max(50, Math.round(z) - 10))}
+          >
+            -
+          </button>
+          <input
+            className="zoom-slider"
+            type="range"
+            aria-label={frameT(lang, 'zoom')}
+            min={50}
+            max={200}
+            step={10}
+            value={Math.round(zoom)}
+            onChange={(e) => setZoom(Number(e.target.value))}
+          />
+          <button
+            type="button"
+            className="zoom-btn"
+            aria-label={frameT(lang, 'zoomIn')}
+            onClick={() => setZoom((z) => Math.min(200, Math.round(z) + 10))}
+          >
+            +
+          </button>
+          <span className="zoom-value">{Math.round(zoom)}%</span>
+        </span>
+      }
+    />
+  )
 
   // canvas geometry is anchored to the first section (stable across cursor moves);
   // sections with a different content width carry per-block width decorations
@@ -4330,6 +4621,26 @@ export function App() {
     >
       <ToastHost />
       {docCss && <style data-doc-css="">{docCss}</style>}
+      {linked.css && <style data-linked-figures="">{linked.css}</style>}
+      {hasDoc && linked.overlay}
+      {hasDoc && (
+        <VersionHistory
+          open={versionsOpen}
+          onClose={() => setVersionsOpen(false)}
+          path={doc?.filePath ?? null}
+          fileName={doc?.filePath ? (doc.filePath.split(/[\\/]/).pop() ?? '') : ''}
+          api={window.desktop}
+        />
+      )}
+      {hasDoc && (
+        <ShareDialog
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          path={doc?.filePath ?? null}
+          fileName={frameFileName}
+          api={shareApi}
+        />
+      )}
       {doc && liveDocCjk != null && (
         <style data-doc-css="">{`.doc-page { --doc-line-factor:${docLineFactor(doc.parsed, liveDocCjk)} }`}</style>
       )}
@@ -4360,61 +4671,143 @@ export function App() {
         <style>{`.editor-scroll .doc-page { column-count: ${colFlow.cols}; column-gap: ${colFlow.gapPx}px; column-fill: balance; }
 .editor-scroll .doc-page.measuring-columns { column-count: auto; width: ${colFlow.colWidthPx + twipsToPx(canvasSection?.marginLeft ?? section?.marginLeft ?? 0) + twipsToPx(canvasSection?.marginRight ?? section?.marginRight ?? 0)}px; }`}</style>
       )}
-      <Ribbon
-        actionsRef={ribbonActionsRef}
-        quickActions={quickActions}
-        editor={editor}
-        formatState={formatState}
-        hasDoc={!!doc}
-        blocks={doc?.parsed.blocks ?? EMPTY_BLOCKS}
-        styles={ribbonStyles}
-        docDefaults={doc?.parsed.docDefaults}
-        showAi={showAi}
-        section={sections[activeSection]?.settings ?? section}
-        activeSection={sections.length > 1 ? activeSection : null}
-        pageColor={pageColor}
-        watermark={watermark}
-        themeFonts={themeFonts}
-        themeColors={themeColors}
-        inkTool={inkTool}
-        inkPen={inkPen}
-        inkHighlighter={inkHighlighter}
-        inkCount={inkAnnotations.length}
-        sources={sources}
-        zoom={Math.round(zoom)}
-        darkCanvas={darkCanvas}
-        tabRequest={ribbonTabRequest}
-        header={header}
-        footer={footer}
-        titlePg={titlePg}
-        evenOddHf={evenOddHf}
-        showMarks={showMarks}
-        showRuler={showRuler}
-        showNav={showNav}
-        commentCount={comments.length}
-        openCommentCount={comments.filter((c) => !c.parentId && c.done !== true).length}
-        canComment={!editor.state.selection.empty}
-        trackChanges={trackChanges}
-        revisionDisplay={revisionDisplay}
-        revisionCount={revisionCount}
-        isProtected={isProtected}
-        commentsAllowed={commentsAllowed}
-        trackChangesForced={trackChangesForced}
-        protectActive={
-          isProtected || trackChangesForced || (doc?.encrypted ?? false) || !!writeProtection?.hash
+      <EditorFrame
+        strings={frameText.frame}
+        fileName={frameFileName}
+        onUndo={hasDoc ? () => void historyUndo(editor) : undefined}
+        onRedo={hasDoc ? () => void historyRedo(editor) : undefined}
+        canUndo={hasDoc && histState.canUndo}
+        canRedo={hasDoc && histState.canRedo}
+        saveStatus={
+          hasDoc ? (
+            <button
+              type="button"
+              className="docs-save-status"
+              aria-haspopup="dialog"
+              title={verT('verOpen')}
+              onClick={() => setVersionsOpen(true)}
+            >
+              {hasUnsavedChanges ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}
+            </button>
+          ) : undefined
         }
-        filePath={doc?.filePath ?? null}
-        viewMode={viewMode}
-        readMode={readMode}
-        showGrid={showGrid}
-        splitView={splitView}
-        {...ribbonActions}
-      />
-
-      <div className="app-main">
-        {doc && (
-          <div className={`ai-dock${showAi ? '' : ' collapsed'}`}>
-            {/* always mounted: collapse must not drop state or in-flight runs */}
+        faces={
+          hasDoc ? (
+            <PresenceFaces
+              people={live.faces}
+              strings={{
+                label: LIVE_STRINGS.facesLabel,
+                person: LIVE_STRINGS.person,
+                personHere: LIVE_STRINGS.personHere,
+                more: LIVE_STRINGS.more,
+                joined: LIVE_STRINGS.joined,
+                left: LIVE_STRINGS.left,
+              }}
+            />
+          ) : undefined
+        }
+        share={
+          hasDoc && shareApi ? (
+            <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>
+              {SHARE_STRINGS.button}
+            </Button>
+          ) : undefined
+        }
+        search={{ tools: frameTools, strings: frameText.search, onAsk: askRedrob }}
+        mode={{
+          value: editMode,
+          onChange: changeEditMode,
+          strings: frameText.mode,
+          unavailable: trackChangesForced ? ['editing'] : [],
+        }}
+        toolbar={toolbarChoice}
+        onToolbarChange={changeToolbar}
+        toolbarStrings={frameText.toolbar}
+        banner={
+          doc && !oldFormatDismissed ? (
+            <OldFormatBanner
+              file={frameFileName}
+              title={frameT(lang, 'oldFormatTitle', { fmt: formatOf(frameFileName)?.label ?? '' })}
+              body={frameT(lang, 'oldFormatBody')}
+              saveLabel={t('appSaveCopyDocx')}
+              keepLabel={frameT(lang, 'oldFormatKeep', { fmt: formatOf(frameFileName)?.ext ?? '' })}
+              onSaveCopy={() => void save(true)}
+              onKeep={() => setOldFormatDismissed(true)}
+            />
+          ) : undefined
+        }
+        simpleToolbar={
+          <SimpleToolbar
+            fs={formatState}
+            cmd={docsCmd}
+            redrob={redrobActions}
+            canEdit={hasDoc && formatState.editable}
+            hasSelection={!editor.state.selection.empty}
+          />
+        }
+        classicToolbar={
+          <Ribbon
+            actionsRef={ribbonActionsRef}
+            quickActions={quickActions}
+            editor={editor}
+            formatState={formatState}
+            hasDoc={!!doc}
+            blocks={doc?.parsed.blocks ?? EMPTY_BLOCKS}
+            styles={ribbonStyles}
+            docDefaults={doc?.parsed.docDefaults}
+            showAi={showAi}
+            section={sections[activeSection]?.settings ?? section}
+            activeSection={sections.length > 1 ? activeSection : null}
+            pageColor={pageColor}
+            watermark={watermark}
+            themeFonts={themeFonts}
+            themeColors={themeColors}
+            inkTool={inkTool}
+            inkPen={inkPen}
+            inkHighlighter={inkHighlighter}
+            inkCount={inkAnnotations.length}
+            sources={sources}
+            zoom={Math.round(zoom)}
+            darkCanvas={darkCanvas}
+            tabRequest={ribbonTabRequest}
+            header={header}
+            footer={footer}
+            titlePg={titlePg}
+            evenOddHf={evenOddHf}
+            showMarks={showMarks}
+            showRuler={showRuler}
+            showNav={showNav}
+            commentCount={comments.length}
+            openCommentCount={comments.filter((c) => !c.parentId && c.done !== true).length}
+            canComment={!editor.state.selection.empty}
+            trackChanges={trackChanges}
+            revisionDisplay={revisionDisplay}
+            revisionCount={revisionCount}
+            isProtected={isProtected}
+            commentsAllowed={commentsAllowed}
+            trackChangesForced={trackChangesForced}
+            protectActive={
+              isProtected || trackChangesForced || (doc?.encrypted ?? false) || !!writeProtection?.hash
+            }
+            filePath={doc?.filePath ?? null}
+            viewMode={viewMode}
+            readMode={readMode}
+            showGrid={showGrid}
+            splitView={splitView}
+            {...ribbonActions}
+          />
+        }
+        panel={
+          doc ? (
+            <div className="doc-panel-stack">
+            {catchUp && (
+              <CatchUp
+                since={catchUp.since}
+                items={catchUp.items}
+                onShow={showCatchUpItem}
+                onDismiss={() => setCatchUp(null)}
+              />
+            )}
             <AiPanel
               key={aiPanelKey}
               editor={editor}
@@ -4428,6 +4821,7 @@ export function App() {
               open={showAi}
               onExpand={() => setShowAi(true)}
               onCollapse={() => setShowAi(false)}
+              hosted
               filePath={doc?.filePath ?? null}
               editQueue={editQueue}
               onQueueEditInstruction={queueUpdate}
@@ -4438,8 +4832,17 @@ export function App() {
               commentsAccess={aiCommentsAccess}
               hfAccess={aiHfAccess}
             />
-          </div>
-        )}
+            </div>
+          ) : undefined
+        }
+        panelOpen={showAi}
+        onPanelOpenChange={setShowAi}
+        panelWidth={panelWidth}
+        onPanelWidthChange={changePanelWidth}
+        status={docsStatusBar}
+        rail={hasDoc ? linked.rail : undefined}
+        railWidth={260}
+      >
         <div className="app-content">
           <div className={`workspace ${darkCanvas ? 'workspace-dark' : ''}`}>
             {doc && showFind && (
@@ -4547,10 +4950,10 @@ export function App() {
                       {/* Boolean(): a trailing 0 (empty non-floating image list) must not render as a literal "0" text node */}
                       {Boolean(
                         multiHf ||
-                        (hfViewTouched && effHfView !== 'default') ||
-                        shownHeader?.text ||
-                        shownHeader?.paras?.length ||
-                        hfImagesOf('header')?.length,
+                          (hfViewTouched && effHfView !== 'default') ||
+                          shownHeader?.text ||
+                          shownHeader?.paras?.length ||
+                          hfImagesOf('header')?.length,
                       ) && (
                         <HeaderFooterArea
                           kind="header"
@@ -4578,11 +4981,11 @@ export function App() {
                       />
                       {Boolean(
                         multiHf ||
-                        (hfViewTouched && effHfView !== 'default') ||
-                        shownFooter?.text ||
-                        shownFooter?.pageNumber ||
-                        shownFooter?.paras?.length ||
-                        hfImagesOf('footer')?.length,
+                          (hfViewTouched && effHfView !== 'default') ||
+                          shownFooter?.text ||
+                          shownFooter?.pageNumber ||
+                          shownFooter?.paras?.length ||
+                          hfImagesOf('footer')?.length,
                       ) && (
                         <HeaderFooterArea
                           kind="footer"
@@ -4645,6 +5048,7 @@ export function App() {
             )}
             {doc && showComments && (
               <CommentsPanel
+                people={mentionPeople(doc.parsed.people ?? [], comments.map((c) => c.author), null)}
                 comments={comments}
                 docNode={editor.state.doc}
                 composing={commentComposing}
@@ -4664,53 +5068,8 @@ export function App() {
               />
             )}
           </div>
-
-          <footer className="status-bar">
-            <div className="status-left">
-              {doc && (
-                <>
-                  <span className="status-item">
-                    {t('appPageOf', { current: pageInfo.current, total: pageInfo.total })}
-                  </span>
-                  <button
-                    className="status-item status-wordcount"
-                    data-tip={t('appWordCountTitle')}
-                    onClick={openStats}
-                  >
-                    {t('appWordCountN', { n: wordCount })}
-                  </button>
-                </>
-              )}
-              {!doc && t('appReady')}
-              {status && <span className="status-msg"> - {status}</span>}
-            </div>
-            <div className="status-right">
-              <button
-                className="zoom-btn"
-                onClick={() => setZoom((z) => Math.max(50, Math.round(z) - 10))}
-              >
-                −
-              </button>
-              <input
-                className="zoom-slider"
-                type="range"
-                min={50}
-                max={200}
-                step={10}
-                value={Math.round(zoom)}
-                onChange={(e) => setZoom(Number(e.target.value))}
-              />
-              <button
-                className="zoom-btn"
-                onClick={() => setZoom((z) => Math.min(200, Math.round(z) + 10))}
-              >
-                +
-              </button>
-              <span className="zoom-value">{Math.round(zoom)}%</span>
-            </div>
-          </footer>
         </div>
-      </div>
+      </EditorFrame>
 
       {showShortcuts && <ShortcutsDialog onClose={() => setShowShortcuts(false)} />}
       {showLinkModal && <LinkInsertModal editor={editor} onClose={() => setShowLinkModal(false)} />}
@@ -4921,7 +5280,10 @@ export function App() {
             </p>
             <div className="modal-actions">
               <button onClick={() => setPgNumModal(null)}>{t('appCancel')}</button>
-              <button className="btn-primary" onClick={applyPgNumFormat}>
+              <button
+                className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+                onClick={applyPgNumFormat}
+              >
                 {t('appOk')}
               </button>
             </div>

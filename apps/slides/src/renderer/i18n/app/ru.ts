@@ -1,6 +1,8 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ru = {
+  appSlideRail: 'Слайды',
+  appSlideLabel: 'Слайд {n}',
   appPhPromptTitle: 'Щелкните, чтобы добавить заголовок',
   appPhPromptSubtitle: 'Щелкните, чтобы добавить подзаголовок',
   appPhPromptBody: 'Щелкните, чтобы добавить текст',
@@ -236,4 +238,4 @@ export const ru = {
   appSettingsCancel: 'Отмена',
   appSettingsSave: 'Сохранить',
   appCropHint: 'Enter - подтвердить · Esc - отменить · Щелчок снаружи - подтвердить',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

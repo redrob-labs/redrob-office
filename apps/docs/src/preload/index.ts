@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { IpcRendererEvent } from 'electron'
+import { OFFICE_PREFS_CHANGED, normalizeOfficePrefs } from '@genoffice/electron-utils/office-prefs'
 import type {
   AiChatRequest,
   AiSettings,
@@ -11,6 +12,9 @@ import type {
 } from '../shared/ipc'
 import type { ProjectApi } from '@genoffice/project-store'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import { FACTS_CHANNELS, normalizeFactsState } from '@genoffice/facts'
+import { versionsBridge } from '@genoffice/versions'
+import { liveBridge, shareBridge } from '@genoffice/sync-client'
 
 const api: DesktopApi = {
   getLanguage: () => ipcRenderer.invoke('app:get-language'),
@@ -49,6 +53,43 @@ const api: DesktopApi = {
     ipcRenderer.invoke('docs:discard-password-intents', throughRevision),
   consumePendingOpenDocx: () => ipcRenderer.invoke('docs:consume-pending-open'),
   consumeNewBlankDoc: () => ipcRenderer.invoke('docs:consume-new-blank'),
+  // owned by the shell (apps/shell/src/main/ask-prompt.ts); null outside the suite
+  consumeAskPrompt: () => ipcRenderer.invoke('app:consume-ask-prompt').catch(() => null),
+  // shell-owned prefs (apps/shell/src/main/index.ts); outside the suite there is no handler
+  getOfficePrefs: () =>
+    ipcRenderer
+      .invoke('home:get-office-prefs')
+      .then((p: unknown) => normalizeOfficePrefs(p))
+      .catch(() => null),
+  setOfficePrefs: (patch: unknown) =>
+    ipcRenderer
+      .invoke('home:set-office-prefs', patch)
+      .then((p: unknown) => normalizeOfficePrefs(p))
+      .catch(() => null),
+  onOfficePrefsChanged: (handler: (prefs: ReturnType<typeof normalizeOfficePrefs>) => void) => {
+    const listener = (_e: unknown, p: unknown) => handler(normalizeOfficePrefs(p))
+    ipcRenderer.on(OFFICE_PREFS_CHANGED, listener)
+    return () => ipcRenderer.removeListener(OFFICE_PREFS_CHANGED, listener)
+  },
+  // shell-owned version history and last visits (apps/shell/src/main/versions-service.ts)
+  ...versionsBridge(ipcRenderer),
+  // shell-owned sharing (apps/shell/src/main/share-service.ts)
+  ...shareBridge(ipcRenderer),
+  // shell-owned live documents (apps/shell/src/main/live-service.ts)
+  ...liveBridge(ipcRenderer),
+  // shell-owned linked figures (apps/shell/src/main/facts-service.ts)
+  getFacts: () =>
+    ipcRenderer
+      .invoke(FACTS_CHANNELS.get)
+      .then((s: unknown) => normalizeFactsState(s))
+      .catch(() => null),
+  factsCommand: (cmd) =>
+    ipcRenderer.invoke(FACTS_CHANNELS.command, cmd).then((s: unknown) => normalizeFactsState(s)),
+  onFactsChanged: (handler) => {
+    const listener = (_e: unknown, s: unknown) => handler(normalizeFactsState(s))
+    ipcRenderer.on(FACTS_CHANNELS.changed, listener)
+    return () => ipcRenderer.removeListener(FACTS_CHANNELS.changed, listener)
+  },
   consumeAiDocContent: () => ipcRenderer.invoke('docs:consume-ai-doc-content'),
   createDocument: (request) => ipcRenderer.invoke('docs:create-document', request),
   onOpenDocx: (handler) => {

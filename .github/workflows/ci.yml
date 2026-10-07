@@ -6,7 +6,7 @@ on:
   pull_request:
   # Full native matrix is expensive; keep it to a weekly check + manual runs.
   schedule:
-    - cron: "0 6 * * 1"
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 concurrency:
@@ -46,11 +46,28 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      # @genoffice/sheets builds a native Rust xlsx-engine (cargo) during
+      # `pnpm build`; without a toolchain the build job dies at `cargo: not found`.
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
       - name: Dependency licences
         run: pnpm check:licenses
+
+      # NOTE: Hangul-core provenance (--check) is NOT run here. It lives in the
+      # dedicated, non-required `hwp-core reproducible` job below. It currently
+      # fails because the vendored engines/rhwp snapshot is missing binary
+      # assets (blank2010_assets/*.bin, excluded by .gitignore `*.bin`) so the
+      # source digest cannot match the recorded one. Tracked as a backlog item;
+      # keeping it out of the required build & test lets real build/test gate
+      # merges while reproducibility stays visibly red in its own job.
+      - name: Design-system tokens
+        run: pnpm check:ui-tokens
+
+      - name: English copy
+        run: pnpm check:copy
 
       - name: Typecheck
         run: pnpm typecheck
@@ -60,6 +77,43 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  # The Hangul core (engines/rhwp → packages/hwp-core/wasm). The fast check
+  # compares the committed wasm and engine source with provenance.json; the
+  # rebuild proves the committed wasm really comes from the committed source.
+  # Not a required check: the rebuild takes about ten minutes.
+  hwp-core:
+    name: hwp-core reproducible
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Provenance matches the committed files
+        run: node scripts/hwp-core-provenance.mjs --check
+
+      - name: Rust toolchain (engines/rhwp/rust-toolchain.toml)
+        working-directory: engines/rhwp
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - name: wasm-pack and cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack@0.15.0,cargo-deny@0.18.9
+
+      - name: Rust dependency licences and sources
+        working-directory: engines/rhwp
+        run: cargo-deny --locked check licenses sources
+
+      - name: Rebuild the wasm from source
+        run: sh scripts/build-hwp-core.sh
+
+      - name: Rebuilt bytes match provenance.json
+        run: node scripts/hwp-core-provenance.mjs --check
 
   # Screenshot regression suite (tests/visual): launches the built shell under
   # Xvfb and compares every surface against the committed Linux baselines.
@@ -71,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      ELECTRON_DISABLE_SANDBOX: "1"
+      ELECTRON_DISABLE_SANDBOX: '1'
     steps:
       - uses: actions/checkout@v4
 
@@ -83,6 +137,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Install
         run: pnpm install --frozen-lockfile

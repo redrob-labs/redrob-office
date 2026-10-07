@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
   dlgAllowEditRangesTitle: 'السماح بتحرير النطاقات',
@@ -397,4 +397,4 @@ export const ar = {
   dlgFnDescNpv: 'يُرجع القيمة الحالية الصافية لتدفق نقدي عند معدل خصم.',
   dlgFnDescIrr: 'يُرجع معدل العائد الداخلي لسلسلة تدفقات نقدية.',
   dlgFnCatFinancial: 'مالية',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

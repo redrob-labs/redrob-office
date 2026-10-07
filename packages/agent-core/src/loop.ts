@@ -52,6 +52,15 @@ export interface CompactionOptions {
   disableLlmSummary?: boolean
 }
 
+export interface AgentRunOptions {
+  /**
+   * Offer the model no tools for this run, so it can only answer in text.
+   * Plan mode uses it: the plan is written before anything in the file can
+   * change, and a person runs it afterwards as a normal run.
+   */
+  readOnly?: boolean
+}
+
 export interface AgentLoopOptions<TSnapshot = unknown> {
   transport: AgentTransport
   skill: AgentSkill
@@ -189,6 +198,8 @@ export class AgentLoop<TSnapshot = unknown> {
   private turns = 0
   /** Finalizing turn after hitting the turn limit: no tools, let the model answer from what it has read */
   private finalizing = false
+  /** this run was started read-only (Plan mode): no tools are offered to the model */
+  private readOnlyRun = false
   private mutationSeen = false
   private inputParseFails = 0
   /** signature (text + tool calls) of the previous turn, for the identical-turn guard */
@@ -265,12 +276,13 @@ export class AgentLoop<TSnapshot = unknown> {
   }
 
   /** images: inline attachments for this user turn (vision input; see AgentImage) */
-  run(instruction: string, images?: AgentImage[]): void {
+  run(instruction: string, images?: AgentImage[], runOptions?: AgentRunOptions): void {
     if (this.running || !instruction) return
     this.running = true
     this.cancelled = false
     this.turns = 0
     this.finalizing = false
+    this.readOnlyRun = runOptions?.readOnly === true
     this.mutationSeen = false
     this.inputParseFails = 0
     this.lastTurnSig = ''
@@ -517,7 +529,8 @@ export class AgentLoop<TSnapshot = unknown> {
       {
         system: this.options.skill.systemPrompt + (this.options.systemSuffix?.() ?? ''),
         messages: [...this.history],
-        tools: this.finalizing ? [] : this.options.skill.tools,
+        // a read-only run (Plan mode) is offered no tools, so it cannot change the artifact
+        tools: this.finalizing || this.readOnlyRun ? [] : this.options.skill.tools,
       },
       {
         onDelta: (text) => {

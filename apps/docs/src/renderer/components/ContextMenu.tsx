@@ -285,7 +285,7 @@ export function EditorContextMenu({
     },
   ) => (
     <button
-      className="ctx-item"
+      className="ctx-item rr-menu__item"
       disabled={opts.disabled}
       data-tip={opts.ai ? t('appAiBadgeTip') : undefined}
       onMouseEnter={() => setSubmenu(opts.submenuKey ?? null)}
@@ -297,7 +297,7 @@ export function EditorContextMenu({
           <IconSparkle size={10} />
         </span>
       )}
-      {opts.key && <span className="ctx-key">{platformShortcuts(opts.key)}</span>}
+      {opts.key && <span className="ctx-key rr-menu__shortcut">{platformShortcuts(opts.key)}</span>}
       {opts.submenuKey && <span className="ctx-arrow">›</span>}
     </button>
   )
@@ -305,7 +305,7 @@ export function EditorContextMenu({
   return (
     <div
       ref={ref}
-      className="ctx-menu"
+      className="ctx-menu rr-menu__list"
       style={{ left: pos.left, top: pos.top, minWidth: MENU_WIDTH }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -328,16 +328,16 @@ export function EditorContextMenu({
         disabled: !canEdit,
         onClick: run(() => void clipboard('pastePlain')),
       })}
-      <div className="ctx-sep" />
+      <div className="ctx-sep rr-menu__sep" />
       {item(t('appFontMenu'), { key: '⌘D', onClick: run(onFontDialog) })}
       {item(t('appParagraphMenu'), { key: '⌥⌘M', onClick: run(onParagraphDialog) })}
       {inTable && (
         <>
-          <div className="ctx-sep" />
+          <div className="ctx-sep rr-menu__sep" />
           <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
             {item(t('ribbonInsert'), { submenuKey: 'tableInsert', disabled: !canEdit })}
             {submenu === 'tableInsert' && canEdit && (
-              <div className="ctx-submenu">
+              <div className="ctx-submenu rr-menu__list">
                 {(
                   [
                     ['ribbonInsertAbove', addRowBefore],
@@ -348,7 +348,7 @@ export function EditorContextMenu({
                 ).map(([labelKey, command]) => (
                   <button
                     key={labelKey}
-                    className="ctx-item"
+                    className="ctx-item rr-menu__item"
                     onClick={run(() => runTable(command))}
                   >
                     <span className="ctx-label">{t(labelKey)}</span>
@@ -360,7 +360,7 @@ export function EditorContextMenu({
           <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
             {item(t('ribbonTableDeleteMenu'), { submenuKey: 'tableDelete', disabled: !canEdit })}
             {submenu === 'tableDelete' && canEdit && (
-              <div className="ctx-submenu">
+              <div className="ctx-submenu rr-menu__list">
                 {(
                   [
                     ['ribbonDeleteRow', deleteRow],
@@ -370,7 +370,7 @@ export function EditorContextMenu({
                 ).map(([labelKey, command]) => (
                   <button
                     key={labelKey}
-                    className="ctx-item"
+                    className="ctx-item rr-menu__item"
                     onClick={run(() => runTable(command))}
                   >
                     <span className="ctx-label">{t(labelKey)}</span>
@@ -382,14 +382,20 @@ export function EditorContextMenu({
           <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
             {item(t('ribbonSelect'), { submenuKey: 'tableSelect' })}
             {submenu === 'tableSelect' && (
-              <div className="ctx-submenu">
-                <button className="ctx-item" onClick={run(() => selectRowOrColumn('row'))}>
+              <div className="ctx-submenu rr-menu__list">
+                <button
+                  className="ctx-item rr-menu__item"
+                  onClick={run(() => selectRowOrColumn('row'))}
+                >
                   <span className="ctx-label">{t('ribbonSelectRow')}</span>
                 </button>
-                <button className="ctx-item" onClick={run(() => selectRowOrColumn('column'))}>
+                <button
+                  className="ctx-item rr-menu__item"
+                  onClick={run(() => selectRowOrColumn('column'))}
+                >
                   <span className="ctx-label">{t('ribbonSelectColumn')}</span>
                 </button>
-                <button className="ctx-item" onClick={run(selectWholeTable)}>
+                <button className="ctx-item rr-menu__item" onClick={run(selectWholeTable)}>
                   <span className="ctx-label">{t('ribbonSelectTable')}</span>
                 </button>
               </div>
@@ -407,13 +413,13 @@ export function EditorContextMenu({
       )}
       {editor.isActive('instrField') && onUpdateFields && (
         <>
-          <div className="ctx-sep" />
+          <div className="ctx-sep rr-menu__sep" />
           {item(t('appUpdateField'), { key: 'F9', onClick: run(() => onUpdateFields()) })}
         </>
       )}
       {editor.isActive('docListItem') && !!editor.getAttributes('docListItem').numId && (
         <>
-          <div className="ctx-sep" />
+          <div className="ctx-sep rr-menu__sep" />
           {item(t('appRestartNumbering'), {
             disabled: !onRestartNumbering,
             onClick: run(() => onRestartNumbering?.()),
@@ -424,7 +430,7 @@ export function EditorContextMenu({
           })}
         </>
       )}
-      <div className="ctx-sep" />
+      <div className="ctx-sep rr-menu__sep" />
       {item(t('appSynonyms'), {
         disabled: !synonymText,
         ai: true,
@@ -433,11 +439,11 @@ export function EditorContextMenu({
       <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
         {item(t('appTranslate'), { disabled: !hasSelection, submenuKey: 'translate', ai: true })}
         {submenu === 'translate' && hasSelection && (
-          <div className="ctx-submenu">
+          <div className="ctx-submenu rr-menu__list">
             {TRANSLATE_TARGETS.map((target) => (
               <button
                 key={target.labelKey}
-                className="ctx-item"
+                className="ctx-item rr-menu__item"
                 onClick={run(() =>
                   onAiPreset(
                     t('appTranslateSelectionPrompt', {
@@ -457,15 +463,15 @@ export function EditorContextMenu({
       </div>
       {isFloating && (
         <>
-          <div className="ctx-sep" />
+          <div className="ctx-sep rr-menu__sep" />
           <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
             {item(t('appWrapTextMenu'), { submenuKey: 'wrap' })}
             {submenu === 'wrap' && (
-              <div className="ctx-submenu">
+              <div className="ctx-submenu rr-menu__list">
                 {WRAP_OPTIONS.map((opt) => (
                   <button
                     key={String(opt.value)}
-                    className="ctx-item"
+                    className="ctx-item rr-menu__item"
                     onClick={run(() => setWrap(opt.value))}
                   >
                     <span className="ctx-label">
@@ -480,17 +486,17 @@ export function EditorContextMenu({
           <div className="ctx-item-wrap" onMouseLeave={() => setSubmenu(null)}>
             {item(t('appArrangeMenu'), { submenuKey: 'arrange' })}
             {submenu === 'arrange' && (
-              <div className="ctx-submenu">
-                <button className="ctx-item" onClick={run(bringToFront)}>
+              <div className="ctx-submenu rr-menu__list">
+                <button className="ctx-item rr-menu__item" onClick={run(bringToFront)}>
                   <span className="ctx-label">{t('appBringToFront')}</span>
                 </button>
-                <button className="ctx-item" onClick={run(bringForward)}>
+                <button className="ctx-item rr-menu__item" onClick={run(bringForward)}>
                   <span className="ctx-label">{t('appBringForward')}</span>
                 </button>
-                <button className="ctx-item" onClick={run(sendBackward)}>
+                <button className="ctx-item rr-menu__item" onClick={run(sendBackward)}>
                   <span className="ctx-label">{t('appSendBackward')}</span>
                 </button>
-                <button className="ctx-item" onClick={run(sendToBack)}>
+                <button className="ctx-item rr-menu__item" onClick={run(sendToBack)}>
                   <span className="ctx-label">{t('appSendToBack')}</span>
                 </button>
               </div>
@@ -498,7 +504,7 @@ export function EditorContextMenu({
           </div>
         </>
       )}
-      <div className="ctx-sep" />
+      <div className="ctx-sep rr-menu__sep" />
       {item(t('appHyperlinkMenu'), { key: '⌘K', onClick: run(onLink) })}
       {item(t('appNewComment'), { disabled: !hasSelection, onClick: run(onNewComment) })}
     </div>
@@ -602,25 +608,29 @@ export function FontDialog({ editor, onClose }: { editor: Editor; onClose: () =>
               ariaLabel={t('appFontFamilyLabel')}
               options={[
                 { value: '', label: t('appDefaultBodyFont') } as DropdownOption,
-                ...fontFamilies.map((f): DropdownOption => ({
-                  value: f,
-                  label: f,
-                  render: <span style={{ fontFamily: cssFontFamily(f) }}>{f}</span>,
-                })),
-                ...systemFontFamilies.map((f): DropdownOption => ({
-                  value: f,
-                  label: f,
-                  render: (
-                    // symbol fonts would render their own name as pictographs
-                    <span
-                      style={{
-                        fontFamily: isSymbolFontFamily(f) ? undefined : cssFontFamily(f),
-                      }}
-                    >
-                      {f}
-                    </span>
-                  ),
-                })),
+                ...fontFamilies.map(
+                  (f): DropdownOption => ({
+                    value: f,
+                    label: f,
+                    render: <span style={{ fontFamily: cssFontFamily(f) }}>{f}</span>,
+                  }),
+                ),
+                ...systemFontFamilies.map(
+                  (f): DropdownOption => ({
+                    value: f,
+                    label: f,
+                    render: (
+                      // symbol fonts would render their own name as pictographs
+                      <span
+                        style={{
+                          fontFamily: isSymbolFontFamily(f) ? undefined : cssFontFamily(f),
+                        }}
+                      >
+                        {f}
+                      </span>
+                    ),
+                  }),
+                ),
                 ...(font && !fontFamilies.includes(font) && !systemFontFamilies.includes(font)
                   ? [{ value: font, label: font } as DropdownOption]
                   : []),
@@ -705,10 +715,10 @@ export function FontDialog({ editor, onClose }: { editor: Editor; onClose: () =>
           {t('appFontPreviewSample')}
         </div>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('appCancel')}
           </button>
-          <button className="btn-primary" onClick={apply}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={apply}>
             {t('appOk')}
           </button>
         </div>
@@ -898,10 +908,10 @@ export function ParagraphDialog({ editor, onClose }: { editor: Editor; onClose: 
           {numInput(t('appSpaceAfter'), spaceAfter, setSpaceAfter)}
         </div>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('appCancel')}
           </button>
-          <button className="btn-primary" onClick={apply}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={apply}>
             {t('appOk')}
           </button>
         </div>

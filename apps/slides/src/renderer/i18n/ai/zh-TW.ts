@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
+  aiYou: '你',
+  aiFailedTitle: '助理未能完成',
+  aiStepRunning: '執行中',
+  aiStepDone: '完成',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '建議的提問',
   aiInputPlaceholderGen: '描述要生成的簡報,或直接提問',
   aiEmptyGenTitle: '讓 AI 為你生成簡報',
   aiEmptyGenBody1: '描述主題、場合和大致頁數,',
@@ -240,4 +246,4 @@ export const zhTW = {
   aiSumSaveTemplate: '儲存風格範本"{name}"',
   aiSumTemplatesEmpty: '風格範本清單（空）',
   aiSumListTemplates: '列出 {count} 個風格範本',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

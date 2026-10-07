@@ -1,4 +1,5 @@
-/** app strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** app strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   appMergeWorkbooks: '合并工作簿',
   appMergeWorkbooksTip: '将其他 Excel 文件的工作表并入当前工作簿',
@@ -1257,4 +1258,4 @@ export const zh = {
   appFindTitle: '查找和选择 ⌘F',
   appReplace: '替换',
   appGoTo: '定位',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

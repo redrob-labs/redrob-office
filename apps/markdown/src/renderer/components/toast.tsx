@@ -1,8 +1,10 @@
-/** Transient feedback for user-triggered actions: a fixed top-center pill
- * that auto-dismisses. The status bar stays the durable log.
+/** Transient feedback for user-triggered actions: the kit Toast, fixed at top
+ * centre, auto-dismissed. The kit renders one toast and leaves timing to the
+ * app, so the timers live here. The status bar stays the durable log.
  * Trigger via showToast from './toast-bus' (kept component-only here so React
  * Fast Refresh works in dev). */
 import { useEffect, useState } from 'react'
+import { Toast } from '@genoffice/ui'
 import { setToastEmitter, type ToastData } from './toast-bus'
 
 export function ToastHost() {
@@ -37,31 +39,9 @@ export function ToastHost() {
   }, [])
   if (!toast) return null
   return (
-    <div className={`app-toast ${toast.kind}${visible ? ' show' : ''}`} role="status">
-      <svg
-        className="app-toast-icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        {toast.kind === 'success' ? (
-          <>
-            <circle cx="12" cy="12" r="9" />
-            <path d="m8.2 12.3 2.6 2.6 5-5" />
-          </>
-        ) : (
-          <>
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7.5v5.3" />
-            <path d="M12 16.4v.1" />
-          </>
-        )}
-      </svg>
-      {toast.text}
+    // The wrapper only positions and animates; the kit Toast carries role="status".
+    <div className={`app-toast${visible ? ' show' : ''}`}>
+      <Toast tone={toast.kind === 'success' ? 'success' : 'danger'} title={toast.text} />
     </div>
   )
 }

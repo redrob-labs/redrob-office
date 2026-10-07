@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
+  aiYou: 'You',
+  aiFailedTitle: 'The assistant could not finish',
+  aiStepRunning: 'Running',
+  aiStepDone: 'Done',
+  aiStepFailed: 'Failed',
+  aiStartersLabel: 'Suggested prompts',
   aiEmptyDraftTitle: 'Let AI draft this document for you',
   aiEmptyDraftBody1: 'Describe the topic and key points, or paste reference material;',
   aiEmptyDraftBody2: 'AI writes the first draft right onto the page.',
@@ -152,4 +158,4 @@ export const en = {
   aiCmdImages: 'Updated {count} image(s)',
   aiCmdToc: 'Inserted a table of contents ({count} entries)',
   aiCmdSkipped: ' ({count} protected block(s) skipped)',
-} satisfies Record<keyof typeof zh, string>
+}

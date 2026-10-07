@@ -42,6 +42,7 @@ import {
   type TextboxParaPatch,
   type TextboxParasPatchSet,
 } from '@genoffice/docx-engine'
+import { isLinkedFigureId, linkedFigureInstr, parseLinkedFigureInstr } from '@genoffice/docx-engine'
 import { t } from '../i18n/locale'
 import { charScaleEm, maxWordWidthPx, textHasComplexScript } from '../line-metrics'
 import { firstStrongDir } from './direction'
@@ -1141,6 +1142,17 @@ export function runsToInline(runs: Run[]): PmNode[] {
       nodes.push({
         type: 'docRuby',
         attrs: { base: run.text, rt: run.ruby.rt, xml: run.ruby.xml },
+      })
+      continue
+    }
+    const linked = run.instrField !== undefined ? parseLinkedFigureInstr(run.instrField) : null
+    if (linked) {
+      // the figure keeps the run's formatting; the field itself is the node
+      const marks = runMarks({ ...run, instrField: undefined })
+      nodes.push({
+        type: 'docLinkedFigure',
+        attrs: { fact: linked.fact, part: linked.part, text: run.text },
+        ...(marks.length > 0 ? { marks } : {}),
       })
       continue
     }
@@ -2433,7 +2445,13 @@ export function inlineToRuns(content: PmNode[]): Run[] {
       const ch = node.attrs?.pageBreak ? '\f' : node.attrs?.colBreak ? '\v' : '\n'
       const prev = runs[runs.length - 1]
       const prevAtomic =
-        prev && (prev.noteRef || prev.xeTerm !== undefined || prev.math || prev.ruby || prev.image)
+        prev &&
+        (prev.noteRef ||
+          prev.xeTerm !== undefined ||
+          prev.math ||
+          prev.ruby ||
+          prev.image ||
+          (prev.instrField !== undefined && parseLinkedFigureInstr(prev.instrField) !== null))
       if (prev && !prevAtomic) prev.text += ch
       else runs.push({ text: ch })
       continue
@@ -2450,6 +2468,22 @@ export function inlineToRuns(content: PmNode[]): Run[] {
     }
     if (node.type === 'docXeMark') {
       runs.push({ text: '', xeTerm: String(node.attrs?.term ?? '') })
+      continue
+    }
+    if (node.type === 'docLinkedFigure') {
+      const fact = String(node.attrs?.fact ?? '')
+      const text = String(node.attrs?.text ?? '')
+      // the node's own marks (bold, colour...) carry over through a text twin
+      const styled = inlineToRuns([{ type: 'text', text: text || ' ', ...(node.marks ? { marks: node.marks } : {}) }])[0] ?? {
+        text: text || ' ',
+      }
+      if (isLinkedFigureId(fact)) {
+        runs.push({
+          ...styled,
+          text: text || ' ',
+          instrField: linkedFigureInstr(fact, node.attrs?.part === 'sentence' ? 'sentence' : 'figures'),
+        })
+      } else if (text) runs.push({ ...styled, text })
       continue
     }
     if (node.type === 'docInlineMath') {

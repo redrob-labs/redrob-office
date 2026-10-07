@@ -9,3 +9,11 @@
  * @genoffice/ui/preflight.css for that. */
 @import '@redrob-labs/ui/tokens.css';
 @import '@redrob-labs/ui/styles.css';
+
+/* Office composites built on the kit */
+@import './dialog.css';
+@import './doctabs.css';
+@import './toolbar.css';
+@import './agent.css';
+@import './plan.css';
+@import './frame/frame.css';

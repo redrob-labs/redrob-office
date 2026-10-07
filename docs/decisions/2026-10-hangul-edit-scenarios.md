@@ -1,0 +1,101 @@
+# Hangul scripted edit scenarios: first results
+
+Status: findings for spec task 1.11 (R3.2, R3.3, R3.5), 2026-10-07.
+
+`tests/hangul-fidelity/src/scenarios.ts` runs eight edit scenarios through the editor core
+(`Session` + `CommandBus`, the code the app runs): typing Korean, split and merge, adding
+paragraphs, deleting across a break, bold and italic, HTML paste, editing a table cell, and undoing
+everything. Each result is saved in both formats and reopened. The checks:
+- the reopened text equals the edited text;
+- in the source format, the reopened document paints the same glyphs (`paint.ts`);
+- undoing every edit saves exactly what a no-op save writes.
+
+CI runs it on the synthetic corpus (64 scenario × document × format cases): **all pass**.
+
+## On real documents
+
+Locally, I ran 30 documents from upstream rhwp's `samples/`, spread evenly across HWP and HWPX up
+to 1.5 MB. They aren't copied into this repository because their licences aren't recorded.
+
+**401 of 430 checks pass.** The 29 failures fall into three groups.
+
+| Group | Checks | Documents | Caused by our edits? |
+| --- | --- | --- | --- |
+| A. Invisible characters change on save | 16 | `hwp3-table-grid-gap.hwp` | No. It happens after undoing every edit (a no-op save), in both formats. The paint is identical (the round trip in #62 passes); only control characters in the model text differ. This is the engine's HWP3-origin handling. |
+| B. HWPX → HWP adds a space next to an equation | 7 | `eq-002.hwpx` | No. It also happens on a no-op cross-format save. This is in the engine's HWPX → HWP conversion. |
+| C. Layout differs after an edit, save and reopen | 6 | `hwp3-sample10-hwpx.hwpx` (763 → 765 pages after an HTML paste), `hwp3-sample19-hwpx.hwpx`, `2024년 2분기 해외직접투자 보도자료ff.hwpx`, `table_giant_cell_overfill.hwpx` | **Yes.** It appears only after HTML paste, adding paragraphs, or editing a giant cell, and only in HWPX. The line layout the engine stores for edited paragraphs doesn't reproduce its own in-memory layout on reopen. 한글 trusts stored line layout, so 한글 may lay these files out differently as well. This is the most important finding for R3.2. |
+
+Document hashes (sha256 prefix):
+
+| Document | sha256 |
+| --- | --- |
+| `hwp3-table-grid-gap.hwp` | `3313829fceed…` |
+| `eq-002.hwpx` | `ecb229b47bfa…` |
+| `hwp3-sample10-hwpx.hwpx` | `3395e19bebea…` |
+| `hwp3-sample19-hwpx.hwpx` | `bc66703c1db0…` |
+| `2024년 2분기 해외직접투자 보도자료ff.hwpx` | `54f25292bdd3…` |
+| `table_giant_cell_overfill.hwpx` | `5d7eb4a21e46…` |
+
+## One harness bug found and fixed
+
+Group D (5 checks) is no longer a failure. The fix is in `paint.ts`: undo of an edit then
+undo-all looked like a paint change because image ops carry `sourceImageKey`
+(`bin:<generation>:<id>:src`), the engine's image cache generation. A snapshot restore advances it
+without changing any pixels. `paint.ts` now ignores that key, and the same fix is applied in the
+collaboration spike.
+
+## What follows
+
+- **C goes into the engine work before cutover.** The saved line layout for edited paragraphs must
+  be the one the engine lays out on reopen. The next step is to bring these four documents (or
+  licence-cleared equivalents) into the Corpus with `causes.json` entries, then fix the HWPX
+  serializer's line-segment output for reflowed paragraphs. It is then checked on the 한글 2024
+  runner.
+- **A and B are pre-existing engine fidelity issues**, and are candidates to report upstream.
+- **The 한글 2024 half of R3.2** (opens without a repair prompt, renders like the golden) runs on
+  the Windows runner from the files `runScenario(..., outDir)` writes.
+
+## Update: group C narrowed, one engine bug fixed
+
+A second look at group C, after ignoring the per-page `textSources` index (`source.id`, an index
+whose value depends on earlier pages):
+
+- 3 of the 6 were index noise: the same glyphs and pixels.
+- **One was an engine bug, now fixed.** After an edit added a page to section 0, the clean section
+  1 kept its cached page numbers. A page then showed "- 9 -" on screen where the saved file (and
+  한글) had "- 10 -". The engine now repaginates a section whose incoming page-number carry
+  changed. Pinned by `packages/hwp-core/tests/page-numbers.test.ts`.
+- **1 remains:** `hwp3-sample10-hwpx.hwpx` (763 pages) gains 2 pages on reopen after an HTML paste.
+  This is task 1.12.
+
+The sweep now passes 406 of 430. The rest are groups A and B, neither of which comes from our
+editing.
+
+## Finding C2: the last edit-dependent case is a deliberate omission
+
+`hwp3-sample10-hwpx.hwpx` has 763 pages. After an HTML paste it has 763 pages in memory and 765
+on reopen. A pasted plain-text paragraph or a single-paragraph paste reopens at 763, so the trigger
+is specifically a pasted paragraph that is new.
+
+**What happens**
+1. The engine lays out a pasted paragraph itself and tags its lines as synthetic
+   (`TAG_IMPLEMENTATION_PROPERTY`, bit 31).
+2. The HWPX serializer deliberately writes no `<hp:linesegarray>` for such a paragraph, so 한글
+   recomputes it (`serializer/hwpx/section.rs`, upstream #5847). Upstream added that rule after
+   writing these synthetic values made 한글 2022 throw away a whole document's layout (81 → 5
+   pages).
+3. On reopen, rhwp has no stored layout for the paragraph either, and its recomputation in this
+   long HWP3-origin document lands two pages later. The first page that moves is 311, about 60
+   pages before the edit.
+
+**Why it stays open**
+- The file is valid and is written exactly as designed.
+- Which of rhwp's two layouts 한글 agrees with can only be measured on the 한글 2024 runner (P-1).
+  Writing our own computed line layout instead would bring back the upstream #5847 failure.
+
+**What changes now:** the harness labels these cases instead of treating them as unexplained.
+`runScenario` reports `recomputedOnOpen` (the number of paragraphs saved without stored line layout),
+and `countOmittedLineLayout` counts them in any HWPX.
+
+**Task 1.12** is closed here as diagnosed. The fix, if one is needed, depends on the runner result
+and is listed as task 1.13.

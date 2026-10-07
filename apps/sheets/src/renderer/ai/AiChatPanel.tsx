@@ -1,15 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AiComposer, AiTypingIndicator } from '@genoffice/ui'
-import { GensparkMark } from '../ribbon-icons'
+import {
+  AgentComposer,
+  AgentEmpty,
+  AgentFailure,
+  AgentMessage,
+  AgentPanelHeader,
+  AgentSteps,
+  AgentUndelivered,
+  AgentWorking,
+  Alert,
+  Button,
+  Changes,
+  Icon,
+  IconButton,
+} from '@genoffice/ui'
 import type { ChangePlan } from '../../domain/workbook.types'
 import { ATTACHMENT_IMAGE_EXTS, type AttachmentMeta } from '../../shared/desktop-api'
 import { useI18n, type TFunc } from '../i18n/locale'
-import { Markdown } from '@genoffice/ui'
+import { Markdown, RedrobMark, RedrobStatus, useRedrobPrefs } from '@genoffice/ui'
 import { SHEET_NAV_SCHEME } from './sheet-nav'
-import sendEnterOn from '../assets/send-enter-on.png'
-import sendEnterOff from '../assets/send-enter-off.png'
-import sendStop from '../assets/send-stop.png'
-import attachIcon from '../assets/attach-icon.png'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
 import fileExcelIcon from '../assets/file-excel.png'
@@ -232,6 +241,7 @@ export function AiChatPanel({
   onCitation,
   onExpand,
   onCollapse,
+  hosted = false,
 }: {
   readonly isOpen: boolean
   /** the workbook has cells with content — empty workbooks get "build me a sheet" copy instead */
@@ -278,8 +288,12 @@ export function AiChatPanel({
   readonly onCitation: (href: string) => void
   readonly onExpand: () => void
   readonly onCollapse: () => void
+  /** hosted by the shared EditorFrame, which owns the width, the resize handle and hiding it */
+  readonly hosted?: boolean | undefined
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  // Memory and Cross-check from Settings, for the status line under the composer
+  const redrob = useRedrobPrefs(window.desktopApi)
   const chatRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const stickToBottomRef = useRef(true)
@@ -431,7 +445,7 @@ export function AiChatPanel({
     stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
   }
 
-  if (!isOpen) {
+  if (!isOpen && !hosted) {
     return (
       <aside className="copilot collapsed">
         <button
@@ -440,7 +454,7 @@ export function AiChatPanel({
           data-tip={t('aiOpenAssistant')}
           aria-label={t('aiOpenAssistant')}
         >
-          <GensparkMark size={22} />
+          <RedrobMark size={22} />
         </button>
       </aside>
     )
@@ -483,6 +497,14 @@ export function AiChatPanel({
     if (paths.length > 0) onAddAttachmentPaths(paths)
   }
 
+  const stepStrings = (n: number) => ({
+    worked: t('aiWorkedSteps', { n }),
+    working: t('aiGroupWorking'),
+    running: t('aiStepRunning'),
+    done: t('aiStepDone'),
+    failed: t('aiStepFailed'),
+  })
+
   return (
     <aside
       ref={asideRef}
@@ -499,314 +521,299 @@ export function AiChatPanel({
       }}
       onDrop={onDrop}
     >
-      <div
-        className="ai-panel-resizer"
-        onPointerDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Redrob AI"
+      {!hosted && (
+        <div
+          className="ai-panel-resizer"
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Redrob AI"
+        />
+      )}
+      <AgentPanelHeader
+        title="Redrob AI"
+        actions={[
+          (chat.length > 0 || historicChat.length > 0) && {
+            label: t('aiNewChat'),
+            icon: <Icon name="edit" size={16} />,
+            onClick: onNewChat,
+          },
+          {
+            label: t('aiCollapsePanel'),
+            icon: <Icon name="sidebar" size={16} />,
+            onClick: onCollapse,
+          },
+        ]}
       />
-      <header className="ai-panel-header">
-        <span className="ai-panel-title">
-          <GensparkMark size={22} />
-          Redrob AI
-        </span>
-        <div className="ai-panel-header-actions">
-          {(chat.length > 0 || historicChat.length > 0) && (
-            <button
-              className="ai-header-btn"
-              onClick={onNewChat}
-              data-tip={t('aiNewChat')}
-              aria-label={t('aiNewChat')}
-            >
-              <IconNewChat size={15} />
-            </button>
-          )}
-          <button
-            className="ai-header-btn"
-            onClick={onCollapse}
-            data-tip={t('aiCollapsePanel')}
-            aria-label={t('aiCollapsePanel')}
-          >
-            <IconCollapse size={15} />
-          </button>
-        </div>
-      </header>
 
       <div className="ai-chat" ref={chatRef} onScroll={onChatScroll}>
         {/* Past conversation (read-only transcript), shown continuously with the current turn */}
         {historicChat.length > 0 && (
           <>
             {historicChat.map((entry, i) => (
-              <div key={`h${i}`} className={`ai-msg ai-msg-${entry.role} ai-msg-historic`}>
-                {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
-                  <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
-                )}
-                {entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
-                {entry.text && <Markdown text={entry.text} nav={citationNav} />}
+              <div key={`h${i}`} className="ai-msg-historic">
+                <AgentMessage
+                  role={entry.role}
+                  author={entry.role === 'user' ? t('aiYou') : 'Redrob AI'}
+                >
+                  {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
+                    <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
+                  )}
+                  {entry.tools.length > 0 && (
+                    <AgentSteps steps={entry.tools} strings={stepStrings(entry.tools.length)} />
+                  )}
+                  {entry.text && <Markdown text={entry.text} nav={citationNav} />}
+                </AgentMessage>
               </div>
             ))}
-            <div className="ai-history-sep">{t('aiHistorySep')}</div>
+            <div className="ai-history-sep" role="separator">
+              {t('aiHistorySep')}
+            </div>
           </>
         )}
         {chat.length === 0 && historicChat.length === 0 && (
-          <div className="ai-chat-empty">
-            <div className="ai-chat-empty-title">
-              {t(hasContent ? 'aiEmptyTitle' : 'aiEmptyBuildTitle')}
-            </div>
-            <div className="ai-chat-empty-body">
-              {t(hasContent ? 'aiEmptyBodyLine1' : 'aiEmptyBuildBody')}
-            </div>
-          </div>
+          <AgentEmpty
+            title={t(hasContent ? 'aiEmptyTitle' : 'aiEmptyBuildTitle')}
+            description={t(hasContent ? 'aiEmptyBodyLine1' : 'aiEmptyBuildBody')}
+          />
         )}
-        {chat.map((entry, index) => (
-          <div
-            key={index}
-            className={`ai-msg ai-msg-${entry.role}${entry.isError ? ' ai-msg-error' : ''}${entry.role === 'assistant' && entry.streaming ? ' ai-msg-streaming' : ''}`}
-          >
-            {entry.role === 'user' ? (
-              <>
-                {entry.attachments && entry.attachments.length > 0 && (
-                  <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
-                )}
-                {entry.text}
-                {entry.undelivered && (
-                  <div className="ai-msg-undelivered">
-                    {t('aiUndelivered')}
-                    {!aiBusy && (
-                      <button
-                        className="ai-retry-btn"
-                        onClick={() => onSend(entry.text, entry.attachments ?? [], index)}
-                      >
-                        {t('aiRetry')}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                {entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
-                {entry.text ? (
-                  <Markdown text={entry.text} nav={citationNav} />
-                ) : (
-                  entry.streaming && (
-                    <span className="ai-typing-row">
-                      <AiTypingIndicator
-                        label={entry.tools.length > 0 ? t('aiWorking') : t('aiThinking')}
-                      />
-                    </span>
-                  )
-                )}
-                {entry.autoApplied && (
-                  <div className="ai-auto-applied">
-                    <span className="ai-auto-applied-text">
-                      {t('aiAutoApplied', { count: entry.autoApplied.opCount })}
-                    </span>
-                    {/* undoSteps 0 = the batch exceeded the undo budget and
-                        kept no stack entry; a forced 1-step undo would revert
-                        the user's own previous action instead. */}
-                    {(entry.autoApplied.undoSteps ?? 1) > 0 && (
-                      <button
-                        className="ai-undo-btn"
-                        onClick={() => onUndo(Math.max(1, entry.autoApplied?.undoSteps ?? 1))}
-                        data-tip={t('aiUndoTitle')}
-                      >
-                        {t('aiUndo')}
-                      </button>
-                    )}
-                  </div>
-                )}
-                {entry.loginRequired && (
-                  <button
-                    className="ai-login-btn"
-                    onClick={() => void window.desktopApi.aiGskLogin()}
-                  >
-                    {t('aiGskLoginBtn')}
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        ))}
+        {chat.map((entry, index) =>
+          entry.role === 'user' ? (
+            <AgentMessage key={index} role="user" author={t('aiYou')}>
+              {entry.attachments && entry.attachments.length > 0 && (
+                <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
+              )}
+              {entry.text}
+              {entry.undelivered && (
+                <AgentUndelivered
+                  message={t('aiUndelivered')}
+                  retryLabel={t('aiRetry')}
+                  onRetry={
+                    aiBusy ? undefined : () => onSend(entry.text, entry.attachments ?? [], index)
+                  }
+                />
+              )}
+            </AgentMessage>
+          ) : (
+            <AgentMessage
+              key={index}
+              role="assistant"
+              author="Redrob AI"
+              streaming={!!entry.streaming && !!entry.text && !entry.isError}
+            >
+              {entry.tools.length > 0 && (
+                <AgentSteps steps={entry.tools} strings={stepStrings(entry.tools.length)} />
+              )}
+              {entry.isError ? (
+                // fail-closed: the engine's own message, and sign-in only when auth is the cause
+                <AgentFailure
+                  title={t('aiFailedTitle')}
+                  message={entry.text}
+                  action={
+                    entry.loginRequired ? (
+                      <Button size="sm" onClick={() => void window.desktopApi.aiGskLogin()}>
+                        {t('aiGskLoginBtn')}
+                      </Button>
+                    ) : undefined
+                  }
+                />
+              ) : entry.text ? (
+                <Markdown text={entry.text} nav={citationNav} />
+              ) : (
+                entry.streaming && (
+                  <AgentWorking label={entry.tools.length > 0 ? t('aiWorking') : t('aiThinking')} />
+                )
+              )}
+              {entry.autoApplied && (
+                <div className="ai-auto-applied">
+                  <span className="ai-auto-applied-text">
+                    {t('aiAutoApplied', { count: entry.autoApplied.opCount })}
+                  </span>
+                  {/* undoSteps 0 = the batch exceeded the undo budget and
+                      kept no stack entry; a forced 1-step undo would revert
+                      the user's own previous action instead. */}
+                  {(entry.autoApplied.undoSteps ?? 1) > 0 && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      iconLeft={<Icon name="undo" size={14} />}
+                      onClick={() => onUndo(Math.max(1, entry.autoApplied?.undoSteps ?? 1))}
+                      data-tip={t('aiUndoTitle')}
+                    >
+                      {t('aiUndo')}
+                    </Button>
+                  )}
+                </div>
+              )}
+              {!entry.isError && entry.loginRequired && (
+                <Button size="sm" onClick={() => void window.desktopApi.aiGskLogin()}>
+                  {t('aiGskLoginBtn')}
+                </Button>
+              )}
+            </AgentMessage>
+          ),
+        )}
 
         {preview && (
-          <section className="preview ai-preview-card" aria-label={t('aiPreviewAria')}>
-            <h3>{t('aiProposedChanges')}</h3>
-            {preview.structuralChanges.map((change, index) => (
-              <div className="change" key={`structural-${index}`}>
-                <strong>{t('aiChangeStructure')}</strong>
-                <span>{change.label}</span>
-              </div>
-            ))}
-            {preview.formatChanges.map((change, index) => (
-              <div className="change" key={`format-${index}`}>
-                <strong>{t('aiChangeFormat')}</strong>
-                <span>{change.label}</span>
-              </div>
-            ))}
-            {preview.cellChanges.slice(0, MAX_PREVIEW_CELL_ROWS).map((change) => (
-              <div className="change" key={`${change.sheetId}-${change.address}`}>
-                <strong>{change.address}</strong>
-                <span>
-                  {formatCell(change.before, t)} → {formatCell(change.after, t)}
-                </span>
-              </div>
-            ))}
-            {preview.cellChanges.length > MAX_PREVIEW_CELL_ROWS && (
-              <div className="change">
-                <strong>…</strong>
-                <span>
-                  {t('aiMoreCells', { count: preview.cellChanges.length - MAX_PREVIEW_CELL_ROWS })}
-                </span>
-              </div>
-            )}
-            {preview.sheetRenames.map((rename) => (
-              <div className="change" key={rename.sheetId}>
-                <strong>{t('aiChangeSheet')}</strong>
-                <span>
-                  {rename.before} → {rename.after}
-                </span>
-              </div>
-            ))}
+          <div className="ai-preview-card">
+            {/* the plan the assistant proposes, before and after, in the kit Changes card */}
+            <Changes
+              title={t('aiProposedChanges')}
+              items={[
+                ...preview.structuralChanges.map((change) => ({
+                  kind: 'changed' as const,
+                  label: t('aiChangeStructure'),
+                  after: change.label,
+                })),
+                ...preview.formatChanges.map((change) => ({
+                  kind: 'changed' as const,
+                  label: t('aiChangeFormat'),
+                  after: change.label,
+                })),
+                ...preview.cellChanges.slice(0, MAX_PREVIEW_CELL_ROWS).map((change) => ({
+                  kind: 'changed' as const,
+                  label: change.address,
+                  before: formatCell(change.before, t),
+                  after: formatCell(change.after, t),
+                })),
+                ...preview.sheetRenames.map((rename) => ({
+                  kind: 'changed' as const,
+                  label: t('aiChangeSheet'),
+                  before: rename.before,
+                  after: rename.after,
+                })),
+              ]}
+              {...(preview.cellChanges.length > MAX_PREVIEW_CELL_ROWS
+                ? {
+                    summary: t('aiMoreCells', {
+                      count: preview.cellChanges.length - MAX_PREVIEW_CELL_ROWS,
+                    }),
+                  }
+                : {})}
+            />
             {preview.warnings.map((warning) => (
-              <div className="change" key={warning}>
-                <strong>⚠</strong>
-                <span>{warning}</span>
-              </div>
+              <Alert key={warning} tone="warning">
+                {warning}
+              </Alert>
             ))}
-          </section>
+          </div>
         )}
       </div>
 
       <div className="ai-composer">
-        {attachNotice && <div className="ai-attach-notice">{attachNotice}</div>}
-        <AiComposer
-          header={
-            <>
-              {/* Only a deliberate multi-cell selection shows here: it tells the
-                  user what "this column / these rows" will resolve to, and the
-                  send freezes it so mid-run clicking cannot retarget the run.
-                  While that frozen scope is what shows, dropping it could not
-                  change the run any more, so the × goes away with it. */}
-              {scopeRange !== null && (
-                <div className="ai-scope-row">
-                  <span
-                    className={`ai-scope-hint${scopeLocked ? ' is-locked' : ''}`}
-                    data-tip={t('aiScopeRangeTip')}
-                  >
-                    {scopeLabel(scopeRange, scopeColumns, t)}
-                    {!scopeLocked && (
-                      <button
-                        className="ai-scope-clear"
-                        onClick={onScopeDismiss}
-                        data-tip={t('aiScopeClearTitle')}
-                        aria-label={t('aiScopeClearTitle')}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 32 32" aria-hidden>
-                          <path
-                            d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      </button>
+        {attachNotice && (
+          <Alert tone="info" className="ai-attach-notice">
+            {attachNotice}
+          </Alert>
+        )}
+        <AgentComposer
+          status={
+            <RedrobStatus
+              lang={lang}
+              memory={redrob.memory}
+              factCheck={redrob.factCheck}
+              challenge={redrob.challenge}
+            />
+          }
+          context={
+            (scopeRange !== null || attachments.length > 0) && (
+              <>
+                {/* Only a deliberate multi-cell selection shows here: it tells the
+                    user what "this column / these rows" will resolve to, and the
+                    send freezes it so mid-run clicking cannot retarget the run.
+                    While that frozen scope is what shows, dropping it could not
+                    change the run any more, so the × goes away with it. */}
+                {scopeRange !== null && (
+                  <div className="ai-scope-row">
+                    <span
+                      className={`ai-scope-hint${scopeLocked ? ' is-locked' : ''}`}
+                      data-tip={t('aiScopeRangeTip')}
+                    >
+                      {scopeLabel(scopeRange, scopeColumns, t)}
+                      {!scopeLocked && (
+                        <button
+                          type="button"
+                          className="ai-scope-clear"
+                          onClick={onScopeDismiss}
+                          data-tip={t('aiScopeClearTitle')}
+                          aria-label={t('aiScopeClearTitle')}
+                        >
+                          <Icon name="close" size={12} />
+                        </button>
+                      )}
+                    </span>
+                  </div>
+                )}
+                {attachments.length > 0 && (
+                  <div className="ai-attachments" onScroll={onAttachmentsScroll}>
+                    {attachments.map((attachment) =>
+                      ATTACHMENT_IMAGE_EXTS.has(attachment.ext) ? (
+                        <span
+                          key={attachment.path}
+                          className="ai-attachment-thumb"
+                          data-tip={attachment.path}
+                        >
+                          {attachmentPreviews[attachment.path] ? (
+                            <img src={attachmentPreviews[attachment.path]} alt={attachment.name} />
+                          ) : (
+                            <span className="ai-attachment-thumb-pending" aria-hidden>
+                              <img src={fileImageIcon} alt="" />
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            className="ai-attachment-thumb-remove"
+                            onClick={() => onRemoveAttachment(attachment.path)}
+                            data-tip={t('aiRemoveAttachment')}
+                            aria-label={t('aiRemoveAttachment')}
+                          >
+                            <Icon name="close" size={12} />
+                          </button>
+                        </span>
+                      ) : (
+                        <span
+                          key={attachment.path}
+                          className="ai-attachment-card"
+                          data-tip={attachment.path}
+                        >
+                          <span className="ai-attachment-card-icon">
+                            <AttachmentCardIcon ext={attachment.ext} />
+                          </span>
+                          <span className="ai-attachment-card-meta">
+                            <span className="ai-attachment-card-name">
+                              {truncateCardName(attachment.name)}
+                            </span>
+                            <span className="ai-attachment-card-size">
+                              {formatAttachmentSize(attachment.sizeBytes)}
+                            </span>
+                          </span>
+                          <button
+                            type="button"
+                            className="ai-attachment-thumb-remove"
+                            onClick={() => onRemoveAttachment(attachment.path)}
+                            data-tip={t('aiRemoveAttachment')}
+                            aria-label={t('aiRemoveAttachment')}
+                          >
+                            <Icon name="close" size={12} />
+                          </button>
+                        </span>
+                      ),
                     )}
-                  </span>
-                </div>
-              )}
-              {attachments.length > 0 && (
-                <div className="ai-attachments" onScroll={onAttachmentsScroll}>
-                  {attachments.map((attachment) =>
-                    ATTACHMENT_IMAGE_EXTS.has(attachment.ext) ? (
-                      <span
-                        key={attachment.path}
-                        className="ai-attachment-thumb"
-                        data-tip={attachment.path}
-                      >
-                        {attachmentPreviews[attachment.path] ? (
-                          <img src={attachmentPreviews[attachment.path]} alt={attachment.name} />
-                        ) : (
-                          <span className="ai-attachment-thumb-pending" aria-hidden>
-                            <img src={fileImageIcon} alt="" />
-                          </span>
-                        )}
-                        <button
-                          className="ai-attachment-thumb-remove"
-                          onClick={() => onRemoveAttachment(attachment.path)}
-                          data-tip={t('aiRemoveAttachment')}
-                          aria-label={t('aiRemoveAttachment')}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden>
-                            <path
-                              d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                              fill="currentColor"
-                              stroke="currentColor"
-                              strokeWidth="0.25"
-                            />
-                          </svg>
-                        </button>
-                      </span>
-                    ) : (
-                      <span
-                        key={attachment.path}
-                        className="ai-attachment-card"
-                        data-tip={attachment.path}
-                      >
-                        <span className="ai-attachment-card-icon">
-                          <AttachmentCardIcon ext={attachment.ext} />
-                        </span>
-                        <span className="ai-attachment-card-meta">
-                          <span className="ai-attachment-card-name">
-                            {truncateCardName(attachment.name)}
-                          </span>
-                          <span className="ai-attachment-card-size">
-                            {formatAttachmentSize(attachment.sizeBytes)}
-                          </span>
-                        </span>
-                        <button
-                          className="ai-attachment-thumb-remove"
-                          onClick={() => onRemoveAttachment(attachment.path)}
-                          data-tip={t('aiRemoveAttachment')}
-                          aria-label={t('aiRemoveAttachment')}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden>
-                            <path
-                              d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                              fill="currentColor"
-                              stroke="currentColor"
-                              strokeWidth="0.25"
-                            />
-                          </svg>
-                        </button>
-                      </span>
-                    ),
-                  )}
-                </div>
-              )}
-            </>
+                  </div>
+                )}
+              </>
+            )
           }
           value={prompt}
           busy={aiBusy}
           placeholder={t(hasContent ? 'aiComposerPlaceholder' : 'aiComposerPlaceholderBuild')}
-          hintIdle={t('aiHintIdle')}
-          hintBusy={t('aiHintBusy')}
-          hintIdleTitle={t('aiHintIdleTitle')}
+          label={t('aiInstructionAria')}
           sendLabel={t('aiSend')}
           stopLabel={t('aiStop')}
-          ariaLabel={t('aiInstructionAria')}
-          iconOnly
-          sendIconEnabled={<img src={sendEnterOn} alt="" aria-hidden />}
-          sendIconDisabled={<img src={sendEnterOff} alt="" aria-hidden />}
-          stopIcon={<img src={sendStop} alt="" aria-hidden />}
-          footerStart={
-            <button
-              className="ai-attach-btn"
-              onClick={onPickAttachments}
-              data-tip={t('aiAttachTitle')}
-              aria-label={t('aiAttachTitle')}
-            >
-              <img src={attachIcon} alt="" aria-hidden />
-            </button>
+          leading={
+            <IconButton size="sm" label={t('aiAttachTitle')} onClick={onPickAttachments}>
+              <Icon name="attachment" size={16} />
+            </IconButton>
           }
           textareaRef={inputRef}
           onChange={onPromptChange}
@@ -828,180 +835,4 @@ function formatCell(
   if (cell.formula) return cell.formula
   if (cell.value === null) return t('aiCellEmpty')
   return String(cell.value)
-}
-
-function Svg({ size, children }: { size: number; children: React.ReactNode }): React.JSX.Element {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-      aria-hidden
-    >
-      {children}
-    </svg>
-  )
-}
-
-function IconNewChat({ size }: { size: number }): React.JSX.Element {
-  return (
-    <Svg size={size}>
-      <path
-        d="M13.5 7.2v-3A1.7 1.7 0 0 0 11.8 2.5H4.2a1.7 1.7 0 0 0-1.7 1.7v6.1a1.7 1.7 0 0 0 1.7 1.7h1.1v2l2.6-2h1.3"
-        strokeLinejoin="round"
-      />
-      <path d="M12.2 9.4v4M10.2 11.4h4" />
-    </Svg>
-  )
-}
-
-function IconCollapse({ size }: { size: number }): React.JSX.Element {
-  // Mirrored glyph: the AI panel docks on the LEFT, so the divider and arrow point left
-  return (
-    <Svg size={size}>
-      <rect x="1.5" y="2.5" width="13" height="11" rx="1" />
-      <path d="M5.5 2.5v11" />
-      <path d="M12.5 8H8.1M9.8 5.9 7.7 8l2.1 2.1" strokeWidth="1.3" strokeLinejoin="round" />
-    </Svg>
-  )
-}
-
-/** Tool row list (unified with docs/slides): dot + summary; rows with output
- * expand to details, with the arrow shown on hover */
-/** Step-row status icons (timeline glyphs: 14px in a 20px slot, 1.6 stroke) */
-function StepIcon({ status }: { status: 'running' | 'done' | 'error' }) {
-  if (status === 'running') {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M6.5 3.5h11M6.5 20.5h11M8 3.5v3.2c0 2.6 4 4.2 4 5.3 0 1.1 4 2.7 4 5.3v3.2M16 3.5v3.2c0 2.6-4 4.2-4 5.3 0 1.1-4 2.7-4 5.3v3.2" />
-      </svg>
-    )
-  }
-  if (status === 'error') {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <circle cx="12" cy="12" r="9" />
-        <path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6" />
-      </svg>
-    )
-  }
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="14"
-      height="14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="m8.5 12.4 2.4 2.4 4.6-5" />
-    </svg>
-  )
-}
-
-/** Tool activity group: a single quiet summary row
- *  that auto-opens while tools run, auto-collapses into "Worked · N steps" when they finish,
- *  and a manual toggle that always wins. Rows inside are step rows with 1px connectors. */
-function ToolChipList({ tools }: { tools: readonly AiToolChip[] }): React.JSX.Element {
-  const { t: tr } = useI18n()
-  const [expanded, setExpanded] = useState<Set<number>>(new Set())
-  const [userOpen, setUserOpen] = useState<boolean | null>(null)
-
-  const toggle = (j: number) => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(j)) next.delete(j)
-      else next.add(j)
-      return next
-    })
-  }
-
-  const anyRunning = tools.some((tool) => tool.running)
-  const open = userOpen ?? anyRunning
-  const label = anyRunning ? tr('aiGroupWorking') : tr('aiWorkedSteps', { n: tools.length })
-
-  return (
-    <div className="ai-work-group">
-      <button
-        type="button"
-        className={`ai-work-group-summary${anyRunning ? ' running' : ''}`}
-        aria-expanded={open}
-        onClick={() => setUserOpen(!open)}
-      >
-        {anyRunning && !open && <span className="ai-tool-chip-spinner" aria-hidden />}
-        <span className="ai-work-group-label">{label}</span>
-        <span className={`ai-tool-chip-caret${open ? ' open' : ''}`} aria-hidden>
-          ›
-        </span>
-      </button>
-      <div className={`ai-work-group-body${open ? ' open' : ''}`}>
-        <div className="ai-work-group-body-inner">
-          {tools.map((tool, j) => {
-            const hasOutput = !tool.running && !!tool.output
-            const isOpen = expanded.has(j)
-            const stepStatus = tool.running ? 'running' : tool.isError ? 'error' : 'done'
-            return (
-              <div key={j} className="ai-step-row">
-                <span className={`ai-step-icon ${stepStatus}`} aria-hidden>
-                  <StepIcon status={stepStatus} />
-                </span>
-                <div className="ai-step-content">
-                  {hasOutput ? (
-                    <button
-                      type="button"
-                      className="ai-step-title clickable"
-                      data-tip={tool.name}
-                      aria-expanded={isOpen}
-                      onClick={() => toggle(j)}
-                    >
-                      {tool.summary}
-                    </button>
-                  ) : (
-                    <span className="ai-step-title" data-tip={tool.name}>
-                      {tool.summary}
-                    </span>
-                  )}
-                  {hasOutput && isOpen && (
-                    <div className="ai-step-detail">
-                      <div className="ai-tool-output">
-                        <div className="ai-tool-output-pre">{tool.output}</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>
-  )
 }

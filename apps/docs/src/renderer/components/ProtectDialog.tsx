@@ -309,7 +309,11 @@ export function ProtectDialog({
         {errorKey && <FieldError>{t(errorKey)}</FieldError>}
         <div className="modal-actions">
           <button onClick={onCancel}>{t('appCancel')}</button>
-          <button className="btn-primary" disabled={busy} onClick={() => void submit()}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+            disabled={busy}
+            onClick={() => void submit()}
+          >
             {t('appOk')}
           </button>
         </div>

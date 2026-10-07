@@ -4,8 +4,9 @@
 
 Redrob Office is a pnpm 9.15 + Turborepo monorepo. The product is `@genoffice/shell`
 (`apps/shell`), which hosts Docs, Sheets, Slides, PDF, Markdown and Hangul editors as
-`WebContentsView` children in one Electron window. Node 22 or newer is required. There is no backend,
-database or broker to start locally.
+`WebContentsView` children in one Electron window. Node 22 or newer is required. The desktop suite needs
+no backend, database or broker to run; the optional sync service in `services/sync` (below) is the
+only server code, and it runs locally and in CI only.
 
 The retired recruiting application is not in this repository at all. Neither the
 `legacy-office-v0.0.0` tag nor the `cursor/legacy-office-v0-0-0-8171` branch exists on `origin`:
@@ -81,11 +82,46 @@ install. Neither job is a required check, so today they inform rather than block
   shared UI/runtime infrastructure.
 - `packages/docx-engine`, `packages/pptx-engine`, `packages/pptx-render`, `packages/rhwp-editor`:
   document format engines.
+- `packages/facts`: linked figures. It holds the reducer, the selectors and the `FactsStore` behind
+  the shell's one index in userData (`linked-figures.json`), plus the `FACTS_CHANNELS` IPC contract
+  and `factsBridge`. The main process stamps the author, time and id of every edit. In a DOCX file a
+  figure is a `DOCVARIABLE RedrobFact_<id>` field (`RedrobFactWords_<id>` for its sentence), and the
+  kept value is the field's cached result.
+- `packages/versions`: version history kept on this computer (`VersionStore`), last visits and
+  `catchUpItems`. Every Docs save is recorded through `setDocSavedHook`, and an encrypted file's
+  versions stay encrypted. A restore writes a copy beside the file and never overwrites it.
+- `packages/identity`: who is signed in for sharing. It has a Console OIDC device-flow provider, a
+  development issuer and a `SessionStore`. See "Sharing and live documents".
+- `packages/sync-client`: the desktop side of `services/sync`. It holds the HTTP client
+  (`SyncClient`), the index of which local files are shared (`./node`), live rooms (`./live`,
+  `./live-provider`), and the Share and Live IPC contracts (`shareBridge`, `liveBridge`). The
+  package root has no Node or Electron dependency, so preloads and renderers may import it.
 
 Docs' AI panel is a real editing agent, not a prose-only chat. `apps/docs/src/renderer/ai/AiPanel.tsx`
 uses `AgentLoop`, `createDocsSkill`, `createFilesSkill`, and local document tools. Keep the fail-closed
 behaviour: a failed engine turn must be visible and must not silently switch providers or pretend tools
 are unavailable. Tool mutations must retain rollback snapshots and edit-queue semantics.
+
+### Hangul core (engines/rhwp, packages/hwp-core)
+
+The Hangul editor is being rebuilt on an engine we build ourselves. The plan is in
+`.kiro/specs/hangul-editor/`.
+
+- `engines/rhwp` is our fork of the rhwp Rust engine (MIT, Edward Kim), taken from upstream tag
+  v0.8.7. `engines/rhwp/REDROB.md` records exactly what was taken and every change since. Add a row
+  there for each change to the engine.
+- `packages/hwp-core` ships that engine built to WASM (`wasm/`) with a typed wrapper
+  (`HwpCoreDocument`). `./node` initialises it from disk for tests and for main-process use.
+- **The core owns fidelity.** Parsing, layout, pagination, painting and saving stay in the engine.
+  Editor code never lays out or paints document content. A change that moves document pixels is an
+  engine change.
+- **Rebuild, never hand-edit `wasm/`.** Run `pnpm --filter @genoffice/hwp-core build:wasm`. It needs
+  Rust 1.93.1 with the `wasm32-unknown-unknown` target and wasm-pack 0.15.0, and takes about ten
+  minutes. It rewrites `provenance.json`. `pnpm check:hwp-core` (run in the build job) fails when
+  `wasm/` or `engines/rhwp` drift from that record. The `hwp-core reproducible` job rebuilds from
+  source and compares bytes, and runs `cargo-deny` against `engines/rhwp/deny.toml`, whose allowlist
+  mirrors `tools/check-licenses.mjs`.
+- `packages/hwp-core` is MIT, not Apache-2.0, so changes to the engine can go upstream.
 
 ### Continuous integration and the fork boundary
 
@@ -116,6 +152,60 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
   CI. Add your line, never replace theirs: Apache-2.0 section 4(d) is why `NOTICE` must keep
   Mainfunc's.
 
+### Sync service
+
+- `services/sync` is shared files, members and live documents: a Fastify HTTP API and a Hocuspocus
+  WebSocket server over Postgres and any S3 store. It is its own project, outside the pnpm
+  workspace, with its own `pnpm-lock.yaml`. Install it with `pnpm install --ignore-workspace` from
+  that folder, so the root lockfile and the dependency licence gate never see it.
+- It runs locally and in CI only, through `services/sync/docker-compose.yml`: Postgres, a SeaweedFS
+  S3 gateway and the service. MinIO images stopped being published in 2026, so SeaweedFS stands in;
+  the service speaks plain S3. There is no production deployment; do not add one without asking.
+- Every Compose port binds to 127.0.0.1. The stack runs the development issuer
+  (`SYNC_DEV_ISSUER=1`), which mints a token for anyone who asks; the service refuses it when
+  `NODE_ENV=production`. Real identity is Redrob Console tokens checked against Console's JWKS.
+- `.github/workflows/sync.yml` (`sync service (docker compose)`) runs on pull requests that touch
+  `services/sync/**`. It is not a required check and must not be added to the required list.
+- File routes answer 404 to a non-member, so a file's existence is never disclosed. Roles are
+  `owner`, `edit`, `comment` and `view`; below edit, live sessions are read-only, and presence is
+  stamped server-side with the verified person.
+
+### Sharing and live documents
+
+- **The token never leaves the shell's main process.** `identity-service.ts` holds the session and
+  persists it only through `safeStorage`; without the OS keychain the session lives in memory only.
+  Renderers get the person's name, never the token. The sync client, the share service and the live
+  rooms all run in main, and editors ask over IPC (`share:*`, `live:*`). Do not hand a token to a
+  renderer to open a WebSocket from there.
+- **Identity.**
+  - Console, through OpenID discovery at `https://console.redrob.ai`, with client `redrob-office`
+    and audience `redrob-office-sync`. An endpoint outside Console's origin is refused.
+  - The development issuer is used only when `REDROB_IDENTITY=dev`, with a loopback sync URL, and
+    never in a packaged app.
+  - Settings shows this as the **Sharing** section. The words "Account" and "Sign in" are kept out
+    of that pane because `cloud-account-hidden.test.ts` guards the retired cloud account.
+- **Where the service is.**
+  - `REDROB_SYNC_URL` if set. Otherwise a development build uses the local Compose stack
+    (`http://127.0.0.1:8787`), and a packaged build has none, so Share says it is not available yet.
+  - The live server is the same host on port 8788 (`REDROB_SYNC_LIVE_URL` overrides it).
+- **Sharing.**
+  - The first invite uploads the saved file.
+  - A Docs save by an owner or editor uploads a new version (through `setDocSavedHook`).
+  - Home's "Shared with you" downloads a file into `Documents/Redrob Office/Shared` on open.
+  - `shared-files.json` in userData maps local paths to shared files, with the version on disk.
+- **Live documents (Docs only).**
+  - One room per shared file lives in the shell (`LiveHub`). Each view mirrors the Y.Doc over IPC.
+  - While live, the editor is bound with y-prosemirror (`apps/docs/src/renderer/live/collab.ts`).
+    The editor's own history is off, and undo is Yjs's, scoped to the person.
+  - Comments live in the shared `comments` map, with random nine-digit ids.
+  - Someone else's typing never marks a view unsaved.
+  - View and comment roles are read-only live.
+- **Every live view patches the same original bytes.** A Docs save patches the bytes it opened,
+  using each block's `docxIndex`, so the shared `meta.base` key records which version the shared
+  text is based on. After an upload the shell moves the base forward (`LiveHub.setBase`). Other
+  views then re-parse that version from `live:pull`. The file on disk is never written behind an
+  open editor. A change to Docs' save or load path must keep this rule.
+
 ### Packaging and releases
 
 - `apps/shell/electron-builder.cjs` is the only product packaging config.
@@ -132,6 +222,43 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 - `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` must be visible to this repository; the Windows job fails
   fast when either is unset. A self-signed certificate has an
   Authenticode signer but may report `UnknownError`/`NotTrusted` and still trigger SmartScreen.
+
+### Design system
+
+The suite's chrome is the Redrob design system, `@redrob-labs/ui` (pinned exactly, from
+`https://github.com/redrob-labs/redrob-ui`). Known gaps between the kit and what Office needs are in
+`docs/redrob-ui-gaps.md`.
+
+- The kit is a dependency of `@genoffice/ui` only. Apps import its components, `theme.css` and
+  icons through `@genoffice/ui`, never from `@redrob-labs/ui` directly. Office-only controls
+  (`Toolbar`, `DocTabs`, `Dialog`, `ColorPicker`, `Dropdown`, ScreenTips) are composed from kit parts
+  in `@genoffice/ui`, not in an app.
+- Every editor's AI panel is built from the agent parts in `packages/genoffice-ui/src/Agent.tsx`
+  (`AgentPanelHeader`, `AgentEmpty`, `AgentMessage`, `AgentSteps`, `AgentWorking`, `AgentFailure`,
+  `AgentUndelivered`, `AgentComposer`) with the shared extras in `agent.css`. A failed run renders as
+  a non-dismissible danger alert, and sign-in is offered only for an authentication failure.
+- Ribbon bands are wrapped in `Toolbar`, so they get one tab stop, arrow-key roving and
+  `aria-pressed` toggles.
+- Tokens: chrome reads the kit's names (`--surface-*`, `--ink-*`, `--border-*`, `--action-*`,
+  `--status-*`, `--radius-*`, `--font-sans`). `packages/genoffice-ui/src/tokens.css` holds only
+  Office extension tokens, which are values the kit has no semantic token for, picked per theme from
+  its ramps. Never add an alias of a kit token there. The theme is always written to
+  `<html data-theme>` by `applyUiTheme`, so renderer CSS never uses `@media (prefers-color-scheme)`.
+  Document content (paper, cells, exports, chart palettes) never reads chrome tokens. There is one
+  brand palette and no per-app accent. `pnpm check:ui-tokens` (`scripts/check-ui-tokens.mjs`,
+  run in the build job) fails on a retired legacy token, a colour-scheme media query in renderer
+  CSS, or a direct kit import outside `@genoffice/ui`.
+- Third-party canvases get scoped override layers rather than forks. Univer uses
+  `redrobUniverTheme()` (`apps/sheets/src/renderer/univer-theme.ts`). Hangul's built rhwp-studio is
+  served under `/host/` on the studio's own loopback server, so the host page and the studio iframe
+  are same-origin. `apps/hangul/src/renderer/studio-theme.ts` relies on that to inject kit token
+  values into the studio.
+- Visual regression lives in `tests/visual` and compares the shell's surfaces against committed
+  Linux baselines in `tests/visual/__screenshots__/linux/`. The `visual (ubuntu-latest)` job is not a
+  required check. When a change is meant to move pixels, the job fails and uploads a fresh render as
+  the `visual-baselines` artifact. Review it, then commit only the baselines whose specs failed,
+  from a signed commit by a person, not a bot. `VISUAL_LOCAL=1` renders locally into a
+  platform-named folder that must not be committed.
 
 ### Code style and safety
 

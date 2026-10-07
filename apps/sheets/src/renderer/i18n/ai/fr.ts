@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const fr = {
+  aiYou: 'Vous',
+  aiFailedTitle: 'L’assistant n’a pas pu terminer',
+  aiStepRunning: 'En cours',
+  aiStepDone: 'Terminé',
+  aiStepFailed: 'Échec',
+  aiStartersLabel: 'Suggestions de questions',
   aiComposerPlaceholderBuild: 'Décrivez le tableau, les données ou le graphique à créer…',
   aiEmptyBuildTitle: "Laissez l'IA construire ce classeur pour vous",
   aiEmptyBuildBody:
@@ -108,4 +114,4 @@ export const fr = {
   aiScopeRangeTip:
     "L'IA interprète « cette colonne / ces lignes / la partie sélectionnée » comme cette plage, figée pendant toute l'exécution dès l'envoi",
   aiScopeClearTitle: 'Retirer la portée de la plage et viser toute la feuille',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

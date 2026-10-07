@@ -1,7 +1,9 @@
 import ReactDOM from 'react-dom/client'
 import { htmlLang, type Lang } from '@genoffice/i18n'
-import { installScreenTips } from '@genoffice/ui'
+import { applyUiTheme, installScreenTips } from '@genoffice/ui'
 
+import '@genoffice/ui/theme.css'
+import '@genoffice/ui/preflight.css'
 import '@genoffice/ui/tokens.css'
 import '@genoffice/ui/screentip.css'
 import '@genoffice/ui/color-picker.css'
@@ -29,10 +31,7 @@ if (!root) throw new Error('Missing application root.')
 installScreenTips()
 installCanvasFontFallback()
 
-function applyTheme(theme: UiTheme): void {
-  if (theme === 'system') document.documentElement.removeAttribute('data-theme')
-  else document.documentElement.setAttribute('data-theme', theme)
-}
+const applyTheme = (theme: UiTheme): void => applyUiTheme(theme)
 
 // Canvas fillText never triggers @font-face downloads, so the bundled Carlito
 // faces (Calibri/Aptos aliases in styles.css) must be loaded before Univer's

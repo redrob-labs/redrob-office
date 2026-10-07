@@ -50,7 +50,7 @@ import {
   viewMenuTemplate,
   windowMenuTemplate,
 } from '@genoffice/electron-utils'
-import { createI18n, getUiLang, type Lang, normalizeLang, setUiLang } from '@genoffice/i18n'
+import { createI18n, getUiLang, type Lang, normalizeLang, setUiLang, toSelectableLang } from '@genoffice/i18n'
 import { ProjectStore } from '@genoffice/project-store'
 
 import {
@@ -3947,7 +3947,7 @@ export function startSheetsStandalone(): void {
   }
   void applyMainProcessProxy()
   app.whenReady().then(() => {
-    setUiLang(normalizeLang(process.env.GENOFFICE_LANG ?? app.getLocale()))
+    setUiLang(toSelectableLang(normalizeLang(process.env.GENOFFICE_LANG ?? app.getLocale())))
     app.setAccessibilitySupportEnabled(true)
     installApplicationMenu()
     startCaptureServer()

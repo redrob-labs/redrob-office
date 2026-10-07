@@ -23,6 +23,8 @@ import {
   ipcMain,
   nativeImage,
   nativeTheme,
+  net,
+  safeStorage,
   session,
   shell,
   webContents,
@@ -42,7 +44,17 @@ import menuHwpIcon1x from './assets/menu-hwp.png?asset'
 import menuHwpIcon2x from './assets/menu-hwp@2x.png?asset'
 import menuHomeIcon1x from './assets/menu-home.png?asset'
 import menuHomeIcon2x from './assets/menu-home@2x.png?asset'
-import { createI18n, isLang, normalizeLang, setUiLang, type Lang } from '@genoffice/i18n'
+import { createI18n, isSelectableLang, setUiLang, type Lang } from '@genoffice/i18n'
+import { resolveStartupLang } from './ui-language'
+import { shouldShowLaunch } from './launch'
+import {
+  OFFICE_PREFS_CHANGED,
+  OFFICE_PREFS_KEY,
+  mergeOfficePrefs,
+  normalizeOfficePrefs,
+  type OfficePrefs,
+} from '@genoffice/electron-utils/office-prefs'
+import { cleanAskPrompt, queueAskPrompt, registerAskPromptIpc, routeAsk } from './ask-prompt'
 import {
   DEFAULT_SAVE_DIR_KEY,
   DROP_OPEN_CHANNEL,
@@ -89,6 +101,23 @@ import {
   syncCloudProjects,
 } from './cloud-projects'
 import { handleDroppedFiles } from './dropped-files'
+import { FactsStore } from '@genoffice/facts'
+import { JsonFileFactsRepository } from '@genoffice/facts/json-repository'
+import { registerFactsIpc } from './facts-service'
+import { VersionStore } from '@genoffice/versions/store'
+import { isHistoryPath, registerVersionsIpc } from './versions-service'
+import { IDENTITY_CHANNELS, SessionStore } from '@genoffice/identity'
+import { DEFAULT_SYNC_URL, IdentityService, chooseProvider } from './identity-service'
+import { SyncClient } from '@genoffice/sync-client'
+import { SharedIndex } from '@genoffice/sync-client/node'
+import { ShareService } from './share-service'
+import { LiveHub } from '@genoffice/sync-client/live'
+import { hocuspocusRooms, liveUrlFor } from '@genoffice/sync-client/live-provider'
+import { LiveService } from './live-service'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { FACTS_CHANNELS } from '../shared/facts-api'
+import { randomUUID } from 'node:crypto'
+import { userInfo } from 'node:os'
 import { ProjectStore } from '@genoffice/project-store'
 import {
   ensureGenofficeLogin,
@@ -126,6 +155,7 @@ import {
   setDocsShellWindow,
   setDocsFileSavedHook,
   setDocsFileOpenedHook,
+  setDocSavedHook,
   setSessionPathResolver,
   defaultSaveDir,
   uniquePathIn,
@@ -207,7 +237,12 @@ import { HOME_CHANNELS } from '../shared/home-api'
 import type { TabKind } from '../shared/tabs-api'
 import { TABS_CHANNELS } from '../shared/tabs-api'
 import { showErrorDialog } from './error-dialog'
-import { normalizeRecentQuery, pageRecentPaths, statPathEntries } from './recent-files'
+import {
+  filterRecentEntries,
+  normalizeRecentQuery,
+  pageRecentPaths,
+  statPathEntries,
+} from './recent-files'
 import { TabManager } from './tab-manager'
 import { applyUpdateChannel, initAutoUpdater } from './updater'
 import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
@@ -362,16 +397,20 @@ const APP_SETTINGS_PATH = () => join(app.getPath('userData'), 'app-settings.json
 
 let uiLang: Lang | null = null
 
+/** has the launch screen played in this app session */
+let launchShown = false
+
+function currentOfficePrefs(): OfficePrefs {
+  return normalizeOfficePrefs(readAppSettings(APP_SETTINGS_PATH())[OFFICE_PREFS_KEY])
+}
+
 function currentLang(): Lang {
   if (uiLang) return uiLang
-  if (process.env.GENOFFICE_LANG) {
-    uiLang = normalizeLang(process.env.GENOFFICE_LANG)
-    setUiLang(uiLang)
-    return uiLang
-  }
-  const saved = readAppSettings(APP_SETTINGS_PATH()).language
-  if (isLang(saved)) uiLang = saved
-  uiLang ??= normalizeLang(app.getLocale())
+  const envLang = process.env.GENOFFICE_LANG
+  const saved = envLang ? undefined : readAppSettings(APP_SETTINGS_PATH()).language
+  const resolved = resolveStartupLang({ envLang, saved, systemLocale: app.getLocale() })
+  uiLang = resolved.lang
+  if (resolved.migrate) writeAppSetting(APP_SETTINGS_PATH(), 'language', uiLang)
   setUiLang(uiLang)
   return uiLang
 }
@@ -3053,9 +3092,9 @@ function registerHomeIpc(): void {
 
   // Starred files sort by mtime, which requires stat-ing them all first; they are hand-picked and few, so this is fine
   ipcMain.handle(HOME_CHANNELS.starred, (_event, query: unknown): RecentPage => {
-    const { offset, limit, ext } = normalizeRecentQuery(query)
+    const { offset, limit, ext, q } = normalizeRecentQuery(query)
     const all = statEntries(readStarredFiles()).sort((a, b) => b.mtimeMs - a.mtimeMs)
-    const filtered = ext ? all.filter((entry) => entry.ext === ext) : all
+    const filtered = filterRecentEntries(all, ext, q)
     return {
       entries: limit === 0 ? [] : filtered.slice(offset, offset + limit),
       total: filtered.length,
@@ -3092,6 +3131,24 @@ function registerHomeIpc(): void {
       properties: ['openFile', 'multiSelections'],
     })
     if (!result.canceled) for (const path of result.filePaths) openDocumentPath(path)
+  })
+
+  ipcMain.handle(HOME_CHANNELS.ask, (_event, raw: unknown) => {
+    const prompt = cleanAskPrompt(raw)
+    if (!prompt || !tabManager) return
+    try {
+      const target = routeAsk(prompt)
+      const id =
+        target === 'slides'
+          ? tabManager.openSlidesTab()
+          : tabManager.openDocsTab(undefined, { newBlank: true })
+      const wc = tabManager.webContentsOf(id)
+      if (wc) queueAskPrompt(wc.id, prompt)
+      recordStarPromptDocOpen()
+      analytics.track('file_new', { kind: target === 'slides' ? 'pptx' : 'docx' })
+    } catch (err) {
+      surfaceNewTabError(err)
+    }
   })
 
   ipcMain.handle(HOME_CHANNELS.newDoc, (_event, opts?: { projectId?: string }) => {
@@ -3223,7 +3280,8 @@ function registerHomeIpc(): void {
   ipcMain.handle(HOME_CHANNELS.getLanguage, (): Lang => currentLang())
 
   ipcMain.handle(HOME_CHANNELS.setLanguage, (_event, lang: unknown) => {
-    if (!isLang(lang) || lang === currentLang()) return
+    // a language listed as "Not yet" cannot be chosen, even by a crafted IPC call
+    if (!isSelectableLang(lang) || lang === currentLang()) return
     persistLang(lang)
     // the switcher lives on the home page, so the home menu is the active one
     buildHomeMenu()
@@ -3266,6 +3324,24 @@ function registerHomeIpc(): void {
     writeAppSetting(APP_SETTINGS_PATH(), 'theme', theme)
     nativeTheme.themeSource = theme
     for (const wc of webContents.getAllWebContents()) wc.send('app:theme-changed', theme)
+  })
+
+  ipcMain.handle(HOME_CHANNELS.getOfficePrefs, (): OfficePrefs => currentOfficePrefs())
+
+  // Toolbar, Plan or Run and the Cross-check levels: persisted with the other app
+  // settings, then pushed to every view so open editors follow at once.
+  ipcMain.handle(HOME_CHANNELS.setOfficePrefs, (_event, patch: unknown): OfficePrefs => {
+    const next = mergeOfficePrefs(currentOfficePrefs(), patch)
+    writeAppSetting(APP_SETTINGS_PATH(), OFFICE_PREFS_KEY, next)
+    for (const wc of webContents.getAllWebContents()) wc.send(OFFICE_PREFS_CHANGED, next)
+    return next
+  })
+
+  // The launch screen runs once per app session, never again on a renderer reload
+  ipcMain.handle(HOME_CHANNELS.takeLaunch, (): boolean => {
+    const show = shouldShowLaunch({ shown: launchShown, env: process.env.GENOFFICE_LAUNCH })
+    launchShown = true
+    return show
   })
 
   ipcMain.handle(HOME_CHANNELS.getAnalyticsEnabled, (): boolean => analyticsEnabled())
@@ -4412,9 +4488,130 @@ registerProjectIpc()
 registerDocsIpc()
 registerHomeIpc()
 registerRedrobConnectIpc()
+registerAskPromptIpc()
 registerEngineIpc()
 registerTabsIpc()
 registerDroppedFilesIpc()
+
+// Who is signed in: Redrob Console (or, in a development build, the local sync
+// stack's issuer). The token stays here, persisted only through the OS keychain.
+const identityService = new IdentityService({
+  provider: chooseProvider(process.env, app.isPackaged, {
+    fetch: (url, init) => net.fetch(url, init),
+    who: () => {
+      let name = 'This computer'
+      try {
+        name = userInfo().username || name
+      } catch {
+        // keep the generic name
+      }
+      return { sub: `dev-${name.toLowerCase()}`, name }
+    },
+  }),
+  store: new SessionStore(
+    {
+      available: () => safeStorage.isEncryptionAvailable(),
+      encrypt: (plain) => safeStorage.encryptString(plain),
+      decrypt: (data) => safeStorage.decryptString(Buffer.from(data)),
+    },
+    {
+      read: async () => {
+        try {
+          return await readFile(join(app.getPath('userData'), 'identity.bin'))
+        } catch {
+          return null
+        }
+      },
+      write: async (data) => writeFile(join(app.getPath('userData'), 'identity.bin'), data),
+      remove: async () => rm(join(app.getPath('userData'), 'identity.bin'), { force: true }),
+    },
+  ),
+  broadcast: (identity) => {
+    // signed out: nobody is in a shared file from this computer any more
+    if (!identity.signedIn) liveHub?.closeAll()
+    for (const wc of webContents.getAllWebContents()) wc.send(IDENTITY_CHANNELS.changed, identity)
+  },
+  openExternal: (url) => {
+    // only Console's own pages, which the provider has already checked
+    if (/^https:\/\//.test(url)) void shell.openExternal(url)
+  },
+})
+identityService.register(ipcMain)
+
+// Version history: every Docs save is kept on this computer; restores open as a copy.
+const versionStore = new VersionStore({ root: join(app.getPath('userData'), 'versions') })
+registerVersionsIpc(ipcMain, { store: versionStore, openPath: (p) => void openDocumentPath(p) })
+// Sharing: the shell holds the sync client (and the token through identityService).
+// A packaged build has no sync service until one is deployed; a development
+// build talks to the local Compose stack unless REDROB_SYNC_URL says otherwise.
+const syncUrl = process.env.REDROB_SYNC_URL || (app.isPackaged ? null : DEFAULT_SYNC_URL)
+const sharedIndex = new SharedIndex(join(app.getPath('userData'), 'shared-files.json'))
+const shareService = new ShareService({
+  client: syncUrl
+    ? new SyncClient({ baseUrl: syncUrl, token: () => identityService.token(), fetch: (url, init) => net.fetch(url, init) })
+    : null,
+  index: sharedIndex,
+  signedIn: async () => (await identityService.status()).signedIn,
+  readFile: async (p) => new Uint8Array(await readFile(p)),
+  saveDownload: async (name, bytes) => {
+    const dir = join(app.getPath('documents'), 'Redrob Office', 'Shared')
+    await mkdir(dir, { recursive: true })
+    const safe = name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim() || 'Shared file'
+    const ext = extname(safe)
+    const stem = safe.slice(0, safe.length - ext.length)
+    let target = join(dir, safe)
+    for (let n = 2; existsSync(target); n++) target = join(dir, `${stem} (${n})${ext}`)
+    await writeFile(target, bytes, { flag: 'wx' })
+    return target
+  },
+  openPath: (p) => void openDocumentPath(p),
+  // a new version is the base live views rebase on (liveHub is set below, before any save)
+  uploaded: (fileId, version) => liveHub?.setBase(fileId, version),
+  log: (m) => console.warn(m),
+})
+shareService.register(ipcMain)
+
+// Live documents: one room per shared file, on the sync service's live server.
+const liveUrl = syncUrl ? liveUrlFor(syncUrl, process.env.REDROB_SYNC_LIVE_URL) : null
+const liveHub = liveUrl ? new LiveHub(hocuspocusRooms({ url: liveUrl, token: () => identityService.token() })) : null
+new LiveService({
+  hub: liveHub,
+  index: sharedIndex,
+  signedIn: async () => (await identityService.status()).signedIn,
+  pull: (p) => shareService.pull(p),
+  log: (m) => console.warn(m),
+}).register(ipcMain)
+
+setDocSavedHook((path, bytes, auto) => {
+  void shareService.saved(path, bytes)
+  if (!isHistoryPath(path)) return
+  let by = 'This computer'
+  try {
+    by = userInfo().username || by
+  } catch {
+    // keep the generic name
+  }
+  void versionStore.record(path, bytes, { by, auto }).catch(() => undefined)
+})
+
+// Linked figures: one index for the app in userData; every change goes to every view.
+registerFactsIpc(ipcMain, {
+  store: new FactsStore(
+    new JsonFileFactsRepository(join(app.getPath('userData'), 'linked-figures.json')),
+  ),
+  broadcast: (state) => {
+    for (const wc of webContents.getAllWebContents()) wc.send(FACTS_CHANNELS.changed, state)
+  },
+  author: () => {
+    try {
+      return userInfo().username || 'This computer'
+    } catch {
+      return 'This computer'
+    }
+  },
+  now: () => new Date(),
+  newId: () => randomUUID(),
+})
 
 // sheets' project:resolveChat goes through the handler registered by docs-main; the sessionId reverse lookup hooks in here
 setSessionPathResolver(resolveSheetsSessionPath)

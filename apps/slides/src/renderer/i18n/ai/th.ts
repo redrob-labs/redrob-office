@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
+  aiYou: 'คุณ',
+  aiFailedTitle: 'ผู้ช่วยทำงานไม่สำเร็จ',
+  aiStepRunning: 'กำลังทำงาน',
+  aiStepDone: 'เสร็จแล้ว',
+  aiStepFailed: 'ล้มเหลว',
+  aiStartersLabel: 'คำถามที่แนะนำ',
   aiInputPlaceholderGen: 'อธิบายงานนำเสนอที่จะสร้าง หรือถามได้เลย',
   aiEmptyGenTitle: 'ให้ AI สร้างงานนำเสนอให้คุณ',
   aiEmptyGenBody1: 'อธิบายหัวข้อ โอกาส และจำนวนหน้าโดยประมาณ',
@@ -111,8 +117,7 @@ export const th = {
   aiErrOverloaded: 'บริการ AI มีผู้ใช้งานจำนวนมากในขณะนี้ โปรดลองอีกครั้งในอีกสักครู่',
   aiErrNetwork:
     'เครือข่ายมีปัญหา ไม่สามารถเชื่อมต่อบริการ AI ได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่',
-  aiCreditsExhausted:
-    'เครดิต Redrob ของคุณหมดแล้ว โปรดเติมเครดิตที่ console.redrob.ai แล้วลองใหม่',
+  aiCreditsExhausted: 'เครดิต Redrob ของคุณหมดแล้ว โปรดเติมเครดิตที่ console.redrob.ai แล้วลองใหม่',
   aiErrRequestFailed: 'ส่งคำขอไม่สำเร็จ: {msg}',
   aiErrGenerateFailed: 'สร้างไม่สำเร็จ',
   aiErrRegenFailed: 'ทำหน้าใหม่ไม่สำเร็จ',
@@ -245,4 +250,4 @@ export const th = {
   aiSumSaveTemplate: 'บันทึกเทมเพลตสไตล์ "{name}"',
   aiSumTemplatesEmpty: 'รายการเทมเพลตสไตล์ (ว่าง)',
   aiSumListTemplates: 'แสดงเทมเพลตสไตล์ {count} รายการ',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

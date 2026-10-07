@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const nl = {
+  aiYou: 'Jij',
+  aiFailedTitle: 'De assistent kon het niet afmaken',
+  aiStepRunning: 'Bezig',
+  aiStepDone: 'Klaar',
+  aiStepFailed: 'Mislukt',
+  aiStartersLabel: 'Voorgestelde vragen',
   aiEmptyDraftTitle: 'Laat AI dit document voor je opstellen',
   aiEmptyDraftBody1: 'Beschrijf het onderwerp en de kernpunten, of plak referentiemateriaal;',
   aiEmptyDraftBody2: 'AI schrijft de eerste versie direct op de pagina.',
@@ -155,4 +161,4 @@ export const nl = {
   aiCmdImages: '{count} afbeelding(en) bijgewerkt',
   aiCmdToc: 'Inhoudsopgave ingevoegd ({count} vermeldingen)',
   aiCmdSkipped: ' ({count} beveiligde blok(ken) overgeslagen)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

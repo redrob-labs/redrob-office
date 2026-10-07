@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const he = {
+  aiYou: 'את/ה',
+  aiFailedTitle: 'העוזר לא הצליח לסיים',
+  aiStepRunning: 'פועל',
+  aiStepDone: 'הושלם',
+  aiStepFailed: 'נכשל',
+  aiStartersLabel: 'הצעות לשאלות',
   aiComposerPlaceholderBuild: 'תארו את הטבלה, הנתונים או התרשים ליצירה…',
   aiEmptyBuildTitle: 'תנו ל-AI לבנות את חוברת העבודה הזו עבורכם',
   aiEmptyBuildBody: 'תארו את הטבלה, הנתונים או התרשים הדרושים - ה-AI יוצר אותם במקום.',
@@ -102,4 +108,4 @@ export const he = {
   aiScopeRangeTip:
     'ה-AI מפרש "העמודה הזו / השורות האלה / החלק הנבחר" כטווח הזה, והוא מקובע לכל ההרצה עם השליחה',
   aiScopeClearTitle: 'ביטול טווח הבחירה ומיקוד בגיליון כולו',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

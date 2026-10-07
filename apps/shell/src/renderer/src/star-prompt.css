@@ -1,24 +1,27 @@
-/* "Star us on GitHub" invitation card: non-modal, bottom-right over home.
- * Chrome-colored via semantic tokens (light/dark follow the UI theme). */
+/* "Star us on GitHub" card: non-modal, bottom-right, over the home screen.
+ * Kit Button / IconButton inside; layout on the design system's tokens. */
 
 .star-prompt {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 60;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 900;
   width: 320px;
-  padding: 16px 16px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-modal-strong);
-  animation: star-prompt-in 0.25s ease-out;
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-base);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink-primary);
+  font-family: var(--font-chrome, var(--font-sans));
+  animation: star-prompt-in var(--duration-base) var(--easing-entrance);
+  box-sizing: border-box;
 }
 
 @keyframes star-prompt-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -28,91 +31,44 @@
 
 .star-prompt-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.star-prompt-close:hover {
-  background: var(--hover);
-  color: var(--text);
+  top: var(--space-2);
+  right: var(--space-2);
 }
 
 .star-prompt-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--space-3);
+  padding-right: var(--space-8);
 }
 
 .star-prompt-icon {
-  display: inline-flex;
-  color: var(--accent);
+  display: flex;
+  flex-shrink: 0;
+  color: var(--accent-yellow-4);
+}
+
+.star-prompt-icon svg,
+.star-prompt-go svg {
+  fill: currentColor;
 }
 
 .star-prompt-title {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
+  font: var(--text-title-4);
+  font-size: 15px;
+  line-height: 22px;
 }
 
 .star-prompt-body {
-  margin: 0 0 12px;
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--text-secondary);
+  margin: var(--space-2) 0 0;
+  font: var(--text-body-sm);
+  color: var(--ink-secondary);
 }
 
 .star-prompt-actions {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.star-prompt-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: none;
-  border-radius: 8px;
-  background: var(--accent);
-  color: var(--color-btn-primary-text);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.star-prompt-go:hover {
-  background: var(--accent-hover);
-}
-
-.star-prompt-go svg {
-  width: 14px;
-  height: 14px;
-}
-
-.star-prompt-done {
-  padding: 7px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: none;
-  color: var(--text-secondary);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.star-prompt-done:hover {
-  background: var(--hover);
-  color: var(--text);
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
 }

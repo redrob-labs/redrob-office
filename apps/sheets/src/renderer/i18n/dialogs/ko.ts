@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
   dlgAllowEditRangesTitle: '범위 편집 허용',
@@ -395,4 +395,4 @@ export const ko = {
   dlgFnDescNpv: '할인율을 적용한 현금 흐름의 순현재가치를 반환합니다.',
   dlgFnDescIrr: '일련의 현금 흐름에 대한 내부 수익률을 반환합니다.',
   dlgFnCatFinancial: '재무',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

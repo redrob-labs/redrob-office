@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const fr = {
   dlgAllowEditRangesTitle: 'Permettre la modification des plages',
@@ -405,4 +405,4 @@ export const fr = {
   dlgFnDescNpv: 'Renvoie la valeur actuelle nette de flux de trésorerie à un taux d’escompte.',
   dlgFnDescIrr: 'Renvoie le taux de rentabilité interne d’une série de flux.',
   dlgFnCatFinancial: 'Finances',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>
