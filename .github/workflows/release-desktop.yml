@@ -91,6 +91,10 @@ jobs:
       # Generic update feed base URL baked into the shell's publish config so
       # electron-builder emits latest.yml / .blockmap for auto-update.
       GENOFFICE_UPDATE_REPO: ${{ github.repository }}
+      # The sync service the installed app shares through (https / wss, checked at
+      # packaging). Repository variables; unset means Share is not available yet.
+      REDROB_SYNC_URL: ${{ vars.REDROB_SYNC_URL }}
+      REDROB_SYNC_LIVE_URL: ${{ vars.REDROB_SYNC_LIVE_URL }}
 
     steps:
       - uses: actions/checkout@v4
@@ -244,6 +248,9 @@ jobs:
       APPLE_NOTARY_API_KEY_P8_BASE64: ${{ secrets.APPLE_NOTARY_API_KEY_P8_BASE64 }}
       APPLE_NOTARY_API_KEY_ID: ${{ secrets.APPLE_NOTARY_API_KEY_ID }}
       APPLE_NOTARY_API_ISSUER_ID: ${{ secrets.APPLE_NOTARY_API_ISSUER_ID }}
+      # The sync service the installed app shares through (see the windows job)
+      REDROB_SYNC_URL: ${{ vars.REDROB_SYNC_URL }}
+      REDROB_SYNC_LIVE_URL: ${{ vars.REDROB_SYNC_LIVE_URL }}
 
     steps:
       - uses: actions/checkout@v4

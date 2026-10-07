@@ -84,6 +84,40 @@ const fontCdnUrl = normalizeHttpsBaseUrl(
   process.env.GENOFFICE_FONT_CDN_URL,
 )
 
+/**
+ * REDROB_SYNC_URL / REDROB_SYNC_LIVE_URL — the sync service a packaged build
+ * shares through (infra/sync outputs sync_url and sync_live_url). Baked into
+ * package.json as `redrobSync` and read by src/main/sync-endpoints.ts, which
+ * checks them again. The person's Console token goes wherever these point, so
+ * packaging refuses anything but an https API and a wss live server that are
+ * not on this computer or a private network. Unset: no sync service, and
+ * Share says it is not available yet, which is what a fork or a local build gets.
+ */
+function syncEndpoint(name, value, scheme) {
+  if (!value || !value.trim()) return null
+  let url
+  try {
+    url = new URL(value.trim())
+  } catch {
+    throw new Error(`${name} must be a ${scheme}// URL`)
+  }
+  const host = url.hostname.replace(/^\[|\]$/g, '')
+  const local =
+    host === 'localhost' ||
+    /^127\./.test(host) ||
+    host === '::1' ||
+    /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.)/.test(host) ||
+    /^f[cd][0-9a-f]{2}:|^fe80:/i.test(host)
+  if (url.protocol !== scheme || url.username || url.password || url.search || url.hash || local) {
+    throw new Error(`${name} must be a ${scheme}// URL on a public host, without credentials, query, or fragment`)
+  }
+  return `${url.origin}${url.pathname.replace(/\/+$/, '')}`
+}
+
+const syncUrl = syncEndpoint('REDROB_SYNC_URL', process.env.REDROB_SYNC_URL, 'https:')
+const syncLiveUrl = syncEndpoint('REDROB_SYNC_LIVE_URL', process.env.REDROB_SYNC_LIVE_URL, 'wss:')
+if (syncLiveUrl && !syncUrl) throw new Error('REDROB_SYNC_LIVE_URL needs REDROB_SYNC_URL')
+
 // GENOFFICE_MAC_X64=1 — opt into packaging the Intel (x64) dmg/zip alongside
 // arm64. Off by default: Intel packages must only ever ship signed with the
 // company certificate (planned dual-track pipeline), so the current release
@@ -722,6 +756,7 @@ if (ga4MeasurementId && ga4ApiSecret) {
   }
 }
 if (fontCdnUrl) extraMetadata.genofficeFontCdn = { baseUrl: fontCdnUrl }
+if (syncUrl) extraMetadata.redrobSync = syncLiveUrl ? { url: syncUrl, liveUrl: syncLiveUrl } : { url: syncUrl }
 if (Object.keys(extraMetadata).length) config.extraMetadata = extraMetadata
 
 module.exports = config

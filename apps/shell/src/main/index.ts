@@ -112,12 +112,13 @@ import { registerFactsIpc } from './facts-service'
 import { VersionStore } from '@genoffice/versions/store'
 import { isHistoryPath, registerVersionsIpc } from './versions-service'
 import { IDENTITY_CHANNELS, SessionStore } from '@genoffice/identity'
-import { DEFAULT_SYNC_URL, IdentityService, chooseProvider } from './identity-service'
+import { IdentityService, chooseProvider } from './identity-service'
+import { resolveSyncEndpoints } from './sync-endpoints'
 import { INVITE_LINK_SCHEME, SHARE_EVENTS, SyncClient } from '@genoffice/sync-client'
 import { SharedIndex } from '@genoffice/sync-client/node'
 import { ShareService } from './share-service'
 import { LiveHub } from '@genoffice/sync-client/live'
-import { hocuspocusRooms, liveUrlFor } from '@genoffice/sync-client/live-provider'
+import { hocuspocusRooms } from '@genoffice/sync-client/live-provider'
 import { LiveService } from './live-service'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { FACTS_CHANNELS } from '../shared/facts-api'
@@ -442,6 +443,15 @@ let cachedAnalyticsEnabled: boolean | null = null
 function analyticsEnabled(): boolean {
   cachedAnalyticsEnabled ??= analyticsEnabledFrom(readAppSettings(APP_SETTINGS_PATH()))
   return cachedAnalyticsEnabled
+}
+
+/** the app's own package.json (a packaged build's carries what its release baked in) */
+function readOwnPackageJson(): unknown {
+  try {
+    return JSON.parse(readFileSync(join(app.getAppPath(), 'package.json'), 'utf8'))
+  } catch {
+    return null
+  }
 }
 
 function resolveAnalyticsKeys(): AnalyticsKeys | null {
@@ -4194,9 +4204,11 @@ identityService.register(ipcMain)
 const versionStore = new VersionStore({ root: join(app.getPath('userData'), 'versions') })
 registerVersionsIpc(ipcMain, { store: versionStore, openPath: (p) => void openDocumentPath(p) })
 // Sharing: the shell holds the sync client (and the token through identityService).
-// A packaged build has no sync service until one is deployed; a development
-// build talks to the local Compose stack unless REDROB_SYNC_URL says otherwise.
-const syncUrl = process.env.REDROB_SYNC_URL || (app.isPackaged ? null : DEFAULT_SYNC_URL)
+// A packaged build uses the https/wss addresses its release baked in (none:
+// Share is not available yet); a development build talks to the local Compose
+// stack unless REDROB_SYNC_URL says otherwise. See sync-endpoints.ts.
+const syncEndpoints = resolveSyncEndpoints({ env: process.env, packaged: app.isPackaged, pkg: readOwnPackageJson() })
+const syncUrl = syncEndpoints?.url ?? null
 const sharedIndex = new SharedIndex(join(app.getPath('userData'), 'shared-files.json'))
 const shareService = new ShareService({
   client: syncUrl
@@ -4236,7 +4248,7 @@ const shareService = new ShareService({
 shareService.register(ipcMain)
 
 // Live documents: one room per shared file, on the sync service's live server.
-const liveUrl = syncUrl ? liveUrlFor(syncUrl, process.env.REDROB_SYNC_LIVE_URL) : null
+const liveUrl = syncEndpoints?.liveUrl ?? null
 const liveHub = liveUrl ? new LiveHub(hocuspocusRooms({ url: liveUrl, token: () => identityService.token() })) : null
 new LiveService({
   hub: liveHub,

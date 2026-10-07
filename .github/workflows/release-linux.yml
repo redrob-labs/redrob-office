@@ -65,6 +65,10 @@ jobs:
       # Bakes the updater feed target into the app. A fork that runs this workflow
       # updates from its own releases, not from ours.
       GENOFFICE_UPDATE_REPO: ${{ github.repository }}
+      # The sync service the installed app shares through (https / wss, checked at
+      # packaging). Repository variables; unset means Share is not available yet.
+      REDROB_SYNC_URL: ${{ vars.REDROB_SYNC_URL }}
+      REDROB_SYNC_LIVE_URL: ${{ vars.REDROB_SYNC_LIVE_URL }}
 
     steps:
       - uses: actions/checkout@v4
