@@ -49,7 +49,7 @@ token's `sub` is the account and `name` is the display name.
 
 ## API
 
-Every route except `/health` needs `Authorization: Bearer <token>`. A file
+Every route except `/health` and `/ready` needs `Authorization: Bearer <token>`. A file
 route answers 404 to anyone who is not a member, so a file's existence is not
 disclosed.
 
@@ -151,4 +151,30 @@ the file id and the token is the bearer token.
 | `SYNC_HOST` | 127.0.0.1 |
 | `SYNC_DEV_ISSUER=1`, or `SYNC_JWKS_URL` with `SYNC_ISSUER` | one is required |
 | `SYNC_AUDIENCE` | `redrob-office-sync` |
-| `SYNC_MAX_FILE_BYTES` | 100 MiB |
+| `SYNC_MAX_FILE_BYTES` | 100 MiB (uploads only) |
+| `SYNC_BODY_LIMIT_BYTES` | 256 KiB (every JSON body) |
+| `SYNC_RATE_PER_ADDRESS_PER_MINUTE` | 600, before sign-in |
+| `SYNC_RATE_PER_ACCOUNT_PER_MINUTE` | 300 |
+| `SYNC_RATE_LINKS_PER_HOUR` | 30 invite-link look-ups and redemptions per account |
+| `SYNC_TRUST_PROXY=1` | off; behind a load balancer, take the address from `X-Forwarded-For` |
+| `SYNC_EVENT_RETENTION_DAYS` | 180; older activity is pruned at start and hourly |
+| `SYNC_LOG_LEVEL` | `info` (JSON lines; no tokens, invite-link tokens or query strings) |
+| `SYNC_SHUTDOWN_GRACE_MS` | 20000 |
+
+With `NODE_ENV=production` the service refuses to start unless
+`SYNC_JWKS_URL` and `SYNC_ISSUER` are https URLs and `SYNC_AUDIENCE` is set
+explicitly. The development issuer is refused there too.
+
+## Operations
+
+- `GET /health` is liveness: the process answers.
+- `GET /ready` is readiness: the database and the store answer within 3
+  seconds, and the service is not stopping. A failure names which (`db`,
+  `store`) without the error, which goes to the log.
+- Rate limits count per instance, in memory. Behind a load balancer, the
+  effective ceiling is the limit times the number of instances. A refused
+  request gets 429 with `Retry-After`.
+- On SIGTERM or SIGINT, readiness fails at once. The service then waits
+  briefly so the balancer notices, closes live documents (which stores them),
+  finishes requests in flight and closes the database. A stop that outlasts
+  `SYNC_SHUTDOWN_GRACE_MS` exits anyway.

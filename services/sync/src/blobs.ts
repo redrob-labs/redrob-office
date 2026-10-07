@@ -7,6 +7,8 @@ export interface BlobStore {
   get(key: string): Promise<Uint8Array | null>
   /** removes the objects; a key that is already gone is not an error */
   delete(keys: readonly string[]): Promise<void>
+  /** throws when the store or its bucket cannot be reached (readiness) */
+  ping(): Promise<void>
 }
 
 export class MemoryBlobs implements BlobStore {
@@ -20,6 +22,7 @@ export class MemoryBlobs implements BlobStore {
   async delete(keys: readonly string[]) {
     for (const k of keys) this.m.delete(k)
   }
+  async ping() {}
   /** for tests */
   keys(): string[] {
     return [...this.m.keys()]
@@ -54,6 +57,9 @@ export class S3Blobs implements BlobStore {
         await new Promise((r) => setTimeout(r, 1000))
       }
     }
+  }
+  async ping() {
+    await this.client.send(new HeadBucketCommand({ Bucket: this.cfg.bucket }))
   }
   async put(key: string, bytes: Uint8Array) {
     await this.client.send(new PutObjectCommand({ Bucket: this.cfg.bucket, Key: key, Body: bytes }))

@@ -4,7 +4,8 @@
  * non-member, so a file's existence is not disclosed.
  */
 import { createHash, randomBytes } from 'node:crypto'
-import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest, type FastifyServerOptions } from 'fastify'
+import { RateLimiter, type RateLimits } from './limits.ts'
 import { can, canGrant, isRole, type Action, type Role } from './access.ts'
 import { AuthError, bearer, normalEmail, type DevIssuer, type Identity, type Verifier } from './auth.ts'
 import type { BlobStore } from './blobs.ts'
@@ -26,7 +27,39 @@ export interface AppDeps {
   log?: ((message: string) => void) | undefined
   /** the clock links expire by (tests move it) */
   now?: (() => Date) | undefined
+  /** largest JSON body (uploads use maxFileBytes); 256 KiB when not given */
+  bodyLimitBytes?: number | undefined
+  /** request limits; none when not given (tests) */
+  limits?: RateLimits | undefined
+  /** Fastify's logger: false (tests) or pino options from main */
+  logger?: FastifyServerOptions['logger'] | undefined
+  /** behind a load balancer: take the caller's address from X-Forwarded-For */
+  trustProxy?: boolean | undefined
+  /** true once the service is stopping: readiness fails so the balancer stops sending work */
+  draining?: (() => boolean) | undefined
 }
+
+/** how long readiness waits for the database or the store */
+export const READY_TIMEOUT_MS = 3000
+
+/** a request's path as logs keep it: invite-link tokens are never written down */
+export function redactUrl(url: string | undefined): string {
+  return (url ?? '').replace(/^\/links\/[^/?#]+/, '/links/[token]').replace(/\?.*$/, (q) => (q.length > 1 ? '?[query]' : q))
+}
+
+/** Fastify logger options for production: JSON lines, no tokens, no query strings. */
+export function loggerOptions(level: string): FastifyServerOptions['logger'] {
+  return {
+    level,
+    redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], remove: true },
+    serializers: {
+      req: (req: FastifyRequest) => ({ id: req.id, method: req.method, url: redactUrl(req.url) }),
+    },
+  }
+}
+
+const withTimeout = <T>(p: Promise<T>, ms: number) =>
+  Promise.race([p, new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`no answer in ${ms} ms`)), ms).unref?.())])
 
 /** an invite link lives at most this long, and a week when the owner does not say */
 export const LINK_MAX_DAYS = 30
@@ -45,11 +78,56 @@ declare module 'fastify' {
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
-  const app = Fastify({ logger: false, bodyLimit: deps.maxFileBytes })
+  const app = Fastify({
+    logger: deps.logger ?? false,
+    bodyLimit: deps.bodyLimitBytes ?? 256 * 1024,
+    trustProxy: deps.trustProxy ?? false,
+  })
+  const log = deps.log ?? ((m: string) => app.log.warn(m))
 
   app.addContentTypeParser('application/octet-stream', { parseAs: 'buffer' }, (_req, body, done) => done(null, body))
 
+  // liveness: the process answers
   app.get('/health', async () => ({ ok: true }))
+
+  // readiness: the database and the store answer, and the service is not stopping
+  app.get('/ready', async (_req, reply) => {
+    if (deps.draining?.()) return reply.code(503).send({ ok: false, draining: true })
+    const check = async (name: string, fn: () => Promise<void>) => {
+      try {
+        await withTimeout(fn(), READY_TIMEOUT_MS)
+        return true
+      } catch (err) {
+        log(`sync: not ready, ${name}: ${(err as Error).message}`)
+        return false
+      }
+    }
+    const [db, store] = await Promise.all([check('database', () => deps.repo.ping()), check('store', () => deps.blobs.ping())])
+    return reply.code(db && store ? 200 : 503).send({ ok: db && store, db, store })
+  })
+
+  // Limits: per address before sign-in, per account after, and tighter on
+  // invite links, whose tokens are what someone would try to guess.
+  const clock = () => (deps.now?.() ?? new Date()).getTime()
+  const byAddress = deps.limits && new RateLimiter(deps.limits.perAddressPerMinute, 60_000, clock)
+  const byAccount = deps.limits && new RateLimiter(deps.limits.perAccountPerMinute, 60_000, clock)
+  const byLinks = deps.limits && new RateLimiter(deps.limits.linksPerHour, 3_600_000, clock)
+  const refuse = (reply: FastifyReply, retryAfter: number) =>
+    reply.code(429).header('retry-after', String(retryAfter)).send({ error: 'Too many requests. Try again shortly.' })
+  if (byAddress) {
+    app.addHook('onRequest', async (req, reply) => {
+      if (req.url === '/health' || req.url === '/ready') return
+      const t = byAddress.take(`ip:${req.ip}`)
+      if (!t.ok) return refuse(reply, t.retryAfter)
+    })
+  }
+  const linkLimit = (req: FastifyRequest, reply: FastifyReply): boolean => {
+    if (!byLinks) return true
+    const t = byLinks.take(req.identity!.sub)
+    if (t.ok) return true
+    refuse(reply, t.retryAfter)
+    return false
+  }
 
   if (deps.devIssuer) {
     const dev = deps.devIssuer
@@ -91,7 +169,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       const subs = audience ?? (await deps.repo.members(file.id)).map((m) => m.sub)
       await deps.repo.addEvent({ fileId: file.id, fileName: file.name, actorSub: who.sub, actorName: who.name, kind, detail, audience: subs })
     } catch (err) {
-      deps.log?.(`sync: activity was not recorded: ${(err as Error).message}`)
+      log(`sync: activity was not recorded: ${(err as Error).message}`)
     }
   }
 
@@ -135,6 +213,12 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   app.register(async (api) => {
     api.addHook('preHandler', authed)
+    if (byAccount) {
+      api.addHook('preHandler', async (req, reply) => {
+        const t = byAccount.take(req.identity!.sub)
+        if (!t.ok) return refuse(reply, t.retryAfter)
+      })
+    }
 
     api.get('/me', async (req) => {
       await claim(req)
@@ -191,7 +275,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
         await deps.blobs.delete(keys)
       } catch (err) {
         // the file is already gone for everyone; stray bytes are only storage
-        deps.log?.(`sync: stored bytes of a deleted file were left behind: ${(err as Error).message}`)
+        log(`sync: stored bytes of a deleted file were left behind: ${(err as Error).message}`)
       }
       return reply.code(204).send()
     })
@@ -347,6 +431,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
     // What a link would do, without using it, so the desktop can ask first.
     api.get('/links/:token', async (req, reply) => {
+      if (!linkLimit(req, reply)) return
       const token = (req.params as { token?: string }).token ?? ''
       const gone = () => reply.code(404).send({ error: 'This link does not work any more. Ask the owner for a new one.' })
       if (!LINK_TOKEN.test(token)) return gone()
@@ -359,6 +444,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     })
 
     api.post('/links/:token/redeem', async (req, reply) => {
+      if (!linkLimit(req, reply)) return
       const token = (req.params as { token?: string }).token ?? ''
       const gone = () => reply.code(404).send({ error: 'This link does not work any more. Ask the owner for a new one.' })
       if (!LINK_TOKEN.test(token)) return gone()
@@ -413,7 +499,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       return comment && { comment }
     })
 
-    api.put('/files/:id/content', async (req, reply) => {
+    // the one route that takes file bytes: its own, larger body limit
+    api.put('/files/:id/content', { bodyLimit: deps.maxFileBytes }, async (req, reply) => {
       const got = await fileFor(req, reply, 'write')
       if (!got) return
       const body = req.body

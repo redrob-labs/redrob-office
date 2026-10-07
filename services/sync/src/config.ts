@@ -1,4 +1,5 @@
 /** Service configuration from the environment; a missing required value fails at start, not later. */
+import { DEFAULT_LIMITS, type RateLimits } from './limits.ts'
 
 export interface SyncConfig {
   httpPort: number
@@ -19,6 +20,17 @@ export interface SyncConfig {
     | { kind: 'dev'; issuer: string; audience: string }
   /** largest file accepted, bytes */
   maxFileBytes: number
+  /** largest JSON body accepted (everything but file uploads), bytes */
+  bodyLimitBytes: number
+  limits: RateLimits
+  /** activity older than this is deleted */
+  eventRetentionDays: number
+  logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent'
+  /** how long a stop waits for requests and live documents to finish */
+  shutdownGraceMs: number
+  /** behind a load balancer (SYNC_TRUST_PROXY=1): the caller's address comes from X-Forwarded-For */
+  trustProxy: boolean
+  production: boolean
 }
 
 function need(env: NodeJS.ProcessEnv, key: string): string {
@@ -35,13 +47,44 @@ function port(env: NodeJS.ProcessEnv, key: string, fallback: number): number {
   return n
 }
 
+function count(env: NodeJS.ProcessEnv, key: string, fallback: number, max = Number.MAX_SAFE_INTEGER): number {
+  const raw = env[key]
+  if (raw === undefined || raw === '') return fallback
+  const n = Number(raw)
+  if (!Number.isInteger(n) || n < 1 || n > max) throw new Error(`${key} must be a whole number from 1 to ${max}.`)
+  return n
+}
+
+const LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'] as const
+
+/** an https URL, as production needs for anything a token's trust rests on */
+function httpsUrl(key: string, value: string): string {
+  let u: URL
+  try {
+    u = new URL(value)
+  } catch {
+    throw new Error(`${key} must be a URL.`)
+  }
+  if (u.protocol !== 'https:') throw new Error(`${key} must be https in production.`)
+  return value
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): SyncConfig {
   const dev = env.SYNC_DEV_ISSUER === '1'
-  if (dev && env.NODE_ENV === 'production') {
+  const production = env.NODE_ENV === 'production'
+  if (dev && production) {
     // the development issuer mints tokens for anyone who asks: never in production
     throw new Error('SYNC_DEV_ISSUER=1 is refused when NODE_ENV=production.')
   }
+  if (production) {
+    // where trust in a token comes from is never a default in production
+    httpsUrl('SYNC_JWKS_URL', need(env, 'SYNC_JWKS_URL'))
+    httpsUrl('SYNC_ISSUER', need(env, 'SYNC_ISSUER'))
+    need(env, 'SYNC_AUDIENCE')
+  }
   const audience = env.SYNC_AUDIENCE ?? 'redrob-office-sync'
+  const logLevel = (env.SYNC_LOG_LEVEL ?? 'info') as SyncConfig['logLevel']
+  if (!LOG_LEVELS.includes(logLevel)) throw new Error(`SYNC_LOG_LEVEL must be one of ${LOG_LEVELS.join(', ')}.`)
   return {
     httpPort: port(env, 'SYNC_HTTP_PORT', 8787),
     collabPort: port(env, 'SYNC_COLLAB_PORT', 8788),
@@ -58,6 +101,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): SyncConfig {
     auth: dev
       ? { kind: 'dev', issuer: env.SYNC_ISSUER ?? 'http://localhost:8787/dev', audience }
       : { kind: 'jwks', jwksUrl: need(env, 'SYNC_JWKS_URL'), issuer: need(env, 'SYNC_ISSUER'), audience },
-    maxFileBytes: Number(env.SYNC_MAX_FILE_BYTES ?? 100 * 1024 * 1024),
+    maxFileBytes: count(env, 'SYNC_MAX_FILE_BYTES', 100 * 1024 * 1024, 2 * 1024 * 1024 * 1024),
+    bodyLimitBytes: count(env, 'SYNC_BODY_LIMIT_BYTES', 256 * 1024, 16 * 1024 * 1024),
+    limits: {
+      perAddressPerMinute: count(env, 'SYNC_RATE_PER_ADDRESS_PER_MINUTE', DEFAULT_LIMITS.perAddressPerMinute),
+      perAccountPerMinute: count(env, 'SYNC_RATE_PER_ACCOUNT_PER_MINUTE', DEFAULT_LIMITS.perAccountPerMinute),
+      linksPerHour: count(env, 'SYNC_RATE_LINKS_PER_HOUR', DEFAULT_LIMITS.linksPerHour),
+    },
+    eventRetentionDays: count(env, 'SYNC_EVENT_RETENTION_DAYS', 180, 3650),
+    logLevel,
+    shutdownGraceMs: count(env, 'SYNC_SHUTDOWN_GRACE_MS', 20_000, 600_000),
+    trustProxy: env.SYNC_TRUST_PROXY === '1',
+    production,
   }
 }

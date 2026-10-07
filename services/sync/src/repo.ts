@@ -89,6 +89,10 @@ export interface InviteLink {
 }
 
 export interface Repo {
+  /** throws when the database cannot be reached (readiness) */
+  ping(): Promise<void>
+  /** deletes activity older than `before`; returns how many events went */
+  pruneEvents(before: Date): Promise<number>
   createLink(l: { fileId: string; tokenHash: string; role: Role; createdBy: string; expiresAt: Date }): Promise<InviteLink>
   /** the file's links that are not revoked, newest first (expired ones included, marked by expiresAt) */
   links(fileId: string): Promise<InviteLink[]>
@@ -149,6 +153,14 @@ export class MemoryRepo implements Repo {
   private inv = new Map<string, Invite>()
   private events: Array<ActivityEvent & { audience: Set<string> }> = []
   private linkRows: Array<InviteLink & { tokenHash: string }> = []
+
+  async ping() {}
+  async pruneEvents(before: Date) {
+    const keep = this.events.filter((e) => Date.parse(e.createdAt) >= before.getTime())
+    const gone = this.events.length - keep.length
+    this.events = keep
+    return gone
+  }
 
   async createLink(l: { fileId: string; tokenHash: string; role: Role; createdBy: string; expiresAt: Date }) {
     const row = {

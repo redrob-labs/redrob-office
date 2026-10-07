@@ -81,6 +81,8 @@ export const MIGRATIONS: readonly string[] = [
      uses integer NOT NULL DEFAULT 0
    );
    CREATE INDEX invite_links_file ON invite_links (file_id)`,
+  // 9: activity is kept for a while, then pruned by age
+  `CREATE INDEX events_created_at ON events (created_at)`,
 ]
 
 /** an arbitrary constant: the advisory lock that serialises migrations across service instances */
@@ -180,6 +182,16 @@ export class PgRepo implements Repo {
 
   close() {
     return this.pool.end()
+  }
+
+  async ping() {
+    await this.pool.query('SELECT 1')
+  }
+
+  async pruneEvents(before: Date) {
+    // audiences go with their events (ON DELETE CASCADE)
+    const { rowCount } = await this.pool.query('DELETE FROM events WHERE created_at < $1', [before])
+    return rowCount ?? 0
   }
 
   async createFile(name: string, owner: { sub: string; name: string }) {
