@@ -7272,3 +7272,41 @@ body.show-curtain::after {
   align-items: center;
   gap: var(--space-2);
 }
+
+/* Slide Show → Set Up Show */
+.setup-show {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.setup-show__set {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.setup-show__set legend {
+  margin-bottom: var(--space-1);
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.setup-show__opt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ink-primary);
+}
+
+.setup-show__num {
+  width: 64px;
+}
+
+.setup-show__note {
+  margin: 0;
+  color: var(--ink-secondary);
+}

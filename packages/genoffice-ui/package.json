@@ -15,7 +15,8 @@
     "./dropdown.css": "./src/dropdown.css",
     "./fonts/*": "./src/fonts/*",
     "./versions.css": "./src/versions/versions.css",
-    "./share.css": "./src/share/share.css"
+    "./share.css": "./src/share/share.css",
+    "./figures.css": "./src/figures/figures.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

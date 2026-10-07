@@ -21,6 +21,8 @@ import { setImageBaseDir } from './editor/localImage'
 import { Ribbon } from './components/Ribbon'
 import { SlashMenu, type SlashMenuHandle } from './components/SlashMenu'
 import { ToastHost } from './components/toast'
+import { showToast } from './components/toast-bus'
+import { useMdLinkedFigures } from './linked/useMdLinkedFigures'
 import { TableMenu } from './components/TableMenu'
 import { FrontmatterPanel } from './components/FrontmatterPanel'
 import { AiAskPopover } from './components/AiAskPopover'
@@ -309,6 +311,16 @@ export default function App() {
   })
   const liveReadOnly = liveRoom.state.kind === 'live' && liveRoom.state.readOnly
   const liveOn = liveEditor.status === 'on'
+  // linked figures from the shell's index (Sheets cells), as [text](redrob-fact:<id>) in the file
+  const notifyFigure = useCallback((msg: string) => showToast(msg, 'error'), [])
+  const linkedFigures = useMdLinkedFigures({
+    api: window.markdownApi,
+    editor,
+    filePath,
+    clean: status === 'ready' && !dirty,
+    editable: status === 'ready' && !viewing && !liveReadOnly,
+    notify: notifyFigure,
+  })
 
   const onFrontmatterChange = useCallback(
     (inner: string) => {
@@ -662,7 +674,7 @@ export default function App() {
   }
   const mdRedrob = { ask: () => setAiOpen(true), run: runInPanel }
   const mdCmd = mdCommands(editor)
-  const frameTools = mdTools(t, mdCmd, mdRedrob, status === 'ready' && !viewing)
+  const frameTools = [...mdTools(t, mdCmd, mdRedrob, status === 'ready' && !viewing), ...linkedFigures.tools]
   const wordCount = editor ? countMdWords(editor.state.doc.textContent) : 0
 
   if (status === 'error') {
@@ -808,6 +820,7 @@ export default function App() {
       </div>
       <SlashMenu ref={slashMenuRef} state={slashState} onDismiss={() => setSlashState(null)} />
       <ToastHost />
+      {linkedFigures.overlay}
       <TableMenu editor={editor} scrollRef={scrollRef} zoom={zoom} />
       {editor && status === 'ready' && (
         <AiAskPopover

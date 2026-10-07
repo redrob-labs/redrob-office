@@ -13,6 +13,7 @@ import { BlockKeymap } from './blockKeymap'
 import { AiHighlight } from './aiHighlight'
 import { AiQueueAnchors } from './aiQueueAnchors'
 import { buildMathExtensions } from './math'
+import { LinkedFigure } from './linkedFigure'
 import { SlashCommand } from './slashCommand'
 import type { SlashController, SlashItem } from './slashCommand'
 import { t } from '../i18n/locale'
@@ -48,6 +49,8 @@ export function buildExtensions(options: BuildExtensionsOptions): AnyExtension[]
     TaskItem.configure({ nested: true }),
     // KaTeX-rendered $...$ / $$...$$ formulas (issue #100)
     ...buildMathExtensions(),
+    // linked figures: [₩3.86bn](redrob-fact:<id>) atoms that follow the shell's index
+    LinkedFigure,
     LocalImage,
     BlockDragHandle,
     BlockKeymap,

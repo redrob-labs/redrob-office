@@ -374,7 +374,6 @@ export const it = {
     'Presentazione personalizzata: presenta alcune diapositive in un ordine scelto (creane diverse, poi avviale con un clic)',
   ribbonGroupSetUp: 'Imposta',
   ribbonSetUpShow: 'Imposta Presentazione',
-  ribbonNotSupported: '{name} (non ancora supportato)',
   ribbonHideSlide: 'Nascondi Diapositiva',
   ribbonHideSlideTip:
     'Nascondi la diapositiva corrente (rimane nel file, saltata durante la presentazione; salvato nel pptx)',

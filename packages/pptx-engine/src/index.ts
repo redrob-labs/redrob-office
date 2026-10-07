@@ -236,6 +236,16 @@ export {
 export { parseChartExXml } from './chartex'
 export { getSlideNotes, setSlideNotes, notesPathForSlide, unescapeXml } from './notes'
 export {
+  DEFAULT_SHOW_SETTINGS,
+  getShowSettings,
+  normalizeShowSettings,
+  parseShowSettings,
+  setShowSettings,
+  showSlideIndexes,
+  type ShowRange,
+  type ShowSettings,
+} from './pres-props'
+export {
   getSlideComments,
   addSlideComment,
   deleteSlideComment,

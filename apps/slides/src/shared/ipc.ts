@@ -1,5 +1,6 @@
 import type { LiveApi, ShareApi } from '@genoffice/sync-client'
 import type { VersionsApi } from '@genoffice/versions'
+import type { FactsBridgeApi } from '@genoffice/facts'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 /**
  * slides main-process <-> renderer IPC contract (Phase 3: open/save/edit, AI not included yet).
@@ -11,7 +12,8 @@ import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
  * them to the model and rebuilds the RenderSlide.
  */
 import type { RenderSlide } from '@genoffice/pptx-render'
-import type { SlideComment, SectionInfo } from '@genoffice/pptx-engine'
+import type { SlideComment, SectionInfo, ShowSettings } from '@genoffice/pptx-engine'
+export type { ShowSettings }
 import type {
   AiSettings,
   AiStreamChunk,
@@ -986,7 +988,14 @@ export interface AddMediaBytesOp {
   name?: string
 }
 
-/** Element hyperlink target. */
+/** The cNvPr name of a recorded narration clip: the show plays these by itself, and a new recording replaces them. */
+export const NARRATION_NAME = 'Narration'
+
+/** Record narration's result: one clip and dwell time per recorded slide, written as one undo step. */
+export interface AddNarrationOp {
+  items: Array<{ slideIndex: number; base64: string; ext: 'wav'; ms: number }>
+  fitWidthPx: number
+}
 export type LinkTargetOp = { kind: 'url'; url: string } | { kind: 'slide'; slideIndex: number }
 
 export interface SetLinkOp {
@@ -1163,7 +1172,12 @@ export type MenuCommand =
   | 'copy'
   | 'paste'
 
-export interface SlidesApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi>, Partial<LiveApi> {
+export interface SlidesApi
+  extends Partial<OfficePrefsApi>,
+    Partial<VersionsApi>,
+    Partial<ShareApi>,
+    Partial<LiveApi>,
+    Partial<FactsBridgeApi> {
   /** a request typed into Home's composer, for the Redrob panel to answer (one-shot) */
   consumeAskPrompt?: () => Promise<string | null>
   /** current UI language (persisted by the shell in app-settings.json) */
@@ -1443,6 +1457,20 @@ export interface SlidesApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
   getTransition: (slideIndex: number) => Promise<TransitionKind>
   /** Batch-write each page's auto-advance time (rehearsal timing save; the saved pptx auto-advances in PowerPoint shows); returns success */
   setAdvanceTimes: (op: SetAdvanceTimesOp) => Promise<boolean>
+  /** Each slide's saved auto-advance time (ms; null = on click), in deck order */
+  getAdvanceTimes?: () => Promise<Array<number | null>>
+  /** Linked figures in the deck (RedrobFact_<id> text fields) */
+  linkedFigures?: () => Promise<Array<{ slideIndex: number; fact: string; part: 'figures' | 'sentence'; text: string }>>
+  /** Rewrite figures to the text this file keeps (journaled, no undo step); the rebuilt slides, or null when nothing changed */
+  refreshLinkedFigures?: (
+    rewrites: Array<{ fact: string; part: 'figures' | 'sentence'; text: string }>,
+  ) => Promise<RenderSlide[] | null>
+  /** Record narration: write each slide's clip and timing (one undo step); the rebuilt slides, or null */
+  addNarration?: (op: AddNarrationOp) => Promise<RenderSlide[] | null>
+  /** Set Up Show settings (ppt/presProps.xml) */
+  getShowSettings?: () => Promise<ShowSettings>
+  /** Write Set Up Show; returns what was written (normalized), null on failure */
+  setShowSettings?: (settings: ShowSettings) => Promise<ShowSettings | null>
   /** The current page's animation list (read by the Animations tab / during shows) */
   getAnimations: (slideIndex: number) => Promise<AnimationItem[]>
   /** Morph pairing keys of the current page's elements (matched against same-name/same-id elements on the previous page during morph tweening) */

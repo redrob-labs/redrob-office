@@ -60,7 +60,6 @@ export const he = {
   ribbonAuto: 'אוטומטי',
   ribbonAutomatic: 'אוטומטי',
   ribbonCm: 'ס"מ',
-  ribbonNotSupportedSuffix: '{label} (עדיין לא נתמך)',
   ribbonOpen: 'פתח…',
   ribbonSave: 'שמור',
   ribbonSaveAs: 'שמירה בשם…',

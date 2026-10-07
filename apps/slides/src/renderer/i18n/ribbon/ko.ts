@@ -364,7 +364,6 @@ export const ko = {
     '슬라이드 쇼 재구성: 일부 슬라이드를 지정한 순서로 구성하여 재생(여러 개 생성 가능, 관리 후 한 번의 클릭으로 시작)',
   ribbonGroupSetUp: '설정',
   ribbonSetUpShow: '슬라이드 쇼 설정',
-  ribbonNotSupported: '{name}(아직 지원되지 않음)',
   ribbonHideSlide: '슬라이드 숨기기',
   ribbonHideSlideTip: '현재 슬라이드 숨기기(문서에는 유지되고 쇼에서는 건너뜀, pptx에 저장)',
   ribbonUnhideSlideTip: '현재 슬라이드 숨기기 취소(쇼에서 다시 표시)',

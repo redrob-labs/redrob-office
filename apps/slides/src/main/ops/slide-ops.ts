@@ -33,6 +33,7 @@ import {
   resetSlideBackground,
   resetSlideLayout,
   setSections,
+  setShowSettings,
   setSlideAdvanceTime,
   setSlideAnimations,
   setSlideBackground,
@@ -49,6 +50,7 @@ import {
   ANIM_TRIGGERS,
   TRANSITION_KINDS,
   type SectionInfo,
+  type ShowSettings,
   type ThemeSpec,
   type SlideAnimation,
   type SlideTransitionKind,
@@ -460,6 +462,36 @@ register({
     const { slide } = resolveSlide(ctx, op)
     setSlideAdvanceTime(slide, op.ms == null ? null : Math.round(op.ms as number))
     return { op, after: op.ms }
+  },
+})
+
+// Set Up Show: deck-wide slide show settings in ppt/presProps.xml
+register({
+  name: 'setShowSettings',
+  validate(op) {
+    const s = op.settings as Partial<ShowSettings> | undefined
+    const range = s?.range as { kind?: unknown; from?: unknown; to?: unknown; id?: unknown } | undefined
+    const okRange =
+      !!range &&
+      (range.kind === 'all' ||
+        (range.kind === 'slides' && Number.isInteger(range.from) && Number.isInteger(range.to)) ||
+        (range.kind === 'custom' && typeof range.id === 'string'))
+    if (
+      !s ||
+      (s.type !== 'speaker' && s.type !== 'kiosk') ||
+      typeof s.loop !== 'boolean' ||
+      typeof s.useTimings !== 'boolean' ||
+      typeof s.showNarration !== 'boolean' ||
+      !okRange
+    ) {
+      throw new GuidedError(
+        'op "setShowSettings" needs "settings": {type:"speaker"|"kiosk", loop, useTimings, showNarration (booleans), range:{kind:"all"}|{kind:"slides",from,to}}.',
+      )
+    }
+  },
+  apply(op, ctx): OpRecord {
+    const after = setShowSettings(ctx.opened, op.settings as ShowSettings)
+    return { op, after }
   },
 })
 

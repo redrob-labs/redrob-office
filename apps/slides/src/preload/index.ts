@@ -1,4 +1,5 @@
 import { liveBridge, shareBridge } from '@genoffice/sync-client'
+import { factsBridge } from '@genoffice/facts'
 import { versionsBridge } from '@genoffice/versions'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
@@ -47,6 +48,8 @@ import type {
   SetAdvanceTimesOp,
   SetAnimationsOp,
   SetSlideHiddenOp,
+  ShowSettings,
+  AddNarrationOp,
   SetTransitionOp,
   SectionInfo,
   AddSectionOp,
@@ -279,6 +282,15 @@ const api: SlidesApi = {
   setTransition: (op: SetTransitionOp) => ipcRenderer.invoke('slides:set-transition', op),
   getTransition: (slideIndex: number) => ipcRenderer.invoke('slides:get-transition', slideIndex),
   setAdvanceTimes: (op: SetAdvanceTimesOp) => ipcRenderer.invoke('slides:set-advance-times', op),
+  getAdvanceTimes: () => ipcRenderer.invoke('slides:get-advance-times'),
+  // shell-owned linked-figure index (apps/shell/src/main/facts-service.ts)
+  ...factsBridge(ipcRenderer),
+  linkedFigures: () => ipcRenderer.invoke('slides:linked-figures'),
+  refreshLinkedFigures: (rewrites: Array<{ fact: string; part: 'figures' | 'sentence'; text: string }>) =>
+    ipcRenderer.invoke('slides:refresh-linked-figures', rewrites),
+  addNarration: (op: AddNarrationOp) => ipcRenderer.invoke('slides:add-narration', op),
+  getShowSettings: () => ipcRenderer.invoke('slides:get-show-settings'),
+  setShowSettings: (settings: ShowSettings) => ipcRenderer.invoke('slides:set-show-settings', settings),
   getAnimations: (slideIndex: number) => ipcRenderer.invoke('slides:get-animations', slideIndex),
   getShapeKeys: (slideIndex: number) => ipcRenderer.invoke('slides:get-shape-keys', slideIndex),
   setAnimations: (op: SetAnimationsOp) => ipcRenderer.invoke('slides:set-animations', op),

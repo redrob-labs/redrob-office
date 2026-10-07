@@ -1,5 +1,6 @@
 import { liveBridge, shareBridge } from '@genoffice/sync-client'
 import { versionsBridge } from '@genoffice/versions'
+import { factsBridge } from '@genoffice/facts'
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
 import type { AiStreamChunk } from '@genoffice/ai-provider'
@@ -16,6 +17,8 @@ const api: MarkdownApi = {
   ...shareBridge(ipcRenderer),
   // shell-owned live rooms (apps/shell/src/main/live-service.ts): the token stays in main
   ...liveBridge(ipcRenderer),
+  // shell-owned linked-figure index (apps/shell/src/main/facts-service.ts)
+  ...factsBridge(ipcRenderer),
   consumePending: () => ipcRenderer.invoke(MARKDOWN_CHANNELS.consumePending),
   readFile: (path) => ipcRenderer.invoke(MARKDOWN_CHANNELS.readFile, path),
   save: (request) => ipcRenderer.invoke(MARKDOWN_CHANNELS.save, request),

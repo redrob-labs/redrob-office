@@ -367,7 +367,6 @@ export const nl = {
     "Aangepaste diavoorstelling: presenteer geselecteerde dia's in een gekozen volgorde (maak er meerdere en start met één klik)",
   ribbonGroupSetUp: 'Instellen',
   ribbonSetUpShow: 'Diavoorstelling instellen',
-  ribbonNotSupported: '{name} (nog niet ondersteund)',
   ribbonHideSlide: 'Dia verbergen',
   ribbonHideSlideTip:
     'De huidige dia verbergen (blijft in het bestand, wordt tijdens de voorstelling overgeslagen; opgeslagen in pptx)',

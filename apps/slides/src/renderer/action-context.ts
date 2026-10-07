@@ -17,7 +17,7 @@ import type {
 } from '../shared/ipc'
 import type { BrushFormat } from './format-brush'
 import type { InkTool } from './ink'
-import type { CustomShow } from './slideshow-utils'
+import type { CustomShow, ShowPlayback } from './slideshow-utils'
 
 type Set<T> = React.Dispatch<React.SetStateAction<T>>
 
@@ -40,6 +40,10 @@ export interface SlideShowState {
   startAt: number
   customOrder?: number[]
   rehearse?: boolean
+  /** Set Up Show: loop, kiosk and saved timings (absent for rehearsal and custom shows) */
+  playback?: ShowPlayback
+  /** Record narration: a rehearsal that also records the microphone per slide */
+  narrate?: boolean
 }
 
 export type CtxMenuState =

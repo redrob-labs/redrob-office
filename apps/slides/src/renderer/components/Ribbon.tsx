@@ -675,16 +675,6 @@ function TableToggleBtn({
   )
 }
 
-function DisabledBig({ icon, label }: { icon: ReactNode; label: string }) {
-  const { t } = useI18n()
-  return (
-    <button className="rb-big" disabled data-tip={t('ribbonNotSupported', { name: label })}>
-      <span className="rb-big-icon">{icon}</span>
-      <span>{label}</span>
-    </button>
-  )
-}
-
 /** per-tab priority for responsive collapse: when the ribbon
  * body overflows, these groups (in order) fold into a single dropdown button */
 const COLLAPSE_ORDER: Record<string, string[]> = {
@@ -1162,6 +1152,8 @@ export function Ribbon({
   onPresenterView,
   onCustomShow,
   onRehearse,
+  onSetUpShow,
+  onRecordNarration,
   currentHidden,
   onToggleHidden,
   inkTool,
@@ -2426,7 +2418,18 @@ export function Ribbon({
             </Group>
             <div className="ribbon-sep" />
             <Group label={t('ribbonGroupSetUp')}>
-              <DisabledBig icon={<IconSetupShow size={BIG} />} label={t('ribbonSetUpShow')} />
+              <button
+                className="rb-big"
+                disabled={!hasDoc || !onSetUpShow}
+                aria-haspopup="dialog"
+                onClick={onSetUpShow}
+                data-tip={t('ribbonSetUpShowTip')}
+              >
+                <span className="rb-big-icon">
+                  <IconSetupShow size={BIG} />
+                </span>
+                <span>{t('ribbonSetUpShow')}</span>
+              </button>
               <button
                 className={`rb-big ${currentHidden ? 'active' : ''}`}
                 aria-pressed={!!currentHidden}
@@ -2450,7 +2453,17 @@ export function Ribbon({
                 </span>
                 <span>{t('ribbonRehearse')}</span>
               </button>
-              <DisabledBig icon={<IconRecord size={BIG} />} label={t('ribbonRecord')} />
+              <button
+                className="rb-big"
+                disabled={!hasDoc || !onRecordNarration}
+                onClick={onRecordNarration}
+                data-tip={t('ribbonRecordTip')}
+              >
+                <span className="rb-big-icon">
+                  <IconRecord size={BIG} />
+                </span>
+                <span>{t('ribbonRecord')}</span>
+              </button>
             </Group>
           </>
         ) : tab === 'review' ? (

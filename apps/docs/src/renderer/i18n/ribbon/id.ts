@@ -61,7 +61,6 @@ export const id = {
   ribbonAuto: 'Otomatis',
   ribbonAutomatic: 'Otomatis',
   ribbonCm: 'cm',
-  ribbonNotSupportedSuffix: '{label} (belum didukung)',
   ribbonOpen: 'Buka…',
   ribbonSave: 'Simpan',
   ribbonSaveAs: 'Simpan Sebagai…',

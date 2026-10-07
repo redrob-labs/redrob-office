@@ -363,7 +363,6 @@ export const id = {
     'Peragaan slide kustom: menampilkan sebagian slide dalam urutan tertentu (buat beberapa, lalu mulai dengan sekali klik)',
   ribbonGroupSetUp: 'Siapkan',
   ribbonSetUpShow: 'Siapkan Peragaan Slide',
-  ribbonNotSupported: '{name} (belum didukung)',
   ribbonHideSlide: 'Sembunyikan Slide',
   ribbonHideSlideTip:
     'Sembunyikan slide saat ini (tetap ada di dokumen, dilewati saat peragaan; disimpan ke pptx)',

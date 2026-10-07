@@ -29,6 +29,66 @@ export function computePlayOrder(
   return o.length > 0 ? [...o] : [startAt]
 }
 
+// ── Set Up Show ──────────────────────────────────────────────────────────────────
+
+/** The parts of Set Up Show that change how a show plays (ppt/presProps.xml, read in main). */
+export interface ShowPlayback {
+  /** loop until Esc (a kiosk always loops) */
+  loop: boolean
+  /** kiosk: clicks and keys do not advance, only saved timings (Esc still ends it) */
+  kiosk: boolean
+  /** saved auto-advance per slide (ms, null = on click), when the show uses timings */
+  advanceMs: ReadonlyArray<number | null> | null
+  /** recorded narration plays by itself */
+  showNarration: boolean
+}
+
+export interface ShowSetupInput {
+  type: 'speaker' | 'kiosk'
+  loop: boolean
+  useTimings: boolean
+  showNarration: boolean
+  range: { kind: 'all' } | { kind: 'slides'; from: number; to: number } | { kind: 'custom'; id: string }
+}
+
+/**
+ * Where a show from Set Up Show starts and what it plays. A slide range
+ * applies to a show from the beginning; a show from the current slide plays
+ * the whole deck from there, as PowerPoint does. PowerPoint's own named custom
+ * shows are not read here, so a range naming one plays every slide.
+ */
+export function showSetup(
+  settings: ShowSetupInput,
+  advanceMs: ReadonlyArray<number | null>,
+  slides: ReadonlyArray<{ hidden?: boolean }>,
+  fromStart: boolean,
+  current: number,
+): { startAt: number; customOrder?: number[]; playback: ShowPlayback } {
+  const kiosk = settings.type === 'kiosk'
+  const playback: ShowPlayback = {
+    loop: kiosk || settings.loop,
+    kiosk,
+    advanceMs: kiosk || settings.useTimings ? advanceMs : null,
+    showNarration: settings.showNarration,
+  }
+  const firstVisible = Math.max(0, slides.findIndex((s) => !s.hidden))
+  if (!fromStart) return { startAt: current, playback }
+  if (settings.range.kind === 'slides') {
+    const from = Math.max(1, settings.range.from)
+    const to = Math.min(slides.length, settings.range.to)
+    const order: number[] = []
+    for (let i = from - 1; i < to; i++) if (!slides[i]?.hidden) order.push(i)
+    if (order.length > 0) return { startAt: order[0]!, customOrder: order, playback }
+  }
+  return { startAt: firstVisible, playback }
+}
+
+/** After the last slide: back to the first when looping, otherwise the end screen. */
+export function nextPosition(pos: number, length: number, loop: boolean): number | 'end' {
+  if (pos < length - 1) return pos + 1
+  return loop && length > 0 ? 0 : 'end'
+}
+
 // ── Rehearsal timing ─────────────────────────────────────────────────────────────
 
 /** Rehearsal timing state: perPageMs accumulates dwell milliseconds by original slide index. */

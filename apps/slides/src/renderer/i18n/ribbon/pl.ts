@@ -365,7 +365,6 @@ export const pl = {
     'Pokaz niestandardowy: prezentuj wybrane slajdy w wybranej kolejności (utwórz kilka, a następnie uruchamiaj jednym kliknięciem)',
   ribbonGroupSetUp: 'Przygotowywanie',
   ribbonSetUpShow: 'Przygotuj pokaz slajdów',
-  ribbonNotSupported: '{name} (jeszcze nieobsługiwane)',
   ribbonHideSlide: 'Ukryj slajd',
   ribbonHideSlideTip:
     'Ukryj bieżący slajd (pozostaje w pliku, pomijany podczas pokazu; zapisywane w pptx)',

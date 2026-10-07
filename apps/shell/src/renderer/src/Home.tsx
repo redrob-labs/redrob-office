@@ -32,6 +32,7 @@ import { HomeHero } from './home/HomeHero'
 import './home/home-hero.css'
 import { HomeFoot } from './home/HomeFoot'
 import { UpdatesView } from './home/UpdatesView'
+import { TimelineSection } from './home/TimelineSection'
 import { useFacts } from './home/useFacts'
 import { waitingFiles } from '@genoffice/facts'
 import type { FactsApi } from '../../shared/facts-api'
@@ -1354,6 +1355,12 @@ export function Home() {
             </div>
           )}
         </section>
+
+        <TimelineSection
+          projectId={proj.id}
+          tick={projectTick}
+          openPath={(path) => void window.aiOffice.openPath(path)}
+        />
       </main>
     )
   }
@@ -1545,6 +1552,15 @@ export function Home() {
           >
             <Icon name="users" size={16} />
             <span className="nav-label">{t('navShared')}</span>
+          </button>
+          {/* deleted files go to the OS trash (shell.trashItem); restoring happens there */}
+          <button
+            className="nav-item"
+            title={t('navTrashTip')}
+            onClick={() => void window.aiOffice.openTrash()}
+          >
+            <Icon name="trash" size={16} />
+            <span className="nav-label">{t('navTrash')}</span>
           </button>
         </nav>
 

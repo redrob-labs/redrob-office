@@ -373,7 +373,6 @@ export const fr = {
     'Diaporama personnalisé : présenter certaines diapositives dans un ordre choisi (créez-en plusieurs, puis lancez-les en un clic)',
   ribbonGroupSetUp: 'Configuration',
   ribbonSetUpShow: 'Configurer le diaporama',
-  ribbonNotSupported: '{name} (pas encore pris en charge)',
   ribbonHideSlide: 'Masquer la diapositive',
   ribbonHideSlideTip:
     'Masquer la diapositive actuelle (conservée dans le fichier, ignorée pendant le diaporama ; enregistrée dans le pptx)',

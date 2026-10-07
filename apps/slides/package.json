@@ -92,6 +92,7 @@
   },
   "dependencies": {
     "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/facts": "workspace:*",
     "@genoffice/versions": "workspace:*",
     "acorn": "^8.18.0",
     "harfbuzzjs": "^1.4.0",

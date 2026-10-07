@@ -62,7 +62,6 @@ export const nl = {
   ribbonAuto: 'Auto',
   ribbonAutomatic: 'Automatisch',
   ribbonCm: 'cm',
-  ribbonNotSupportedSuffix: '{label} (nog niet ondersteund)',
   ribbonOpen: 'Openen…',
   ribbonSave: 'Opslaan',
   ribbonSaveAs: 'Opslaan als…',

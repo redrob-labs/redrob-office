@@ -74,6 +74,10 @@ import {
   type TableStyleEdit,
   EMU_PER_PT,
   slideDurableId,
+  DEFAULT_SHOW_SETTINGS,
+  getShowSettings,
+  getSlideAdvanceTime,
+  type ShowSettings,
   getSlideComments,
   getSlideNotes,
   getSlideTransition,
@@ -111,6 +115,7 @@ import {
 } from '@genoffice/pptx-render'
 import { refineComplexWidths, shapedMetricsReady } from './shaped-metrics'
 import { cleanLiveParagraphs, liveTextAddress, resolveLiveText } from './live-address'
+import { figureTextEdits, slideFigures } from './linked-figures'
 import { cfbKind, isCfbHeader } from './cfb-sniff'
 import { unplayableAudioCodec } from './mp4-audio-sniff'
 import type {
@@ -192,7 +197,12 @@ import type {
   AnimationItem,
   ShapeKey,
   SetEffectsPatch,
+  AddNarrationOp,
 } from '../shared/ipc'
+import { NARRATION_NAME } from '../shared/ipc'
+
+/** one narration clip over IPC: about 25 minutes of 22 kHz mono WAV */
+const MAX_NARRATION_B64 = 90 * 1024 * 1024
 import { buildPrintDocumentHtml } from '../shared/print-html'
 
 import { tm } from './i18n-main'
@@ -1228,6 +1238,38 @@ export function registerSlidesIpc(): void {
     )
     return syncAutofitScale(session, op.slideIndex, op.sourceId, rendered)
   })
+
+  // Linked figures: RedrobFact_<id> text fields in the deck (linked-figures.ts)
+  ipcMain.handle('slides:linked-figures', (e) => {
+    const session = sessions.get(e.sender.id)
+    return session ? slideFigures(session.opened.deck.slides).map(({ slideIndex, fact, part, text }) => ({ slideIndex, fact, part, text })) : []
+  })
+
+  // A kept update rewrites the figures' cached text. Journaled (a save writes it) but not an
+  // undo step: undoing it would only bring back a value this file already moved on from.
+  ipcMain.handle(
+    'slides:refresh-linked-figures',
+    (e, rewrites: Array<{ fact: string; part: 'figures' | 'sentence'; text: string }>): RenderSlide[] | null => {
+      const session = sessions.get(e.sender.id)
+      if (!session || !Array.isArray(rewrites)) return null
+      const clean = rewrites.filter(
+        (r) =>
+          r &&
+          typeof r.fact === 'string' &&
+          (r.part === 'figures' || r.part === 'sentence') &&
+          typeof r.text === 'string' &&
+          r.text.length <= 4096,
+      )
+      const edits = figureTextEdits(session.opened.deck.slides, clean)
+      if (edits.length === 0) return null
+      const r = journaledTxn(session, 'edit', {
+        isolation: 'per_op',
+        ops: edits.map((ed) => ({ op: 'setText', target: { slide: ed.slideIndex, el: ed.el }, paragraphs: ed.paragraphs })),
+      })
+      if (!r.applied) return null
+      return buildAllRenderSlides(session.opened, session.fitWidthPx)
+    },
+  )
 
   // Live Slides: the address every copy of the file agrees on for a text box
   // (see live-address.ts). Asked before a local edit is sent to the room.
@@ -3571,6 +3613,53 @@ export function registerSlidesIpc(): void {
     return rebuilt ? { slide: rebuilt, sourceId: r.records![0]!.created![0]! } : null
   })
 
+  // Record narration: per slide, replace any earlier narration clip with the new one (a small
+  // speaker icon in the bottom-right corner) and save the dwell as the slide's timing — one undo step.
+  ipcMain.handle('slides:add-narration', (e, op: AddNarrationOp) => {
+    const session = sessions.get(e.sender.id)
+    if (!session || !op || !Array.isArray(op.items)) return null
+    const slides = session.opened.deck.slides
+    const items = op.items.filter(
+      (it) =>
+        it &&
+        Number.isInteger(it.slideIndex) &&
+        slides[it.slideIndex] &&
+        it.ext === 'wav' &&
+        typeof it.base64 === 'string' &&
+        it.base64.length > 0 &&
+        it.base64.length <= MAX_NARRATION_B64 &&
+        Number.isFinite(it.ms) &&
+        it.ms >= 0,
+    )
+    if (items.length === 0) return null
+    const deckSize = session.opened.deck.size
+    const side = Math.round(Math.min(deckSize.cx, deckSize.cy) * 0.08)
+    const margin = Math.round(side * 0.4)
+    const ops: Parameters<typeof runTxn>[1]['ops'] = []
+    for (const it of items) {
+      for (const el of slides[it.slideIndex]!.elements) {
+        const media = (el as { media?: { kind?: string } }).media
+        if (el.type === 'picture' && media?.kind === 'audio' && el.name === NARRATION_NAME) {
+          ops.push({ op: 'deleteElement', target: { slide: it.slideIndex, el: el.id } })
+        }
+      }
+      ops.push({
+        op: 'addMedia',
+        target: { slide: it.slideIndex },
+        kind: 'audio',
+        bytes: new Uint8Array(Buffer.from(it.base64, 'base64')),
+        ext: 'wav',
+        name: NARRATION_NAME,
+        offset: { x: deckSize.cx - side - margin, y: deckSize.cy - side - margin, cx: side, cy: side },
+      })
+      ops.push({ op: 'setAdvanceTime', target: { slide: it.slideIndex }, ms: Math.round(it.ms) })
+    }
+    const r = sessionTxn(session, { ops })
+    if (!r) return null
+    session.fitWidthPx = op.fitWidthPx
+    return buildAllRenderSlides(session.opened, op.fitWidthPx)
+  })
+
   // 3D model (simplified): glb embed + poster placeholder image
   ipcMain.handle('slides:insert-model3d', async (e, slideIndex: number, fitWidthPx: number) => {
     const session = sessions.get(e.sender.id)
@@ -3756,6 +3845,27 @@ export function registerSlidesIpc(): void {
       })),
     })
     return r !== null
+  })
+
+  // Saved auto-advance times per slide (ms, null = advance on click): what a show on timings follows
+  ipcMain.handle('slides:get-advance-times', (e): Array<number | null> => {
+    const session = sessions.get(e.sender.id)
+    return session ? session.opened.deck.slides.map((s) => getSlideAdvanceTime(s)) : []
+  })
+
+  // ── Set Up Show (ppt/presProps.xml <p:showPr>) ──
+  ipcMain.handle('slides:get-show-settings', (e): ShowSettings => {
+    const session = sessions.get(e.sender.id)
+    return session ? getShowSettings(session.opened) : { ...DEFAULT_SHOW_SETTINGS }
+  })
+
+  ipcMain.handle('slides:set-show-settings', (e, settings: ShowSettings): ShowSettings | null => {
+    const session = sessions.get(e.sender.id)
+    if (!session) return null
+    const r = sessionTxn(session, { ops: [{ op: 'setShowSettings', settings }] })
+    if (!r) return null
+    session.metaDirty = true
+    return r.records![0]!.after as ShowSettings
   })
 
   // ── Shape animations (<p:timing>; the spid <-> temporary element id mapping happens here) ──

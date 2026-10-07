@@ -352,7 +352,6 @@ export const ar = {
     'عرض شرائح مخصص: تقديم بعض الشرائح بترتيب محدد (أنشئ عدة عروض ثم ابدأها بنقرة واحدة)',
   ribbonGroupSetUp: 'إعداد',
   ribbonSetUpShow: 'إعداد عرض الشرائح',
-  ribbonNotSupported: '{name} (غير مدعوم بعد)',
   ribbonHideSlide: 'إخفاء الشريحة',
   ribbonHideSlideTip: 'إخفاء الشريحة الحالية (تبقى في الملف وتُتخطى أثناء العرض؛ تُحفظ في pptx)',
   ribbonUnhideSlideTip: 'إلغاء إخفاء الشريحة الحالية (تظهر مجددًا أثناء العرض)',

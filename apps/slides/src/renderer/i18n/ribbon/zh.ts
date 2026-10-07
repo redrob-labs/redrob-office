@@ -353,7 +353,6 @@ export const zh = {
   ribbonCustomShowTip: '自定义放映：把部分页按指定顺序组成放映（可建多个，管理后一键放映）',
   ribbonGroupSetUp: '设置',
   ribbonSetUpShow: '设置幻灯片放映',
-  ribbonNotSupported: '{name}（暂不支持）',
   ribbonHideSlide: '隐藏幻灯片',
   ribbonHideSlideTip: '隐藏当前页（保留在文档中，放映时跳过；写入 pptx）',
   ribbonUnhideSlideTip: '取消隐藏当前页（恢复放映时显示）',

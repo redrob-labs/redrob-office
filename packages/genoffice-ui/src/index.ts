@@ -166,3 +166,11 @@ export { verT, type VerStringKey } from './versions/strings'
 // sharing, shared by every editor (styles: '@genoffice/ui/share.css')
 export { SHARE_STRINGS, ShareDialog, type ShareDialogProps } from './share/ShareDialog'
 export { ShareButton, type ShareButtonProps } from './share/ShareButton'
+// linked figures in Slides and Markdown (styles: '@genoffice/ui/figures.css')
+export {
+  FIGURE_STRINGS,
+  LinkedFigurePicker,
+  type FigureChoice,
+  type LinkedFigurePickerStrings,
+} from './figures/LinkedFigurePicker'
+export { useFactsIndex, type FactsIndex, type FactsIndexApi } from './figures/useFactsIndex'

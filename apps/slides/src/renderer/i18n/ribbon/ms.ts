@@ -366,7 +366,6 @@ export const ms = {
     'Tayangan slaid tersuai: persembahkan slaid terpilih mengikut urutan pilihan (cipta beberapa, kemudian mulakan dengan satu klik)',
   ribbonGroupSetUp: 'Sediakan',
   ribbonSetUpShow: 'Sediakan Tayangan Slaid',
-  ribbonNotSupported: '{name} (belum disokong)',
   ribbonHideSlide: 'Sembunyikan Slaid',
   ribbonHideSlideTip:
     'Sembunyikan slaid semasa (kekal dalam fail, dilangkau semasa tayangan; disimpan dalam pptx)',

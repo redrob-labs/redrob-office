@@ -202,6 +202,10 @@ export const OP_DOCS: Record<string, OpDoc> = {
 
   // ── deck-wide (no target) ─────────────────────────────────────────────
   setSlideSize: { sig: '{cx,cy} — EMU page size, whole deck', group: 'deck' },
+  setShowSettings: {
+    sig: '{settings:{type:"speaker"|"kiosk",loop,useTimings,showNarration,range:{kind:"all"}|{kind:"slides",from,to}}} — Set Up Show (presProps.xml); slides 1-based',
+    group: 'deck',
+  },
   findReplace: {
     sig: '{find,replace,matchCase?,slideIndex?} — whole deck unless slideIndex',
     group: 'deck',

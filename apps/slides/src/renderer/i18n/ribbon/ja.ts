@@ -371,7 +371,6 @@ export const ja = {
     '目的別スライドショー：一部のスライドを指定した順序で構成して放映（複数作成でき、管理後ワンクリックで開始）',
   ribbonGroupSetUp: '設定',
   ribbonSetUpShow: 'スライドショーの設定',
-  ribbonNotSupported: '{name}（現在未対応）',
   ribbonHideSlide: '非表示スライドに設定',
   ribbonHideSlideTip:
     '現在のスライドを非表示に設定（ファイルには残り、スライドショーではスキップ；pptx に保存）',

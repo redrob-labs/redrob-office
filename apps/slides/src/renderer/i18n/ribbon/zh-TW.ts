@@ -341,7 +341,6 @@ export const zhTW = {
   ribbonCustomShowTip: '自訂放映：把部分頁依指定順序組成放映（可建多個，管理後一鍵放映）',
   ribbonGroupSetUp: '設定',
   ribbonSetUpShow: '設定投影片放映',
-  ribbonNotSupported: '{name}（暫不支援）',
   ribbonHideSlide: '隱藏投影片',
   ribbonHideSlideTip: '隱藏目前頁（保留在檔案中，放映時跳過；寫入 pptx）',
   ribbonUnhideSlideTip: '取消隱藏目前頁（恢復放映時顯示）',

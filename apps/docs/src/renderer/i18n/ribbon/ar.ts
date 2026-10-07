@@ -60,7 +60,6 @@ export const ar = {
   ribbonAuto: 'تلقائي',
   ribbonAutomatic: 'تلقائي',
   ribbonCm: 'سم',
-  ribbonNotSupportedSuffix: '{label} (غير مدعوم بعد)',
   ribbonOpen: 'فتح…',
   ribbonSave: 'حفظ',
   ribbonSaveAs: 'حفظ باسم…',

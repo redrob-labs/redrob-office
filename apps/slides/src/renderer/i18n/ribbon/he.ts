@@ -349,7 +349,6 @@ export const he = {
     'הצגת שקופיות מותאמת אישית: הצגת שקופיות נבחרות בסדר שנבחר (ניתן ליצור כמה, ואז להפעיל בלחיצה אחת)',
   ribbonGroupSetUp: 'הגדרה',
   ribbonSetUpShow: 'הגדרת הצגת שקופיות',
-  ribbonNotSupported: '{name} (עדיין לא נתמך)',
   ribbonHideSlide: 'הסתרת שקופית',
   ribbonHideSlideTip: 'הסתרת השקופית הנוכחית (נשארת בקובץ, מדולגת במהלך ההצגה; נשמר ב-pptx)',
   ribbonUnhideSlideTip: 'ביטול הסתרת השקופית הנוכחית (תוצג שוב במהלך ההצגה)',

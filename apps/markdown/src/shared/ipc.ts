@@ -1,5 +1,6 @@
 import type { LiveApi, ShareApi } from '@genoffice/sync-client'
 import type { VersionsApi } from '@genoffice/versions'
+import type { FactsBridgeApi } from '@genoffice/facts'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { Lang } from '@genoffice/i18n'
 import type { AiSettings, AiStreamChunk, AiStreamRequest } from '@genoffice/ai-provider'
@@ -110,7 +111,12 @@ export interface ImageData {
 }
 
 /** API exposed by preload to the renderer (window.markdownApi) */
-export interface MarkdownApi extends OfficePrefsApi, Partial<VersionsApi>, Partial<ShareApi>, Partial<LiveApi> {
+export interface MarkdownApi
+  extends OfficePrefsApi,
+    Partial<VersionsApi>,
+    Partial<ShareApi>,
+    Partial<LiveApi>,
+    Partial<FactsBridgeApi> {
   /** Take the md path pending for this view (queued at tab creation); null = new untitled document */
   consumePending(): Promise<string | null>
   /** Read the file as UTF-8 text. Only paths granted to this view are allowed */

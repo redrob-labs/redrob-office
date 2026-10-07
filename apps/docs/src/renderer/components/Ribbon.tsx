@@ -45,6 +45,8 @@ import { applyCase, type CaseMode } from '../editor/case-transform'
 import { setParagraphDirection, setSelectionAlign } from '../editor/direction'
 import { setInactiveSelectionShown } from '../editor/inactive-selection'
 import { stepParagraphIndent } from '../editor/indent'
+import { canSortSelection, sortSelection } from '../editor/sort'
+import { SortDialog } from './SortDialog'
 import { formatNumber } from '../editor/numbering'
 import type { InkTool } from '../editor/ink'
 import type { RibbonFormatState } from './ribbon-format-state'
@@ -724,6 +726,8 @@ function RibbonInner({
   /** Picture Format → remove background / crop dialogs */
   const [pictureDialog, setPictureDialog] = useState<'cutout' | 'crop' | null>(null)
   const [listDialog, setListDialog] = useState(false)
+  /** Home → Paragraph → Sort; whether the selection can be sorted is read when it opens */
+  const [sortDialog, setSortDialog] = useState<{ canSort: boolean } | null>(null)
   const [tablePropertiesOpen, setTablePropertiesOpen] = useState(false)
 
   useEffect(() => {
@@ -3447,9 +3451,11 @@ function RibbonInner({
                   <span className="rb-mini-sep" />
                   <button
                     className="rb-icon"
-                    disabled
-                    data-tip={t('ribbonNotSupportedSuffix', { label: t('ribbonSort') })}
-                    aria-label={t('ribbonNotSupportedSuffix', { label: t('ribbonSort') })}
+                    disabled={!canEdit || !!sub}
+                    data-tip={t('ribbonSortTip')}
+                    aria-label={t('ribbonSort')}
+                    aria-haspopup="dialog"
+                    onClick={() => setSortDialog({ canSort: canSortSelection(ed) })}
                   >
                     <IconSort />
                   </button>
@@ -3835,6 +3841,16 @@ function RibbonInner({
             applyListPreset(levels)
           }}
           onClose={() => setListDialog(false)}
+        />
+      )}
+      {sortDialog && (
+        <SortDialog
+          canSort={sortDialog.canSort}
+          onApply={(opts) => {
+            setSortDialog(null)
+            if (!sub && canEdit) sortSelection(ed, opts)
+          }}
+          onClose={() => setSortDialog(null)}
         />
       )}
       {tablePropertiesOpen && (

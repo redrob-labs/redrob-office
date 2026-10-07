@@ -422,6 +422,25 @@
   color: var(--status-danger);
 }
 
+/* ---- Project timeline: AI turns across the project's files ---- */
+
+.timeline {
+  margin-top: var(--space-6);
+}
+
+.timeline__who {
+  flex: none;
+  min-width: 56px;
+  color: var(--ink-secondary);
+  font-weight: 600;
+}
+
+.timeline .activity__line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ---- Join a shared file from an invite link ---- */
 
 .join-link__form {

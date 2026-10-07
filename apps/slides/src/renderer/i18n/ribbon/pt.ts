@@ -364,7 +364,6 @@ export const pt = {
     'Apresentação personalizada: apresente slides selecionados em uma ordem escolhida (crie várias e inicie com um clique)',
   ribbonGroupSetUp: 'Configurar',
   ribbonSetUpShow: 'Configurar Apresentação de Slides',
-  ribbonNotSupported: '{name} (ainda não suportado)',
   ribbonHideSlide: 'Ocultar Slide',
   ribbonHideSlideTip:
     'Ocultar o slide atual (permanece no arquivo, ignorado durante a apresentação; salvo no pptx)',

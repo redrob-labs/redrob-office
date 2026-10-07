@@ -19,6 +19,7 @@
     "@genoffice/ai-search": "workspace:*",
     "@genoffice/docx-engine": "workspace:*",
     "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/facts": "workspace:*",
     "@genoffice/i18n": "workspace:*",
     "@genoffice/project-store": "workspace:*",
     "@genoffice/sync-client": "workspace:*",

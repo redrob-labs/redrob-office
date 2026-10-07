@@ -477,6 +477,10 @@ export interface Props {
   onCustomShow: () => void
   /** Start rehearsal timing (plays the show recording each page's dwell time; can be saved as auto-advance times afterwards) */
   onRehearse: () => void
+  /** Open Set Up Show (loop, kiosk, slide range, timings; saved in presProps.xml) */
+  onSetUpShow?: () => void
+  /** Record narration: per-slide microphone audio with timings, while the show plays */
+  onRecordNarration?: () => void
   /** Whether the current page is hidden (hide-slide button display) */
   currentHidden: boolean
   /** Hide/unhide the current page */

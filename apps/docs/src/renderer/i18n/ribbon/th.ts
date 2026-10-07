@@ -60,7 +60,6 @@ export const th = {
   ribbonAuto: 'อัตโนมัติ',
   ribbonAutomatic: 'อัตโนมัติ',
   ribbonCm: 'ซม.',
-  ribbonNotSupportedSuffix: '{label} (ยังไม่รองรับ)',
   ribbonOpen: 'เปิด…',
   ribbonSave: 'บันทึก',
   ribbonSaveAs: 'บันทึกเป็น…',

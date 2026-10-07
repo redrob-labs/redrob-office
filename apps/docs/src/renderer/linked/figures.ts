@@ -6,8 +6,8 @@
 import type { Node as PmDocNode } from '@tiptap/pm/model'
 import {
   figState,
-  formatFact,
-  sentenceFor,
+  keptFigureText,
+  syncPlacedUses,
   type FactsCommand,
   type FactsState,
   type FactUse,
@@ -46,13 +46,8 @@ export function collectFigures(doc: PmDocNode): DocFigure[] {
   return out
 }
 
-/** What a figure should read in this file, or null when the index has no say. */
-export function keptText(state: FactsState, file: string, fact: string, part: FigurePart): string | null {
-  const s = figState(state, fact, file, part)
-  if (!s) return null
-  const def = state.facts[fact]
-  return part === 'sentence' ? sentenceFor(def, s.kept) : formatFact(def, s.kept)
-}
+/** What a figure should read in this file, or null when the index has no say (shared with Slides and Markdown). */
+export const keptText = keptFigureText
 
 /** Figures whose text no longer matches what the file keeps. */
 export function figureRewrites(
@@ -78,23 +73,11 @@ export function figureUse(f: DocFigure): FactUse {
  * Facts the index does not know are skipped (a figure from another computer).
  */
 export function syncUsesCommands(state: FactsState, file: string, figures: readonly DocFigure[]): FactsCommand[] {
-  const want = new Map<string, FactUse>()
-  for (const f of figures) {
-    if (!(f.fact in state.values)) continue
-    const use = figureUse(f)
-    want.set(`${use.fact}|${use.kind}|${use.where}`, use)
-  }
-  const have = state.uses[file] ?? []
-  const haveKeys = new Set(have.map((u) => `${u.fact}|${u.kind}|${u.where}`))
-  const cmds: FactsCommand[] = []
-  for (const u of have) {
-    // the source file's own cell is not a figure in this document
-    if (!want.has(`${u.fact}|${u.kind}|${u.where}`) && state.facts[u.fact]?.source.file !== file) {
-      cmds.push({ type: 'dropUse', file, fact: u.fact, where: u.where })
-    }
-  }
-  for (const [key, use] of want) if (!haveKeys.has(key)) cmds.push({ type: 'useFact', file, use })
-  return cmds
+  return syncPlacedUses(
+    state,
+    file,
+    figures.map((f) => ({ fact: f.fact, part: f.part, where: figureUse(f).where, text: f.text })),
+  )
 }
 
 export type FigureLook = 'ok' | 'wait' | 'stale' | 'unknown'

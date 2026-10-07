@@ -61,7 +61,6 @@ export const ko = {
   ribbonAuto: '자동',
   ribbonAutomatic: '자동',
   ribbonCm: 'cm',
-  ribbonNotSupportedSuffix: '{label}(아직 지원되지 않음)',
   // File menu
   ribbonOpen: '열기…',
   ribbonSave: '저장',

@@ -2,6 +2,7 @@ import { PresenceFaces, ShareButton } from '@genoffice/ui'
 import '@genoffice/ui/share.css'
 import { LIVE_STRINGS } from '@genoffice/live-text/room'
 import { SLIDES_LIVE_NOTE, useLiveShapes } from './live/useLiveShapes'
+import { useSlideLinkedFigures } from './linked/useSlideLinkedFigures'
 import { VersionsButton } from '@genoffice/ui'
 import '@genoffice/ui/versions.css'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -35,6 +36,7 @@ import type {
   SetEffectsPatch,
   SlideComment,
   TransitionKind,
+  ShowSettings,
 } from '../shared/ipc'
 import { SlideCanvas, selectionChromeColor } from './SlideCanvas'
 import { tableCellOverlayBox } from './table-hit'
@@ -63,6 +65,7 @@ import { SlideShowView } from './components/SlideShowView'
 import { IconNotes, IconPlayBoxed } from './components/icons'
 import { PresenterView } from './components/PresenterView'
 import { CustomShowDialog } from './components/CustomShowDialog'
+import { SetUpShowDialog } from './components/SetUpShowDialog'
 import { PrintDialog } from './components/PrintDialog'
 import { FindReplaceDialog } from './components/FindReplaceDialog'
 import { formatClock, type CustomShow } from './slideshow-utils'
@@ -1345,6 +1348,33 @@ export function App() {
     setDirty(true)
   }, [])
 
+  // Linked figures from the shell's index: RedrobFact_<id> text fields in the deck
+  const onFigureDeck = useCallback((all: RenderSlide[]) => {
+    setSlides(all)
+    setDirty(true)
+  }, [])
+  const onFigureInserted = useCallback(
+    (slideIndex: number, updated: RenderSlide, sourceId: string) => {
+      applySlide(slideIndex, updated)
+      setSelectedIds([sourceId])
+    },
+    [applySlide],
+  )
+  const notifyFigure = useCallback((msg: string) => setStatus(msg), [])
+  const linkedFigures = useSlideLinkedFigures({
+    api: window.slidesApi,
+    slides,
+    current,
+    slideSize: slide ? { w: slide.widthPx, h: slide.heightPx } : null,
+    filePath: path,
+    clean: !dirty,
+    editable: hasDoc && !liveShapes.readOnly,
+    fitWidthPx: FIT_WIDTH,
+    onDeck: onFigureDeck,
+    onInserted: onFigureInserted,
+    notify: notifyFigure,
+  })
+
   // Effect sliders fire continuously while dragging; each tick costs an IPC round trip
   // (XML patch + full slide relayout). Keep exactly one request in flight and remember
   // only the LATEST pending value — without the gate, requests pile up faster than the
@@ -1748,6 +1778,21 @@ export function App() {
     [],
   )
   const startRehearseShow = useCallback(() => showActions.startRehearseShow(ctxRef.current), [])
+  const startNarration = useCallback(() => void showActions.startNarration(ctxRef.current), [])
+  // Slide Show → Set Up Show (presProps.xml through main)
+  const [setUpShowOpen, setSetUpShowOpen] = useState(false)
+  const loadShowSettings = useCallback(
+    () => window.slidesApi.getShowSettings?.().catch(() => null) ?? Promise.resolve(null),
+    [],
+  )
+  const saveShowSettings = useCallback(async (settings: ShowSettings) => {
+    setSetUpShowOpen(false)
+    const written = await window.slidesApi.setShowSettings?.(settings)
+    if (written) {
+      setDirty(true)
+      setStatus(t('setupShowSaved'))
+    }
+  }, [])
   const onRehearseDone = useCallback(
     (perPageSec: number[]) => showActions.onRehearseDone(ctxRef.current, perPageSec),
     [],
@@ -2845,11 +2890,12 @@ export function App() {
     },
     run: (prompt: string) => pushAiPreset(prompt),
   }
-  const frameTools = slidesTools(t, slidesActions, { hasDoc, editingText: !!editing })
+  const frameTools = [...slidesTools(t, slidesActions, { hasDoc, editingText: !!editing }), ...linkedFigures.tools]
 
   return (
     <div className="app">
       <ToastHost />
+      {linkedFigures.overlay}
       <EditorFrame
         strings={frameText.frame}
         fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')}
@@ -3032,6 +3078,8 @@ export function App() {
             onPresenterView={startPresenterView}
             onCustomShow={() => setCustomShowDlgOpen(true)}
             onRehearse={startRehearseShow}
+            onSetUpShow={window.slidesApi.getShowSettings ? () => setSetUpShowOpen(true) : undefined}
+            onRecordNarration={window.slidesApi.addNarration ? startNarration : undefined}
             currentHidden={!!slide?.hidden}
             onToggleHidden={() => void toggleHidden(current)}
             inkTool={inkTool}
@@ -4142,7 +4190,9 @@ export function App() {
           startAt={slideShow.startAt}
           customOrder={slideShow.customOrder}
           rehearseMode={slideShow.rehearse}
-          onRehearseDone={onRehearseDone}
+          playback={slideShow.playback}
+          onSlideShown={slideShow.narrate ? showActions.narrationSlideShown : undefined}
+          onRehearseDone={slideShow.narrate ? undefined : onRehearseDone}
           onExit={exitSlideShow}
         />
       )}
@@ -4196,6 +4246,15 @@ export function App() {
           dataUrl={cutoutTarget.dataUrl}
           onApply={(png) => void applyCutout(png)}
           onCancel={() => setCutoutTarget(null)}
+        />
+      )}
+
+      {setUpShowOpen && (
+        <SetUpShowDialog
+          slideCount={slides.length}
+          load={loadShowSettings}
+          onSave={(s) => void saveShowSettings(s)}
+          onClose={() => setSetUpShowOpen(false)}
         />
       )}
 

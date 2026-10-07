@@ -12,6 +12,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RenderNode, RenderSlide, ShapeRenderNode } from '@genoffice/pptx-render'
 import type { AnimationItem, LinkTargetOp, ShapeKey, TransitionKind } from '../../shared/ipc'
+import { NARRATION_NAME } from '../../shared/ipc'
 import { AnimatedSlideStage, useAnimPlayer } from './AnimatedSlide'
 import { useI18n } from '../i18n/locale'
 import { MorphStage } from './MorphStage'
@@ -19,9 +20,11 @@ import {
   computePlayOrder,
   finishRehearse,
   formatClock,
+  nextPosition,
   startRehearse,
   switchRehearsePage,
   type RehearseTiming,
+  type ShowPlayback,
 } from '../slideshow-utils'
 import { liftShowCurtain } from '../show-actions'
 
@@ -47,6 +50,8 @@ export function SlideShowView({
   customOrder,
   rehearseMode,
   onRehearseDone,
+  playback,
+  onSlideShown,
 }: {
   slides: RenderSlide[]
   images: Map<string, HTMLImageElement>
@@ -60,6 +65,10 @@ export function SlideShowView({
   rehearseMode?: boolean
   /** Rehearsal-end callback (called before onExit on exit); perPageSec is by original page index, unvisited pages are 0 */
   onRehearseDone?: (perPageSec: number[]) => void
+  /** Set Up Show: loop, kiosk and saved timings */
+  playback?: ShowPlayback | undefined
+  /** called each time a slide comes on screen (original index) */
+  onSlideShown?: ((index: number) => void) | undefined
 }) {
   const { t } = useI18n()
   // Playback sequence (original indexes): hidden pages skipped (except the start page); custom shows use the given order
@@ -138,6 +147,12 @@ export function SlideShowView({
     // Initialize only once on entering the show (slides/order don't change during the show)
   }, [rehearseMode]) // eslint-disable-line react-hooks/exhaustive-deps
   const curIdx = order[pos]
+  // Record narration follows the slide on screen (the end screen records nothing)
+  const onSlideShownRef = useRef(onSlideShown)
+  onSlideShownRef.current = onSlideShown
+  useEffect(() => {
+    if (curIdx != null && !ended) onSlideShownRef.current?.(curIdx)
+  }, [curIdx, ended])
   useEffect(() => {
     const t = rehearseRef.current
     if (t && curIdx != null && curIdx !== t.currentIndex) {
@@ -267,6 +282,8 @@ export function SlideShowView({
     [order, pos],
   )
 
+  const loop = !!playback?.loop && !rehearseMode
+  const kiosk = !!playback?.kiosk && !rehearseMode
   const next = useCallback(() => {
     if (ended) {
       exitRef.current()
@@ -274,9 +291,30 @@ export function SlideShowView({
     }
     // Advance in-page animations first; turn the page only when this page's animations are done
     if (player.advance()) return
-    if (pos >= order.length - 1) setEnded(true)
-    else goTo(pos + 1, true)
-  }, [ended, pos, order.length, goTo, player.advance]) // eslint-disable-line react-hooks/exhaustive-deps
+    const to = nextPosition(pos, order.length, loop)
+    if (to === 'end') setEnded(true)
+    else goTo(to, true)
+  }, [ended, pos, order.length, goTo, loop, player.advance]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Set Up Show's timings: a slide with a saved time turns by itself (animations still pending are skipped)
+  const advanceMs = rehearseMode ? null : (playback?.advanceMs ?? null)
+  useEffect(() => {
+    if (!covered || ended || !advanceMs) return
+    const cur = order[pos]
+    const ms = cur != null ? advanceMs[cur] : null
+    if (ms == null || !Number.isFinite(ms)) return
+    const h = window.setTimeout(() => {
+      const to = nextPosition(pos, order.length, loop)
+      if (to === 'end') setEnded(true)
+      else goTo(to, true)
+    }, Math.max(0, ms))
+    return () => window.clearTimeout(h)
+  }, [covered, ended, advanceMs, order, pos, loop, goTo])
+
+  // a kiosk show is driven by timings only; clicks and keys other than Esc do nothing
+  const userNext = useCallback(() => {
+    if (!kiosk) next()
+  }, [kiosk, next])
 
   const prev = useCallback(() => {
     if (ended) {
@@ -338,7 +376,10 @@ export function SlideShowView({
         e.key === 'PageDown'
       ) {
         e.preventDefault()
-        next()
+        userNext()
+      } else if (kiosk) {
+        // kiosk: no manual navigation
+        return
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
         e.preventDefault()
         prev()
@@ -354,7 +395,7 @@ export function SlideShowView({
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [next, prev, goTo, order.length])
+  }, [userNext, kiosk, prev, goTo, order.length])
 
   if (!slide) return null
   const fitW = Math.round(Math.min(size.w, (size.h * slide.widthPx) / slide.heightPx))
@@ -371,10 +412,10 @@ export function SlideShowView({
   return (
     <div
       className="slideshow"
-      onClick={next}
+      onClick={userNext}
       onContextMenu={(e) => {
         e.preventDefault()
-        prev()
+        if (!kiosk) prev()
       }}
     >
       {!covered ? null : ended ? (
@@ -416,7 +457,12 @@ export function SlideShowView({
                   width={fitW}
                   states={player.states}
                 />
-                <ShowMediaLayer slide={slide} slideIndex={order[pos]!} width={fitW} />
+                <ShowMediaLayer
+                  slide={slide}
+                  slideIndex={order[pos]!}
+                  width={fitW}
+                  playNarration={!rehearseMode && playback?.showNarration !== false}
+                />
               </div>
             </div>
           )}
@@ -489,10 +535,13 @@ function ShowMediaLayer({
   slide,
   slideIndex,
   width,
+  playNarration,
 }: {
   slide: RenderSlide
   slideIndex: number
   width: number
+  /** recorded narration (audio named NARRATION_NAME) starts by itself when the slide shows */
+  playNarration: boolean
 }) {
   const k = width / slide.widthPx
   const nodes = slide.nodes.filter(
@@ -501,10 +550,17 @@ function ShowMediaLayer({
   )
   const [urls, setUrls] = useState<Record<string, { kind: 'video' | 'audio'; dataUrl: string }>>({})
   const [playing, setPlaying] = useState<Record<string, boolean>>({})
+  const [narrated, setNarrated] = useState<ReadonlySet<string>>(new Set())
   useEffect(() => {
     let cancelled = false
     setUrls({})
     setPlaying({})
+    setNarrated(new Set())
+    if (playNarration && nodes.some((n) => n.media === 'audio')) {
+      void window.slidesApi.getShapeKeys(slideIndex).then((keys) => {
+        if (!cancelled) setNarrated(new Set(keys.filter((key) => key.name === NARRATION_NAME).map((key) => key.sourceId)))
+      })
+    }
     for (const n of nodes) {
       void window.slidesApi.getMediaData(slideIndex, n.sourceId).then((d) => {
         if (!cancelled && d) setUrls((u) => ({ ...u, [n.sourceId]: d }))
@@ -564,6 +620,7 @@ function ShowMediaLayer({
             <audio
               id={`ss-audio-${n.sourceId}`}
               src={media.dataUrl}
+              autoPlay={narrated.has(n.sourceId)}
               onPlay={() => setPlaying((p) => ({ ...p, [n.sourceId]: true }))}
               onPause={() => setPlaying((p) => ({ ...p, [n.sourceId]: false }))}
             />

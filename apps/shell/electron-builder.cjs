@@ -492,6 +492,10 @@ const config = {
     gatekeeperAssess: false,
     entitlements: 'build/entitlements.mac.plist',
     entitlementsInherit: 'build/entitlements.mac.plist',
+    // Slides → Record narration asks for the microphone; macOS refuses the prompt without a purpose string
+    extendInfo: {
+      NSMicrophoneUsageDescription: 'Redrob Office records narration for slide shows when you choose Record.',
+    },
     notarize: true,
     extraResources: [
       {

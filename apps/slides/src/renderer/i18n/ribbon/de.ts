@@ -370,7 +370,6 @@ export const de = {
     'Benutzerdefinierte Bildschirmpräsentation: ausgewählte Folien in gewünschter Reihenfolge vorführen (mehrere anlegen, dann mit einem Klick starten)',
   ribbonGroupSetUp: 'Einrichten',
   ribbonSetUpShow: 'Bildschirmpräsentation einrichten',
-  ribbonNotSupported: '{name} (noch nicht unterstützt)',
   ribbonHideSlide: 'Folie ausblenden',
   ribbonHideSlideTip:
     'Aktuelle Folie ausblenden (bleibt in der Datei, wird in der Präsentation übersprungen; in pptx gespeichert)',
