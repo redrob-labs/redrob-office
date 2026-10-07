@@ -60,6 +60,7 @@ describe('pages', () => {
     for (let i = 0; i < 400; i++) {
       view.bus.run('edit:insert-text', { text: `${i} 대한민국 헌법 제1조 대한민국은 민주공화국이다.\n` })
     }
+    s.settle() // typing defers pagination until idle
     expect(s.doc.pageCount()).toBeGreaterThan(4)
     root.scrollTop = 0
     paints.length = 0

@@ -34,10 +34,10 @@ function electronBinary(): string {
  * Render every item with Electron. Needs a display: run under `xvfb-run` on
  * Linux CI. Throws when Electron exits non-zero (any item failed).
  */
-export function renderWithElectron(items: RenderItem[], dpi: number, workDir: string): void {
+export function renderWithElectron(items: RenderItem[], dpi: number, workDir: string, extra: { page?: 'render' | 'bench'; scale?: number; keystrokes?: number } = {}): void {
   mkdirSync(workDir, { recursive: true })
   const jobPath = join(workDir, 'render-job.json')
-  writeFileSync(jobPath, JSON.stringify({ dpi, items }, null, 2))
+  writeFileSync(jobPath, JSON.stringify({ dpi, items, ...extra }, null, 2))
   const r = spawnSync(electronBinary(), ['--no-sandbox', '--disable-gpu', join(here, 'electron/main.mjs'), jobPath], {
     stdio: 'inherit',
     env: { ...process.env, ELECTRON_DISABLE_SANDBOX: '1', ELECTRON_ENABLE_LOGGING: '0' },

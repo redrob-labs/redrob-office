@@ -61,7 +61,7 @@ Requirement references are in brackets, e.g. [R2.1].
   footers, notes and text boxes; object move and resize. [R4.2, R4.3]
 - [x] 1.8 Clipboard: E7 range export and import (extending upstream `paragraph_block/import`), HTML
   and Office paste. [R4.2]
-- [ ] 1.9 Performance benchmark on a 100-page Corpus document. Decide whether to move the Core into
+- [x] 1.9 Performance benchmark (decision: `docs/decisions/2026-10-hangul-typing-performance.md`; main thread, deferred pagination; no worker) on a 100-page Corpus document. Decide whether to move the Core into
   a worker. [R4.4]
 - [ ] 1.10 Open, save and Save As through the existing main and preload: atomic writes, password
   documents, dirty tracking from `changeSeq`. Add the development flag `REDROB_HANGUL_EDITOR=next`.

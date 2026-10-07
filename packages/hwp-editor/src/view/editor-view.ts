@@ -24,6 +24,8 @@ import { PageView, type PageViewOptions } from './page-view'
 const REPLAY_AFTER_COMPOSITION = new Set(['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'enter', 'tab', 'home', 'end'])
 
 export interface EditorViewOptions extends PageViewOptions {
+  /** Idle time after the last keystroke before deferred pagination settles (ms). */
+  settleAfterMs?: number
   mac?: boolean
   readOnly?: boolean
   /** Called for commands the bus doesn't have (file:save, dialogs…), so the host can handle them. */
@@ -39,6 +41,8 @@ export class EditorView {
   private pendingKey: { e: KeyLike; timer: ReturnType<typeof setTimeout> | null } | null = null
   private dragging = false
   private unsubscribe: () => void
+  private unsubscribeSettle: () => void
+  private settleTimer: ReturnType<typeof setTimeout> | null = null
   private lastPageCount: number
 
   constructor(
@@ -81,6 +85,7 @@ export class EditorView {
     d.addEventListener('mouseup', () => (this.dragging = false))
 
     this.unsubscribe = session.onChange((c) => this.onChange(c))
+    this.unsubscribeSettle = session.onSettle(() => this.onSettled())
     this.render()
   }
 
@@ -100,12 +105,28 @@ export class EditorView {
   // ── Rendering ─────────────────────────────────────────────────────────
 
   private onChange(_c: Change): void {
+    if (this.session.layoutPending) this.scheduleSettle()
     const count = this.session.doc.pageCount()
     if (count !== this.lastPageCount) {
       this.lastPageCount = count
       this.pages.layout()
     } else this.pages.invalidate()
     this.overlay.redrawDecorations()
+  }
+
+  private scheduleSettle(): void {
+    if (this.settleTimer) clearTimeout(this.settleTimer)
+    this.settleTimer = setTimeout(() => {
+      this.settleTimer = null
+      this.session.settle()
+    }, this.opts.settleAfterMs ?? 150)
+  }
+
+  private onSettled(): void {
+    this.lastPageCount = this.session.doc.pageCount()
+    this.pages.layout()
+    this.overlay.redrawDecorations()
+    this.render()
   }
 
   /** Redraw caret, selection and the input proxy position. */
@@ -254,7 +275,9 @@ export class EditorView {
   }
 
   dispose(): void {
+    if (this.settleTimer) clearTimeout(this.settleTimer)
     this.unsubscribe()
+    this.unsubscribeSettle()
     this.input.remove()
     this.pages.dispose()
   }

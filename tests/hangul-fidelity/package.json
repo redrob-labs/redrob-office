@@ -11,7 +11,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "fidelity": "tsx src/cli.ts"
+    "fidelity": "tsx src/cli.ts",
+    "bench": "tsx src/bench.ts"
   },
   "dependencies": {
     "@embedpdf/pdfium": "^2.15.0",

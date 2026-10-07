@@ -45,7 +45,7 @@ app.whenReady().then(async () => {
       const ext = path.slice(path.lastIndexOf('.'))
       return new Response(readFileSync(path), { headers: { 'content-type': TYPES[ext] ?? 'application/octet-stream' } })
     }
-    if (url.host === 'job') return Response.json({ dpi: job.dpi, items: job.items.map(({ id, password }) => ({ id, password })) })
+    if (url.host === 'job') return Response.json({ dpi: job.dpi, scale: job.scale, keystrokes: job.keystrokes, items: job.items.map(({ id, password }) => ({ id, password })) })
     if (url.host === 'doc') return new Response(readFileSync(job.items[Number(parts[0])].file))
     if (url.host === 'page' && req.method === 'POST') {
       const item = job.items[Number(parts[0])]
@@ -78,7 +78,7 @@ app.whenReady().then(async () => {
     height: 600,
     webPreferences: { offscreen: true, sandbox: true, contextIsolation: true },
   })
-  await win.loadURL('fidelity://repo/tests/hangul-fidelity/src/electron/render.html')
+  await win.loadURL(`fidelity://repo/tests/hangul-fidelity/src/electron/${job.page ?? 'render'}.html`)
 })
 
 app.on('window-all-closed', () => app.exit(failed ? 1 : 0))

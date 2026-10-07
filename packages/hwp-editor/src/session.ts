@@ -40,6 +40,17 @@ export type ChangeOrigin = 'user' | 'ai' | 'remote' | 'history'
 
 export type ChangeListener = (change: Change) => void
 
+/** Called after deferred pagination is settled, so the view can relayout pages. */
+export type SettleListener = () => void
+
+/**
+ * Commands that may defer repagination while a person is typing (spec R4.4,
+ * task 1.9). The engine otherwise repaginates the whole section on every
+ * keystroke, which is ~105 ms on a 100-page document; deferred, a keystroke is
+ * ~19 ms and the settle pass lands on the same pages.
+ */
+export const DEFERRABLE_COMMANDS = new Set(['edit:insert-text', 'edit:delete-backward', 'edit:delete-forward', 'edit:split-paragraph'])
+
 interface HistoryEntry {
   snapshot: number
   selection: Selection
@@ -62,6 +73,9 @@ export class Session {
   private listeners = new Set<ChangeListener>()
   private readonly historyLimit: number
   private editing = false
+  /** True while the engine is in batch mode (pagination deferred). */
+  private deferred = false
+  private settleListeners = new Set<SettleListener>()
 
   constructor(
     readonly doc: HwpCoreDocument,
@@ -84,6 +98,24 @@ export class Session {
 
   get canRedo(): boolean {
     return this.redoStack.length > 0
+  }
+
+  /** Whether pagination is deferred right now (page breaks may lag until `settle`). */
+  get layoutPending(): boolean {
+    return this.deferred
+  }
+
+  onSettle(listener: SettleListener): () => void {
+    this.settleListeners.add(listener)
+    return () => this.settleListeners.delete(listener)
+  }
+
+  /** Run any deferred pagination now. Cheap when nothing is deferred. */
+  settle(): void {
+    if (!this.deferred) return
+    this.deferred = false
+    this.doc.raw.endBatch()
+    for (const l of this.settleListeners) l()
   }
 
   onChange(listener: ChangeListener): () => void {
@@ -115,6 +147,14 @@ export class Session {
    */
   edit(command: string, fn: () => Selection, origin: ChangeOrigin = 'user'): Change {
     if (this.editing) throw new Error(`nested edit "${command}"`)
+    // Only a person's typing defers pagination; every other command (AI edits,
+    // formatting, remote changes) sees exact pages.
+    if (origin === 'user' && DEFERRABLE_COMMANDS.has(command)) {
+      if (!this.deferred) {
+        this.doc.raw.beginBatch()
+        this.deferred = true
+      }
+    } else this.settle()
     this.editing = true
     const before = this.selection
     const touched = new Set(this.nodesIn(before))
@@ -139,6 +179,7 @@ export class Session {
   }
 
   undo(): Change | null {
+    this.settle()
     const entry = this.undoStack.pop()
     if (!entry) return null
     const redoSnap = this.doc.saveSnapshot()
@@ -152,6 +193,7 @@ export class Session {
   }
 
   redo(): Change | null {
+    this.settle()
     const entry = this.redoStack.pop()
     if (!entry) return null
     const undoSnap = this.doc.saveSnapshot()
@@ -170,6 +212,7 @@ export class Session {
 
   /** Export for saving. Call `markSaved()` only after the write is confirmed. */
   export(format: HwpFormat = this.format, password?: string): Uint8Array {
+    this.settle()
     return this.doc.export(format, password)
   }
 
@@ -179,6 +222,7 @@ export class Session {
   }
 
   dispose(): void {
+    this.settle()
     for (const e of [...this.undoStack, ...this.redoStack]) this.doc.discardSnapshot(e.snapshot)
     this.undoStack = []
     this.redoStack = []
