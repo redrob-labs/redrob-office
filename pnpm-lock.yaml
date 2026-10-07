@@ -1174,6 +1174,9 @@ importers:
       '@genoffice/hwp-core':
         specifier: workspace:*
         version: link:../../packages/hwp-core
+      '@genoffice/hwp-editor':
+        specifier: workspace:*
+        version: link:../../packages/hwp-editor
       pixelmatch:
         specifier: ^7.2.0
         version: 7.2.0

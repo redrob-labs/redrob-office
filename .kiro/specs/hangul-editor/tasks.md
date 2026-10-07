@@ -67,8 +67,10 @@ Requirement references are in brackets, e.g. [R2.1].
   documents, dirty tracking from `changeSeq`. Add the development flag `REDROB_HANGUL_EDITOR=next`.
   Until E5a lands, refuse an in-place save of a document with tracked changes, and offer Save As.
   [R3.4, R3.6, R4.5, R11.1]
-- [ ] 1.11 Harness: scripted edit scenarios saved and checked in 한글 2024 for both formats. Run in
+- [x] 1.11 Harness: scripted edit scenarios (engine half; findings in `docs/decisions/2026-10-hangul-edit-scenarios.md`; the 한글 2024 open check waits for P-1) saved and checked in 한글 2024 for both formats. Run in
   CI nightly. [R3.2, R3.3, R3.5]
+
+- [ ] 1.12 Fix finding C from 1.11: stored line layout of edited paragraphs in HWPX must reproduce on reopen. [R3.2]
 
 ## Phase 2: Chrome and design parity
 
