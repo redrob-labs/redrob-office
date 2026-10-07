@@ -6,6 +6,10 @@ out/
 .DS_Store
 Thumbs.db
 coverage/
+# The Hangul command-coverage artifacts are committed test fixtures, not a
+# coverage report; the broad coverage/ rule above would otherwise drop them.
+!.kiro/specs/hangul-editor/coverage/
+!.kiro/specs/hangul-editor/coverage/**
 *.tsbuildinfo
 .env
 .env.*
