@@ -1,4 +1,5 @@
-/** panes strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** panes strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   paneCancel: '取消',
   paneOk: '确定',
@@ -273,4 +274,4 @@ export const zh = {
   paneShowEnded: '放映结束。',
   paneShowRehearseTip: '排练计时：当前页停留 / 总时长',
   paneShowRehearseTotal: '总时长 {time}',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

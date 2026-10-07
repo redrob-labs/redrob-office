@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   appMergeWorkbooks: 'ブックの結合',
@@ -1362,4 +1362,4 @@ export const ja = {
   appFindTitle: '検索と選択 ⌘F',
   appReplace: '置換',
   appGoTo: 'ジャンプ',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

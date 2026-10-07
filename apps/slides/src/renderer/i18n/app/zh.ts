@@ -1,5 +1,8 @@
-/** app strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** app strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
+  appSlideRail: '幻灯片',
+  appSlideLabel: '幻灯片 {n}',
   appPhPromptTitle: '单击此处添加标题',
   appPhPromptSubtitle: '单击此处添加副标题',
   appPhPromptBody: '单击此处添加文本',
@@ -216,4 +219,4 @@ export const zh = {
   appSettingsCancel: '取消',
   appSettingsSave: '保存',
   appCropHint: 'Enter 确认 · Esc 取消 · 点击外部确认',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

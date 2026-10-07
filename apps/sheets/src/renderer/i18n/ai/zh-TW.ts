@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
+  aiYou: '你',
+  aiFailedTitle: '助理未能完成',
+  aiStepRunning: '執行中',
+  aiStepDone: '完成',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '建議的提問',
   aiComposerPlaceholderBuild: '描述要生成的表格、資料或圖表…',
   aiEmptyBuildTitle: '讓 AI 幫你從零建表',
   aiEmptyBuildBody: '描述想要的表格、資料或圖表，AI 直接生成。',
@@ -101,4 +107,4 @@ export const zhTW = {
   aiScopeColumns: '已選取 {names} 共 {count} 欄',
   aiScopeRangeTip: 'AI 會把「這一欄 / 這些列 / 選取部分」理解為該範圍；送出後本輪固定不變',
   aiScopeClearTitle: '取消該範圍，本次針對整張工作表',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

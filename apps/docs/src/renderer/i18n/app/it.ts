@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const it = {
   appScTitle: 'Scelte rapide da tastiera',
@@ -352,4 +352,4 @@ export const it = {
   appUpdateStyleTip: 'Aggiorna questo stile con la selezione corrente (riscritto in styles.xml)',
   appNewStyleFromSelection: 'Nuovo stile dalla selezione corrente',
   appStyleNamePlaceholder: 'Nome dello stile',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

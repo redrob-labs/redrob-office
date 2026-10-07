@@ -9,8 +9,18 @@ import type { Editor } from '@tiptap/core'
 import type { CommentInfo } from '@genoffice/docx-engine'
 import { TRACK_IGNORE } from './revisions'
 
+/**
+ * While a file is live, ids come from here instead (comments-sync.ts
+ * liveCommentId), so two people commenting at once cannot pick the same one.
+ */
+let idSource: ((comments: CommentInfo[]) => string) | null = null
+export function setCommentIdSource(source: ((comments: CommentInfo[]) => string) | null): void {
+  idSource = source
+}
+
 /** smallest unused numeric comment id */
 export function nextCommentId(comments: CommentInfo[]): string {
+  if (idSource) return idSource(comments)
   const max = comments.reduce((acc, c) => Math.max(acc, parseInt(c.id, 10) || 0), 0)
   return String(max + 1)
 }

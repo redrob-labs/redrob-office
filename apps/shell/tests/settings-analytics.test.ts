@@ -28,7 +28,7 @@ afterEach(() => {
   host.remove()
 })
 
-async function click(button: HTMLButtonElement): Promise<void> {
+async function click(button: HTMLElement): Promise<void> {
   await act(async () => {
     button.click()
     await Promise.resolve()
@@ -79,14 +79,20 @@ describe('Settings analytics consent', () => {
     expect(general).toBeDefined()
     await click(general!)
 
-    const consent = host.querySelector<HTMLButtonElement>('.set-switch')
+    // the kit Switch: a label wrapping a checkbox input with role="switch"
+    const consent = host.querySelector<HTMLInputElement>('.set-switch input[role="switch"]')
+    expect(consent).not.toBeNull()
     expect(consent?.getAttribute('aria-checked')).toBe('true')
+    expect(consent?.checked).toBe(true)
 
     await click(consent!)
     expect(persist).toHaveBeenLastCalledWith(false)
+    // not persisted: the controlled switch snaps back
     expect(consent?.getAttribute('aria-checked')).toBe('true')
+    expect(consent?.checked).toBe(true)
 
     await click(consent!)
     expect(consent?.getAttribute('aria-checked')).toBe('false')
+    expect(consent?.checked).toBe(false)
   })
 })

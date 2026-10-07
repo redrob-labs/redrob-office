@@ -1,0 +1,59 @@
+name: Sync service
+
+# The sync service is its own project (services/sync, outside the pnpm
+# workspace). This job is not a required check: it builds the Docker Compose
+# stack, runs the unit tests and the stack tests against it, and tears it down.
+on:
+  pull_request:
+    paths:
+      - 'services/sync/**'
+      - '.github/workflows/sync.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: sync service (docker compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/sync
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install
+        run: pnpm install --frozen-lockfile --ignore-workspace
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Start the stack
+        run: docker compose up --build --detach --wait --wait-timeout 180
+
+      - name: Stack tests
+        run: pnpm test:integration
+        env:
+          SYNC_URL: http://127.0.0.1:8787
+
+      - name: Service logs
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down --volumes

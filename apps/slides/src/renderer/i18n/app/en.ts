@@ -1,6 +1,18 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
+  appSlideRail: 'Slides',
+  appSimpleToolbar: 'Everyday tools',
+  appSimpleAsk: 'Ask Redrob',
+  appSimpleCheck: 'Check the figures',
+  appSimpleTighten: 'Tighten',
+  appSimpleTightenPrompt: 'Tighten the text on this slide: fewer words, same meaning, nothing invented.',
+  appSimpleNotes: 'Speaker notes',
+  appSimpleNotesPrompt: 'Write short speaker notes for this slide from what is on it.',
+  appSimplePlay: 'Present',
+  appSaveCopyPptx: 'Save a .pptx copy',
+  appUntitledPptx: 'Untitled.pptx',
+  appSlideLabel: 'Slide {n}',
   appPhPromptTitle: 'Click to add title',
   appPhPromptSubtitle: 'Click to add subtitle',
   appPhPromptBody: 'Click to add text',
@@ -229,4 +241,4 @@ export const en = {
   appSettingsCancel: 'Cancel',
   appSettingsSave: 'Save',
   appCropHint: 'Enter to confirm · Esc to cancel · Click outside to confirm',
-} satisfies Record<keyof typeof zh, string>
+}

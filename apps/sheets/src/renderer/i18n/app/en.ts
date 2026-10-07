@@ -1,7 +1,21 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   appMergeWorkbooks: 'Merge Workbooks',
+  appSimpleToolbar: 'Everyday tools',
+  appSimpleAsk: 'Ask Redrob',
+  appSimpleWrap: 'Wrap text',
+  appSimpleSortAsc: 'Sort A to Z',
+  appSimpleSortDesc: 'Sort Z to A',
+  appSimpleChart: 'Column chart',
+  appSimpleExplain: 'Explain',
+  appSimpleExplainPrompt: 'Explain what this sheet calculates and where each key figure comes from.',
+  appSimpleCheck: 'Check formulas',
+  appSimpleCheckPrompt: 'Check the formulas on this sheet for errors, broken references and figures that do not add up. Point to each cell.',
+  appSimpleSummarize: 'Summarize',
+  appSimpleSummarizePrompt: 'Summarize what this sheet shows in a few short points.',
+  appSaveCopyXlsx: 'Save an .xlsx copy',
+  appUntitledXlsx: 'Untitled.xlsx',
   appMergeWorkbooksTip: 'Append sheets from other Excel files into this workbook',
   appMergeWorkbooksPicking: 'Choose files to merge…',
   appMergeWorkbooksReading: 'Importing {sheet} from {file}…',
@@ -1293,4 +1307,4 @@ export const en = {
   appFindTitle: 'Find & Select ⌘F',
   appReplace: 'Replace',
   appGoTo: 'Go To',
-} satisfies Record<keyof typeof zh, string>
+}

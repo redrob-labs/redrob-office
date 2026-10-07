@@ -1,4 +1,7 @@
 import type { UpdateUiState, UpdateWindowApi } from '../../shared/update-api'
+import { followWindowTheme } from './window-theme'
+
+followWindowTheme()
 
 // exposed by src/preload/update.ts
 const api = (window as unknown as { aiOfficeUpdate: UpdateWindowApi }).aiOfficeUpdate

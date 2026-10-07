@@ -654,6 +654,58 @@ export const DocNoteRef = Node.create({
   },
 })
 
+/**
+ * A linked figure: a number (or the sentence that depends on it) whose source
+ * is a fact in the app's linked-figure index. Saved as a DOCVARIABLE field
+ * whose cached result is `text`, so Word shows the value this file kept.
+ * Its look (waiting, out of date) comes from data attributes the app styles.
+ */
+export const DocLinkedFigure = Node.create({
+  name: 'docLinkedFigure',
+  inline: true,
+  group: 'inline',
+  atom: true,
+  selectable: true,
+  addAttributes() {
+    return {
+      fact: { default: '' },
+      part: { default: 'figures' as 'figures' | 'sentence' },
+      text: { default: '' },
+    }
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'span[data-linked-fact]',
+        getAttrs: (el) => {
+          const e = el as HTMLElement
+          return {
+            fact: e.getAttribute('data-linked-fact') ?? '',
+            part: e.getAttribute('data-linked-part') === 'sentence' ? 'sentence' : 'figures',
+            text: e.textContent ?? '',
+          }
+        },
+      },
+    ]
+  },
+  renderHTML({ node }) {
+    return [
+      'span',
+      {
+        'data-linked-fact': String(node.attrs.fact),
+        'data-linked-part': String(node.attrs.part),
+        class: 'doc-fig',
+        role: 'button',
+        tabindex: '0',
+      },
+      String(node.attrs.text) || ' ',
+    ]
+  },
+  renderText({ node }) {
+    return String(node.attrs.text)
+  },
+})
+
 /** Index entry (XE field) marker: invisible in Word, a small chip on screen. */
 export const DocXeMark = Node.create({
   name: 'docXeMark',
@@ -4723,6 +4775,7 @@ const textboxSubExtensions = [
   // without these marks the whole box fails to load into the sub-editor
   RefFieldMark,
   InstrFieldMark,
+  DocLinkedFigure,
   TextStyleMark,
   CommentMark,
   UndoRedo,
@@ -4788,6 +4841,7 @@ export const editorExtensions = [
   DocText,
   DocHardBreak,
   DocNoteRef,
+  DocLinkedFigure,
   DocXeMark,
   DocRuby,
   DocInlineImage,

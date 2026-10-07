@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
   appMergeWorkbooks: '통합 문서 병합',
@@ -1336,4 +1336,4 @@ export const ko = {
   appFindTitle: '찾기 및 선택 ⌘F',
   appReplace: '바꾸기',
   appGoTo: '이동',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

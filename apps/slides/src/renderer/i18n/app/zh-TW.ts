@@ -1,6 +1,8 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
+  appSlideRail: '投影片',
+  appSlideLabel: '投影片 {n}',
   appPhPromptTitle: '按一下此處新增標題',
   appPhPromptSubtitle: '按一下此處新增副標題',
   appPhPromptBody: '按一下此處新增文字',
@@ -217,4 +219,4 @@ export const zhTW = {
   appSettingsCancel: '取消',
   appSettingsSave: '儲存',
   appCropHint: 'Enter 確認 · Esc 取消 · 點擊外部確認',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

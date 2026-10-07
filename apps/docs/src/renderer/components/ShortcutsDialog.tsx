@@ -61,7 +61,7 @@ export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
           {rows.length === 0 && <p className="sc-empty">{t('appScNone')}</p>}
         </div>
         <div className="modal-actions">
-          <button className="btn-primary" onClick={onClose}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={onClose}>
             {t('appClose')}
           </button>
         </div>

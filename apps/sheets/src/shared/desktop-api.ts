@@ -1,3 +1,5 @@
+import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
+import type { FactsBridgeApi } from '@genoffice/facts'
 import { z } from 'zod'
 
 import {
@@ -2657,7 +2659,7 @@ export interface RecoveryPromptPayload {
   savedAtMs: number
 }
 
-export interface DesktopApi {
+export interface DesktopApi extends Partial<OfficePrefsApi>, Partial<FactsBridgeApi> {
   /** current UI language (persisted by the shell in app-settings.json) */
   getLanguage(): Promise<'zh' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'th' | 'id' | 'ru' | 'ar'>
   /** language switched from the shell home page */

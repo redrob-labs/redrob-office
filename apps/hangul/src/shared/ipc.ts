@@ -1,3 +1,4 @@
+import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { Lang } from '@genoffice/i18n'
 
 /**
@@ -12,6 +13,8 @@ import type { Lang } from '@genoffice/i18n'
 export const HANGUL_CHANNELS = {
   /** studio origin the renderer hands the SDK's studioUrl (local loopback, never a CDN) */
   studioOrigin: 'hangul:studio-origin',
+  /** which editor this view runs: the embedded rhwp-studio, or the owned editor on hwp-core */
+  editorKind: 'hangul:editor-kind',
   /** take the .hwp/.hwpx path pending for this view (queued at tab creation); null = nothing to open */
   consumePending: 'hangul:consume-pending',
   /** read a granted document's bytes for rhwp to load */
@@ -36,6 +39,13 @@ export const HANGUL_CHANNELS = {
 } as const
 
 export type UiTheme = 'light' | 'dark' | 'system'
+
+/**
+ * 'next' is the owned editor (packages/hwp-editor over packages/hwp-core), spec
+ * .kiro/specs/hangul-editor. Until cutover it is selected only by
+ * REDROB_HANGUL_EDITOR=next in an unpackaged build; packaged builds always get 'studio'.
+ */
+export type HangulEditorKind = 'studio' | 'next'
 
 export type HangulFormat = 'hwp' | 'hwpx'
 
@@ -64,12 +74,14 @@ export interface HangulDocumentBytes {
 }
 
 /** API exposed by preload to the renderer (window.hangulApi). */
-export interface HangulApi {
+export interface HangulApi extends Partial<OfficePrefsApi> {
   /**
    * The local, offline rhwp-studio origin the SDK embeds (http://127.0.0.1:<port>),
    * or null when the bundled studio is unavailable. Never a public CDN.
    */
   studioOrigin(): Promise<string | null>
+  /** Which editor to mount (see HangulEditorKind). */
+  editorKind(): Promise<HangulEditorKind>
   /** Take the .hwp/.hwpx path pending for this view; null = nothing to open. */
   consumePending(): Promise<string | null>
   /** Read a granted document's bytes for rhwp to load. Only granted paths are allowed. */

@@ -11,7 +11,7 @@ overrides:
   '@fluentui/react-icons': 2.0.333
   react-konva: 19.2.5
 
-packageExtensionsChecksum: 8e50620379522488a144602cd8efae02
+packageExtensionsChecksum: eb2af74d63fc9a874c5024002bf42826
 
 importers:
 
@@ -41,18 +41,36 @@ importers:
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
+      '@genoffice/facts':
+        specifier: workspace:*
+        version: link:../../packages/facts
       '@genoffice/font-metrics':
         specifier: workspace:*
         version: link:../../packages/font-metrics
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../../packages/pptx-render
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       electron-updater:
         specifier: ^6.8.9
         version: 6.8.9
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
+      y-prosemirror:
+        specifier: 1.3.7
+        version: 1.3.7(prosemirror-model@1.25.11)(prosemirror-state@1.4.4)(prosemirror-view@1.42.1)(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33)
+      y-protocols:
+        specifier: 1.0.7
+        version: 1.0.7(yjs@13.6.33)
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
     devDependencies:
       '@genoffice/agent-core':
         specifier: workspace:*
@@ -147,6 +165,12 @@ importers:
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
+      '@genoffice/hwp-core':
+        specifier: workspace:*
+        version: link:../../packages/hwp-core
+      '@genoffice/hwp-editor':
+        specifier: workspace:*
+        version: link:../../packages/hwp-editor
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -174,6 +198,9 @@ importers:
       jsdom:
         specifier: ^28.0.0
         version: 28.1.0(@noble/hashes@2.2.0)
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
       react:
         specifier: ^19.2.4
         version: 19.2.8
@@ -382,6 +409,9 @@ importers:
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
+      '@genoffice/facts':
+        specifier: workspace:*
+        version: link:../../packages/facts
       '@genoffice/file-parse':
         specifier: workspace:*
         version: link:../../packages/file-parse
@@ -546,12 +576,18 @@ importers:
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
+      '@genoffice/facts':
+        specifier: workspace:*
+        version: link:../../packages/facts
       '@genoffice/hangul':
         specifier: workspace:*
         version: link:../hangul
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/identity':
+        specifier: workspace:*
+        version: link:../../packages/identity
       '@genoffice/pptx-engine':
         specifier: workspace:*
         version: link:../../packages/pptx-engine
@@ -567,9 +603,15 @@ importers:
       '@genoffice/slides':
         specifier: workspace:*
         version: link:../slides
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17
@@ -807,6 +849,18 @@ importers:
         specifier: ^4.1.0
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
+  packages/facts:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
   packages/file-parse:
     dependencies:
       '@genoffice/docx-engine':
@@ -864,18 +918,79 @@ importers:
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../pptx-render
-      react:
-        specifier: ^19.0.0
-        version: 19.2.8
+      '@redrob-labs/ui':
+        specifier: 1.0.2
+        version: 1.0.2(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+      jsdom:
+        specifier: ^28.0.0
+        version: 28.1.0(@noble/hashes@2.2.0)
+      react:
+        specifier: ^19.2.4
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.8(react@19.2.8)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  packages/hwp-core:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.13.3
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@24.13.3)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  packages/hwp-editor:
+    dependencies:
+      '@genoffice/hwp-core':
+        specifier: workspace:*
+        version: link:../hwp-core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.13.3
+      jsdom:
+        specifier: ^28.0.0
+        version: 28.1.0(@noble/hashes@2.2.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@24.13.3)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
 
   packages/i18n:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  packages/identity:
     devDependencies:
       typescript:
         specifier: ^5.9.3
@@ -994,6 +1109,114 @@ importers:
 
   packages/rhwp-editor:
     devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/sync-client:
+    dependencies:
+      '@hocuspocus/provider':
+        specifier: 4.7.0
+        version: 4.7.0(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33)
+      y-protocols:
+        specifier: 1.0.7
+        version: 1.0.7(yjs@13.6.33)
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  packages/versions:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  tests/hangul-collab-spike:
+    dependencies:
+      '@genoffice/hwp-core':
+        specifier: workspace:*
+        version: link:../../packages/hwp-core
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.13.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@24.13.3)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  tests/hangul-fidelity:
+    dependencies:
+      '@embedpdf/pdfium':
+        specifier: ^2.15.0
+        version: 2.15.0
+      '@genoffice/hwp-core':
+        specifier: workspace:*
+        version: link:../../packages/hwp-core
+      '@genoffice/hwp-editor':
+        specifier: workspace:*
+        version: link:../../packages/hwp-editor
+      pixelmatch:
+        specifier: ^7.2.0
+        version: 7.2.0
+      pngjs:
+        specifier: ^7.0.0
+        version: 7.0.0
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.13.3
+      '@types/pngjs':
+        specifier: ^6.0.5
+        version: 6.0.5
+      electron:
+        specifier: ^43.3.0
+        version: 43.6.0
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
+      pdf-lib:
+        specifier: ^1.17.1
+        version: 1.17.1
+      tsx:
+        specifier: ^4.21.0
+        version: 4.23.13
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@24.13.3)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+
+  tests/visual:
+    devDependencies:
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
+      '@types/node':
+        specifier: ^22.20.1
+        version: 22.20.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1711,6 +1934,15 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
+  '@hocuspocus/common@4.7.0':
+    resolution: {integrity: sha512-KyS6dXoIcWsd+v3gwd6nnZW04M77df5XstPNkOwqoDxwuncygobEN7xsf0x2PmdvlQdQyRaLm2SF4r1GZZGRnA==}
+
+  '@hocuspocus/provider@4.7.0':
+    resolution: {integrity: sha512-BOAqoj6g4EZQ9pTwIiR7bNl1QkMAnrr8EY69jMcdhSLFtTrsKaE8hsDIEncPFnGq+khWRFCAPEJSM7F9HC7fvQ==}
+    peerDependencies:
+      y-protocols: ^1.0.6
+      yjs: ^13.6.8
+
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
@@ -1733,6 +1965,9 @@ packages:
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
+
+  '@lifeomic/attempt@3.1.0':
+    resolution: {integrity: sha512-QZqem4QuAnAyzfz+Gj5/+SLxqwCAw2qmt7732ZXodr6VDWGeYLG6w1i/vYLa55JQM9wRuBKLmXmiZ2P0LtE5rw==}
 
   '@malept/cross-spawn-promise@2.0.0':
     resolution: {integrity: sha512-1DpKU0Z5ThltBwjNySMC14g0CkbyhCaz9FkhxqNsZI6uAPJXFS8cMXlBKo26FJ8ZuW6S9GCMcR9IO5k2X5/9Fg==}
@@ -1848,6 +2083,11 @@ packages:
   '@peculiar/webcrypto@1.7.1':
     resolution: {integrity: sha512-ODOov0sGMJMf3jPonOkgGqPknTsu+DdQ7kD++gz8aI+aFMOMHFbWAA2taqXXVTdP+OTOQR/znGvSpmkeI0WTYQ==}
     engines: {node: '>=14.18.0'}
+
+  '@playwright/test@1.63.0':
+    resolution: {integrity: sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -2193,6 +2433,16 @@ packages:
 
   '@radix-ui/rect@1.1.3':
     resolution: {integrity: sha512-JtyZR+mqgBibTo8xea3B6ZRmzZiM/YeVBtUkas6zMuXjAlfIFIW2FgqeM9eLyvEaYX66vr6DJMK+4U6LV0KhNw==}
+
+  '@redrob-labs/ui@1.0.2':
+    resolution: {integrity: sha512-QfjxT1AFq74oJYLuobviBXLR53FAopjZXZolVaqvSmZgDpU7A2CI342rBAtCZuis00WxMcu7xjkrcU7bfVPLWQ==}
+    peerDependencies:
+      '@types/react': 19.2.17
+      react: ^18.2.0 || ^19.0.0
+      react-dom: ^18.2.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   '@rolldown/pluginutils@1.0.0-rc.3':
     resolution: {integrity: sha512-eybk3TjzzzV97Dlj5c+XrBFW57eTNhzod66y9HrBlzJ6NsCrWCp/2kaPS3K9wJmurBC0Tdw4yPjXKZqlznim3Q==}
@@ -3729,6 +3979,9 @@ packages:
     resolution: {integrity: sha512-FFUtZMpoZ8RqHS3XeXEmHWLA4thH+ZxCv2lOiPIn1Xc7CxrqhWzNSDzD+/chS/zbYezmiwWLdQC09JdQKmthOw==}
     engines: {node: '>=20'}
 
+  isomorphic.js@0.2.5:
+    resolution: {integrity: sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==}
+
   its-fine@2.0.0:
     resolution: {integrity: sha512-KLViCmWx94zOvpLwSlsx6yOCeMhZYaxrJV87Po5k/FoZzcPSahvK5qJ7fYhS61sZi5ikmh2S3Hz55A2l3U69ng==}
     peerDependencies:
@@ -3802,6 +4055,11 @@ packages:
 
   lazy-val@1.0.5:
     resolution: {integrity: sha512-0/BnGCCfyUMkBpeDgWihanIAF9JmZhHBgUhEqzvf+adhNGLoP6TaiI5oF8oyb3I45P+PcnrqihSf01M0l0G5+Q==}
+
+  lib0@0.2.119:
+    resolution: {integrity: sha512-vh+TiejVy8Xm+hCdnRfn9BthGNvNUZdEXltNjVZL3TzRIKP3s1lnQh8pWd/Q0wCgY0FPAGVVjFF4ZiHUV3LFgA==}
+    engines: {node: '>=16'}
+    hasBin: true
 
   lie@3.1.1:
     resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
@@ -4080,9 +4338,23 @@ packages:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
 
+  pixelmatch@7.2.0:
+    resolution: {integrity: sha512-xhcb4yHu9sM/G7foGzoLtXYcC0zHEaOXXjRKhGup0fw78Nf2Tkiapv4EQyMzrbcmQPsllAI7DbFY2UT7PlI9Pg==}
+    hasBin: true
+
   pkijs@3.4.0:
     resolution: {integrity: sha512-emEcLuomt2j03vxD54giVB4SxTjnsqkU692xZOZXHDVoYyypEm+b3jpiTcc+Cf+myooc+/Ly0z01jqeNHVgJGw==}
     engines: {node: '>=16.0.0'}
+
+  playwright-core@1.63.0:
+    resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.63.0:
+    resolution: {integrity: sha512-+7ziBLidS4NaNCdt57SUDT+wYmmd5fmiQejUic/kb+YsYSCPyOOE9sebzMjNmQrsnNpDJqd4WHvV/8lfKfUDUg==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   plist@3.1.0:
     resolution: {integrity: sha512-uysumyrvkUX0rX/dEVqt8gC3sTBzd4zoWfLeS29nb53imdaXVvLINYXTI2GNqzaMuvacNx4uJQ8+b3zXR0pkgQ==}
@@ -4894,6 +5166,22 @@ packages:
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
+  y-prosemirror@1.3.7:
+    resolution: {integrity: sha512-NpM99WSdD4Fx4if5xOMDpPtU3oAmTSjlzh5U4353ABbRHl1HtAFUx6HlebLZfyFxXN9jzKMDkVbcRjqOZVkYQg==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
+    peerDependencies:
+      prosemirror-model: ^1.7.1
+      prosemirror-state: ^1.2.3
+      prosemirror-view: 1.42.1
+      y-protocols: ^1.0.1
+      yjs: ^13.5.38
+
+  y-protocols@1.0.7:
+    resolution: {integrity: sha512-YSVsLoXxO67J6eE/nV4AtFtT3QEotZf5sK5BHxFBXso7VDUT3Tx07IfA6hsu5Q5OmBdMkQVmFZ9QOA7fikWvnw==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
+    peerDependencies:
+      yjs: ^13.0.0
+
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
@@ -4923,6 +5211,10 @@ packages:
 
   yauzl@2.10.0:
     resolution: {integrity: sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g==}
+
+  yjs@13.6.33:
+    resolution: {integrity: sha512-q/UYvr1gOk4XII+Cu1CW2dINjYqJJFifTzogEaIARznrvX7uOlHsdTEXcnOBMuIsrCGEEKdNxi74kyMLZlKVfw==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
 
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
@@ -5495,6 +5787,18 @@ snapshots:
       protobufjs: 7.6.5
       yargs: 17.7.3
 
+  '@hocuspocus/common@4.7.0':
+    dependencies:
+      lib0: 0.2.119
+
+  '@hocuspocus/provider@4.7.0(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33)':
+    dependencies:
+      '@hocuspocus/common': 4.7.0
+      '@lifeomic/attempt': 3.1.0
+      lib0: 0.2.119
+      y-protocols: 1.0.7(yjs@13.6.33)
+      yjs: 13.6.33
+
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.3
@@ -5519,6 +5823,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@js-sdsl/ordered-map@4.4.2': {}
+
+  '@lifeomic/attempt@3.1.0': {}
 
   '@malept/cross-spawn-promise@2.0.0':
     dependencies:
@@ -5619,6 +5925,10 @@ snapshots:
       '@peculiar/utils': 2.0.3
       tslib: 2.8.1
       webcrypto-core: 1.9.2
+
+  '@playwright/test@1.63.0':
+    dependencies:
+      playwright: 1.63.0
 
   '@protobufjs/aspromise@1.1.2': {}
 
@@ -5952,6 +6262,13 @@ snapshots:
       '@types/react': 19.2.17
 
   '@radix-ui/rect@1.1.3': {}
+
+  '@redrob-labs/ui@1.0.2(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+    optionalDependencies:
+      '@types/react': 19.2.17
 
   '@rolldown/pluginutils@1.0.0-rc.3': {}
 
@@ -6337,7 +6654,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.2.0
       '@types/keyv': 3.1.4
-      '@types/node': 24.13.3
+      '@types/node': 22.20.1
       '@types/responselike': 1.0.3
 
   '@types/chai@5.2.3':
@@ -6355,13 +6672,13 @@ snapshots:
 
   '@types/fs-extra@9.0.13':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 22.20.1
 
   '@types/http-cache-semantics@4.2.0': {}
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 22.20.1
 
   '@types/ms@2.1.0': {}
 
@@ -6402,7 +6719,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 22.20.1
 
   '@types/use-sync-external-store@0.0.6': {}
 
@@ -8045,6 +8362,8 @@ snapshots:
 
   isexe@4.0.0: {}
 
+  isomorphic.js@0.2.5: {}
+
   its-fine@2.0.0(@types/react@19.2.17)(react@19.2.8):
     dependencies:
       '@types/react-reconciler': 0.28.9(@types/react@19.2.17)
@@ -8134,6 +8453,10 @@ snapshots:
   konva@9.3.22: {}
 
   lazy-val@1.0.5: {}
+
+  lib0@0.2.119:
+    dependencies:
+      isomorphic.js: 0.2.5
 
   lie@3.1.1:
     dependencies:
@@ -8360,6 +8683,10 @@ snapshots:
 
   picomatch@4.0.5: {}
 
+  pixelmatch@7.2.0:
+    dependencies:
+      pngjs: 7.0.0
+
   pkijs@3.4.0:
     dependencies:
       '@noble/hashes': 1.4.0
@@ -8368,6 +8695,12 @@ snapshots:
       pvtsutils: 1.3.6
       pvutils: 1.1.5
       tslib: 2.8.1
+
+  playwright-core@1.63.0: {}
+
+  playwright@1.63.0:
+    dependencies:
+      playwright-core: 1.63.0
 
   plist@3.1.0:
     dependencies:
@@ -8509,7 +8842,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.2
-      '@types/node': 24.13.3
+      '@types/node': 22.20.1
       long: 5.3.2
 
   pump@3.0.4:
@@ -9213,6 +9546,20 @@ snapshots:
 
   xmlchars@2.2.0: {}
 
+  y-prosemirror@1.3.7(prosemirror-model@1.25.11)(prosemirror-state@1.4.4)(prosemirror-view@1.42.1)(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33):
+    dependencies:
+      lib0: 0.2.119
+      prosemirror-model: 1.25.11
+      prosemirror-state: 1.4.4
+      prosemirror-view: 1.42.1
+      y-protocols: 1.0.7(yjs@13.6.33)
+      yjs: 13.6.33
+
+  y-protocols@1.0.7(yjs@13.6.33):
+    dependencies:
+      lib0: 0.2.119
+      yjs: 13.6.33
+
   y18n@5.0.8: {}
 
   yallist@3.1.1: {}
@@ -9240,6 +9587,10 @@ snapshots:
     dependencies:
       buffer-crc32: 0.2.13
       fd-slicer: 1.1.0
+
+  yjs@13.6.33:
+    dependencies:
+      lib0: 0.2.119
 
   yocto-queue@0.1.0: {}
 

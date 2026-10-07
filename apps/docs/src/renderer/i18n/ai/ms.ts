@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
+  aiYou: 'Anda',
+  aiFailedTitle: 'Pembantu tidak dapat menyelesaikan',
+  aiStepRunning: 'Sedang berjalan',
+  aiStepDone: 'Selesai',
+  aiStepFailed: 'Gagal',
+  aiStartersLabel: 'Soalan dicadangkan',
   aiEmptyDraftTitle: 'Biarkan AI merangka dokumen ini untuk anda',
   aiEmptyDraftBody1: 'Terangkan topik dan perkara utama, atau tampal bahan rujukan;',
   aiEmptyDraftBody2: 'AI terus menulis draf pertama pada halaman.',
@@ -153,4 +159,4 @@ export const ms = {
   aiCmdImages: '{count} imej dikemas kini',
   aiCmdToc: 'Jadual kandungan disisipkan ({count} entri)',
   aiCmdSkipped: ' ({count} blok dilindungi dilangkau)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

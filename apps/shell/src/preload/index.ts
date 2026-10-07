@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { IpcRendererEvent } from 'electron'
 import type { AiSettings } from '@genoffice/ai-provider'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import { OFFICE_PREFS_CHANGED, normalizeOfficePrefs } from '@genoffice/electron-utils/office-prefs'
 import type {
   AccountLoginEvent,
   AccountStatus,
@@ -20,6 +21,11 @@ import type {
 import { HOME_CHANNELS, PROJECT_CHANNELS } from '../shared/home-api'
 import type { TabsApi, TabSummary } from '../shared/tabs-api'
 import { TABS_CHANNELS } from '../shared/tabs-api'
+import { normalizeFactsState } from '@genoffice/facts'
+import { IDENTITY_CHANNELS, type IdentityApi } from '@genoffice/identity'
+import { shareBridge } from '@genoffice/sync-client'
+import type { FactsApi } from '../shared/facts-api'
+import { FACTS_CHANNELS } from '../shared/facts-api'
 
 const UI_LANGUAGES: readonly UiLanguage[] = [
   'zh',
@@ -95,6 +101,9 @@ const homeApi: HomeApi = {
   },
   async newHangul(opts) {
     await ipcRenderer.invoke(HOME_CHANNELS.newHangul, opts)
+  },
+  async ask(prompt) {
+    await ipcRenderer.invoke(HOME_CHANNELS.ask, prompt)
   },
   async removeRecent(paths) {
     await ipcRenderer.invoke(HOME_CHANNELS.removeRecent, paths)
@@ -201,6 +210,21 @@ const homeApi: HomeApi = {
     }
     ipcRenderer.on('app:theme-changed', listener)
     return () => ipcRenderer.removeListener('app:theme-changed', listener)
+  },
+  async getOfficePrefs() {
+    return normalizeOfficePrefs(await ipcRenderer.invoke(HOME_CHANNELS.getOfficePrefs))
+  },
+  async setOfficePrefs(patch) {
+    return normalizeOfficePrefs(await ipcRenderer.invoke(HOME_CHANNELS.setOfficePrefs, patch))
+  },
+  onOfficePrefsChanged(handler) {
+    const listener = (_event: Electron.IpcRendererEvent, prefs: unknown) =>
+      handler(normalizeOfficePrefs(prefs))
+    ipcRenderer.on(OFFICE_PREFS_CHANGED, listener)
+    return () => ipcRenderer.removeListener(OFFICE_PREFS_CHANGED, listener)
+  },
+  async takeLaunch() {
+    return (await ipcRenderer.invoke(HOME_CHANNELS.takeLaunch)) === true
   },
   async openGenTeam() {
     await ipcRenderer.invoke(HOME_CHANNELS.openGenTeam)
@@ -373,6 +397,70 @@ const tabsApi: TabsApi = {
 }
 
 contextBridge.exposeInMainWorld('aiOfficeTabs', tabsApi)
+
+// Linked figures: the state is re-read defensively on every crossing
+const factsApi: FactsApi = {
+  async get() {
+    return normalizeFactsState(await ipcRenderer.invoke(FACTS_CHANNELS.get))
+  },
+  async command(cmd) {
+    return normalizeFactsState(await ipcRenderer.invoke(FACTS_CHANNELS.command, cmd))
+  },
+  onChanged(handler) {
+    const listener = (_event: IpcRendererEvent, state: unknown) => handler(normalizeFactsState(state))
+    ipcRenderer.on(FACTS_CHANNELS.changed, listener)
+    return () => ipcRenderer.removeListener(FACTS_CHANNELS.changed, listener)
+  },
+}
+
+contextBridge.exposeInMainWorld('aiOfficeFacts', factsApi)
+
+// Who is signed in: the name only; the token never leaves the main process
+const identityApi: IdentityApi = {
+  async identityStatus() {
+    const r = (await ipcRenderer.invoke(IDENTITY_CHANNELS.status)) as Record<string, unknown> | null
+    const signedIn = r?.signedIn === true
+    return {
+      signedIn,
+      persistent: r?.persistent === true,
+      ...(signedIn && (r?.provider === 'console' || r?.provider === 'dev') ? { provider: r.provider } : {}),
+      ...(signedIn && typeof r?.name === 'string' ? { name: r.name } : {}),
+      ...(signedIn && typeof r?.email === 'string' ? { email: r.email } : {}),
+    }
+  },
+  async startSignIn() {
+    const r = (await ipcRenderer.invoke(IDENTITY_CHANNELS.start)) as Record<string, unknown> | null
+    if (!r || typeof r.id !== 'string') return { status: 'unavailable' as const }
+    return {
+      id: r.id,
+      userCode: typeof r.userCode === 'string' ? r.userCode : null,
+      verificationUri: typeof r.verificationUri === 'string' ? r.verificationUri : null,
+      expiresIn: typeof r.expiresIn === 'number' ? r.expiresIn : 0,
+    }
+  },
+  async awaitSignIn(id) {
+    return (await ipcRenderer.invoke(IDENTITY_CHANNELS.await, id)) as Awaited<ReturnType<IdentityApi['awaitSignIn']>>
+  },
+  async cancelSignIn(id) {
+    await ipcRenderer.invoke(IDENTITY_CHANNELS.cancel, id)
+  },
+  async signOut() {
+    await ipcRenderer.invoke(IDENTITY_CHANNELS.signOut)
+  },
+  onIdentityChanged(handler) {
+    const listener = (_e: IpcRendererEvent, identity: unknown) => {
+      const r = (identity ?? {}) as Record<string, unknown>
+      handler({ signedIn: r.signedIn === true, ...(typeof r.name === 'string' ? { name: r.name } : {}) })
+    }
+    ipcRenderer.on(IDENTITY_CHANNELS.changed, listener)
+    return () => ipcRenderer.removeListener(IDENTITY_CHANNELS.changed, listener)
+  },
+}
+
+contextBridge.exposeInMainWorld('aiOfficeIdentity', identityApi)
+
+// Sharing: invites, people and "Shared with you" go through the shell's sync client
+contextBridge.exposeInMainWorld('aiOfficeShare', shareBridge(ipcRenderer))
 
 // open documents dragged from the OS anywhere over Home or the tab strip
 installDropOpenBridge()

@@ -186,8 +186,8 @@ export function CutoutDialog({ dataUrl, onApply, onCancel }: CutoutProps) {
           {error ? (
             <span
               style={{
-                color: 'var(--danger)',
-                background: 'var(--surface)',
+                color: 'var(--status-danger)',
+                background: 'var(--surface-base)',
                 padding: '4px 10px',
                 borderRadius: 4,
               }}
@@ -205,7 +205,7 @@ export function CutoutDialog({ dataUrl, onApply, onCancel }: CutoutProps) {
             />
           )}
           {!loaded && !error && (
-            <span style={{ color: 'var(--text-muted)' }}>{t('ribbonLoading')}</span>
+            <span style={{ color: 'var(--ink-muted)' }}>{t('ribbonLoading')}</span>
           )}
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
@@ -222,7 +222,7 @@ export function CutoutDialog({ dataUrl, onApply, onCancel }: CutoutProps) {
           />
           <span style={{ width: 32, textAlign: 'right' }}>{tolerance}</span>
         </label>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 4 }}>
           {t('ribbonCutoutHint', { pct: removedPct })}
         </div>
         <div className="modal-actions">
@@ -466,8 +466,8 @@ export function CropDialog({ dataUrl, onApply, onCancel }: CropProps) {
           {error ? (
             <span
               style={{
-                color: 'var(--danger)',
-                background: 'var(--surface)',
+                color: 'var(--status-danger)',
+                background: 'var(--surface-base)',
                 padding: '4px 10px',
                 borderRadius: 4,
               }}
@@ -548,10 +548,10 @@ export function CropDialog({ dataUrl, onApply, onCancel }: CropProps) {
               </div>
             </div>
           ) : (
-            <span style={{ color: 'var(--text-muted)' }}>{t('ribbonLoading')}</span>
+            <span style={{ color: 'var(--ink-muted)' }}>{t('ribbonLoading')}</span>
           )}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
+        <div style={{ fontSize: 12, color: 'var(--ink-muted)', marginTop: 8 }}>
           {t('ribbonCropHint')}
         </div>
         <div className="modal-actions">

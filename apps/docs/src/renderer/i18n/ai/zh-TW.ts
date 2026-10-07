@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
+  aiYou: '你',
+  aiFailedTitle: '助理未能完成',
+  aiStepRunning: '執行中',
+  aiStepDone: '完成',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '建議的提問',
   aiEmptyDraftTitle: '讓 AI 幫你從零起草',
   aiEmptyDraftBody1: '描述主題、要點或貼上參考素材,',
   aiEmptyDraftBody2: 'AI 直接為你寫出初稿。',
@@ -146,4 +152,4 @@ export const zhTW = {
   aiCmdImages: '已更新 {count} 張圖片',
   aiCmdToc: '已插入目錄({count} 個項目)',
   aiCmdSkipped: '(略過 {count} 個受保護區塊)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

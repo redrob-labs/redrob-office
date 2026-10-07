@@ -3,20 +3,19 @@ import { htmlLang, type Lang } from '@genoffice/i18n'
 import { App } from './App'
 import { LocaleProvider, setModuleLang } from './i18n/locale'
 import type { UiTheme } from '../shared/ipc'
+import '@genoffice/ui/theme.css'
+import '@genoffice/ui/preflight.css'
 import '@genoffice/ui/tokens.css'
 import '@genoffice/ui/screentip.css'
 import '@genoffice/ui/color-picker.css'
 import '@genoffice/ui/dropdown.css'
 import './styles.css'
 import './fonts/fonts.css'
-import { installScreenTips } from '@genoffice/ui'
+import { applyUiTheme, installScreenTips } from '@genoffice/ui'
 
 installScreenTips()
 
-function applyTheme(theme: UiTheme): void {
-  if (theme === 'system') document.documentElement.removeAttribute('data-theme')
-  else document.documentElement.setAttribute('data-theme', theme)
-}
+const applyTheme = (theme: UiTheme): void => applyUiTheme(theme)
 
 async function bootstrap(): Promise<void> {
   let lang: Lang = 'zh'

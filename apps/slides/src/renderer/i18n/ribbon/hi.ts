@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const hi = {
   ribbonAiCreditNote: 'AI का उपयोग करता है और क्रेडिट खर्च होते हैं',
@@ -732,4 +732,4 @@ export const hi = {
   ribbonEqStdDev: 'मानक विचलन',
   ribbonEqFourier: 'फ़ूरियर रूपांतरण',
   ribbonEqNormalDist: 'सामान्य बंटन',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

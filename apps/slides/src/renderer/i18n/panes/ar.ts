@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
   paneCancel: 'إلغاء',
@@ -275,4 +275,4 @@ export const ar = {
   paneShowEnded: 'انتهى عرض الشرائح.',
   paneShowRehearseTip: 'التمرن على التوقيت: الوقت على هذه الشريحة / الوقت الإجمالي',
   paneShowRehearseTotal: 'الإجمالي {time}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

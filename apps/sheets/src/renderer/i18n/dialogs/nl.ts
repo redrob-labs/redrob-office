@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const nl = {
   dlgAllowEditRangesTitle: 'Bewerken van bereiken toestaan',
@@ -400,4 +400,4 @@ export const nl = {
   dlgFnDescNpv: 'Geeft de netto huidige waarde van een kasstroom bij een discontovoet.',
   dlgFnDescIrr: 'Geeft het interne rendement van een reeks kasstromen.',
   dlgFnCatFinancial: 'Financieel',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

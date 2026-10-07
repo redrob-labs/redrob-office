@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
   dlgAllowEditRangesTitle: 'อนุญาตให้แก้ไขช่วง',
@@ -396,4 +396,4 @@ export const th = {
   dlgFnDescNpv: 'คืนค่ามูลค่าปัจจุบันสุทธิของกระแสเงินสดตามอัตราคิดลด',
   dlgFnDescIrr: 'คืนค่าอัตราผลตอบแทนภายในของกระแสเงินสด',
   dlgFnCatFinancial: 'การเงิน',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

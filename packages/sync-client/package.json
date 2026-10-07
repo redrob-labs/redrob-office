@@ -1,0 +1,29 @@
+{
+  "name": "@genoffice/sync-client",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "The desktop side of Redrob Office sync: the HTTP client, which local files are shared, and the Share IPC contract (no Electron dependency)",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/shared-index.ts",
+    "./live": "./src/live.ts",
+    "./live-provider": "./src/live-provider.ts"
+  },
+  "dependencies": {
+    "@hocuspocus/provider": "4.7.0",
+    "y-protocols": "1.0.7",
+    "yjs": "13.6.33"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.0"
+  }
+}

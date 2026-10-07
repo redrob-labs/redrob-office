@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
+  aiYou: 'أنت',
+  aiFailedTitle: 'تعذّر على المساعد الإكمال',
+  aiStepRunning: 'قيد التشغيل',
+  aiStepDone: 'تم',
+  aiStepFailed: 'فشل',
+  aiStartersLabel: 'أسئلة مقترحة',
   aiEmptyDraftTitle: 'دع الذكاء الاصطناعي يكتب مسودة هذا المستند لك',
   aiEmptyDraftBody1: 'صف الموضوع والنقاط الرئيسية أو الصق مادة مرجعية؛',
   aiEmptyDraftBody2: 'يكتب الذكاء الاصطناعي المسودة الأولى مباشرة على الصفحة.',
@@ -151,4 +157,4 @@ export const ar = {
   aiCmdImages: 'تم تحديث {count} صورة',
   aiCmdToc: 'تم إدراج جدول محتويات ({count} إدخالًا)',
   aiCmdSkipped: ' (تم تخطي {count} كتلة محمية)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

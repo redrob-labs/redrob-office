@@ -47,6 +47,7 @@ const CONTENT_TYPES: Record<string, string> = {
 let server: Server | null = null
 let originUrl: string | null = null
 let rootDir: string | null = null
+let hostRootDir: string | null = null
 
 /**
  * The file a request maps to inside the studio root, or the SPA entry when the
@@ -65,13 +66,38 @@ function resolveRequest(root: string, url: string): string {
   return target
 }
 
+/** Path prefix the Hangul renderer itself is served under (see serveHangulStudio). */
+export const HOST_PREFIX = '/host/'
+
+/**
+ * The file a /host/ request maps to inside the renderer bundle, or null when
+ * the path climbs out of it. No SPA fallback: a missing renderer asset is a 404.
+ */
+function resolveHostRequest(hostRoot: string, url: string): string | null {
+  const path = decodeURIComponent(new URL(url, 'http://127.0.0.1').pathname)
+  if (!path.startsWith(HOST_PREFIX)) return null
+  const rest = path.slice(HOST_PREFIX.length) || 'index.html'
+  const target = resolve(hostRoot, `.${sep}${normalize(rest)}`)
+  return target.startsWith(hostRoot + sep) ? target : null
+}
+
 /**
  * Start serving the studio directory from a loopback origin and return the
  * origin URL. Idempotent: repeated calls for the same directory return the same
  * running origin.
+ *
+ * `hostDir` also serves the built Hangul renderer under /host/. rhwp-studio
+ * only accepts messages from an http(s) parent (its origin check rejects the
+ * "null" origin a file:// page has), so a packaged build that loaded the
+ * renderer with loadFile could embed the studio but never load a document.
+ * Serving both from one loopback origin gives the parent an http origin and
+ * makes the studio frame same-origin, so the renderer can also theme it.
  */
-export async function serveHangulStudio(studioDir: string): Promise<string> {
-  if (server && originUrl && rootDir === resolve(studioDir)) return originUrl
+export async function serveHangulStudio(studioDir: string, hostDir?: string): Promise<string> {
+  const hostRoot = hostDir ? resolve(hostDir) : null
+  if (server && originUrl && rootDir === resolve(studioDir) && hostRootDir === hostRoot) {
+    return originUrl
+  }
   await stopHangulStudio()
   const root = resolve(studioDir)
   // Fail loudly if the bundle is missing rather than serving 404s the editor
@@ -82,16 +108,29 @@ export async function serveHangulStudio(studioDir: string): Promise<string> {
   }
   const next = createServer((request, response) => {
     void (async () => {
-      const target = request.url
-        ? resolveRequest(root, request.url)
-        : join(root, 'index.html')
+      if (hostRoot && request.url?.startsWith(HOST_PREFIX)) {
+        const file = resolveHostRequest(hostRoot, request.url)
+        const info = file ? await stat(file).catch(() => null) : null
+        if (!file || !info?.isFile()) {
+          response.writeHead(404, { 'content-type': 'text/plain' })
+          response.end('Not found')
+          return
+        }
+        response.writeHead(200, {
+          'content-type': CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
+          'content-length': String(info.size),
+          'cache-control': 'no-store',
+        })
+        createReadStream(file).pipe(response)
+        return
+      }
+      const target = request.url ? resolveRequest(root, request.url) : join(root, 'index.html')
       try {
         const info = await stat(target)
         const file = info.isFile() ? target : join(root, 'index.html')
         const size = info.isFile() ? info.size : (await stat(file)).size
         response.writeHead(200, {
-          'content-type':
-            CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
+          'content-type': CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
           'content-length': String(size),
           'cache-control': 'no-store',
         })
@@ -129,6 +168,7 @@ export async function serveHangulStudio(studioDir: string): Promise<string> {
   next.keepAliveTimeout = 1_000
   server = next
   rootDir = root
+  hostRootDir = hostRoot
   originUrl = `http://127.0.0.1:${address.port}`
   return originUrl
 }
@@ -144,6 +184,7 @@ export async function stopHangulStudio(): Promise<void> {
   server = null
   originUrl = null
   rootDir = null
+  hostRootDir = null
   if (!open) return
   open.closeAllConnections()
   await new Promise<void>((resolve_) => open.close(() => resolve_()))
@@ -153,4 +194,7 @@ export async function stopHangulStudio(): Promise<void> {
  * The request-resolution helper, exported for unit tests: proves a path that
  * climbs out of the root is redirected to the SPA entry rather than escaping.
  */
-export { resolveRequest as __resolveRequestForTest }
+export {
+  resolveRequest as __resolveRequestForTest,
+  resolveHostRequest as __resolveHostRequestForTest,
+}

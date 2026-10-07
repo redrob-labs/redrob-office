@@ -280,7 +280,7 @@ export function ChartKindThumb({ kind, width = 96 }: { kind: ChartKind; width?: 
       />,
     )
     if (kind === 'doughnut')
-      els.push(<circle key="ph" cx={cx} cy={cy} r={r * 0.5} fill="var(--surface, #fff)" />)
+      els.push(<circle key="ph" cx={cx} cy={cy} r={r * 0.5} fill="var(--surface-base, #fff)" />)
   }
 
   return (
@@ -318,10 +318,13 @@ export function ChartTypeDialog({ current, onConfirm, onClose }: Props) {
           ))}
         </div>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('paneCancel')}
           </button>
-          <button className="btn-primary" onClick={() => onConfirm(selected)}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+            onClick={() => onConfirm(selected)}
+          >
             {t('paneOk')}
           </button>
         </div>

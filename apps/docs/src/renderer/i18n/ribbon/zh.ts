@@ -1,4 +1,5 @@
-/** ribbon strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** ribbon strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   ribbonAiCreditNote: '将调用 AI 并消耗额度',
   ribbonAiRewriteConfirm:
@@ -701,4 +702,4 @@ export const zh = {
   ribbonClearAll: '全部清除',
   ribbonClearAllTip: '删除文档中的所有笔迹',
   ribbonGroupClear: '清除',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

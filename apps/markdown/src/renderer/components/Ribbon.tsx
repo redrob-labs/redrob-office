@@ -1,22 +1,34 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
 import { useEditorState } from '@tiptap/react'
-import { Dropdown, useDismissablePopover } from '@genoffice/ui'
+import {
+  Button,
+  Dropdown,
+  Input,
+  Switch,
+  Toolbar,
+  ToolbarButton,
+  ToolbarGroup,
+  ToolbarSpacer,
+  useDismissablePopover,
+} from '@genoffice/ui'
 import { useI18n } from '../i18n/locale'
 import type { StringKey } from '../i18n/locale'
 import { GensparkMark } from '../ai/AiPanel'
 import { liftFromList } from '../editor/slashCommand'
 import {
+  IconBold,
   IconBullets,
   IconHr,
   IconInlineCode,
+  IconItalic,
   IconLink,
   IconNumbered,
   IconPicture,
   IconProperties,
   IconRedo,
   IconSave,
+  IconStrike,
   IconTable,
   IconTaskList,
   IconUndo,
@@ -113,34 +125,6 @@ function AiFeatureIcon({ kind }: { kind: 'summarize' | 'polish' | 'tidy' }) {
   )
 }
 
-function IconBtn({
-  title,
-  active,
-  disabled,
-  onClick,
-  children,
-}: {
-  title: string
-  active?: boolean
-  disabled?: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      className={`rb-btn${active ? ' active' : ''}`}
-      data-tip={title}
-      aria-label={title}
-      disabled={disabled}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  )
-}
-
 export function Ribbon({
   editor,
   disabled,
@@ -159,7 +143,6 @@ export function Ribbon({
   const { t } = useI18n()
   const [linkOpen, setLinkOpen] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
-  const linkInputRef = useRef<HTMLInputElement>(null)
   const linkAnchorRef = useRef<HTMLSpanElement>(null)
 
   const state = useEditorState({
@@ -190,10 +173,6 @@ export function Ribbon({
     },
   })
 
-  useEffect(() => {
-    if (linkOpen) linkInputRef.current?.focus()
-  }, [linkOpen])
-
   useDismissablePopover(linkOpen, () => setLinkOpen(false), {
     inside: () => [linkAnchorRef.current],
   })
@@ -215,12 +194,11 @@ export function Ribbon({
     setLinkOpen(false)
   }
 
-  // 20px inline-row rendering, same as the docs toolbar these icons come from
-  // (pinned stroke paints 1.5px at this size per the suite-wide icon rules)
-  const ICON = 20
+  // inline toolbar glyphs: 18px kit icons in a 28px plate
+  const ICON = 18
 
   // polish/tidy act on the selection when one exists (read at click time; the
-  // mousedown preventDefault below keeps the selection alive); summarize stays whole-doc
+  // ToolbarButton keeps the selection alive); summarize stays whole-doc
   const hasSelection = () => !(editor?.state.selection.empty ?? true)
   const aiPresets = [
     { kind: 'summarize', btn: 'aiSummarizeBtn', prompt: () => t('aiSummarizePrompt') },
@@ -236,245 +214,212 @@ export function Ribbon({
     },
   ] as const
 
+  const chain = () => editor?.chain().focus()
+
   return (
     <div className="ribbon">
-      {/* quick-access row above the toolbar (save / undo / redo / autosave), same as the docs QAT row */}
-      <div className="ribbon-tabs">
-        <button
-          type="button"
-          className="qa-btn"
-          data-tip={t('save')}
-          aria-label={t('save')}
-          disabled={off || !dirty}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={onSave}
-        >
-          <IconSave size={16} />
-        </button>
-        <button
-          type="button"
-          className="qa-btn"
-          data-tip={t('undo')}
-          aria-label={t('undo')}
-          disabled={off || !state?.canUndo}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor?.chain().focus().undo().run()}
-        >
-          <IconUndo size={16} />
-        </button>
-        <button
-          type="button"
-          className="qa-btn"
-          data-tip={t('redo')}
-          aria-label={t('redo')}
-          disabled={off || !state?.canRedo}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor?.chain().focus().redo().run()}
-        >
-          <IconRedo size={16} />
-        </button>
-        <label className={`autosave-toggle${autoSave ? ' on' : ''}`} data-tip={t('autoSaveTip')}>
-          <span className="autosave-knob" />
-          <span className="autosave-text">{t('autoSave')}</span>
-          <input
-            type="checkbox"
+      {/* quick-access row above the toolbar (save / undo / redo / autosave); it
+          doubles as the window drag strip */}
+      <Toolbar label={t('ribbonQuickAccess')} className="ribbon-tabs">
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('save')}
+            shortcut="Ctrl+S"
+            icon={<IconSave size={16} />}
+            disabled={off || !dirty}
+            onClick={onSave}
+          />
+          <ToolbarButton
+            label={t('undo')}
+            shortcut="Ctrl+Z"
+            icon={<IconUndo size={16} />}
+            disabled={off || !state?.canUndo}
+            onClick={() => chain()?.undo().run()}
+          />
+          <ToolbarButton
+            label={t('redo')}
+            shortcut="Ctrl+Y"
+            icon={<IconRedo size={16} />}
+            disabled={off || !state?.canRedo}
+            onClick={() => chain()?.redo().run()}
+          />
+          <Switch
+            className="autosave-toggle"
+            size="sm"
+            label={t('autoSave')}
             checked={autoSave}
+            data-tip={t('autoSaveTip')}
             onChange={(e) => onToggleAutoSave(e.target.checked)}
           />
-        </label>
-      </div>
+        </ToolbarGroup>
+      </Toolbar>
 
-      <div className="ribbon-body">
-        <div className="ribbon-group">
-          <div className="ribbon-group-items">
-            <button
-              type="button"
-              className={`rb-big ai-entry${aiOpen ? ' active' : ''}`}
-              data-tip={t('aiOpenAssistant')}
-              disabled={disabled}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={onToggleAi}
-            >
-              <span className="rb-big-icon">
-                <GensparkMark size={26} />
-              </span>
-              <span>Redrob AI</span>
-            </button>
-            {aiPresets.map(({ kind, btn, prompt }) => (
-              <button
-                key={kind}
-                type="button"
-                className="rb-big ai-entry"
-                data-tip={t(btn)}
-                disabled={off || state?.empty}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onAiPreset(prompt())}
-              >
-                <span className="rb-big-icon">
-                  <span className="ai-feature-icon" aria-hidden="true">
-                    <AiFeatureIcon kind={kind} />
-                  </span>
+      <Toolbar label={t('ribbonFormatting')} className="ribbon-body">
+        <ToolbarGroup>
+          <ToolbarButton
+            size="lg"
+            className="ai-entry"
+            label="Redrob AI"
+            detail={t('aiOpenAssistant')}
+            pressed={aiOpen}
+            icon={<GensparkMark size={26} />}
+            disabled={disabled}
+            onClick={onToggleAi}
+          />
+          {aiPresets.map(({ kind, btn, prompt }) => (
+            <ToolbarButton
+              key={kind}
+              size="lg"
+              className="ai-entry"
+              label={t(btn)}
+              icon={
+                <span className="ai-feature-icon">
+                  <AiFeatureIcon kind={kind} />
                 </span>
-                <span>{t(btn)}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="rb-sep" />
-
-        <div className="ribbon-group">
-          <div className="ribbon-group-items">
-            <Dropdown
-              className="rb-style"
-              value={state?.style ?? 'paragraph'}
-              disabled={off}
-              options={(Object.keys(STYLE_LABEL) as BlockStyle[]).map((s) => ({
-                value: s,
-                label: t(STYLE_LABEL[s]),
-              }))}
-              onPick={(s) => editor && applyBlockStyle(editor, s)}
-            />
-          </div>
-        </div>
-
-        <div className="rb-sep" />
-
-        <div className="ribbon-group">
-          <div className="ribbon-group-items">
-            <IconBtn
-              title={t('bold')}
-              active={state?.bold}
-              disabled={off}
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-            >
-              <b>B</b>
-            </IconBtn>
-            <IconBtn
-              title={t('italic')}
-              active={state?.italic}
-              disabled={off}
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-            >
-              <i>I</i>
-            </IconBtn>
-            <IconBtn
-              title={t('strike')}
-              active={state?.strike}
-              disabled={off}
-              onClick={() => editor?.chain().focus().toggleStrike().run()}
-            >
-              <s>ab</s>
-            </IconBtn>
-            <IconBtn
-              title={t('inlineCode')}
-              active={state?.code}
-              disabled={off}
-              onClick={() => editor?.chain().focus().toggleCode().run()}
-            >
-              <IconInlineCode size={ICON} />
-            </IconBtn>
-            <span className="rb-link-anchor" ref={linkAnchorRef}>
-              <IconBtn title={t('link')} active={state?.link} disabled={off} onClick={openLink}>
-                <IconLink size={ICON} />
-              </IconBtn>
-              {linkOpen && (
-                <span className="rb-link-pop" onMouseDown={(e) => e.stopPropagation()}>
-                  <input
-                    ref={linkInputRef}
-                    value={linkUrl}
-                    placeholder={t('linkPlaceholder')}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && linkUrl.trim()) applyLink()
-                      if (e.key === 'Escape') setLinkOpen(false)
-                    }}
-                  />
-                  <button type="button" disabled={!linkUrl.trim()} onClick={applyLink}>
-                    {t('linkApply')}
-                  </button>
-                </span>
-              )}
-            </span>
-          </div>
-        </div>
-
-        <div className="rb-sep" />
-
-        <div className="ribbon-group">
-          <div className="ribbon-group-items">
-            <IconBtn
-              title={t('bulletList')}
-              active={state?.bullet}
-              disabled={off}
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            >
-              <IconBullets size={ICON} />
-            </IconBtn>
-            <IconBtn
-              title={t('orderedList')}
-              active={state?.ordered}
-              disabled={off}
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            >
-              <IconNumbered size={ICON} />
-            </IconBtn>
-            <IconBtn
-              title={t('taskList')}
-              active={state?.task}
-              disabled={off}
-              onClick={() => editor?.chain().focus().toggleTaskList().run()}
-            >
-              <IconTaskList size={ICON} />
-            </IconBtn>
-          </div>
-        </div>
-
-        <div className="rb-sep" />
-
-        <div className="ribbon-group">
-          <div className="ribbon-group-items">
-            <IconBtn
-              title={t('insertTable')}
-              disabled={off}
-              onClick={() =>
-                editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
               }
-            >
-              <IconTable size={ICON} />
-            </IconBtn>
-            <IconBtn
-              title={t('insertImage')}
-              disabled={off || !imageEnabled}
-              onClick={onInsertImage}
-            >
-              <IconPicture size={ICON} />
-            </IconBtn>
-            <IconBtn
-              title={t('insertHr')}
+              disabled={off || state?.empty}
+              onClick={() => onAiPreset(prompt())}
+            />
+          ))}
+        </ToolbarGroup>
+
+        <ToolbarGroup>
+          <Dropdown
+            className="rb-style"
+            value={state?.style ?? 'paragraph'}
+            disabled={off}
+            ariaLabel={t('blockStyle')}
+            options={(Object.keys(STYLE_LABEL) as BlockStyle[]).map((s) => ({
+              value: s,
+              label: t(STYLE_LABEL[s]),
+            }))}
+            onPick={(s) => editor && applyBlockStyle(editor, s)}
+          />
+        </ToolbarGroup>
+
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('bold')}
+            shortcut="Ctrl+B"
+            icon={<IconBold size={ICON} />}
+            pressed={state?.bold ?? false}
+            disabled={off}
+            onClick={() => chain()?.toggleBold().run()}
+          />
+          <ToolbarButton
+            label={t('italic')}
+            shortcut="Ctrl+I"
+            icon={<IconItalic size={ICON} />}
+            pressed={state?.italic ?? false}
+            disabled={off}
+            onClick={() => chain()?.toggleItalic().run()}
+          />
+          <ToolbarButton
+            label={t('strike')}
+            icon={<IconStrike size={ICON} />}
+            pressed={state?.strike ?? false}
+            disabled={off}
+            onClick={() => chain()?.toggleStrike().run()}
+          />
+          <ToolbarButton
+            label={t('inlineCode')}
+            icon={<IconInlineCode size={ICON} />}
+            pressed={state?.code ?? false}
+            disabled={off}
+            onClick={() => chain()?.toggleCode().run()}
+          />
+          <span className="rb-link-anchor" ref={linkAnchorRef}>
+            <ToolbarButton
+              label={t('link')}
+              icon={<IconLink size={ICON} />}
+              pressed={state?.link ?? false}
               disabled={off}
-              onClick={() => editor?.chain().focus().setHorizontalRule().run()}
-            >
-              <IconHr size={ICON} />
-            </IconBtn>
-          </div>
-        </div>
+              onClick={openLink}
+            />
+            {linkOpen && (
+              <span
+                className="rb-link-pop"
+                data-toolbar-skip=""
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <Input
+                  autoFocus
+                  className="rb-link-input"
+                  size="sm"
+                  aria-label={t('link')}
+                  value={linkUrl}
+                  placeholder={t('linkPlaceholder')}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && linkUrl.trim()) applyLink()
+                    if (e.key === 'Escape') setLinkOpen(false)
+                  }}
+                />
+                <Button variant="primary" size="sm" disabled={!linkUrl.trim()} onClick={applyLink}>
+                  {t('linkApply')}
+                </Button>
+              </span>
+            )}
+          </span>
+        </ToolbarGroup>
 
-        <div className="rb-spacer" />
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('bulletList')}
+            icon={<IconBullets size={ICON} />}
+            pressed={state?.bullet ?? false}
+            disabled={off}
+            onClick={() => chain()?.toggleBulletList().run()}
+          />
+          <ToolbarButton
+            label={t('orderedList')}
+            icon={<IconNumbered size={ICON} />}
+            pressed={state?.ordered ?? false}
+            disabled={off}
+            onClick={() => chain()?.toggleOrderedList().run()}
+          />
+          <ToolbarButton
+            label={t('taskList')}
+            icon={<IconTaskList size={ICON} />}
+            pressed={state?.task ?? false}
+            disabled={off}
+            onClick={() => chain()?.toggleTaskList().run()}
+          />
+        </ToolbarGroup>
 
-        <div className="ribbon-group">
-          <div className="ribbon-group-items">
-            <IconBtn
-              title={t('fmProperties')}
-              active={frontmatterOpen}
-              disabled={disabled}
-              onClick={onToggleFrontmatter}
-            >
-              <IconProperties size={ICON} />
-            </IconBtn>
-          </div>
-        </div>
-      </div>
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('insertTable')}
+            icon={<IconTable size={ICON} />}
+            disabled={off}
+            onClick={() => chain()?.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          />
+          <ToolbarButton
+            label={t('insertImage')}
+            icon={<IconPicture size={ICON} />}
+            disabled={off || !imageEnabled}
+            onClick={onInsertImage}
+          />
+          <ToolbarButton
+            label={t('insertHr')}
+            icon={<IconHr size={ICON} />}
+            disabled={off}
+            onClick={() => chain()?.setHorizontalRule().run()}
+          />
+        </ToolbarGroup>
+
+        <ToolbarSpacer />
+
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('fmProperties')}
+            icon={<IconProperties size={ICON} />}
+            pressed={frontmatterOpen}
+            disabled={disabled}
+            onClick={onToggleFrontmatter}
+          />
+        </ToolbarGroup>
+      </Toolbar>
     </div>
   )
 }

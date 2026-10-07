@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const fr = {
+  aiYou: 'Vous',
+  aiFailedTitle: 'L’assistant n’a pas pu terminer',
+  aiStepRunning: 'En cours',
+  aiStepDone: 'Terminé',
+  aiStepFailed: 'Échec',
+  aiStartersLabel: 'Suggestions de questions',
   aiEmptyDraftTitle: "Laissez l'IA rédiger ce document pour vous",
   aiEmptyDraftBody1: 'Décrivez le sujet et les points clés, ou collez vos références ;',
   aiEmptyDraftBody2: "l'IA écrit le premier jet directement sur la page.",
@@ -155,4 +161,4 @@ export const fr = {
   aiCmdImages: '{count} image(s) mise(s) à jour',
   aiCmdToc: 'Table des matières insérée ({count} entrées)',
   aiCmdSkipped: ' ({count} bloc(s) protégé(s) ignoré(s))',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

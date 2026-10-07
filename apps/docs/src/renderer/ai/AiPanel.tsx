@@ -22,13 +22,32 @@ import { DOCS_CONTINUE_INSTRUCTION } from './continuation'
 import { createFilesSkill } from './files-skill'
 import { createElectronTransport } from './transport'
 import { useI18n, t as tModule, aiLangDirective, type StringKey } from '../i18n/locale'
-import { Markdown } from '@genoffice/ui'
-import { AiComposer, AiTypingIndicator } from '@genoffice/ui'
-import { GensparkMark } from '../components/icons'
-import sendEnterOn from '../assets/send-enter-on.png'
-import sendEnterOff from '../assets/send-enter-off.png'
-import sendStop from '../assets/send-stop.png'
-import attachIcon from '../assets/attach-icon.png'
+import {
+  AgentComposer,
+  AgentEmpty,
+  AgentFailure,
+  AgentMessage,
+  AgentPanelHeader,
+  AgentSteps,
+  AgentWorking,
+  Alert,
+  Button,
+  Icon,
+  IconButton,
+  Markdown,
+  RedrobMark,
+  PlanReply,
+  RedrobModeSwitch,
+  RedrobReceipt,
+  RedrobStatus,
+  parsePlan,
+  planRequest,
+  runPlanRequest,
+  useRedrobPrefs,
+  type AgentStepsStrings,
+  type PlanStatus,
+  type RunReport,
+} from '@genoffice/ui'
 import filePdfIcon from '../assets/file-pdf.png'
 import fileWordIcon from '../assets/file-word.png'
 import fileExcelIcon from '../assets/file-excel.png'
@@ -38,7 +57,6 @@ import fileVideoIcon from '../assets/file-video.png'
 import fileVoiceIcon from '../assets/file-voice.png'
 import fileDocumentIcon from '../assets/file-document.png'
 import fileGeneralIcon from '../assets/file-general.png'
-import { IconNewChat, IconSidebarCollapse } from '../components/icons'
 
 interface ToolActivity {
   name: string
@@ -80,6 +98,10 @@ interface ChatEntry {
   snapshot?: PmNode
   /** attachments consumed from the composer by this user message (read-only echo chips) */
   attachments?: AttachmentMeta[]
+  /** Plan mode: the plan this read-only run wrote, shown as a document outside the bubble */
+  plan?: { request: string; steps: string[]; status: PlanStatus }
+  /** what the run reported, shown as one receipt under the answer */
+  report?: RunReport
 }
 
 /** clickable starter prompts for the empty state (fill the input, do not send) —
@@ -283,6 +305,12 @@ interface AiPanelProps {
   commentsAccess?: AiCommentsAccess
   /** header/footer state for the set_header_footer tool and per-turn context */
   hfAccess?: AiHeaderFooterAccess
+  /**
+   * Hosted by the shared EditorFrame: the frame owns the panel's width, its
+   * resize handle and hiding it, so the panel draws neither a resizer nor the
+   * collapsed rail.
+   */
+  hosted?: boolean
 }
 
 export function AiPanel({
@@ -304,6 +332,7 @@ export function AiPanel({
   onQueueConsume,
   commentsAccess,
   hfAccess,
+  hosted = false,
 }: AiPanelProps) {
   const { t, lang } = useI18n()
   // Panel chrome follows the UI language; message text follows its own content (dir=auto below)
@@ -419,6 +448,15 @@ export function AiPanel({
   editorRef.current = editor
   const settingsRef = useRef(settings)
   settingsRef.current = settings
+  // Plan or Run for the next message (default from Settings), and the status line's prefs
+  // (outside the suite, and in tests, there is no preload: the defaults stand)
+  const { mode, setMode, ...prefs } = useRedrobPrefs(
+    typeof window === 'undefined' ? undefined : window.desktop,
+  )
+  /** the request a running read-only Plan run is planning (null for a normal run) */
+  const planRunRef = useRef<string | null>(null)
+  /** steps of the approved plan the running run follows */
+  const planStepsRef = useRef(0)
   const blocksRef = useRef(blocks)
   blocksRef.current = blocks
   const numIdFallbackRef = useRef(numIdFallback)
@@ -469,7 +507,14 @@ export function AiPanel({
   /** Tool activity of the whole run (with args/output, accumulated across turns) — for full
       transcript persistence, and so persisting needn't do side effects inside a setState updater */
   const runToolsRef = useRef<
-    Array<{ name: string; summary: string; isError?: boolean; input?: string; output?: string }>
+    Array<{
+      name: string
+      summary: string
+      isError?: boolean
+      mutated?: boolean
+      input?: string
+      output?: string
+    }>
   >([])
 
   // ── Chat-history persistence ────────────────────────────────────────────
@@ -623,6 +668,7 @@ export function AiPanel({
             name: call.name,
             summary: execution.summary,
             isError: execution.isError,
+            mutated: !!execution.mutated,
             input: safeJsonInput(call.input),
             output: execution.output
               ? execution.output.slice(0, PERSIST_TOOL_FIELD_MAX)
@@ -659,14 +705,40 @@ export function AiPanel({
           const finalText = truncated
             ? [baseText, tModule('aiTruncatedNote')].filter(Boolean).join('\n\n')
             : baseText
-          patchLastAssistant((last) => ({
-            streaming: false,
-            turnLimit,
-            text: finalText || (last.tools?.length ? last.text : tModule('aiNoReply')),
-            // A stop mid-tool can leave a running placeholder behind — drop it
-            tools: last.tools?.filter((tl) => !tl.running),
-            snapshot: runSnapshotRef.current ?? undefined,
-          }))
+          const planOf = planRunRef.current
+          planRunRef.current = null
+          const planSteps = planStepsRef.current
+          planStepsRef.current = 0
+          const changes = runToolsRef.current.filter((tl) => !tl.isError && tl.mutated).length
+          const s = settingsRef.current
+          const model = s.providers[s.provider]?.model?.trim()
+          patchLastAssistant((last) =>
+            planOf && !cancelled
+              ? {
+                  // the read-only run wrote a plan: it renders as a document, nothing changed
+                  streaming: false,
+                  text: '',
+                  tools: undefined,
+                  plan: { request: planOf, steps: parsePlan(finalText), status: 'draft' },
+                }
+              : {
+                  streaming: false,
+                  turnLimit,
+                  text: finalText || (last.tools?.length ? last.text : tModule('aiNoReply')),
+                  // A stop mid-tool can leave a running placeholder behind — drop it
+                  tools: last.tools?.filter((tl) => !tl.running),
+                  snapshot: runSnapshotRef.current ?? undefined,
+                  // only what the run itself reports; nothing is invented to fill a row
+                  report: cancelled
+                    ? undefined
+                    : {
+                        model: model || 'Redrob Auto',
+                        chosenBy: model ? 'you' : 'auto',
+                        ...(planSteps > 0 ? { planSteps } : {}),
+                        ...(changes > 0 ? { changes } : {}),
+                      },
+                },
+          )
           setBusy(false)
           // App listens: a run that generated content into a never-saved document
           // triggers a silent first save with a content-derived file name
@@ -774,7 +846,28 @@ export function AiPanel({
     stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48
   }
 
-  const run = () => runWith(input.trim())
+  const run = () => {
+    const text = input.trim()
+    if (!text) return
+    if (mode === 'plan') runWith(planRequest(text), text, undefined, { planOf: text })
+    else runWith(text)
+  }
+
+  /** the person approved a plan (possibly edited): run it as a normal run */
+  const runPlan = (entryIdx: number, request: string, steps: string[]) => {
+    setChat((prev) =>
+      prev.map((e, i) =>
+        i === entryIdx && e.plan ? { ...e, plan: { ...e.plan, steps, status: 'running' } } : e,
+      ),
+    )
+    runWith(runPlanRequest(request, steps), request, undefined, { planSteps: steps.length })
+  }
+  const keepPlan = (entryIdx: number) =>
+    setChat((prev) =>
+      prev.map((e, i) =>
+        i === entryIdx && e.plan ? { ...e, plan: { ...e.plan, status: 'kept' } } : e,
+      ),
+    )
 
   /** Image attachments are read as base64 and go multimodal with this user message (≤5MB per image, max 20) */
   const MAX_IMAGES_PER_MESSAGE = 20
@@ -804,6 +897,7 @@ export function AiPanel({
     instruction: string,
     displayInstruction = instruction,
     attachmentsOverride?: AttachmentMeta[],
+    runOptions?: { planOf?: string; planSteps?: number },
   ) => {
     const loop = loopRef.current
     if (!instruction || !loop || loop.busy) return
@@ -822,6 +916,8 @@ export function AiPanel({
     lastAttachmentsRef.current = sentAtts
     instructionRef.current = instruction
     lastInstructionRef.current = instruction
+    planRunRef.current = runOptions?.planOf ?? null
+    planStepsRef.current = runOptions?.planSteps ?? 0
     runToolsRef.current = []
     runSnapshotRef.current = null
     stickToBottomRef.current = true
@@ -844,7 +940,8 @@ export function AiPanel({
         window.setTimeout(() => setAttachNotice(null), 5000)
         return []
       })
-      .then((images) => loop.run(instruction, images))
+      // a Plan run is read-only: the model is offered no tools, so the file cannot change
+      .then((images) => loop.run(instruction, images, { readOnly: !!runOptions?.planOf }))
   }
 
   const cancel = () => loopRef.current?.cancel()
@@ -990,7 +1087,7 @@ export function AiPanel({
   }
 
   // collapsed: rail only — after all hooks, so the instance and its state survive
-  if (!open) {
+  if (!open && !hosted) {
     return (
       <button
         className="ai-rail"
@@ -998,10 +1095,18 @@ export function AiPanel({
         aria-label={t('appExpandAiPanel')}
         onClick={onExpand}
       >
-        <GensparkMark size={22} />
+        <RedrobMark size={22} />
       </button>
     )
   }
+
+  const stepStrings = (tools: ReadonlyArray<ToolActivity>): AgentStepsStrings => ({
+    worked: t('aiWorkedSteps', { n: tools.length }),
+    working: t('aiGroupWorking'),
+    running: t('aiStepRunning'),
+    done: t('aiStepDone'),
+    failed: t('aiStepFailed'),
+  })
 
   return (
     <aside
@@ -1021,87 +1126,74 @@ export function AiPanel({
       }}
       onDrop={onDrop}
     >
-      <div
-        className="ai-panel-resizer"
-        onPointerDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label={t('aiPanelTitle')}
+      {!hosted && (
+        <div
+          className="ai-panel-resizer"
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t('aiPanelTitle')}
+        />
+      )}
+      <AgentPanelHeader
+        title={t('aiPanelTitle')}
+        actions={[
+          chat.length > 0 && {
+            label: t('aiNewChatTitle'),
+            icon: <Icon name="edit" size={16} />,
+            onClick: newChat,
+          },
+          !!onCollapse && {
+            label: t('aiCollapseTitle'),
+            icon: <Icon name="sidebar" size={16} />,
+            onClick: onCollapse,
+          },
+        ]}
       />
-      <div className="ai-panel-header">
-        <span className="ai-panel-title">
-          <GensparkMark size={22} />
-          {t('aiPanelTitle')}
-        </span>
-        <div className="ai-panel-header-actions">
-          {chat.length > 0 && (
-            <button
-              className="ai-header-btn"
-              onClick={newChat}
-              data-tip={t('aiNewChatTitle')}
-              aria-label={t('aiNewChatTitle')}
-            >
-              <IconNewChat size={16} />
-            </button>
-          )}
-          {onCollapse && (
-            <button
-              className="ai-header-btn"
-              onClick={onCollapse}
-              data-tip={t('aiCollapseTitle')}
-              aria-label={t('aiCollapseTitle')}
-            >
-              <IconSidebarCollapse size={15} />
-            </button>
-          )}
-        </div>
-      </div>
 
       <div ref={logRef} className="ai-chat" onScroll={onLogScroll}>
         {/* past conversation (read-only transcript, not fed to the model), shown continuously with the current turn */}
         {historicChat.length > 0 && (
           <>
             {historicChat.map((entry, i) => (
-              <div key={`h${i}`} className={`ai-msg ai-msg-${entry.role} ai-msg-historic`}>
-                {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
-                  <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
-                )}
-                {entry.tools && entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
-                {entry.text && (
-                  <div dir="auto">
-                    <Markdown text={entry.text} nav={docNav} />
-                  </div>
-                )}
+              <div key={`h${i}`} className="ai-msg-historic">
+                <AgentMessage
+                  role={entry.role}
+                  author={entry.role === 'user' ? t('aiYou') : t('aiPanelTitle')}
+                >
+                  {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
+                    <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
+                  )}
+                  {entry.tools && entry.tools.length > 0 && (
+                    <AgentSteps steps={entry.tools} strings={stepStrings(entry.tools)} />
+                  )}
+                  {entry.text && (
+                    <div dir="auto">
+                      <Markdown text={entry.text} nav={docNav} />
+                    </div>
+                  )}
+                </AgentMessage>
               </div>
             ))}
-            <div className="ai-history-sep">{t('aiHistorySep')}</div>
+            <div className="ai-history-sep" role="separator">
+              {t('aiHistorySep')}
+            </div>
           </>
         )}
         {chat.length === 0 && historicChat.length === 0 && (
-          <div className="ai-chat-empty">
-            <div className="ai-chat-empty-title">
-              {t(docEmpty ? 'aiEmptyDraftTitle' : 'aiEmptyTitle')}
-            </div>
-            <div className="ai-chat-empty-body">
-              {t(docEmpty ? 'aiEmptyDraftBody1' : 'aiEmptyBody1')}
-              <br />
-              {t(docEmpty ? 'aiEmptyDraftBody2' : 'aiEmptyBody2')}
-            </div>
-            <div className="ai-starter-list">
-              {(docEmpty ? DRAFT_STARTER_PROMPTS : EDIT_STARTER_PROMPTS).map((p) => (
-                <button
-                  key={p}
-                  className="ai-starter"
-                  onClick={() => {
-                    setInput(t(p))
-                    inputRef.current?.focus()
-                  }}
-                >
-                  {t(p)}
-                </button>
-              ))}
-            </div>
-          </div>
+          <AgentEmpty
+            title={t(docEmpty ? 'aiEmptyDraftTitle' : 'aiEmptyTitle')}
+            description={`${t(docEmpty ? 'aiEmptyDraftBody1' : 'aiEmptyBody1')} ${t(
+              docEmpty ? 'aiEmptyDraftBody2' : 'aiEmptyBody2',
+            )}`}
+            prompts={(docEmpty ? DRAFT_STARTER_PROMPTS : EDIT_STARTER_PROMPTS).map((p) => t(p))}
+            promptsLabel={t('aiStartersLabel')}
+            // starters fill the field rather than sending: they usually want a qualifier
+            onPick={(text) => {
+              setInput(text)
+              inputRef.current?.focus()
+            }}
+          />
         )}
         {chat.map((entry, i) => {
           if (
@@ -1109,7 +1201,8 @@ export function AiPanel({
             !entry.text &&
             !entry.streaming &&
             !entry.error &&
-            !entry.tools?.length
+            !entry.tools?.length &&
+            !entry.plan
           ) {
             return null
           }
@@ -1124,119 +1217,104 @@ export function AiPanel({
             turnEnded &&
             // edits-only turns have no text but still carry the rollback point
             !!(entry.text || entry.error || entry.snapshot)
+          const toolbar = showToolbar ? (
+            <div className="ai-msg-toolbar">
+              {entry.text && (
+                <IconButton
+                  size="sm"
+                  label={t('aiCopyReplyTitle')}
+                  onClick={() => copyMessage(entry.text, i)}
+                >
+                  <Icon name={copiedIdx === i ? 'check' : 'copy'} size={14} />
+                </IconButton>
+              )}
+              {isLast && !busy && lastInstructionRef.current && (
+                <IconButton size="sm" label={t('aiRegenerateTitle')} onClick={retry}>
+                  <Icon name="refresh" size={14} />
+                </IconButton>
+              )}
+              {entry.snapshot && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ai-rollback-btn"
+                  disabled={busy}
+                  iconLeft={<Icon name="restore" size={14} />}
+                  onClick={() => rollback(i, entry.snapshot!)}
+                >
+                  {t('aiRollback')}
+                </Button>
+              )}
+            </div>
+          ) : undefined
           return (
-            <div
+            <AgentMessage
               key={i}
-              className={`ai-msg ai-msg-${entry.role}${entry.role === 'assistant' && entry.streaming ? ' ai-msg-streaming' : ''}`}
+              role={entry.role}
+              author={entry.role === 'user' ? t('aiYou') : t('aiPanelTitle')}
+              streaming={entry.role === 'assistant' && !!entry.streaming && !!entry.text}
+              footer={toolbar}
             >
               {entry.role === 'user' && entry.attachments && entry.attachments.length > 0 && (
                 <SentAttachments atts={entry.attachments} previews={attachmentPreviews} />
               )}
               {entry.role === 'assistant' && !entry.text && entry.streaming ? (
-                <span className="ai-typing-row">
-                  <AiTypingIndicator
-                    label={entry.tools?.length ? t('aiWorking') : t('aiThinking')}
-                  />
-                </span>
+                <AgentWorking label={entry.tools?.length ? t('aiWorking') : t('aiThinking')} />
               ) : entry.role === 'assistant' ? (
-                <div dir="auto">
-                  <Markdown text={entry.text} nav={docNav} />
-                </div>
+                entry.text && (
+                  <div dir="auto">
+                    <Markdown text={entry.text} nav={docNav} />
+                  </div>
+                )
               ) : (
                 <span dir="auto">{entry.text}</span>
               )}
-              {entry.tools && entry.tools.length > 0 && <ToolChipList tools={entry.tools} />}
+              {entry.tools && entry.tools.length > 0 && (
+                <AgentSteps steps={entry.tools} strings={stepStrings(entry.tools)} />
+              )}
+              {entry.plan && (
+                <PlanReply
+                  lang={lang}
+                  request={entry.plan.request}
+                  steps={entry.plan.steps}
+                  status={entry.plan.status}
+                  onRun={(steps) => runPlan(i, entry.plan!.request, steps)}
+                  onKeep={() => keepPlan(i)}
+                />
+              )}
+              {entry.report && !entry.error && !entry.streaming && turnEnded && (
+                <RedrobReceipt lang={lang} report={entry.report} />
+              )}
               {entry.error && (
-                <div className="ai-msg-error">{t('aiErrorPrefix', { error: entry.error })}</div>
-              )}
-              {entry.loginRequired && (
-                <button className="ai-login-btn" onClick={() => void window.desktop.aiGskLogin()}>
-                  {t('aiGskLoginBtn')}
-                </button>
-              )}
-              {showToolbar && (
-                <div className="ai-msg-toolbar">
-                  {entry.text && (
-                    <button
-                      className="ai-msg-tool-btn"
-                      onClick={() => copyMessage(entry.text, i)}
-                      aria-label={t('aiCopyReplyTitle')}
-                      data-tip={t('aiCopyReplyTitle')}
-                    >
-                      {copiedIdx === i ? (
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                          <path
-                            d="M14.6113 5.34253C16.0608 5.3428 17.2363 6.518 17.2363 7.96753V15.5066C17.2361 16.956 16.0607 18.1313 14.6113 18.1316H7.07227C5.62267 18.1316 4.44751 16.9561 4.44727 15.5066V7.96753C4.44732 6.51783 5.62255 5.34253 7.07227 5.34253H14.6113ZM7.07227 6.59253C6.31291 6.59253 5.69732 7.20819 5.69727 7.96753V15.5066C5.69751 16.2658 6.31302 16.8816 7.07227 16.8816H14.6113C15.3703 16.8813 15.9861 16.2656 15.9863 15.5066V7.96753C15.9863 7.20835 15.3705 6.5928 14.6113 6.59253H7.07227ZM10.0176 2.8689C10.3626 2.86905 10.6426 3.14882 10.6426 3.4939C10.6425 3.83888 10.3626 4.11874 10.0176 4.1189H4.59961C3.84022 4.1189 3.22461 4.73451 3.22461 5.4939V11.324C3.22433 11.6689 2.94461 11.949 2.59961 11.949C2.25461 11.949 1.97489 11.6689 1.97461 11.324V5.4939C1.97461 4.04415 3.14987 2.8689 4.59961 2.8689H10.0176Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  )}
-                  {isLast && !busy && lastInstructionRef.current && (
-                    <button
-                      className="ai-msg-tool-btn"
-                      onClick={retry}
-                      aria-label={t('aiRegenerateTitle')}
-                      data-tip={t('aiRegenerateTitle')}
-                    >
-                      {/* 24-canvas glyph at 18px (near-full-bleed paths, sized for optical
-                          parity with the copy icon): stroke 1.5 paints 1.125px (1:16) */}
-                      <svg
-                        style={{ width: 18, height: 18 }}
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
-                      >
-                        <path d="M3.68881 9.85339C4.1791 8.0054 5.28205 6.30704 6.9459 5.09101C10.8046 2.27085 16.2188 3.11279 19.0389 6.97147C19.7242 7.90904 20.1932 8.93842 20.4553 10.0001" />
-                        <path d="M2.00452 8.46411L2.87229 10.7059C2.96814 10.9535 3.24658 11.0765 3.4942 10.9807L5.73594 10.1129" />
-                        <path d="M20.3308 14.4908C19.8405 16.3388 18.7376 18.0372 17.0738 19.2532C13.215 22.0734 7.80083 21.2314 4.98071 17.3728C4.22167 16.3342 3.72792 15.183 3.48686 13.9999" />
-                        <path d="M22.0151 15.8801L21.1474 13.6384C21.0515 13.3908 20.7731 13.2677 20.5255 13.3636L18.2837 14.2314" />
-                      </svg>
-                    </button>
-                  )}
-                  {entry.snapshot && (
-                    <>
-                      {/* hairline between reply actions (icons) and the document action (icon+label);
-                          CSS shows it only when an icon button actually precedes it */}
-                      <span className="ai-rollback-sep" aria-hidden />
-                      <RollbackButton
-                        disabled={busy}
-                        onClick={() => rollback(i, entry.snapshot!)}
-                      />
-                    </>
-                  )}
-                </div>
+                // fail-closed: the engine's own message, and sign-in only when auth is the cause
+                <AgentFailure
+                  title={t('aiFailedTitle')}
+                  message={entry.error}
+                  action={
+                    entry.loginRequired ? (
+                      <Button size="sm" onClick={() => void window.desktop.aiGskLogin()}>
+                        {t('aiGskLoginBtn')}
+                      </Button>
+                    ) : undefined
+                  }
+                />
               )}
               {entry.turnLimit && isLast && !busy && (
-                <button className="ai-continue-btn" onClick={continueRun}>
+                <Button size="sm" variant="secondary" onClick={continueRun}>
                   {t('aiContinue')}
-                </button>
+                </Button>
               )}
-            </div>
+            </AgentMessage>
           )
         })}
       </div>
 
       <div className="ai-composer">
-        {attachNotice && <div className="ai-attach-notice">{attachNotice}</div>}
+        {attachNotice && (
+          <Alert tone="info" className="ai-attach-notice">
+            {attachNotice}
+          </Alert>
+        )}
         <EditQueueCard
           items={editQueue}
           editor={editor}
@@ -1247,8 +1325,8 @@ export function AiPanel({
           onSend={sendQueue}
           onFocus={(qid) => onQueueFocus?.(qid)}
         />
-        <AiComposer
-          header={
+        <AgentComposer
+          context={
             (hasScopeSelection || attachments.length > 0) && (
               <>
                 {hasScopeSelection && (
@@ -1270,12 +1348,7 @@ export function AiPanel({
                         data-tip={t('aiScopeClearTitle')}
                         aria-label={t('aiScopeClearTitle')}
                       >
-                        <svg width="12" height="12" viewBox="0 0 32 32" aria-hidden>
-                          <path
-                            d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                            fill="currentColor"
-                          />
-                        </svg>
+                        <Icon name="close" size={12} />
                       </button>
                     </span>
                     {scopePreviewOpen && (
@@ -1300,19 +1373,13 @@ export function AiPanel({
                             </span>
                           )}
                           <button
+                            type="button"
                             className="ai-attachment-thumb-remove"
                             onClick={() => removeAttachment(a.path)}
                             data-tip={t('aiRemoveAttachmentTitle')}
                             aria-label={t('aiRemoveAttachmentTitle')}
                           >
-                            <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden>
-                              <path
-                                d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                                fill="currentColor"
-                                stroke="currentColor"
-                                strokeWidth="0.25"
-                              />
-                            </svg>
+                            <Icon name="close" size={12} />
                           </button>
                         </span>
                       ) : (
@@ -1329,19 +1396,13 @@ export function AiPanel({
                             </span>
                           </span>
                           <button
+                            type="button"
                             className="ai-attachment-thumb-remove"
                             onClick={() => removeAttachment(a.path)}
                             data-tip={t('aiRemoveAttachmentTitle')}
                             aria-label={t('aiRemoveAttachmentTitle')}
                           >
-                            <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden>
-                              <path
-                                d="M24 9.4L22.6 8L16 14.6L9.4 8L8 9.4l6.6 6.6L8 22.6L9.4 24l6.6-6.6l6.6 6.6l1.4-1.4l-6.6-6.6L24 9.4z"
-                                fill="currentColor"
-                                stroke="currentColor"
-                                strokeWidth="0.25"
-                              />
-                            </svg>
+                            <Icon name="close" size={12} />
                           </button>
                         </span>
                       ),
@@ -1354,32 +1415,32 @@ export function AiPanel({
           value={input}
           busy={busy}
           placeholder={t('aiInputPlaceholder')}
-          hintIdle={t('aiHintIdle')}
-          hintBusy={t('aiHintBusy')}
-          hintIdleTitle={t('aiHintIdleTitle')}
+          label={t('aiInputPlaceholder')}
           sendLabel={t('aiSend')}
           stopLabel={t('aiStop')}
-          iconOnly
-          sendIconEnabled={<img src={sendEnterOn} alt="" aria-hidden />}
-          sendIconDisabled={<img src={sendEnterOff} alt="" aria-hidden />}
-          stopIcon={<img src={sendStop} alt="" aria-hidden />}
           textareaRef={inputRef}
           onChange={setInput}
           onSend={run}
           onStop={cancel}
           onPasteFiles={(files) => void onPasteFiles(files)}
-          footerStart={
+          tools={<RedrobModeSwitch lang={lang} value={mode} onChange={setMode} />}
+          status={
+            <RedrobStatus
+              lang={lang}
+              memory={prefs.memory}
+              factCheck={prefs.factCheck}
+              challenge={prefs.challenge}
+            />
+          }
+          leading={
             <>
+              <IconButton size="sm" label={t('aiAttachTitle')} onClick={pickAttachments}>
+                <Icon name="attachment" size={16} />
+              </IconButton>
               <button
-                className="ai-attach-btn"
-                onClick={pickAttachments}
-                data-tip={t('aiAttachTitle')}
-                aria-label={t('aiAttachTitle')}
-              >
-                <img src={attachIcon} alt="" aria-hidden />
-              </button>
-              <button
+                type="button"
                 className={`ai-track-btn${trackChanges ? ' on' : ''}`}
+                aria-pressed={trackChanges}
                 onClick={toggleTrackChanges}
                 data-tip={trackChanges ? t('aiTrackOnTitle') : t('aiTrackOffTitle')}
               >
@@ -1391,165 +1452,5 @@ export function AiPanel({
         />
       </div>
     </aside>
-  )
-}
-
-/** Tool row list (unified with slides/sheets): dot + summary; expandable details when there's output; arrow shows on hover */
-/** Step-row status icons (timeline glyphs: 14px in a 20px slot, 1.6 stroke) */
-function StepIcon({ status }: { status: 'running' | 'done' | 'error' }) {
-  if (status === 'running') {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M6.5 3.5h11M6.5 20.5h11M8 3.5v3.2c0 2.6 4 4.2 4 5.3 0 1.1 4 2.7 4 5.3v3.2M16 3.5v3.2c0 2.6-4 4.2-4 5.3 0 1.1-4 2.7-4 5.3v3.2" />
-      </svg>
-    )
-  }
-  if (status === 'error') {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <circle cx="12" cy="12" r="9" />
-        <path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6" />
-      </svg>
-    )
-  }
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="14"
-      height="14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="m8.5 12.4 2.4 2.4 4.6-5" />
-    </svg>
-  )
-}
-
-/** Quiet roll-back action in the message toolbar: restores the document to before the run's edits */
-function RollbackButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
-  const { t: tr } = useI18n()
-  return (
-    <button type="button" className="ai-rollback-btn" disabled={disabled} onClick={onClick}>
-      {/* 24-canvas glyph at 18px (optical parity with the toolbar icons): stroke 1.5 paints 1.125px (1:16) */}
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M5.91026 4L2.5 7.14791L5.91026 10.8205" />
-        <path d="M3.96154 7.41028H15.1636C18.5169 7.41028 21.3646 10.1484 21.4953 13.5C21.6334 17.0416 18.707 20.0769 15.1636 20.0769H6.88384" />
-      </svg>
-      {tr('aiRollback')}
-    </button>
-  )
-}
-
-/** Tool activity group: a single quiet summary row
- *  that auto-opens while tools run, auto-collapses into "Worked · N steps" when they finish,
- *  and a manual toggle that always wins. Rows inside are step rows with 1px connectors. */
-function ToolChipList({ tools }: { tools: ToolActivity[] }) {
-  const { t: tr } = useI18n()
-  const [expanded, setExpanded] = useState<Set<number>>(new Set())
-  const [userOpen, setUserOpen] = useState<boolean | null>(null)
-
-  const toggle = (j: number) => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(j)) next.delete(j)
-      else next.add(j)
-      return next
-    })
-  }
-
-  const anyRunning = tools.some((tool) => tool.running)
-  const open = userOpen ?? anyRunning
-  const label = anyRunning ? tr('aiGroupWorking') : tr('aiWorkedSteps', { n: tools.length })
-
-  return (
-    <div className="ai-work-group">
-      <button
-        type="button"
-        className={`ai-work-group-summary${anyRunning ? ' running' : ''}`}
-        aria-expanded={open}
-        onClick={() => setUserOpen(!open)}
-      >
-        {anyRunning && !open && <span className="ai-tool-chip-spinner" aria-hidden />}
-        <span className="ai-work-group-label">{label}</span>
-        <span className={`ai-tool-chip-caret${open ? ' open' : ''}`} aria-hidden>
-          ›
-        </span>
-      </button>
-      <div className={`ai-work-group-body${open ? ' open' : ''}`}>
-        <div className="ai-work-group-body-inner">
-          {tools.map((tool, j) => {
-            const hasOutput = !tool.running && !!tool.output
-            const isOpen = expanded.has(j)
-            const stepStatus = tool.running ? 'running' : tool.isError ? 'error' : 'done'
-            return (
-              <div key={j} className="ai-step-row">
-                <span className={`ai-step-icon ${stepStatus}`} aria-hidden>
-                  <StepIcon status={stepStatus} />
-                </span>
-                <div className="ai-step-content">
-                  {hasOutput ? (
-                    <button
-                      type="button"
-                      className="ai-step-title clickable"
-                      data-tip={tool.name}
-                      aria-expanded={isOpen}
-                      onClick={() => toggle(j)}
-                    >
-                      {tool.summary}
-                    </button>
-                  ) : (
-                    <span className="ai-step-title" data-tip={tool.name}>
-                      {tool.summary}
-                    </span>
-                  )}
-                  {hasOutput && isOpen && (
-                    <div className="ai-step-detail">
-                      <div className="ai-tool-output">
-                        <div className="ai-tool-output-pre">{tool.output}</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>
   )
 }

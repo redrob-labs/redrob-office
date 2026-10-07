@@ -51,7 +51,7 @@ import { mapScriptOps } from './ops/script-map'
 import { matchesElementRef } from '@genoffice/pptx-engine/identity'
 import { buildPagePptx, parsePageSpec } from './page-spec'
 import { sniffImageMime } from './media-mime'
-import { getUiLang, normalizeLang, setUiLang } from '@genoffice/i18n'
+import { getUiLang, normalizeLang, setUiLang, toSelectableLang } from '@genoffice/i18n'
 import { ProjectStore } from '@genoffice/project-store'
 import {
   copyElementData,
@@ -4648,7 +4648,7 @@ export function startSlidesStandalone(): void {
   if (argPath && existsSync(argPath)) pendingOpenPath = argPath
 
   app.whenReady().then(async () => {
-    setUiLang(normalizeLang(process.env.GENOFFICE_LANG ?? app.getLocale()))
+    setUiLang(toSelectableLang(normalizeLang(process.env.GENOFFICE_LANG ?? app.getLocale())))
     registerSlidesIpc()
     registerAiIpc()
     registerProjectIpc()

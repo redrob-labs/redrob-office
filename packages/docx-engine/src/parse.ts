@@ -142,6 +142,8 @@ import {
   themedRFonts,
   txbxHasStructuredContent,
 } from './parse-props'
+import { parseLinkedFigureInstr } from './linked-figure'
+import { PEOPLE_PART, parsePeopleXml } from './people'
 import {
   parseComments,
   parseNumbering,
@@ -270,6 +272,8 @@ export async function parseDocx(bytes: Uint8Array): Promise<ParsedDoc & { extras
   const rels = await parseRels(zip, docPath.replace(/([^/]+)$/, '_rels/$1.rels'))
   const { formats: numFormats, defs: numbering } = await parseNumbering(zip)
   const comments = await parseComments(zip)
+  const peopleFile = zip.file(PEOPLE_PART)
+  const people = peopleFile ? parsePeopleXml(await peopleFile.async('string')) : []
   const protection = await parseProtection(zip)
   const writeProtection = await parseWriteProtection(zip)
   const removePersonalInfo = await parseRemovePersonalInfo(zip)
@@ -475,6 +479,7 @@ export async function parseDocx(bytes: Uint8Array): Promise<ParsedDoc & { extras
   return {
     blocks,
     comments,
+    ...(people.length > 0 ? { people } : {}),
     protection,
     writeProtection,
     removePersonalInfo,
@@ -2845,6 +2850,13 @@ function extractRuns(
                 rev,
               )
             }
+          } else if (parseLinkedFigureInstr(fieldInstr) !== null) {
+            // a linked figure keeps the formatting of its cached result
+            const first = fieldCachedRuns[0]
+            pushRun(
+              { ...(first ?? {}), text: fieldCached || ' ', instrField: fieldInstr.trim() },
+              rev,
+            )
           } else if (SIMPLE_INLINE_FIELD_RE.test(fieldInstr)) {
             pushRun({ text: fieldCached || ' ', instrField: fieldInstr.trim() }, rev)
           } else if (fieldCachedRuns.length > 0) {

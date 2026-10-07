@@ -1,0 +1,94 @@
+name: hangul fidelity
+
+# Fidelity harness for the Hangul core (tests/hangul-fidelity, spec R1-R3).
+#
+# - `fidelity (synthetic)` runs on every pull request that touches the core or
+#   the harness: the engine save round trip and an Electron render of the
+#   synthetic corpus. No Hancom needed.
+# - `fidelity (한글 2024)` runs nightly and on demand on the self-hosted Windows
+#   runner labelled `hancom-2024`. It generates 한글 2024 references for the real
+#   Corpus (HANGUL_CORPUS_DIR on that machine, never in this repository),
+#   renders ours, compares and uploads the report.
+#
+# Neither job is a required check until the cutover (spec task 6.3).
+
+on:
+  pull_request:
+    paths:
+      - engines/rhwp/**
+      - packages/hwp-core/**
+      - packages/hwp-editor/**
+      - tests/hangul-fidelity/**
+      - .github/workflows/hangul-fidelity.yml
+  schedule:
+    - cron: '0 18 * * *' # 03:00 KST
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Regenerate 한글 2024 references even when cached
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic:
+    name: fidelity (synthetic)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ELECTRON_DISABLE_SANDBOX: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Xvfb and fonts
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb fonts-noto-cjk
+      - name: Round trip and render
+        run: xvfb-run -a --server-args="-screen 0 1920x1080x24" pnpm --filter @genoffice/hangul-fidelity fidelity all --out "$RUNNER_TEMP/fidelity"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hangul-fidelity-synthetic
+          path: ${{ runner.temp }}/fidelity
+          if-no-files-found: ignore
+
+  hancom:
+    name: fidelity (한글 2024)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, windows, hancom-2024]
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: References, render, compare
+        shell: pwsh
+        run: |
+          if (-not $env:HANGUL_CORPUS_DIR) { throw 'HANGUL_CORPUS_DIR is not set on this runner' }
+          $out = Join-Path $env:HANGUL_FIDELITY_CACHE 'run'
+          $args = @('--filter', '@genoffice/hangul-fidelity', 'fidelity', 'all', '--corpus', $env:HANGUL_CORPUS_DIR, '--out', $out)
+          if ('${{ inputs.force }}' -eq 'true') { $args += '--force' }
+          pnpm @args
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hangul-fidelity-hancom
+          # Report and diffs only: renderings of customer documents stay on the runner.
+          path: |
+            ${{ env.HANGUL_FIDELITY_CACHE }}/run/report.json
+            ${{ env.HANGUL_FIDELITY_CACHE }}/run/index.html
+          if-no-files-found: ignore

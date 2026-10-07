@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const hi = {
+  aiYou: 'आप',
+  aiFailedTitle: 'सहायक पूरा नहीं कर सका',
+  aiStepRunning: 'चल रहा है',
+  aiStepDone: 'पूरा हुआ',
+  aiStepFailed: 'विफल',
+  aiStartersLabel: 'सुझाए गए प्रश्न',
   aiInputPlaceholderGen: 'बनाने के लिए प्रस्तुति बताएँ, या कुछ भी पूछें',
   aiEmptyGenTitle: 'AI से अपनी प्रस्तुति बनवाएँ',
   aiEmptyGenBody1: 'विषय, अवसर और अनुमानित पेज संख्या बताएँ;',
@@ -247,4 +253,4 @@ export const hi = {
   aiSumSaveTemplate: 'स्टाइल टेम्पलेट "{name}" सहेजा गया',
   aiSumTemplatesEmpty: 'स्टाइल टेम्पलेट (खाली)',
   aiSumListTemplates: '{count} स्टाइल टेम्पलेट सूचीबद्ध किए गए',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

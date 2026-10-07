@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const es = {
   appScTitle: 'Atajos de teclado',
@@ -355,4 +355,4 @@ export const es = {
     'Actualizar este estilo con el formato de la selección actual (se escribe en styles.xml)',
   appNewStyleFromSelection: 'Nuevo estilo a partir de la selección actual',
   appStyleNamePlaceholder: 'Nombre del estilo',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

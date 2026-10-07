@@ -77,10 +77,14 @@ export function PromptModal({
           )}
         </label>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('appCancel')}
           </button>
-          <button className="btn-primary" disabled={!allowEmpty && !value.trim()} onClick={submit}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+            disabled={!allowEmpty && !value.trim()}
+            onClick={submit}
+          >
             {t('appOk')}
           </button>
         </div>

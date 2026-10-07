@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ru = {
+  aiYou: 'Вы',
+  aiFailedTitle: 'Ассистенту не удалось завершить',
+  aiStepRunning: 'Выполняется',
+  aiStepDone: 'Готово',
+  aiStepFailed: 'Ошибка',
+  aiStartersLabel: 'Предлагаемые вопросы',
   aiComposerPlaceholderBuild: 'Опишите таблицу, данные или диаграмму для создания…',
   aiEmptyBuildTitle: 'Пусть ИИ построит эту книгу за вас',
   aiEmptyBuildBody: 'Опишите нужную таблицу, данные или диаграмму - ИИ создаст их на месте.',
@@ -107,4 +113,4 @@ export const ru = {
   aiScopeRangeTip:
     'ИИ понимает «этот столбец / эти строки / выделенную часть» как этот диапазон; после отправки он фиксируется на весь запуск',
   aiScopeClearTitle: 'Снять область диапазона и работать со всем листом',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

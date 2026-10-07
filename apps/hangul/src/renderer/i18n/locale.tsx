@@ -5,7 +5,7 @@ import { strings } from './strings'
 
 const translate = createI18n(strings)
 
-export type StringKey = keyof typeof strings.zh
+export type StringKey = keyof typeof strings.en
 export type TFunc = (key: StringKey, params?: Params) => string
 
 const LocaleContext = createContext<Lang>('zh')

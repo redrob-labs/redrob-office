@@ -1,0 +1,25 @@
+{
+  "name": "@genoffice/hwp-core",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "description": "Hangul (.hwp/.hwpx) core: the rhwp Rust engine (our fork in engines/rhwp, MIT) built to WASM, with a typed wrapper. Parses, lays out, paints and saves; never the UI.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts",
+    "./wasm/rhwp_bg.wasm": "./wasm/rhwp_bg.wasm"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build:wasm": "sh ../../scripts/build-hwp-core.sh && node ../../scripts/hwp-core-provenance.mjs --write",
+    "provenance:check": "node ../../scripts/hwp-core-provenance.mjs --check"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0",
+    "jszip": "^3.10.1"
+  }
+}

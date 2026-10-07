@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ru = {
   appScTitle: 'Сочетания клавиш',
@@ -352,4 +352,4 @@ export const ru = {
     'Обновить этот стиль по формату текущего выделения (записывается обратно в styles.xml)',
   appNewStyleFromSelection: 'Создать стиль из текущего выделения',
   appStyleNamePlaceholder: 'Имя стиля',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

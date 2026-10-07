@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
+  aiYou: '나',
+  aiFailedTitle: '어시스턴트가 작업을 마치지 못했습니다',
+  aiStepRunning: '실행 중',
+  aiStepDone: '완료',
+  aiStepFailed: '실패',
+  aiStartersLabel: '추천 질문',
   aiInputPlaceholderGen: '만들 프레젠테이션을 설명하거나 질문하세요',
   aiEmptyGenTitle: 'AI에게 프레젠테이션 생성을 맡기세요',
   aiEmptyGenBody1: '주제, 용도, 대략의 페이지 수를 알려주면',
@@ -247,4 +253,4 @@ export const ko = {
   aiSumSaveTemplate: '스타일 템플릿 "{name}" 저장',
   aiSumTemplatesEmpty: '스타일 템플릿 목록(비어 있음)',
   aiSumListTemplates: '스타일 템플릿 {count}개 나열',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

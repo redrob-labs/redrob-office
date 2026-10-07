@@ -85,6 +85,16 @@ import { AnimPreviewOverlay } from './components/AnimatedSlide'
 import { EquationDialog, HeaderFooterDialog, LinkDialog } from './components/InsertDialogs'
 import { CutoutDialog } from './components/CutoutDialog'
 import type { WordArtPreset } from '@genoffice/ui'
+import {
+  EditorFrame,
+  OldFormatBanner,
+  StatusBar,
+  formatOf,
+  frameCopy,
+  frameT,
+  useFrameState,
+} from '@genoffice/ui'
+import { SimpleToolbar, slidesTools } from './components/SimpleToolbar'
 import type { ChartPresetDef, IconDef, SmartArtDef } from './insert-presets'
 import { GensparkMark, IconAiBeautify, IconAiFactCheck, IconAiImage } from './components/icons'
 import { ToastHost } from './components/toast'
@@ -226,7 +236,7 @@ function collectBodyBulletChars(
     out.add('')
     return
   }
-  for (let i = 0; i < text.lines.length;) {
+  for (let i = 0; i < text.lines.length; ) {
     let j = i + 1
     while (j < text.lines.length && !text.lines[j]!.paraStart) j++
     const bullet = text.lines
@@ -292,6 +302,9 @@ function collectRtls(node: RenderNode, out: Set<boolean>) {
 
 export function App() {
   const { lang } = useI18n()
+  // the shared editor frame: toolbar choice, panel width and online state
+  const frame = useFrameState(window.slidesApi, 'slides-frame-panel-width')
+  const [oldFormatDismissed, setOldFormatDismissed] = useState(false)
   const [slides, setSlides] = useState<RenderSlide[]>([])
   // Layouts may reference Office-private fonts (resolved in main); register them as FontFaces
   useEffect(() => {
@@ -1165,6 +1178,21 @@ export function App() {
     },
     [],
   )
+
+  // Home's composer: a request queued by the shell for this tab runs once, in the panel.
+  // The consume is one-shot on the main side, so StrictMode's second mount gets null.
+  useEffect(() => {
+    let cancelled = false
+    void window.slidesApi
+      .consumeAskPrompt?.()
+      .then((prompt) => {
+        if (!cancelled && prompt) pushAiPreset(prompt)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [pushAiPreset])
 
   // ── AI element edit queue ──────────────────────────────────────────────
   // Session-only: annotations are a scratchpad for the next AI submission, not
@@ -2789,340 +2817,389 @@ export function App() {
 
   const _fileName = slide ? path?.split('/').pop() || t('appUntitledPresentation') : undefined
 
+  const frameText = frameCopy(lang)
+  const slidesActions = {
+    addSlide: () => void addSlide(),
+    textbox: () => void insertElement('textbox'),
+    picture: () => void insertImage(),
+    format: onFormat,
+    present: () => startSlideShow(true),
+    ask: () => {
+      if (!showAi) toggleAi()
+    },
+    run: (prompt: string) => pushAiPreset(prompt),
+  }
+  const frameTools = slidesTools(t, slidesActions, { hasDoc, editingText: !!editing })
+
   return (
     <div className="app">
       <ToastHost />
-      <Ribbon
-        hasDoc={!!slide}
-        deckEmpty={deckEmpty}
+      <EditorFrame
+        strings={frameText.frame}
+        fileName={path ? (path.split(/[\\/]/).pop() ?? path) : t('appUntitledPptx')}
+        onUndo={hasDoc ? () => void undo() : undefined}
+        onRedo={hasDoc ? () => void redo() : undefined}
         canUndo={histState.canUndo}
         canRedo={histState.canRedo}
-        dirty={dirty}
-        editing={!!editing || !!editingCell}
-        autoSave={autoSave}
-        onAutoSaveChange={setAutoSave}
-        onOpen={() => void openDialog()}
-        onSave={() => void save()}
-        onUndo={() => void undo()}
-        onRedo={() => void redo()}
-        onSaveAs={() => void saveAs()}
-        onExportPdf={() => void exportPdf()}
-        onPrint={() => setPrintDlgOpen(true)}
-        onExportImages={() => void exportImages()}
-        onFormat={onFormat}
-        zoom={zoom}
-        onZoom={previewZoom}
-        showThumbs={showThumbs}
-        onToggleThumbs={() => setShowThumbs((v) => !v)}
-        aiOpen={showAi}
-        onToggleAi={toggleAi}
-        onAiPreset={(text, opts) => pushAiPreset(text, true, undefined, undefined, opts?.slideShot)}
-        onAskSelection={openAskPopover}
-        onInsert={(kind) => void insertElement(kind)}
-        onPickShape={pickShape}
-        onInsertImage={() => void insertImage()}
-        onFormatBackground={openBgFormat}
-        onApplyTheme={(preset) => void applyThemePreset(preset)}
-        onAddSlide={() => void addSlide()}
-        onAddSection={() => void addSectionAt(current)}
-        onAddSlideWithLayout={(lp) => void addSlideWithLayout(lp)}
-        layouts={layoutsResult?.layouts ?? null}
-        layoutSize={layoutsResult?.size ?? null}
-        formatOpen={showFormat}
-        onToggleFormat={() =>
-          setShowFormat((v) => {
-            if (!v) {
-              setShowAnimPane(false)
-              setShowBgFormat(false)
-            }
-            return !v
-          })
+        saveStatus={
+          hasDoc ? (
+            <span className="slides-save-status">{dirty ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}</span>
+          ) : undefined
         }
-        hasSelection={selectedIds.length > 0}
-        hasTextSelection={hasTextSelection}
-        canPaste={hasClipboard}
-        onCopy={() => void copySelected()}
-        onCut={() => void cutSelected()}
-        onPaste={() => void pasteClipboard()}
-        hasBrushFormat={brushFormat !== null}
-        brushMode={brushMode}
-        onFormatBrushClick={onFormatBrushClick}
-        onFormatBrushDoubleClick={onFormatBrushDoubleClick}
-        onTextColor={onTextColor}
-        onAlign={onAlign}
-        onStrike={onStrike}
-        onTextToggle={onTextToggle}
-        onElementTextColor={onElementTextColor}
-        onFindReplace={() => setFindOpen(true)}
-        animByParagraph={animByParagraph}
-        onToggleAnimByParagraph={() => setAnimByParagraph((v) => !v)}
-        onSetLayout={(layoutPath) =>
-          void window.slidesApi
-            .setSlideLayout({ slideIndex: current, layoutPath })
-            .then((r) => r && applySlide(current, r))
-        }
-        onResetLayout={() =>
-          void window.slidesApi
-            .setSlideLayout({ slideIndex: current })
-            .then((r) => r && applySlide(current, r))
-        }
-        onSlideSize={(cx, cy) =>
-          void window.slidesApi.setSlideSize({ cx, cy }).then((all) => {
-            if (all) {
-              setSlides(all)
-              // Every slide re-materializes with fresh element ids
-              setSelectedIds([])
-              setEditing(null)
-              setDirty(true)
-            }
-          })
-        }
-        slideSizeKey={
-          slide
-            ? Math.abs(slide.widthPx / slide.heightPx - 16 / 9) < 0.02
-              ? '16:9'
-              : Math.abs(slide.widthPx / slide.heightPx - 4 / 3) < 0.02
-                ? '4:3'
-                : null
-            : null
-        }
-        onParagraphFormat={onParagraphFormat}
-        onDirection={onDirection}
-        curBulletChar={curBulletChar}
-        curAlign={curAlign}
-        curRtl={curRtl}
-        curFontFamily={fontStatus?.family ?? null}
-        curFontSizePt={fontStatus?.sizePt ?? null}
-        curFontSizeMixed={fontStatus?.sizeMixed ?? false}
-        onFontFamily={onFontFamily}
-        onFontSize={onFontSize}
-        onInsertTable={(rows, cols) => void insertTable(rows, cols)}
-        transition={transition}
-        onTransition={(kind, all) => {
-          void applyTransition(kind, all)
-          if (!all) previewTransitionOnCanvas(kind)
+        search={{ tools: frameTools, strings: frameText.search, onAsk: (q) => pushAiPreset(q) }}
+        mode={{
+          value: 'editing',
+          onChange: () => {},
+          strings: frameText.mode,
+          // decks have no tracked-change model to suggest with, and no read-only edit lock yet
+          unavailable: ['suggesting', 'viewing'],
         }}
-        selectedAnimEffect={selectedAnimEffect}
-        timingAnim={timingIdx >= 0 ? animations[timingIdx]! : null}
-        onApplyAnimation={applyAnimation}
-        onAnimHoverPreview={hoverPreviewAnimation}
-        onAnimHoverEnd={() => setHoverAnim(null)}
-        onAddAnimation={addAnimation}
-        onApplyMotionPath={applyMotionPath}
-        onAnimTiming={patchAnimTiming}
-        animPaneOpen={showAnimPane}
-        onToggleAnimPane={toggleAnimPane}
-        animCount={animations.length}
-        onAnimPreview={() => setAnimPreview((n) => n + 1)}
-        onSlideShow={startSlideShow}
-        onPresenterView={startPresenterView}
-        onCustomShow={() => setCustomShowDlgOpen(true)}
-        onRehearse={startRehearseShow}
-        currentHidden={!!slide?.hidden}
-        onToggleHidden={() => void toggleHidden(current)}
-        inkTool={inkTool}
-        onInkTool={onInkTool}
-        inkPen={inkPen}
-        onInkPen={setInkPen}
-        inkHighlighter={inkHighlighter}
-        onInkHighlighter={setInkHighlighter}
-        inkCount={inkCount}
-        onInkClearAll={() => void clearInk()}
-        viewMode={viewMode}
-        onViewMode={onViewMode}
-        onSlideMaster={() => void enterMasterView()}
-        onZoomFit={zoomToFit}
-        showRuler={showRuler}
-        onToggleRuler={() => setShowRuler((v) => !v)}
-        showGrid={showGrid}
-        onToggleGrid={() => setShowGrid((v) => !v)}
-        showGuides={showGuides}
-        onToggleGuides={() => setShowGuides((v) => !v)}
-        showNotes={showNotes}
-        onToggleNotes={() => setShowNotes((v) => !v)}
-        commentsOpen={showComments}
-        onToggleComments={() => (showComments ? setShowComments(false) : openComments(false))}
-        onNewComment={() => openComments(true)}
-        commentCount={comments.length}
-        onInsertIcon={(def, color) => void insertIcon(def, color)}
-        onInsertChart={(kind) => void insertChart(kind)}
-        onInsertSmartArt={(def) => void insertSmartArt(def)}
-        onInsertWordArt={(preset) => void insertWordArt(preset)}
-        onInsertField={(type) => void insertField(type)}
-        onOpenLink={() => void openLinkDialog()}
-        onInsertZoom={(index) => void insertZoom(index)}
-        slideCount={slides.length}
-        currentSlide={current}
-        onOpenHeaderFooter={() => void openHeaderFooter()}
-        onOpenEquation={() => setEqDialogOpen(true)}
-        onInsertMedia={(kind) => void insertMediaFile(kind)}
-        onInsertModel3d={() => void insertModel3dFile()}
-        recording={recording}
-        onToggleScreenRecord={() => void toggleScreenRecord()}
-        contextElementType={contextElementType}
-        contextElementId={selectedNode?.sourceId}
-        contextSlideIndex={current}
-        contextChartStyle={contextChartStyle}
-        chartColorSchemes={chartColorSchemes}
-        contextPictureCanCutout={contextPictureCanCutout}
-        contextPictureStroke={contextPictureStroke}
-        onPictureStroke={(stroke) => {
-          // applies to every selected shape/picture; a selected group pierces one level
-          // down so its shape/picture members get the outline (PowerPoint semantics)
-          for (const id of selectedIds) {
-            const n = findNodeCtx(id)?.node
-            if (!n) continue
-            if (n.type === 'picture' || n.type === 'shape') {
-              void onStroke(id, stroke)
-            } else if (n.type === 'group') {
-              for (const c of (n as GroupRenderNode).children) {
-                if (c.type === 'picture' || c.type === 'shape')
-                  void window.slidesApi
-                    .editStroke({
+        toolbar={frame.toolbar}
+        onToolbarChange={frame.setToolbar}
+        toolbarStrings={frameText.toolbar}
+        banner={
+          hasDoc && !oldFormatDismissed ? (
+            <OldFormatBanner
+              file={path ?? ''}
+              title={frameT(lang, 'oldFormatTitle', { fmt: formatOf(path ?? '')?.label ?? '' })}
+              body={frameT(lang, 'oldFormatBody')}
+              saveLabel={t('appSaveCopyPptx')}
+              keepLabel={frameT(lang, 'oldFormatKeep', { fmt: formatOf(path ?? '')?.ext ?? '' })}
+              onSaveCopy={() => void saveAs()}
+              onKeep={() => setOldFormatDismissed(true)}
+            />
+          ) : undefined
+        }
+        simpleToolbar={<SimpleToolbar actions={slidesActions} hasDoc={hasDoc} editingText={!!editing} />}
+        classicToolbar={
+          <Ribbon
+            hasDoc={!!slide}
+            deckEmpty={deckEmpty}
+            canUndo={histState.canUndo}
+            canRedo={histState.canRedo}
+            dirty={dirty}
+            editing={!!editing || !!editingCell}
+            autoSave={autoSave}
+            onAutoSaveChange={setAutoSave}
+            onOpen={() => void openDialog()}
+            onSave={() => void save()}
+            onUndo={() => void undo()}
+            onRedo={() => void redo()}
+            onSaveAs={() => void saveAs()}
+            onExportPdf={() => void exportPdf()}
+            onPrint={() => setPrintDlgOpen(true)}
+            onExportImages={() => void exportImages()}
+            onFormat={onFormat}
+            zoom={zoom}
+            onZoom={previewZoom}
+            showThumbs={showThumbs}
+            onToggleThumbs={() => setShowThumbs((v) => !v)}
+            aiOpen={showAi}
+            onToggleAi={toggleAi}
+            onAiPreset={(text, opts) => pushAiPreset(text, true, undefined, undefined, opts?.slideShot)}
+            onAskSelection={openAskPopover}
+            onInsert={(kind) => void insertElement(kind)}
+            onPickShape={pickShape}
+            onInsertImage={() => void insertImage()}
+            onFormatBackground={openBgFormat}
+            onApplyTheme={(preset) => void applyThemePreset(preset)}
+            onAddSlide={() => void addSlide()}
+            onAddSection={() => void addSectionAt(current)}
+            onAddSlideWithLayout={(lp) => void addSlideWithLayout(lp)}
+            layouts={layoutsResult?.layouts ?? null}
+            layoutSize={layoutsResult?.size ?? null}
+            formatOpen={showFormat}
+            onToggleFormat={() =>
+              setShowFormat((v) => {
+                if (!v) {
+                  setShowAnimPane(false)
+                  setShowBgFormat(false)
+                }
+                return !v
+              })
+            }
+            hasSelection={selectedIds.length > 0}
+            hasTextSelection={hasTextSelection}
+            canPaste={hasClipboard}
+            onCopy={() => void copySelected()}
+            onCut={() => void cutSelected()}
+            onPaste={() => void pasteClipboard()}
+            hasBrushFormat={brushFormat !== null}
+            brushMode={brushMode}
+            onFormatBrushClick={onFormatBrushClick}
+            onFormatBrushDoubleClick={onFormatBrushDoubleClick}
+            onTextColor={onTextColor}
+            onAlign={onAlign}
+            onStrike={onStrike}
+            onTextToggle={onTextToggle}
+            onElementTextColor={onElementTextColor}
+            onFindReplace={() => setFindOpen(true)}
+            animByParagraph={animByParagraph}
+            onToggleAnimByParagraph={() => setAnimByParagraph((v) => !v)}
+            onSetLayout={(layoutPath) =>
+              void window.slidesApi
+                .setSlideLayout({ slideIndex: current, layoutPath })
+                .then((r) => r && applySlide(current, r))
+            }
+            onResetLayout={() =>
+              void window.slidesApi
+                .setSlideLayout({ slideIndex: current })
+                .then((r) => r && applySlide(current, r))
+            }
+            onSlideSize={(cx, cy) =>
+              void window.slidesApi.setSlideSize({ cx, cy }).then((all) => {
+                if (all) {
+                  setSlides(all)
+                  // Every slide re-materializes with fresh element ids
+                  setSelectedIds([])
+                  setEditing(null)
+                  setDirty(true)
+                }
+              })
+            }
+            slideSizeKey={
+              slide
+                ? Math.abs(slide.widthPx / slide.heightPx - 16 / 9) < 0.02
+                  ? '16:9'
+                  : Math.abs(slide.widthPx / slide.heightPx - 4 / 3) < 0.02
+                    ? '4:3'
+                    : null
+                : null
+            }
+            onParagraphFormat={onParagraphFormat}
+            onDirection={onDirection}
+            curBulletChar={curBulletChar}
+            curAlign={curAlign}
+            curRtl={curRtl}
+            curFontFamily={fontStatus?.family ?? null}
+            curFontSizePt={fontStatus?.sizePt ?? null}
+            curFontSizeMixed={fontStatus?.sizeMixed ?? false}
+            onFontFamily={onFontFamily}
+            onFontSize={onFontSize}
+            onInsertTable={(rows, cols) => void insertTable(rows, cols)}
+            transition={transition}
+            onTransition={(kind, all) => {
+              void applyTransition(kind, all)
+              if (!all) previewTransitionOnCanvas(kind)
+            }}
+            selectedAnimEffect={selectedAnimEffect}
+            timingAnim={timingIdx >= 0 ? animations[timingIdx]! : null}
+            onApplyAnimation={applyAnimation}
+            onAnimHoverPreview={hoverPreviewAnimation}
+            onAnimHoverEnd={() => setHoverAnim(null)}
+            onAddAnimation={addAnimation}
+            onApplyMotionPath={applyMotionPath}
+            onAnimTiming={patchAnimTiming}
+            animPaneOpen={showAnimPane}
+            onToggleAnimPane={toggleAnimPane}
+            animCount={animations.length}
+            onAnimPreview={() => setAnimPreview((n) => n + 1)}
+            onSlideShow={startSlideShow}
+            onPresenterView={startPresenterView}
+            onCustomShow={() => setCustomShowDlgOpen(true)}
+            onRehearse={startRehearseShow}
+            currentHidden={!!slide?.hidden}
+            onToggleHidden={() => void toggleHidden(current)}
+            inkTool={inkTool}
+            onInkTool={onInkTool}
+            inkPen={inkPen}
+            onInkPen={setInkPen}
+            inkHighlighter={inkHighlighter}
+            onInkHighlighter={setInkHighlighter}
+            inkCount={inkCount}
+            onInkClearAll={() => void clearInk()}
+            viewMode={viewMode}
+            onViewMode={onViewMode}
+            onSlideMaster={() => void enterMasterView()}
+            onZoomFit={zoomToFit}
+            showRuler={showRuler}
+            onToggleRuler={() => setShowRuler((v) => !v)}
+            showGrid={showGrid}
+            onToggleGrid={() => setShowGrid((v) => !v)}
+            showGuides={showGuides}
+            onToggleGuides={() => setShowGuides((v) => !v)}
+            showNotes={showNotes}
+            onToggleNotes={() => setShowNotes((v) => !v)}
+            commentsOpen={showComments}
+            onToggleComments={() => (showComments ? setShowComments(false) : openComments(false))}
+            onNewComment={() => openComments(true)}
+            commentCount={comments.length}
+            onInsertIcon={(def, color) => void insertIcon(def, color)}
+            onInsertChart={(kind) => void insertChart(kind)}
+            onInsertSmartArt={(def) => void insertSmartArt(def)}
+            onInsertWordArt={(preset) => void insertWordArt(preset)}
+            onInsertField={(type) => void insertField(type)}
+            onOpenLink={() => void openLinkDialog()}
+            onInsertZoom={(index) => void insertZoom(index)}
+            slideCount={slides.length}
+            currentSlide={current}
+            onOpenHeaderFooter={() => void openHeaderFooter()}
+            onOpenEquation={() => setEqDialogOpen(true)}
+            onInsertMedia={(kind) => void insertMediaFile(kind)}
+            onInsertModel3d={() => void insertModel3dFile()}
+            recording={recording}
+            onToggleScreenRecord={() => void toggleScreenRecord()}
+            contextElementType={contextElementType}
+            contextElementId={selectedNode?.sourceId}
+            contextSlideIndex={current}
+            contextChartStyle={contextChartStyle}
+            chartColorSchemes={chartColorSchemes}
+            contextPictureCanCutout={contextPictureCanCutout}
+            contextPictureStroke={contextPictureStroke}
+            onPictureStroke={(stroke) => {
+              // applies to every selected shape/picture; a selected group pierces one level
+              // down so its shape/picture members get the outline (PowerPoint semantics)
+              for (const id of selectedIds) {
+                const n = findNodeCtx(id)?.node
+                if (!n) continue
+                if (n.type === 'picture' || n.type === 'shape') {
+                  void onStroke(id, stroke)
+                } else if (n.type === 'group') {
+                  for (const c of (n as GroupRenderNode).children) {
+                    if (c.type === 'picture' || c.type === 'shape')
+                      void window.slidesApi
+                        .editStroke({
+                          slideIndex: current,
+                          sourceId: c.sourceId,
+                          stroke,
+                          groupId: n.sourceId,
+                        })
+                        .then((r) => r && applySlide(current, r))
+                  }
+                }
+              }
+            }}
+            onChangeShape={
+              selectedNode?.type === 'shape' && !selectedNode.line
+                ? (prst) => {
+                    void window.slidesApi
+                      .changeShape({
+                        slideIndex: current,
+                        sourceId: selectedNode.sourceId,
+                        prst,
+                        groupId: groupIdOf(selectedNode.sourceId),
+                      })
+                      .then((r) => r && applySlide(current, r))
+                  }
+                : undefined
+            }
+            onShapeStyle={(s) => {
+              // fill + outline together, applied to every selected shape (sequentially: both
+              // edits rewrite the same slide XML in the main process); a selected group
+              // pierces one level down to its shape members (PowerPoint semantics)
+              void (async () => {
+                const applyTo = async (shape: ShapeRenderNode, groupId?: string) => {
+                  const st = shape.stroke
+                  const stroke = { color: s.stroke, widthPt: st?.widthPt ?? 1, dash: s.dash ?? 'solid' }
+                  if (groupId) {
+                    const r1 = await window.slidesApi.editFill({
                       slideIndex: current,
-                      sourceId: c.sourceId,
-                      stroke,
-                      groupId: n.sourceId,
+                      sourceId: shape.sourceId,
+                      fill: s.fill,
+                      groupId,
                     })
-                    .then((r) => r && applySlide(current, r))
-              }
-            }
-          }
-        }}
-        onChangeShape={
-          selectedNode?.type === 'shape' && !selectedNode.line
-            ? (prst) => {
-                void window.slidesApi
-                  .changeShape({
-                    slideIndex: current,
-                    sourceId: selectedNode.sourceId,
-                    prst,
-                    groupId: groupIdOf(selectedNode.sourceId),
-                  })
-                  .then((r) => r && applySlide(current, r))
-              }
-            : undefined
-        }
-        onShapeStyle={(s) => {
-          // fill + outline together, applied to every selected shape (sequentially: both
-          // edits rewrite the same slide XML in the main process); a selected group
-          // pierces one level down to its shape members (PowerPoint semantics)
-          void (async () => {
-            const applyTo = async (shape: ShapeRenderNode, groupId?: string) => {
-              const st = shape.stroke
-              const stroke = { color: s.stroke, widthPt: st?.widthPt ?? 1, dash: s.dash ?? 'solid' }
-              if (groupId) {
-                const r1 = await window.slidesApi.editFill({
+                    if (r1) applySlide(current, r1)
+                    const r2 = await window.slidesApi.editStroke({
+                      slideIndex: current,
+                      sourceId: shape.sourceId,
+                      stroke,
+                      groupId,
+                    })
+                    if (r2) applySlide(current, r2)
+                  } else {
+                    await onFill(shape.sourceId, s.fill)
+                    await onStroke(shape.sourceId, stroke)
+                  }
+                }
+                for (const id of selectedIds) {
+                  const n = findNodeCtx(id)?.node
+                  if (n?.type === 'shape') {
+                    await applyTo(n as ShapeRenderNode)
+                  } else if (n?.type === 'group') {
+                    for (const c of (n as GroupRenderNode).children) {
+                      if (c.type === 'shape') await applyTo(c as ShapeRenderNode, n.sourceId)
+                    }
+                  }
+                }
+              })()
+            }}
+            onShapeFill={(fill) => {
+              void (async () => {
+                for (const id of selectedIds) {
+                  const n = findNodeCtx(id)?.node
+                  if (n?.type === 'shape') {
+                    await onFill(id, fill)
+                  } else if (n?.type === 'group') {
+                    for (const c of (n as GroupRenderNode).children) {
+                      if (c.type !== 'shape') continue
+                      const r = await window.slidesApi.editFill({
+                        slideIndex: current,
+                        sourceId: c.sourceId,
+                        fill,
+                        groupId: n.sourceId,
+                      })
+                      if (r) applySlide(current, r)
+                    }
+                  }
+                }
+              })()
+            }}
+            onShapeFillImage={(mode, source) => {
+              void (async () => {
+                const targets: Array<{ sourceId: string; groupId?: string }> = []
+                for (const id of selectedIds) {
+                  const n = findNodeCtx(id)?.node
+                  if (n?.type === 'shape') {
+                    targets.push({ sourceId: id })
+                  } else if (n?.type === 'group') {
+                    for (const c of (n as GroupRenderNode).children) {
+                      if (c.type === 'shape')
+                        targets.push({ sourceId: c.sourceId, groupId: n.sourceId })
+                    }
+                  }
+                }
+                if (targets.length === 0) return
+                const r = await window.slidesApi.editImageFill({
                   slideIndex: current,
-                  sourceId: shape.sourceId,
-                  fill: s.fill,
-                  groupId,
+                  targets,
+                  mode,
+                  ...(source ? { source } : {}),
                 })
-                if (r1) applySlide(current, r1)
-                const r2 = await window.slidesApi.editStroke({
-                  slideIndex: current,
-                  sourceId: shape.sourceId,
-                  stroke,
-                  groupId,
-                })
-                if (r2) applySlide(current, r2)
-              } else {
-                await onFill(shape.sourceId, s.fill)
-                await onStroke(shape.sourceId, stroke)
-              }
-            }
-            for (const id of selectedIds) {
-              const n = findNodeCtx(id)?.node
-              if (n?.type === 'shape') {
-                await applyTo(n as ShapeRenderNode)
-              } else if (n?.type === 'group') {
-                for (const c of (n as GroupRenderNode).children) {
-                  if (c.type === 'shape') await applyTo(c as ShapeRenderNode, n.sourceId)
-                }
-              }
-            }
-          })()
-        }}
-        onShapeFill={(fill) => {
-          void (async () => {
-            for (const id of selectedIds) {
-              const n = findNodeCtx(id)?.node
-              if (n?.type === 'shape') {
-                await onFill(id, fill)
-              } else if (n?.type === 'group') {
-                for (const c of (n as GroupRenderNode).children) {
-                  if (c.type !== 'shape') continue
-                  const r = await window.slidesApi.editFill({
-                    slideIndex: current,
-                    sourceId: c.sourceId,
-                    fill,
-                    groupId: n.sourceId,
-                  })
-                  if (r) applySlide(current, r)
-                }
-              }
-            }
-          })()
-        }}
-        onShapeFillImage={(mode, source) => {
-          void (async () => {
-            const targets: Array<{ sourceId: string; groupId?: string }> = []
-            for (const id of selectedIds) {
-              const n = findNodeCtx(id)?.node
-              if (n?.type === 'shape') {
-                targets.push({ sourceId: id })
-              } else if (n?.type === 'group') {
-                for (const c of (n as GroupRenderNode).children) {
-                  if (c.type === 'shape')
-                    targets.push({ sourceId: c.sourceId, groupId: n.sourceId })
-                }
-              }
-            }
-            if (targets.length === 0) return
-            const r = await window.slidesApi.editImageFill({
-              slideIndex: current,
-              targets,
-              mode,
-              ...(source ? { source } : {}),
-            })
-            if (r) applySlide(current, r)
-          })()
-        }}
-        contextShapeFill={
-          selectedNode?.type === 'shape'
-            ? (selectedNode as ShapeRenderNode).fill.kind === 'solid'
-              ? toPickerHex(
-                  (selectedNode as ShapeRenderNode & { fill: { color: string } }).fill.color,
-                )
-              : (selectedNode as ShapeRenderNode).fill.kind === 'none'
-                ? 'none'
+                if (r) applySlide(current, r)
+              })()
+            }}
+            contextShapeFill={
+              selectedNode?.type === 'shape'
+                ? (selectedNode as ShapeRenderNode).fill.kind === 'solid'
+                  ? toPickerHex(
+                      (selectedNode as ShapeRenderNode & { fill: { color: string } }).fill.color,
+                    )
+                  : (selectedNode as ShapeRenderNode).fill.kind === 'none'
+                    ? 'none'
+                    : null
                 : null
-            : null
+            }
+            onPictureCrop={startCrop}
+            cropActive={cropTarget != null}
+            onPictureCutout={startCutout}
+            onPictureOpacity={(opacity) => {
+              if (!selectedNode || selectedNode.type !== 'picture') return
+              void window.slidesApi
+                .editPictureOpacity({ slideIndex: current, sourceId: selectedNode.sourceId, opacity })
+                .then((r) => r && applySlide(current, r))
+            }}
+            onEditTableStyle={(op) => void onEditTableStyle(op)}
+            tableStyleFlags={tableStyleFlags}
+            tableActiveCell={tableActiveCell}
+            onEditChart={(op) => void onEditChart(op)}
+            onOpenChartDataDialog={() => void openChartDataDialog()}
+            onArrange={(op) => void alignSelected(op)}
+            onFlip={(axis) => void flipSelected(axis)}
+            canDistribute={selectedIds.length >= 3}
+          />
         }
-        onPictureCrop={startCrop}
-        cropActive={cropTarget != null}
-        onPictureCutout={startCutout}
-        onPictureOpacity={(opacity) => {
-          if (!selectedNode || selectedNode.type !== 'picture') return
-          void window.slidesApi
-            .editPictureOpacity({ slideIndex: current, sourceId: selectedNode.sourceId, opacity })
-            .then((r) => r && applySlide(current, r))
-        }}
-        onEditTableStyle={(op) => void onEditTableStyle(op)}
-        tableStyleFlags={tableStyleFlags}
-        tableActiveCell={tableActiveCell}
-        onEditChart={(op) => void onEditChart(op)}
-        onOpenChartDataDialog={() => void openChartDataDialog()}
-        onArrange={(op) => void alignSelected(op)}
-        onFlip={(axis) => void flipSelected(axis)}
-        canDistribute={selectedIds.length >= 3}
-      />
-
-      <div className="app-main">
-        {slide && viewMode !== 'reading' && viewMode !== 'sorter' && (
-          <div className={`ai-dock${showAi && aiSettings ? '' : ' collapsed'}`}>
-            {/* always mounted once settings load: collapse must not drop state or in-flight runs */}
-            {aiSettings ? (
+        panel={
+          slide && aiSettings && viewMode !== 'reading' && viewMode !== 'sorter' ? (
               <AiPanel
                 key={aiPanelKey}
                 slides={slides}
@@ -3138,6 +3215,7 @@ export function App() {
                 open={showAi}
                 onExpand={toggleAi}
                 onCollapse={toggleAi}
+                hosted
                 onUndo={() => void undo()}
                 onPathChange={(p) => {
                   setPath(p)
@@ -3168,18 +3246,50 @@ export function App() {
                   setEditQueue((prev) => prev.filter((it) => !keys.includes(it.key)))
                 }
               />
-            ) : (
-              <button
-                className="ai-rail"
-                onClick={toggleAi}
-                data-tip={t('appAiRailExpand')}
-                aria-label={t('appAiRailExpand')}
-              >
-                <GensparkMark size={22} />
-              </button>
-            )}
-          </div>
-        )}
+          ) : undefined
+        }
+        panelOpen={showAi}
+        onPanelOpenChange={(open) => {
+          if (open !== showAi) toggleAi()
+        }}
+        panelWidth={frame.panelWidth}
+        onPanelWidthChange={frame.setPanelWidth}
+        status={
+          <StatusBar
+            label={frameT(lang, 'status')}
+            items={[
+              slide ? t('appStatusBarSlide', { current: current + 1, total: slides.length }) : t('appStatusBarReady'),
+              status ? <span className="status-msg">{status}</span> : null,
+            ]}
+            connection={{ online: frame.online, onlineLabel: frameT(lang, 'online'), offlineLabel: frameT(lang, 'offline') }}
+            zoom={
+              <span className="status-zoom">
+              {hasDoc && (
+                <button
+                  className={`status-notes-btn${showNotes ? ' on' : ''}`}
+                  data-tip={showNotes ? t('appNotesHide') : t('appNotesShow')}
+                  onClick={() => setShowNotes((v) => !v)}
+                >
+                  <IconNotes size={18} />
+                  <span>{t('appNotesLabel')}</span>
+                </button>
+              )}
+              {hasDoc && (
+                <button
+                  className="status-play-btn"
+                  data-tip={t('ribbonFromCurrentTip')}
+                  aria-label={t('ribbonFromCurrentTip')}
+                  onClick={() => startSlideShow(false)}
+                >
+                  <IconPlayBoxed size={18} />
+                </button>
+              )}
+              <ZoomControls zoom={zoom} onPreview={previewZoom} />
+              </span>
+            }
+          />
+        }
+      >
         <div className="app-content">
           {missingFonts.length > 0 && (
             <div className="font-missing-banner">
@@ -3319,7 +3429,35 @@ export function App() {
                 ) : (
                   showThumbs && (
                     <>
-                      <div className="slide-list" ref={thumbsListRef} style={{ width: thumbsW }}>
+                      <div
+                        className="slide-list"
+                        ref={thumbsListRef}
+                        style={{ width: thumbsW }}
+                        role="listbox"
+                        aria-label={t('appSlideRail')}
+                        aria-orientation="vertical"
+                        onKeyDown={(e) => {
+                          // the rail is one Tab stop: arrows / Home / End move between slides
+                          const target = e.target as HTMLElement
+                          if (!target.matches('.thumb[role="option"]')) return
+                          let next = -1
+                          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = current + 1
+                          else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = current - 1
+                          else if (e.key === 'Home') next = 0
+                          else if (e.key === 'End') next = slides.length - 1
+                          if (next < 0 || next >= slides.length) return
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setCurrent(next)
+                          setSelectedIds([])
+                          setEditing(null)
+                          requestAnimationFrame(() =>
+                            thumbsListRef.current
+                              ?.querySelectorAll<HTMLElement>('.thumb[role="option"]')
+                              [next]?.focus(),
+                          )
+                        }}
+                      >
                         {(() => {
                           // width = sidebar minus horizontal padding (20) and .thumb border (4)
                           const thumbW = Math.max(60, thumbsW - 24)
@@ -3327,6 +3465,10 @@ export function App() {
                             <div
                               key={i}
                               className={`thumb ${i === current ? 'active' : ''} ${s.hidden ? 'thumb-hidden' : ''}${thumbDragCls(i)}`}
+                              role="option"
+                              aria-selected={i === current}
+                              aria-label={t('appSlideLabel', { n: i + 1 })}
+                              tabIndex={i === current ? 0 : -1}
                               data-tip={s.hidden ? t('appThumbHiddenTitle') : undefined}
                               {...thumbDragProps(i)}
                               onClick={() => {
@@ -3344,7 +3486,9 @@ export function App() {
                               }}
                             >
                               <SlideThumb slide={s} images={images} width={thumbW} />
-                              <span className="thumb-num">{i + 1}</span>
+                              <span className="thumb-num" aria-hidden="true">
+                                {i + 1}
+                              </span>
                               {pasteFloater?.index === i && (
                                 <PasteOptionsFloater
                                   mode={pasteFloater.mode}
@@ -3946,44 +4090,8 @@ export function App() {
               </>
             )}
           </div>
-
-          <footer className="status-bar">
-            <div className="status-left">
-              {slide ? (
-                <span className="status-item">
-                  {t('appStatusBarSlide', { current: current + 1, total: slides.length })}
-                </span>
-              ) : (
-                t('appStatusBarReady')
-              )}
-              {status && <span className="status-msg"> — {status}</span>}
-            </div>
-            <div className="status-right">
-              {hasDoc && (
-                <button
-                  className={`status-notes-btn${showNotes ? ' on' : ''}`}
-                  data-tip={showNotes ? t('appNotesHide') : t('appNotesShow')}
-                  onClick={() => setShowNotes((v) => !v)}
-                >
-                  <IconNotes size={18} />
-                  <span>{t('appNotesLabel')}</span>
-                </button>
-              )}
-              {hasDoc && (
-                <button
-                  className="status-play-btn"
-                  data-tip={t('ribbonFromCurrentTip')}
-                  aria-label={t('ribbonFromCurrentTip')}
-                  onClick={() => startSlideShow(false)}
-                >
-                  <IconPlayBoxed size={18} />
-                </button>
-              )}
-              <ZoomControls zoom={zoom} onPreview={previewZoom} />
-            </div>
-          </footer>
         </div>
-      </div>
+      </EditorFrame>
 
       {masterItems && (
         <MasterView

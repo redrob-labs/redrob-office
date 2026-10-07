@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
+  aiYou: 'Anda',
+  aiFailedTitle: 'Pembantu tidak dapat menyelesaikan',
+  aiStepRunning: 'Sedang berjalan',
+  aiStepDone: 'Selesai',
+  aiStepFailed: 'Gagal',
+  aiStartersLabel: 'Soalan dicadangkan',
   aiInputPlaceholderGen: 'Terangkan pembentangan untuk dijana, atau tanya apa sahaja',
   aiEmptyGenTitle: 'Biarkan AI menjana pembentangan anda',
   aiEmptyGenBody1: 'Terangkan topik, majlis dan anggaran bilangan halaman;',
@@ -247,4 +253,4 @@ export const ms = {
   aiSumSaveTemplate: 'Menyimpan templat gaya "{name}"',
   aiSumTemplatesEmpty: 'Templat gaya (kosong)',
   aiSumListTemplates: 'Menyenaraikan {count} templat gaya',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

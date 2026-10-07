@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
   ribbonAiCreditNote: '將呼叫 AI 並消耗額度',
@@ -679,4 +679,4 @@ export const zhTW = {
   ribbonClearAll: '全部清除',
   ribbonClearAllTip: '刪除文件中的所有筆跡',
   ribbonGroupClear: '清除',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

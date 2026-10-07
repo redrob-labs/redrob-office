@@ -1,4 +1,7 @@
 import type { PdfPasswordUiState, PdfPasswordWindowApi } from '../../shared/pdf-password-api'
+import { followWindowTheme } from './window-theme'
+
+followWindowTheme()
 
 // exposed by src/preload/pdf-password.ts
 const api = (window as unknown as { aiOfficePdfPassword: PdfPasswordWindowApi }).aiOfficePdfPassword

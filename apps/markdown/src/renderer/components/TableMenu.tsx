@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
+import { Toolbar, ToolbarButton, ToolbarGroup } from '@genoffice/ui'
 import type { Editor } from '@tiptap/core'
 import { useEditorState } from '@tiptap/react'
 import { useI18n } from '../i18n/locale'
@@ -20,33 +20,6 @@ interface Props {
   scrollRef: React.RefObject<HTMLElement | null>
   /** Reposition the viewport-anchored menu after document zoom changes. */
   zoom: number
-}
-
-function Btn({
-  title,
-  danger,
-  onClick,
-  children,
-}: {
-  title: string
-  danger?: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  // data-tip drives the fast custom tooltip (the native title is too slow to
-  // explain icon-only buttons)
-  return (
-    <button
-      type="button"
-      className={`tm-btn${danger ? ' danger' : ''}`}
-      aria-label={title}
-      data-tip={title}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  )
 }
 
 /**
@@ -106,32 +79,57 @@ export function TableMenu({ editor, scrollRef, zoom }: Props) {
       style={{ position: 'fixed', top: rect.top, left: rect.left, transform: 'translateX(-100%)' }}
       onMouseDown={(e) => e.preventDefault()}
     >
-      <Btn title={t('tableRowAbove')} onClick={() => run((c) => c.addRowBefore())}>
-        <IconRowInsertAbove size={ICON} />
-      </Btn>
-      <Btn title={t('tableRowBelow')} onClick={() => run((c) => c.addRowAfter())}>
-        <IconRowInsertBelow size={ICON} />
-      </Btn>
-      <Btn title={t('tableDeleteRow')} danger onClick={() => run((c) => c.deleteRow())}>
-        <IconRowDelete size={ICON} />
-      </Btn>
-      <span className="tm-sep" />
-      <Btn title={t('tableColLeft')} onClick={() => run((c) => c.addColumnBefore())}>
-        <IconColInsertLeft size={ICON} />
-      </Btn>
-      <Btn title={t('tableColRight')} onClick={() => run((c) => c.addColumnAfter())}>
-        <IconColInsertRight size={ICON} />
-      </Btn>
-      <Btn title={t('tableDeleteCol')} danger onClick={() => run((c) => c.deleteColumn())}>
-        <IconColDelete size={ICON} />
-      </Btn>
-      <span className="tm-sep" />
-      <Btn title={t('tableToggleHeaderRow')} onClick={() => run((c) => c.toggleHeaderRow())}>
-        <IconHeaderRow size={ICON} />
-      </Btn>
-      <Btn title={t('tableDeleteTable')} danger onClick={() => run((c) => c.deleteTable())}>
-        <IconTableDelete size={ICON} />
-      </Btn>
+      <Toolbar label={t('tableToolbar')}>
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('tableRowAbove')}
+            icon={<IconRowInsertAbove size={ICON} />}
+            onClick={() => run((c) => c.addRowBefore())}
+          />
+          <ToolbarButton
+            label={t('tableRowBelow')}
+            icon={<IconRowInsertBelow size={ICON} />}
+            onClick={() => run((c) => c.addRowAfter())}
+          />
+          <ToolbarButton
+            className="tm-danger"
+            label={t('tableDeleteRow')}
+            icon={<IconRowDelete size={ICON} />}
+            onClick={() => run((c) => c.deleteRow())}
+          />
+        </ToolbarGroup>
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('tableColLeft')}
+            icon={<IconColInsertLeft size={ICON} />}
+            onClick={() => run((c) => c.addColumnBefore())}
+          />
+          <ToolbarButton
+            label={t('tableColRight')}
+            icon={<IconColInsertRight size={ICON} />}
+            onClick={() => run((c) => c.addColumnAfter())}
+          />
+          <ToolbarButton
+            className="tm-danger"
+            label={t('tableDeleteCol')}
+            icon={<IconColDelete size={ICON} />}
+            onClick={() => run((c) => c.deleteColumn())}
+          />
+        </ToolbarGroup>
+        <ToolbarGroup>
+          <ToolbarButton
+            label={t('tableToggleHeaderRow')}
+            icon={<IconHeaderRow size={ICON} />}
+            onClick={() => run((c) => c.toggleHeaderRow())}
+          />
+          <ToolbarButton
+            className="tm-danger"
+            label={t('tableDeleteTable')}
+            icon={<IconTableDelete size={ICON} />}
+            onClick={() => run((c) => c.deleteTable())}
+          />
+        </ToolbarGroup>
+      </Toolbar>
     </div>
   )
 }

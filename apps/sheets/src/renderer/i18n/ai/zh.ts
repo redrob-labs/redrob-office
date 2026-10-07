@@ -1,5 +1,12 @@
-/** ai strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** ai strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
+  aiYou: '你',
+  aiFailedTitle: '助手未能完成',
+  aiStepRunning: '运行中',
+  aiStepDone: '完成',
+  aiStepFailed: '失败',
+  aiStartersLabel: '建议的提问',
   aiComposerPlaceholderBuild: '描述要生成的表格、数据或图表…',
   aiEmptyBuildTitle: '让 AI 帮你从零建表',
   aiEmptyBuildBody: '描述想要的表格、数据或图表，AI 直接生成。',
@@ -100,4 +107,4 @@ export const zh = {
   aiScopeColumns: '已选中 {names} 共 {count} 列',
   aiScopeRangeTip: 'AI 会把"这一列 / 这些行 / 选中部分"理解为该区域；发送后本轮固定不变',
   aiScopeClearTitle: '取消该区域范围，本次针对整张表',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

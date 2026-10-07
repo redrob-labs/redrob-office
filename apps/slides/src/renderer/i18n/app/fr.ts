@@ -1,6 +1,8 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const fr = {
+  appSlideRail: 'Diapositives',
+  appSlideLabel: 'Diapositive {n}',
   appPhPromptTitle: 'Cliquez pour ajouter un titre',
   appPhPromptSubtitle: 'Cliquez pour ajouter un sous-titre',
   appPhPromptBody: 'Cliquez pour ajouter du texte',
@@ -242,4 +244,4 @@ export const fr = {
   appSettingsCancel: 'Annuler',
   appSettingsSave: 'Enregistrer',
   appCropHint: 'Entrée pour confirmer · Échap pour annuler · Cliquez à l’extérieur pour confirmer',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

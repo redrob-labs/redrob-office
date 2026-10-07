@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const hi = {
+  aiYou: 'आप',
+  aiFailedTitle: 'सहायक पूरा नहीं कर सका',
+  aiStepRunning: 'चल रहा है',
+  aiStepDone: 'पूरा हुआ',
+  aiStepFailed: 'विफल',
+  aiStartersLabel: 'सुझाए गए प्रश्न',
   aiComposerPlaceholderBuild: 'बनाने के लिए तालिका, डेटा या चार्ट बताएँ…',
   aiEmptyBuildTitle: 'AI से यह वर्कबुक बनवाएँ',
   aiEmptyBuildBody: 'जो तालिका, डेटा या चार्ट चाहिए बताएँ - AI उसे तुरंत बना देता है।',
@@ -107,4 +113,4 @@ export const hi = {
   aiScopeRangeTip:
     'AI "इस कॉलम / इन पंक्तियों / चयनित भाग" को इसी श्रेणी के रूप में समझता है; भेजने पर यह पूरे रन के लिए तय हो जाता है',
   aiScopeClearTitle: 'श्रेणी दायरा हटाएँ और पूरी शीट पर काम करें',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

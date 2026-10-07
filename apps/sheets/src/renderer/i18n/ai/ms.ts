@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
+  aiYou: 'Anda',
+  aiFailedTitle: 'Pembantu tidak dapat menyelesaikan',
+  aiStepRunning: 'Sedang berjalan',
+  aiStepDone: 'Selesai',
+  aiStepFailed: 'Gagal',
+  aiStartersLabel: 'Soalan dicadangkan',
   aiComposerPlaceholderBuild: 'Terangkan jadual, data atau carta untuk dijana…',
   aiEmptyBuildTitle: 'Biarkan AI membina buku kerja ini untuk anda',
   aiEmptyBuildBody: 'Terangkan jadual, data atau carta yang anda perlukan - AI terus menciptanya.',
@@ -107,4 +113,4 @@ export const ms = {
   aiScopeRangeTip:
     'AI membaca "lajur ini / baris ini / bahagian yang dipilih" sebagai julat ini, dan ia dikunci sepanjang larian selepas anda hantar',
   aiScopeClearTitle: 'Buang skop julat dan gunakan seluruh helaian',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

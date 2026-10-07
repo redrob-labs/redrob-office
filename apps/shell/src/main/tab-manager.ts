@@ -153,6 +153,11 @@ export class TabManager {
     }))
   }
 
+  /** the editor view's webContents for a tab, or null for Home / a closed tab */
+  webContentsOf(id: string): WebContents | null {
+    return this.tabs.find((t) => t.id === id)?.view?.webContents ?? null
+  }
+
   openHomeTab(): void {
     this.activateTab(HOME_ID)
   }

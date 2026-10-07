@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const zhTW = {
   ribbonAiCreditNote: '將呼叫 AI 並消耗額度',
@@ -703,4 +703,4 @@ export const zhTW = {
   ribbonEqStdDev: '標準差',
   ribbonEqFourier: '傅立葉轉換',
   ribbonEqNormalDist: '常態分佈',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

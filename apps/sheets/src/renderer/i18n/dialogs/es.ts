@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const es = {
   dlgAllowEditRangesTitle: 'Permitir editar rangos',
@@ -402,4 +402,4 @@ export const es = {
   dlgFnDescNpv: 'Devuelve el valor actual neto de un flujo de caja a una tasa de descuento.',
   dlgFnDescIrr: 'Devuelve la tasa interna de retorno de una serie de flujos.',
   dlgFnCatFinancial: 'Financieras',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

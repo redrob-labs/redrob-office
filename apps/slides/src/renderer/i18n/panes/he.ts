@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const he = {
   paneCancel: 'ביטול',
@@ -274,4 +274,4 @@ export const he = {
   paneShowEnded: 'סוף הצגת השקופיות.',
   paneShowRehearseTip: 'חזרה על תזמונים: זמן בשקופית זו / זמן כולל',
   paneShowRehearseTotal: 'סה״כ {time}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

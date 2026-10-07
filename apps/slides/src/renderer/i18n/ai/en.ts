@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
+  aiYou: 'You',
+  aiFailedTitle: 'The assistant could not finish',
+  aiStepRunning: 'Running',
+  aiStepDone: 'Done',
+  aiStepFailed: 'Failed',
+  aiStartersLabel: 'Suggested prompts',
   aiInputPlaceholderGen: 'Describe the deck to generate, or ask anything',
   aiEmptyGenTitle: 'Let AI generate your presentation',
   aiEmptyGenBody1: 'Describe the topic, audience, and rough page count;',
@@ -247,4 +253,4 @@ export const en = {
   aiSumSaveTemplate: 'Saved style template "{name}"',
   aiSumTemplatesEmpty: 'Style templates (empty)',
   aiSumListTemplates: 'Listed {count} style templates',
-} satisfies Record<keyof typeof zh, string>
+}

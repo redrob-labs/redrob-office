@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const nl = {
+  aiYou: 'Jij',
+  aiFailedTitle: 'De assistent kon het niet afmaken',
+  aiStepRunning: 'Bezig',
+  aiStepDone: 'Klaar',
+  aiStepFailed: 'Mislukt',
+  aiStartersLabel: 'Voorgestelde vragen',
   aiInputPlaceholderGen: 'Beschrijf de presentatie om te genereren, of stel een vraag',
   aiEmptyGenTitle: 'Laat AI je presentatie genereren',
   aiEmptyGenBody1: 'Beschrijf het onderwerp, de gelegenheid en het aantal pagina’s;',
@@ -249,4 +255,4 @@ export const nl = {
   aiSumSaveTemplate: 'Stijlsjabloon "{name}" opgeslagen',
   aiSumTemplatesEmpty: 'Stijlsjablonen (leeg)',
   aiSumListTemplates: '{count} stijlsjablonen weergegeven',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -47,6 +47,49 @@ Both are vendored here verbatim and served offline from a local origin (no CDN):
                                   (the build command is not recorded in this
                                   repository; PORT-DESIGN.md, which held it, was
                                   never checked in)
+    * engines/rhwp              — the rhwp Rust engine source (src/, crates/,
+                                  vendor/) from upstream tag v0.8.7, commit
+                                  1a76570e833917d15817415a53c09ad61ab3203f, with
+                                  Redrob's changes on top. engines/rhwp/REDROB.md
+                                  lists what was taken and what was changed.
+    * packages/hwp-core/wasm    — that engine built to WebAssembly by
+                                  scripts/build-hwp-core.sh; checksums and the
+                                  toolchain are pinned in
+                                  packages/hwp-core/provenance.json
+
+  Redrob's changes to engines/rhwp are licensed under the MIT License, the same
+  as rhwp, so they can be offered upstream.
+
+  본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+  (This product was developed with reference to Hancom's published Hangul
+  document file (.hwp) specification.) The HWPX format is the Korean national
+  standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered
+  trademarks of Hancom Inc.; Redrob Office is not affiliated with, sponsored by
+  or endorsed by Hancom Inc.
+
+Redrob design system
+
+  The application chrome is built on the Redrob Group Design System 2026, as
+  published in the @redrob-labs/ui npm package (pinned at 1.0.2) and consumed
+  through packages/genoffice-ui:
+
+  @redrob-labs/ui
+  Copyright (c) 2026 Janghoon Lee (Redrob) and contributors
+  Licensed under the MIT License.
+  https://github.com/redrob-labs/redrob-ui
+
+  The package ships these font faces in dist/fonts/. Each is licensed under the
+  SIL Open Font License 1.1; the copyright lines are the ones embedded in each
+  font file's name table:
+
+    * Pretendard            Copyright (c) 2023 Kil Hyung-jin
+    * Redrob Rake Display   Copyright (c) 2023 Kil Hyung-jin
+                            (a renamed derivative build)
+    * Redrob Rake Display KR, Wanted Sans
+                            Copyright (c) 2024 Wanted Lab, Inc.
+    * Nanum Myeongjo        Copyright (c) 2010 NHN Corporation
+    * Newsreader            Copyright 2020 The Newsreader Project Authors
+    * Noto Sans Devanagari  Copyright 2022 The Noto Project Authors
 
 Unicode Character Database
 

@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const he = {
   dlgAllowEditRangesTitle: 'אפשר עריכת טווחים',
@@ -393,4 +393,4 @@ export const he = {
   dlgFnDescNpv: 'מחזיר את הערך הנוכחי הנקי של תזרים מזומנים בשיעור היוון.',
   dlgFnDescIrr: 'מחזיר את שיעור התשואה הפנימי של סדרת תזרימים.',
   dlgFnCatFinancial: 'פיננסי',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

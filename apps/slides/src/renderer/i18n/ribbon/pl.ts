@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pl = {
   ribbonAiCreditNote: 'Używa AI i zużywa kredyty',
@@ -736,4 +736,4 @@ export const pl = {
   ribbonEqStdDev: 'Odchylenie standardowe',
   ribbonEqFourier: 'Transformata Fouriera',
   ribbonEqNormalDist: 'Rozkład normalny',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

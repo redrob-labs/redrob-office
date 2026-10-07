@@ -1,48 +1,64 @@
-/* Per-app accent (excel-green family) + sheets-only tokens.
- * Chrome tokens (surface/text/border/…, AI panel --color-*) come from
- * @genoffice/ui/tokens.css; nothing here may shadow those names. */
+/* Sheets-only tokens. Chrome values alias @redrob-labs/ui tokens, so the
+ * kit's data-theme switch carries both themes with no per-theme copies here.
+ * Shared chrome tokens come from @genoffice/ui/tokens.css; nothing here may
+ * shadow those names. --excel-green* are the chrome accent's old names and
+ * follow the brand. */
 :root {
-  --excel-green: #217346;
-  --excel-green-dark: #185c37;
-  --excel-green-soft: #e9f3ed;
-  --accent: var(--excel-green);
-  --accent-dark: var(--excel-green-dark);
-  --accent-soft: var(--excel-green-soft);
+  --excel-green: var(--action-primary);
+  --excel-green-dark: var(--action-primary-hover);
+  --excel-green-soft: var(--surface-brand-subtle);
 
-  --surface-hover: #edf1ee;
-  /* ribbon toggle states match the slides ribbon (--hover / --active-bg):
-     neutral gray, not the app's green-tinted surface hover */
-  --ribbon-hover: var(--color-bg-subtle);
-  --ribbon-active: #eaeaea;
-  --focus: rgb(33 115 70 / 24%);
-  --radius-4: 4px;
-  --radius-6: 6px;
-  --radius-small: var(--radius-4);
-  --radius-medium: var(--radius-6);
-  --shadow-panel: 0 8px 24px rgb(0 0 0 / 10%);
-  --shadow-modal: 0 3px 30px rgb(0 0 0 / 8%);
+  --surface-hover: var(--surface-sunken);
+  --ribbon-hover: var(--surface-sunken);
+  --ribbon-active: var(--surface-brand-subtle);
+  --focus: color-mix(in srgb, var(--focus-ring) 24%, transparent);
+  --radius-4: var(--radius-sm);
+  --radius-small: var(--radius-sm);
+  --radius-medium: var(--radius-md);
+  --shadow-panel: var(--shadow-md);
+  --shadow-modal: var(--shadow-lg);
 
-  /* sheets-local chrome shades */
-  --sheets-error: #b3261e;
-  --sheets-ai-error: #c62828;
-  --sheets-ai-error-border: rgb(198 40 40 / 45%);
-  --sheets-ai-error-bg: rgb(198 40 40 / 8%);
-  --sheets-notice-border: rgb(33 115 70 / 25%);
-  --sheets-statusbar-bg: #f3f4f6;
-  --sheets-statusbar-border: #e1e4e8;
-  --sheets-statusbar-hover: rgb(0 0 0 / 8%);
-  --sheets-zoom-slider: #8a8886;
-  --sheets-focus-ring: rgb(35 36 37 / 20%);
-  --sheets-shimmer-base: #666666;
-  --sheets-shimmer-hi: #d9d9d9;
-  --sheets-scroll-thumb: rgb(0 0 0 / 25%);
-  --sheets-chip-bg: #f3f7f4;
-  --sheets-member-bg: #f6f8f7;
-  --sheets-member-ink: #5c6660;
-  --sheets-validation-prompt-bg: #ffffe1;
-  --sheets-validation-prompt-border: #808080;
-  --sheets-validation-prompt-ink: #555;
-  --sheets-validation-prompt-shadow: rgb(0 0 0 / 18%);
+  /* chrome */
+  --sheets-error: var(--status-danger);
+  --sheets-ai-error: var(--status-danger);
+  --sheets-ai-error-border: color-mix(in srgb, var(--status-danger) 45%, transparent);
+  --sheets-ai-error-bg: color-mix(in srgb, var(--status-danger) 8%, transparent);
+  --sheets-notice-border: color-mix(in srgb, var(--action-primary) 25%, transparent);
+  --sheets-statusbar-bg: var(--surface-raised);
+  --sheets-statusbar-border: var(--border-subtle);
+  --sheets-statusbar-hover: var(--surface-sunken);
+  --sheets-zoom-slider: var(--action-primary);
+  --sheets-focus-ring: color-mix(in srgb, var(--ink-primary) 20%, transparent);
+  --sheets-shimmer-base: var(--ink-secondary);
+  --sheets-shimmer-hi: var(--gray-3);
+  --sheets-scroll-thumb: var(--border-strong);
+  --sheets-chip-bg: var(--surface-raised);
+  --sheets-member-bg: var(--surface-raised);
+  --sheets-member-ink: var(--ink-secondary);
+  --sheets-validation-prompt-bg: var(--accent-yellow-1);
+  --sheets-validation-prompt-border: var(--accent-yellow-4);
+  --sheets-validation-prompt-ink: var(--redrob-black);
+  --sheets-validation-prompt-shadow: color-mix(in srgb, var(--redrob-black) 18%, transparent);
+  --sheets-chip-remove-bg: var(--ink-primary);
+  --sheets-chip-remove-hover: var(--ink-secondary);
+  --sheets-chip-remove-ink: var(--surface-base);
+  --sheets-toast-bg: var(--redrob-black);
+  --sheets-toast-error-bg: var(--status-danger);
+  --sheets-toast-ink: var(--redrob-white);
+  --sheets-toast-ok: var(--status-success);
+  --sheets-on-accent-hover: color-mix(in srgb, var(--ink-on-brand) 22%, transparent);
+  --sheets-mask-bg: var(--overlay-scrim);
+  --sheets-mask-bg-strong: var(--overlay-scrim);
+  --sheets-shadow-drop: var(--shadow-md);
+  --sheets-shadow-menu: var(--shadow-md);
+  --sheets-shadow-pane: var(--shadow-md);
+  --sheets-shadow-card: var(--shadow-sm);
+  --sheets-shadow-chart: var(--shadow-sm);
+  --sheets-shadow-copilot: var(--shadow-sm);
+  --sheets-shadow-badge: var(--shadow-sm);
+  --sheets-shadow-slicer: var(--shadow-md);
+  --sheets-shadow-toast: var(--shadow-lg);
+  --sheets-shadow-composer: var(--shadow-sm);
 
   /* content-side constants: charts, shapes and their selection chrome sit on
    * the paper-like grid and never follow the theme */
@@ -68,103 +84,12 @@
   --sheets-shape-ink: #596068;
   --sheets-content-danger: #b42318;
 
-  /* dark chips and black translucent masks/shadows hold in both themes */
-  --sheets-chip-remove-bg: #000;
-  --sheets-chip-remove-hover: #4b4e51;
-  --sheets-chip-remove-ink: #fff;
-  --sheets-toast-bg: rgb(35 35 37 / 92%);
-  --sheets-toast-error-bg: rgb(196 49 75 / 95%);
-  --sheets-toast-ink: #fff;
-  --sheets-toast-ok: #34c759;
-  --sheets-on-accent-hover: rgb(255 255 255 / 22%);
-  --sheets-mask-bg: rgb(0 0 0 / 50%);
-  --sheets-mask-bg-strong: rgb(0 0 0 / 50%);
-  --sheets-shadow-drop: 0 6px 20px rgb(0 0 0 / 14%), 0 1px 3px rgb(0 0 0 / 8%);
-  --sheets-shadow-menu: 0 6px 20px rgb(0 0 0 / 18%);
-  --sheets-shadow-pane: 0 4px 18px rgb(0 0 0 / 12%);
-  --sheets-shadow-card: 0 1px 2px rgb(0 0 0 / 4%);
-  --sheets-shadow-chart: 0 1px 3px rgb(0 0 0 / 12%);
-  --sheets-shadow-copilot: 4px 0 16px rgb(24 60 40 / 5%);
-  --sheets-shadow-badge: 0 2px 6px rgb(74 92 255 / 25%);
-  --sheets-shadow-slicer: 0 6px 18px rgb(15 40 30 / 14%);
-  --sheets-shadow-toast: 0 4px 16px rgb(0 0 0 / 18%);
-  --sheets-shadow-composer: 0 6px 30px rgb(0 0 0 / 8%);
-
   /* Same stack as docs/slides — an Inter fallback here made ribbon labels
      render in a different face than the other apps on machines with Inter */
-  font-family:
-    'Segoe UI',
-    -apple-system,
-    BlinkMacSystemFont,
-    var(--ui-cjk),
-    sans-serif;
-  color: var(--text);
-  background: var(--surface);
+  font-family: var(--font-chrome);
+  color: var(--ink-primary);
+  background: var(--surface-base);
   font-synthesis: none;
-}
-
-[data-theme='dark'] {
-  --accent: #34a853;
-  --accent-dark: #58b380;
-  --accent-soft: #1d3328;
-  --surface-hover: #333;
-  --ribbon-hover: #333;
-  --ribbon-active: #454545;
-  --focus: rgb(52 168 83 / 40%);
-  --shadow-panel: 0 8px 24px rgb(0 0 0 / 45%);
-  --sheets-error: #e57373;
-  --sheets-ai-error: #f28b82;
-  --sheets-ai-error-border: rgb(242 139 130 / 45%);
-  --sheets-ai-error-bg: rgb(242 139 130 / 12%);
-  --sheets-notice-border: rgb(52 168 83 / 35%);
-  --sheets-statusbar-bg: #252525;
-  --sheets-statusbar-border: #3a3a3a;
-  --sheets-statusbar-hover: rgb(255 255 255 / 10%);
-  --sheets-zoom-slider: #777;
-  --sheets-focus-ring: rgb(228 228 228 / 25%);
-  --sheets-shimmer-base: #8a8a8a;
-  --sheets-shimmer-hi: #d0d0d0;
-  --sheets-scroll-thumb: rgb(255 255 255 / 28%);
-  --sheets-chip-bg: #24312a;
-  --sheets-member-bg: #2f2f2f;
-  --sheets-member-ink: #a9b2ac;
-  --sheets-validation-prompt-bg: #3c3826;
-  --sheets-validation-prompt-border: #8f8663;
-  --sheets-validation-prompt-ink: #f2ecd0;
-  --sheets-validation-prompt-shadow: rgb(0 0 0 / 45%);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) {
-    --accent: #34a853;
-    --accent-dark: #58b380;
-    --accent-soft: #1d3328;
-    --surface-hover: #333;
-    --ribbon-hover: #333;
-    --ribbon-active: #454545;
-    --focus: rgb(52 168 83 / 40%);
-    --shadow-panel: 0 8px 24px rgb(0 0 0 / 45%);
-    --sheets-error: #e57373;
-    --sheets-ai-error: #f28b82;
-    --sheets-ai-error-border: rgb(242 139 130 / 45%);
-    --sheets-ai-error-bg: rgb(242 139 130 / 12%);
-    --sheets-notice-border: rgb(52 168 83 / 35%);
-    --sheets-statusbar-bg: #252525;
-    --sheets-statusbar-border: #3a3a3a;
-    --sheets-statusbar-hover: rgb(255 255 255 / 10%);
-    --sheets-zoom-slider: #777;
-    --sheets-focus-ring: rgb(228 228 228 / 25%);
-    --sheets-shimmer-base: #8a8a8a;
-    --sheets-shimmer-hi: #d0d0d0;
-    --sheets-scroll-thumb: rgb(255 255 255 / 28%);
-    --sheets-chip-bg: #24312a;
-    --sheets-member-bg: #2f2f2f;
-    --sheets-member-ink: #a9b2ac;
-    --sheets-validation-prompt-bg: #3c3826;
-    --sheets-validation-prompt-border: #8f8663;
-    --sheets-validation-prompt-ink: #f2ecd0;
-    --sheets-validation-prompt-shadow: rgb(0 0 0 / 45%);
-  }
 }
 
 /* UI CJK fonts per language (documentElement.lang is set at bootstrap and on switch);
@@ -337,7 +262,7 @@ textarea:disabled {
   /* header / body (AI panel + sheet column, status bar inside the sheet column) */
   grid-template-rows: auto minmax(0, 1fr);
   height: 100vh;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 /* Excel's formula-bar row: Name Box (plus its Go To arrow) for now. */
@@ -346,16 +271,16 @@ textarea:disabled {
   align-items: stretch;
   gap: 0;
   padding: 3px 8px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
 }
 
 .name-box {
   width: 120px;
   padding: 2px 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small) 0 0 var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12px;
 }
 
@@ -370,11 +295,11 @@ textarea:disabled {
 
 .name-box-goto {
   padding: 0 5px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-left: 0;
   border-radius: 0 var(--radius-small) var(--radius-small) 0;
-  background: var(--surface);
-  color: var(--text-muted);
+  background: var(--surface-base);
+  color: var(--ink-muted);
   font-size: 10px;
 }
 
@@ -385,12 +310,12 @@ textarea:disabled {
   padding: 0;
   overflow-y: auto;
   list-style: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
 }
 
 .goto-name-list li + li {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .goto-name-list button {
@@ -411,15 +336,15 @@ textarea:disabled {
 }
 
 .goto-name-list button span {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .excel-header {
   position: relative;
   z-index: 10;
-  /* same divider weight as the docs/slides ribbons: their --border-strong, no drop shadow */
-  border-bottom: 1px solid var(--border-strong);
-  background: var(--surface);
+  /* same divider weight as the docs/slides ribbons: their --border-control, no drop shadow */
+  border-bottom: 1px solid var(--border-control);
+  background: var(--surface-base);
 }
 
 .ribbon-tabs {
@@ -427,11 +352,11 @@ textarea:disabled {
   align-items: center;
   gap: 2px;
   /* tab-row text ink matches the ribbon band below */
-  color: var(--text-primary);
+  color: var(--ink-primary);
   /* same tab-row metrics as PowerPoint's ribbon (slides app): 5px top inset, no
      bottom padding, no divider line — the row blends into the band below */
   padding: 5px 10px 0;
-  background: var(--surface);
+  background: var(--surface-base);
   /* the tab row doubles as the frameless-window drag region */
   -webkit-app-region: drag;
   user-select: none;
@@ -466,7 +391,7 @@ html.genoffice-popover-open .ribbon-tabs {
   font-weight: 600;
   /* transparent border keeps the row height; the visible underline is the
    * ::after below, sized to the label text rather than the padded button */
-  border-bottom: 2.5px solid transparent;
+  border-bottom: 2px solid transparent;
   border-radius: 4px 4px 0 0;
   white-space: nowrap;
 }
@@ -479,7 +404,7 @@ html.genoffice-popover-open .ribbon-tabs {
   width: 1px;
   height: 16px;
   margin: 0 6px;
-  background: var(--border-strong);
+  background: var(--border-control);
   flex-shrink: 0;
   align-self: center;
 }
@@ -495,8 +420,8 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 28px;
   padding: 0;
   border: none;
-  border-radius: 4px;
-  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  color: var(--ink-primary);
   background: none;
   cursor: pointer;
 }
@@ -512,7 +437,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .ribbon-tabs .qa-btn:disabled {
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   /* neutralize the global button:disabled opacity so the glyph reads exactly
      the shared quick-access gray of the docs and slides buttons */
   opacity: 1;
@@ -521,6 +446,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 /* AutoSave toggle in the tab row — same knob as the docs/slides ribbons,
    with the Excel-green accent. */
+/* the kit Switch in the tab row, at the row's 12px label size */
 .autosave-toggle {
   display: flex;
   align-items: center;
@@ -528,54 +454,16 @@ html.genoffice-popover-open .ribbon-tabs {
   cursor: pointer;
   margin-left: 4px;
   margin-right: 4px;
+  font-size: 12px;
+  color: var(--ink-secondary);
   -webkit-app-region: no-drag;
   user-select: none;
-}
-
-.autosave-toggle input {
-  display: none;
-}
-
-.autosave-knob {
-  width: 26px;
-  height: 14px;
-  border-radius: 7px;
-  background: var(--border-strong);
-  position: relative;
-  transition: background 0.15s;
-}
-
-.autosave-knob::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--sheets-knob-dot);
-  transition: left 0.15s;
-}
-
-.autosave-toggle.on .autosave-knob {
-  background: var(--accent);
-}
-
-.autosave-toggle.on .autosave-knob::after {
-  left: 14px;
-}
-
-.autosave-text {
-  font-size: 11px;
-  /* same ink as the docs/slides autosave label */
-  color: var(--text-dim);
-  white-space: nowrap;
 }
 
 .workbook-status {
   max-width: min(360px, 30vw);
   overflow: hidden;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -583,11 +471,11 @@ html.genoffice-popover-open .ribbon-tabs {
 
 /* Hovering a tab tints the label, it doesn't paint a box */
 .ribbon-tabs > button:not(.qa-btn):hover {
-  color: var(--accent-dark);
+  color: var(--action-primary-hover);
 }
 
 .ribbon-tabs > button:not(.qa-btn).active {
-  color: var(--accent-dark);
+  color: var(--ink-brand);
   font-weight: 600;
 }
 
@@ -600,14 +488,14 @@ html.genoffice-popover-open .ribbon-tabs {
   left: 13px;
   height: 2.5px;
   border-radius: 1px;
-  background: var(--accent);
+  background: var(--action-primary);
   content: '';
 }
 
 /* Contextual tabs (Chart Design) stand out even while inactive, with a
    colored caption. */
 .ribbon-tabs > button:not(.qa-btn).contextual {
-  color: var(--accent-dark);
+  color: var(--ink-brand);
   font-weight: 600;
 }
 
@@ -619,7 +507,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 2px;
   /* ribbon text ink, a touch off the app's --text — same shade
      as the .inline-tools glyphs */
-  color: var(--text-primary);
+  color: var(--ink-primary);
   /* band metrics shared with the slides ribbon */
   height: 80px;
   /* Groups must never shrink below content (they would paint over each
@@ -635,7 +523,7 @@ html.genoffice-popover-open .ribbon-tabs {
      padding, keeping the 80px band and the content area unchanged; Chromium
      paints a thumb only while the row actually overflows. */
   padding: 6px 12px 1px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .ribbon::-webkit-scrollbar {
@@ -671,7 +559,7 @@ html.genoffice-popover-open .ribbon-tabs {
   right: 0;
   bottom: 2px;
   width: 1px;
-  background: var(--border);
+  background: var(--border-subtle);
 }
 
 /* The AI group leads the band in every app: 4px side padding like the
@@ -770,7 +658,7 @@ html.genoffice-popover-open .ribbon-tabs {
   align-items: center;
   justify-content: center;
   min-height: 28px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 3px 4px;
   margin: 0 -4px;
 }
@@ -804,7 +692,7 @@ html.genoffice-popover-open .ribbon-tabs {
   place-items: center;
   width: 28px;
   height: 28px;
-  color: var(--color-brand-secondary);
+  color: var(--ink-brand);
 }
 
 .ribbon-tool.ai-entry .ai-feature-icon svg {
@@ -824,12 +712,13 @@ html.genoffice-popover-open .ribbon-tabs {
 /* 4px matches the docs/slides .rb-big.ai-entry radius so the open-state plate
    reads identically across the three apps. */
 .ribbon-tool.large.as-button.ai-entry {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .ribbon-tool.large.as-button.ai-entry.active {
   /* neutral gray, shared with the docs/slides Genspark entries */
-  background: var(--ribbon-active);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 .ribbon-tool.large.ai-entry:hover .tool-icon-row,
@@ -847,7 +736,7 @@ html.genoffice-popover-open .ribbon-tabs {
   height: 20px;
   place-items: center;
   /* ribbon glyphs share the toolbar ink (was Excel green) */
-  color: var(--text-primary);
+  color: var(--ink-primary);
   font-size: 15px;
   font-weight: 600;
 }
@@ -890,7 +779,7 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .ribbon-tool.reserved .tool-symbol {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .ribbon-tool strong,
@@ -907,7 +796,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 .ribbon-tool small {
   margin-top: 2px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 9px;
 }
 
@@ -948,7 +837,7 @@ html.genoffice-popover-open .ribbon-tabs {
   gap: 3px;
   /* inline glyphs, letterforms and trigger labels share one ink color,
      a touch off the app's --text */
-  color: var(--text-primary);
+  color: var(--ink-primary);
 }
 
 /* Two stacked control rows inside one group.
@@ -1002,10 +891,10 @@ html.genoffice-popover-open .ribbon-tabs {
   /* control metrics from the slides ribbon's .rb-font-btn: 28px tall,
      0 7px padding, 13px type */
   height: 28px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 0 7px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 13px;
 }
 
@@ -1035,8 +924,8 @@ html.genoffice-popover-open .ribbon-tabs {
    the combobox border back on just these two; .compact triggers stay flat */
 .select-like.font-name,
 .select-like.font-size {
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
+  border: 1px solid var(--border-control);
+  background: var(--surface-base);
 }
 
 .number-format {
@@ -1071,10 +960,9 @@ html.genoffice-popover-open .ribbon-tabs {
    toggles (same neutral pressed gray as the slides ribbon). */
 .inline-tools button.is-active,
 .inline-tools button.is-active:hover {
-  background: var(--ribbon-active);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
-
-/* alignment glyphs use the shared 15px inline size (slides .rb-icon) */
 
 /* the glyph span nested inside a toggle / trigger / swatch must not re-apply
    the 28px toggle box (the `.inline-tools span` rule above also matches it),
@@ -1131,11 +1019,13 @@ html.genoffice-popover-open .ribbon-tabs {
 }
 
 .ribbon-tool.as-button:not(.large).active {
-  background: var(--ribbon-active);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 .ribbon-tool.large.as-button.active .tool-icon-row {
-  background: var(--ribbon-active);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
 }
 
 .ribbon-tool.as-button:disabled {
@@ -1161,8 +1051,17 @@ html.genoffice-popover-open .ribbon-tabs {
 .chev {
   flex-shrink: 0;
   margin-left: 3px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   vertical-align: -1px;
+}
+
+/* every ribbon control shows the kit focus ring */
+.ribbon-tool:focus-visible,
+.qa-btn:focus-visible,
+.inline-tools button:focus-visible,
+.ribbon-tabs > button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
 }
 
 /* View tab's stacked show/hide checkboxes (the Show group). */
@@ -1172,7 +1071,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .styles-stack {
   display: grid;
   gap: 1px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 .styles-row {
@@ -1277,7 +1176,7 @@ html.genoffice-popover-open .ribbon-tabs {
   width: 48px;
   height: 24px;
   padding: 0;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -1384,8 +1283,8 @@ html.genoffice-popover-open .ribbon-tabs {
   max-height: 320px;
   overflow-y: auto;
   padding: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
+  background: var(--surface-base);
+  border: 1px solid var(--border-control);
   border-radius: 8px;
   box-shadow: var(--sheets-shadow-drop);
 }
@@ -1402,7 +1301,7 @@ html.genoffice-popover-open .ribbon-tabs {
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
-  color: var(--text);
+  color: var(--ink-primary);
   white-space: nowrap;
 }
 
@@ -1417,7 +1316,7 @@ html.genoffice-popover-open .ribbon-tabs {
 
 /* group break above the enumerated system fonts */
 .menu-select-drop button.sep-above {
-  border-top: 1px solid var(--border-strong);
+  border-top: 1px solid var(--border-control);
   border-radius: 0 0 4px 4px;
   margin-top: 4px;
 }
@@ -1431,7 +1330,7 @@ html.genoffice-popover-open .ribbon-tabs {
 .shape-gallery-title {
   padding: 6px 6px 2px;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
 }
 
 .shape-gallery-grid {
@@ -1445,7 +1344,7 @@ html.genoffice-popover-open .ribbon-tabs {
   justify-content: center;
   width: auto;
   padding: 5px 0;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 /* Insert tab's small chart-type buttons, arranged as an icon cluster. */
@@ -1511,7 +1410,7 @@ html.genoffice-popover-open .ribbon-tabs {
   padding: 1px 6px;
   border-radius: var(--radius-small);
   background: transparent;
-  color: var(--text);
+  color: var(--ink-primary);
   font-size: 11px;
   text-align: left;
 }
@@ -1525,10 +1424,10 @@ button.check-item:hover {
   width: 13px;
   height: 13px;
   place-items: center;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 2px;
-  background: var(--surface);
-  color: var(--text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 9px;
   font-style: normal;
 }
@@ -1571,7 +1470,7 @@ button.check-item:hover {
   padding: 0 12px;
   height: 24px;
   font-size: 11.5px;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   background: var(--sheets-statusbar-bg);
   border-top: 1px solid var(--sheets-statusbar-border);
 }
@@ -1631,130 +1530,7 @@ button.check-item:hover {
 .spreadsheet {
   min-width: 0;
   min-height: 0;
-  background: var(--surface);
-}
-
-/* Floating selection Ask AI entry and send-now popover (docs/slides parity). */
-.ai-ask-trigger {
-  position: fixed;
-  z-index: 59;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-30);
-  background: var(--surface);
-  color: var(--color-ai-action);
-  font-family: var(--gs-font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1;
-  box-shadow: var(--sheets-shadow-menu);
-  cursor: pointer;
-}
-
-.ai-ask-trigger:hover {
-  background: var(--hover);
-}
-
-.ai-ask-pop {
-  position: fixed;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-12);
-  background: var(--surface);
-  box-shadow: var(--sheets-shadow-menu);
-  font-family: var(--gs-font-sans);
-}
-
-.ai-ask-pop-title {
-  color: var(--color-text-primary);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.ai-ask-pop-sub {
-  margin-top: -4px;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-}
-
-.ai-ask-pop-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-8);
-  outline: none;
-  background: var(--color-bg-page);
-  color: var(--color-text-primary);
-  font: inherit;
-  font-size: 14px;
-}
-
-.ai-ask-pop-input:focus {
-  border-color: var(--accent);
-}
-
-.ai-ask-pop-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.ai-ask-chip {
-  padding: 4px 9px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-30);
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 12.5px;
-  cursor: pointer;
-}
-
-.ai-ask-chip:hover {
-  background: var(--hover);
-  color: var(--color-text-primary);
-}
-
-.ai-ask-pop-foot {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.ai-ask-cancel,
-.ai-ask-confirm {
-  padding: 6px 12px;
-  border-radius: var(--radius-6);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.ai-ask-cancel {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--color-text-secondary);
-}
-
-.ai-ask-confirm {
-  border: 1px solid transparent;
-  background: var(--color-ai-action);
-  color: var(--color-ai-action-text);
-}
-
-.ai-ask-confirm:hover:not(:disabled) {
-  background: var(--color-ai-action-hover);
-}
-
-.ai-ask-confirm:disabled {
-  opacity: 0.45;
-  cursor: default;
+  background: var(--surface-base);
 }
 
 .copilot {
@@ -1763,19 +1539,17 @@ button.check-item:hover {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border-right: 1px solid var(--color-border-default);
-  background: var(--color-bg-page);
-  box-shadow: var(--sheets-shadow-copilot);
-  font-family: var(--gs-font-sans);
-  color: var(--color-text-primary);
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  font-family: var(--font-sans);
+  color: var(--ink-primary);
 }
 
 /* Collapsed rail: identical to the slides .ai-rail — plain white strip,
  * hairline right border, no float shadow */
 .copilot.collapsed {
   align-items: stretch;
-  background: var(--color-bg-page);
-  box-shadow: none;
+  background: var(--surface-base);
 }
 
 /* drag handle on the panel's right edge — resize the panel horizontally
@@ -1806,12 +1580,12 @@ button.check-item:hover {
   padding: 12px 2px;
   border: none;
   background: none;
-  color: var(--text-primary);
+  color: var(--ink-primary);
   cursor: pointer;
 }
 
 .expand-copilot:hover {
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 .expand-copilot span {
@@ -1819,25 +1593,6 @@ button.check-item:hover {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-}
-
-.ai-panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px 10px 14px;
-  border-bottom: 1px solid var(--color-border-default);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--color-text-primary);
-}
-
-.ai-panel-title {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  white-space: nowrap;
 }
 
 /* AI entry points all use the app icon (shared by the collapse button and the AI panel title) */
@@ -1857,61 +1612,18 @@ button.check-item:hover {
   border-radius: 50%;
 }
 
-.ai-panel-title .genspark-badge {
-  width: 18px;
-  height: 18px;
-}
-
-.ai-panel-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-}
-
-.ai-header-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border: none;
-  background: none;
-  border-radius: var(--radius-8);
-  color: var(--color-text-secondary);
-  padding: 0;
-  transition: all var(--transition-fast);
-}
-
-.ai-header-btn:hover {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
-}
-
-.ai-notice {
-  margin: 10px 12px 0;
-  padding: 7px 12px;
-  border: 1px solid var(--sheets-notice-border);
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  font-size: 11.5px;
-  line-height: 1.5;
-}
-
 .copilot-footer {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 6px 14px 8px;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .copilot-file {
   margin: 0;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1920,22 +1632,22 @@ button.check-item:hover {
 
 .copilot-file strong {
   font-weight: 600;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 textarea {
   min-height: 100px;
   resize: vertical;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-medium);
   padding: 10px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
   line-height: 1.4;
 }
 
 textarea:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .primary-action,
@@ -1946,19 +1658,19 @@ textarea:focus {
 }
 
 .primary-action {
-  border: 1px solid var(--accent);
+  border: 1px solid var(--action-primary);
   color: var(--sheets-on-accent);
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
 .primary-action:hover {
-  background: var(--accent-dark);
+  background: var(--action-primary-hover);
 }
 
 .secondary {
-  border: 1px solid var(--border-strong);
-  color: var(--text);
-  background: var(--surface);
+  border: 1px solid var(--border-control);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .secondary:hover {
@@ -1969,10 +1681,10 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-medium);
   padding: 12px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-card);
 }
 
@@ -1989,7 +1701,7 @@ textarea:focus {
 }
 
 .change span {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   overflow-wrap: anywhere;
 }
 
@@ -2034,10 +1746,10 @@ textarea:focus {
   z-index: 3;
   width: 26px;
   height: 26px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   background: var(--sheets-float-btn-bg);
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 13px;
 }
 
@@ -2063,10 +1775,10 @@ textarea:focus {
   max-width: 230px;
   max-height: calc(100% - 12px);
   overflow: auto;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-medium);
   padding: 10px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--shadow-panel);
   font-size: 11px;
 }
@@ -2076,7 +1788,7 @@ textarea:focus {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 8px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .chart-editor input[type='text'],
@@ -2084,7 +1796,7 @@ textarea:focus {
 .chart-editor select {
   min-width: 120px;
   height: 24px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 0 6px;
   font-size: 11px;
@@ -2094,7 +1806,7 @@ textarea:focus {
   width: 34px;
   height: 22px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   background: none;
 }
@@ -2105,21 +1817,21 @@ textarea:focus {
 }
 
 .chart-editor-series-name {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 10px;
 }
 
 .chart-editor input.chart-editor-range {
   height: 22px;
   min-width: 0;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 0 6px;
   font-size: 11px;
 }
 
 .chart-editor-error {
-  color: var(--danger);
+  color: var(--status-danger);
   font-size: 10px;
   max-width: 210px;
 }
@@ -2134,8 +1846,8 @@ textarea:focus {
   gap: 6px;
   margin: -2px -10px -10px;
   padding: 8px 10px 10px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-base);
 }
 
 .chart-editor-actions button {
@@ -2146,14 +1858,14 @@ textarea:focus {
 }
 
 .chart-editor-cancel {
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--border-control);
+  background: var(--surface-base);
+  color: var(--ink-primary);
 }
 
 .chart-editor-apply {
-  border: 1px solid var(--accent);
-  background: var(--accent);
+  border: 1px solid var(--action-primary);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
@@ -2345,10 +2057,10 @@ textarea:focus {
   width: 20px;
   height: 20px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
-  color: var(--text-muted);
+  background: var(--surface-base);
+  color: var(--ink-muted);
   font-size: 11px;
   line-height: 1;
   box-shadow: var(--sheets-shadow-menu);
@@ -2361,7 +2073,7 @@ textarea:focus {
 
 .shape-delete-button:hover {
   color: var(--sheets-content-danger);
-  background: var(--hover);
+  background: var(--surface-sunken);
 }
 
 /* Body-level clone shown while moving a visual: escapes the float
@@ -2423,10 +2135,10 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 0;
-  background: var(--surface-subtle);
-  color: var(--text-muted);
+  background: var(--surface-raised);
+  color: var(--ink-muted);
   cursor: default;
   appearance: none;
 }
@@ -2442,8 +2154,8 @@ textarea:focus {
 
 .data-validation-dropdown-button:hover {
   border-color: var(--border-hover);
-  background: var(--hover);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .data-validation-dropdown-button svg {
@@ -2511,7 +2223,7 @@ textarea:focus {
   padding: 0;
   max-height: 180px;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
 }
 
@@ -2520,7 +2232,7 @@ textarea:focus {
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .allow-edit-list li:last-child {
@@ -2535,7 +2247,7 @@ textarea:focus {
 .allow-edit-ref {
   flex: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .dialog-actions-inline {
@@ -2550,7 +2262,7 @@ textarea:focus {
   justify-content: center;
   font-size: 28px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   opacity: 0.55;
   pointer-events: none;
   user-select: none;
@@ -2615,9 +2327,9 @@ textarea:focus {
   min-width: 168px;
   flex-direction: column;
   padding: 4px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-menu);
 }
 
@@ -2647,9 +2359,9 @@ textarea:focus {
   flex-direction: column;
   overflow-y: auto;
   padding: 12px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-pane);
   font-size: 12px;
   gap: 10px;
@@ -2679,7 +2391,7 @@ textarea:focus {
 
 .chart-format-pane .pane-section > strong {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 .chart-format-pane label {
@@ -2694,7 +2406,7 @@ textarea:focus {
 .chart-format-pane select {
   width: 120px;
   padding: 3px 6px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   font-size: 12px;
 }
@@ -2727,7 +2439,7 @@ textarea:focus {
   margin-bottom: 2px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   white-space: nowrap;
 }
 
@@ -2735,20 +2447,20 @@ textarea:focus {
   min-width: 0;
   height: 26px;
   padding: 0 6px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   font-size: 12px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .select-data-row input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .select-data-row input::placeholder {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   opacity: 0.7;
 }
 
@@ -2763,17 +2475,17 @@ textarea:focus {
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-base);
   border-radius: var(--radius-small);
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .select-data-row button:hover:not(:disabled) {
   background: var(--surface-hover);
-  border-color: var(--border-strong);
-  color: var(--text);
+  border-color: var(--border-control);
+  color: var(--ink-primary);
 }
 
 .select-data-actions {
@@ -3020,10 +2732,10 @@ textarea:focus {
   display: grid;
   gap: 10px;
   width: 420px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 16px;
   padding: 14px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--shadow-modal);
 }
 
@@ -3035,7 +2747,7 @@ textarea:focus {
 .dialog-tabs {
   display: flex;
   gap: 2px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .dialog-tabs button {
@@ -3046,9 +2758,9 @@ textarea:focus {
 }
 
 .dialog-tabs button.active {
-  color: var(--accent-dark);
+  color: var(--ink-brand);
   font-weight: 600;
-  box-shadow: inset 0 -2px 0 var(--accent);
+  box-shadow: inset 0 -2px 0 var(--action-primary);
 }
 
 .dialog-body {
@@ -3064,7 +2776,7 @@ textarea:focus {
 .dialog-grid label {
   display: grid;
   gap: 4px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
@@ -3075,12 +2787,12 @@ textarea:focus {
   width: 100%;
   min-width: 0;
   height: 26px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 0 6px;
   font-size: 12px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .dialog-grid .dialog-check {
@@ -3137,8 +2849,8 @@ textarea:focus {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  color: var(--accent-dark);
-  background: var(--accent-soft);
+  color: var(--action-primary-hover);
+  background: var(--surface-brand-subtle);
 }
 
 .recovery-icon svg {
@@ -3149,7 +2861,7 @@ textarea:focus {
 .recovery-body {
   margin: 0;
   overflow-wrap: anywhere;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -3160,10 +2872,10 @@ textarea:focus {
   justify-content: space-between;
   gap: 10px;
   min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-8);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   padding: 8px 10px;
-  background: var(--surface-subtle);
+  background: var(--surface-raised);
   font-size: 12px;
 }
 
@@ -3171,7 +2883,7 @@ textarea:focus {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--text);
+  color: var(--ink-primary);
   font-weight: 600;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -3179,7 +2891,7 @@ textarea:focus {
 
 .recovery-file-time {
   flex: none;
-  color: var(--text-tertiary);
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
@@ -3195,7 +2907,7 @@ textarea:focus {
   flex-direction: column;
   gap: 1px;
   padding: 3px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   align-self: start;
 }
@@ -3206,7 +2918,7 @@ textarea:focus {
   background: transparent;
   border-radius: var(--radius-small);
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3218,7 +2930,7 @@ textarea:focus {
 }
 
 .numfmt-cats button.active {
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
@@ -3232,19 +2944,19 @@ textarea:focus {
 .numfmt-field {
   display: grid;
   gap: 4px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
 .numfmt-field select,
 .numfmt-field input {
   height: 26px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 0 6px;
   font-size: 12px;
-  color: var(--text);
-  background: var(--surface);
+  color: var(--ink-primary);
+  background: var(--surface-base);
 }
 
 .numfmt-row {
@@ -3258,16 +2970,16 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
 }
 
 .numfmt-sample output {
   min-height: 24px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   padding: 4px 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3278,7 +2990,7 @@ textarea:focus {
   flex-direction: column;
   max-height: 138px;
   overflow-y: auto;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
 }
 
@@ -3288,7 +3000,7 @@ textarea:focus {
   padding: 3px 8px;
   background: transparent;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-primary);
   text-align: start;
   white-space: nowrap;
 }
@@ -3298,18 +3010,18 @@ textarea:focus {
 }
 
 .numfmt-list button.red {
-  color: var(--danger);
+  color: var(--status-danger);
 }
 
 .numfmt-list button.active {
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
 .numfmt-note {
   margin: 0;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .dialog-actions {
@@ -3328,10 +3040,10 @@ textarea:focus {
   /* .primary-action/.secondary set min-height: 34px globally; the DS sm size wins here */
   min-height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  background: var(--color-bg-page);
-  color: var(--color-text-primary);
+  background: var(--surface-base);
+  color: var(--ink-primary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -3340,8 +3052,8 @@ textarea:focus {
 
 .dialog-actions button:hover:not(:disabled),
 .select-data-actions button:hover:not(:disabled) {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-primary);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 .dialog-actions button:active:not(:disabled),
@@ -3365,17 +3077,17 @@ textarea:focus {
 .dialog-actions button.primary,
 .dialog-actions .primary-action,
 .select-data-actions button.primary {
-  border-color: var(--color-btn-primary);
-  background: var(--color-btn-primary);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary);
+  background: var(--action-primary);
+  color: var(--ink-on-brand);
 }
 
 .dialog-actions button.primary:hover:not(:disabled),
 .dialog-actions .primary-action:hover:not(:disabled),
 .select-data-actions button.primary:hover:not(:disabled) {
-  border-color: var(--color-btn-primary-hover);
-  background: var(--color-btn-primary-hover);
-  color: var(--color-btn-primary-text);
+  border-color: var(--action-primary-hover);
+  background: var(--action-primary-hover);
+  color: var(--ink-on-brand);
 }
 
 .dialog-actions button {
@@ -3434,7 +3146,7 @@ textarea:focus {
   justify-content: space-between;
   gap: 8px;
   font-size: 12px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 3px 6px;
 }
@@ -3458,7 +3170,7 @@ textarea:focus {
   flex-direction: column;
   max-height: 240px;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
 }
 
@@ -3468,14 +3180,14 @@ textarea:focus {
   gap: 8px;
   padding: 5px 8px;
   border: none;
-  border-bottom: 1px solid var(--surface-subtle);
-  background: var(--surface);
+  border-bottom: 1px solid var(--surface-raised);
+  background: var(--surface-base);
   text-align: left;
   font-size: 12px;
 }
 
 .fn-row span {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3486,7 +3198,7 @@ textarea:focus {
 }
 
 .fn-row.active {
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 
 .fn-syntax code {
@@ -3512,16 +3224,16 @@ textarea:focus {
 
 .symbol-grid button {
   height: 30px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 16px;
   line-height: 1;
 }
 
 .symbol-grid button:hover {
   background: var(--surface-hover);
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 /* Insert Screenshot dialog */
@@ -3543,15 +3255,15 @@ textarea:focus {
   flex-direction: column;
   gap: 4px;
   padding: 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 11px;
 }
 
 .screenshot-grid button:hover:not(:disabled) {
   background: var(--surface-hover);
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .screenshot-grid button.capturing {
@@ -3586,9 +3298,9 @@ textarea:focus {
 .icons-toolbar input {
   flex: 1;
   padding: 5px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12px;
 }
 
@@ -3600,12 +3312,12 @@ textarea:focus {
 .icons-colors button {
   width: 18px;
   height: 18px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 50%;
 }
 
 .icons-colors button.active {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--action-primary);
   outline-offset: 1px;
 }
 
@@ -3629,7 +3341,7 @@ textarea:focus {
 
 .icons-grid button:hover:not(:disabled) {
   background: var(--surface-hover);
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 /* Equation dialog */
@@ -3649,7 +3361,7 @@ textarea:focus {
   min-height: 52px;
   padding: 4px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
   background: none;
   font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', serif;
@@ -3658,16 +3370,16 @@ textarea:focus {
 
 .equation-presets button:hover {
   background: var(--surface-hover);
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .equation-latex {
   width: 100%;
   margin-top: 10px;
   padding: 5px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   font-family: ui-monospace, monospace;
   font-size: 12px;
 }
@@ -3678,13 +3390,13 @@ textarea:focus {
   min-height: 90px;
   margin-top: 10px;
   overflow: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
 }
 
 .equation-error {
   padding: 0 12px;
-  color: var(--danger);
+  color: var(--status-danger);
   font-size: 12px;
 }
 
@@ -3706,26 +3418,26 @@ textarea:focus {
   flex-direction: column;
   gap: 4px;
   padding: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-small);
-  background: var(--surface);
+  background: var(--surface-base);
   text-align: left;
   font-size: 11px;
 }
 
 .recommended-charts-grid button:hover {
   background: var(--surface-hover);
-  border-color: var(--border-strong);
+  border-color: var(--border-control);
 }
 
 .recommended-charts-grid svg {
   width: 100%;
   height: auto;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .recommended-charts-grid span {
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 
 /* Insert/Edit Link dialog */
@@ -3736,11 +3448,11 @@ textarea:focus {
   display: grid;
   gap: 6px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 .link-dialog .dialog-body input {
   padding: 6px 8px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   font-size: 13px;
 }
@@ -3753,7 +3465,7 @@ textarea:focus {
 .format-cells-dialog .dialog-note {
   margin: 0 0 8px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--ink-secondary);
 }
 .format-cells-dialog .dialog-note {
   grid-column: 1 / -1;
@@ -3771,7 +3483,7 @@ textarea:focus {
 .name-manager-table td {
   text-align: left;
   padding: 4px 6px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3781,10 +3493,10 @@ textarea:focus {
   cursor: pointer;
 }
 .name-manager-table tbody tr.selected {
-  background: var(--accent-soft);
+  background: var(--surface-brand-subtle);
 }
 .name-manager-empty {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 .dialog-error {
   color: var(--sheets-error);
@@ -3814,7 +3526,7 @@ textarea:focus {
   padding: 0;
 }
 .styles-row.as-button:hover {
-  color: var(--accent-dark);
+  color: var(--action-primary-hover);
 }
 
 /* AI settings modal (ported from apps/docs' SettingsModal, excel-green themed) */
@@ -3832,7 +3544,7 @@ textarea:focus {
 
 .modal {
   width: 440px;
-  background: var(--surface);
+  background: var(--surface-base);
   border-radius: 16px;
   padding: 22px 24px;
   box-shadow: var(--shadow-modal);
@@ -3846,7 +3558,7 @@ textarea:focus {
 .modal label {
   display: block;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   margin-bottom: 12px;
 }
 
@@ -3856,17 +3568,17 @@ textarea:focus {
   width: 100%;
   margin-top: 4px;
   height: 34px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-small);
   padding: 0 10px;
   font-size: 13px;
   outline: none;
-  background: var(--surface);
+  background: var(--surface-base);
 }
 
 .modal input:focus,
 .modal select:focus {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .modal-actions {
@@ -3881,20 +3593,20 @@ textarea:focus {
   padding: 0 16px;
   border: none;
   border-radius: 12px;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
   font-size: 13px;
   cursor: pointer;
 }
 
 .btn-primary:hover {
-  background: var(--accent-dark);
+  background: var(--action-primary-hover);
 }
 
 .btn-ghost {
   border: none;
   background: none;
-  color: var(--accent);
+  color: var(--action-primary);
   font-size: 13px;
   cursor: pointer;
   padding: 4px 8px;
@@ -3916,8 +3628,8 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
+  border: 1px solid var(--border-control);
+  background: var(--surface-base);
   border-radius: 999px;
   padding: 5px 13px;
   font-size: 12.5px;
@@ -3926,13 +3638,13 @@ textarea:focus {
 }
 
 .provider-tab:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .provider-tab-active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-dark);
+  border-color: var(--action-primary);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
   font-weight: 600;
 }
 
@@ -3940,1061 +3652,57 @@ textarea:focus {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--action-primary);
 }
 
-/* ---- AI chat panel ---- */
+/* ---- AI chat panel shell (conversation parts are @genoffice/ui Agent*) ---- */
 
 .ai-chat {
   display: flex;
   flex: 1;
   min-height: 0;
   flex-direction: column;
-  /* uniform 16px flex gap between blocks, messages carry no margin */
-  gap: 16px;
+  gap: var(--space-4);
   overflow-y: auto;
-  padding: 32px 16px;
-  font-family: var(--gs-font-sans);
+  padding: var(--space-5) var(--space-4);
 }
 
-/* Boundary between the restored transcript and the live turn */
-.ai-history-sep {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  font-size: 14px;
-  color: var(--color-text-tertiary);
-}
-
-.ai-chat-empty {
-  margin-top: 36px;
-  padding: 0 10px;
-  text-align: center;
-}
-
-.ai-chat-empty-title {
-  font-size: var(--text-body-lg);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 8px;
-}
-
-.ai-chat-empty-body {
-  color: var(--color-text-secondary);
-  font-size: var(--text-small);
-  line-height: 1.5;
-}
-
-/* Chat messages (scaled to the 14px panel): user = gray pill, AI = plain text without a bubble, no accent colors */
-.ai-msg {
-  position: relative;
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-}
-
-/* User pill: gray, fully rounded (no tail) */
-.ai-msg-user {
-  align-self: flex-end;
-  color: var(--color-text-primary);
-  background: var(--color-bg-subtle);
-  padding: 8px 16px;
-  border-radius: 14px;
-  max-width: 80%;
-  line-height: 1.5;
-}
-
-.ai-msg-assistant {
-  align-self: stretch;
-  border: none;
-  background: none;
-  padding: 0;
-  max-width: 100%;
-  color: var(--color-text-primary);
-  white-space: normal;
-}
-
-.ai-msg-error {
-  border-color: var(--sheets-ai-error-border);
-  color: var(--sheets-ai-error);
-}
-
-.ai-md p,
-.ai-md ul,
-.ai-md ol {
-  margin: 0 0 16px;
-}
-
-.ai-md :last-child {
-  margin-bottom: 0;
-}
-
-/* blank markdown paragraphs would each eat a 16px margin — the stream never renders them */
-.ai-md p:empty {
-  display: none;
-}
-
-.ai-md .ai-md-h {
-  font-weight: 700;
-  line-height: 1.3;
-  margin: 20px 0 8px;
-}
-
-.ai-md .ai-md-h:first-child {
-  margin-top: 0;
-}
-
-.ai-md ul,
-.ai-md ol {
-  margin-bottom: 20px;
-  padding-left: 20px;
-}
-
-.ai-md li {
-  margin-left: 20px;
-  line-height: 28px;
-}
-
-/* inline code: neutral gray chip (deliberately not red), 2px below body size */
-.ai-md code {
-  border-radius: 4px;
-  padding: 1px 6px;
-  background: var(--color-bg-subtle);
-  color: var(--color-text-secondary);
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 14px;
-}
-
-/* in-answer citation links: click jumps the grid to the cited cell/range */
-.ai-md .ai-md-nav {
-  color: var(--accent);
-  text-decoration: underline dotted;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
-/* Collapsible tool-activity group.
-   Unlike docs/slides, this app renders the group BEFORE the reply text, so the
-   gap to the surrounding content comes from margin-bottom, not margin-top. */
-.ai-work-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.ai-msg-assistant .ai-work-group:last-child,
-.ai-work-group:only-child {
-  margin-bottom: 0;
-}
-
-.ai-work-group-summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-  margin: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  user-select: none;
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--color-text-tertiary);
-  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-work-group-summary:hover {
-  color: var(--color-text-secondary);
-}
-
-.ai-work-group-summary:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--sheets-focus-ring);
-  border-radius: 4px;
-}
-
-.ai-work-group-summary.running {
-  color: var(--color-text-secondary);
-}
-
-.ai-work-group-summary.running .ai-work-group-label {
-  animation: ai-summary-pulse 1500ms linear infinite;
-}
-
-@keyframes ai-summary-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-
-.ai-work-group-body {
-  align-self: stretch;
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-work-group-body.open {
-  grid-template-rows: 1fr;
-}
-
-.ai-work-group-body-inner {
-  overflow: hidden;
-  min-height: 0;
-  padding: 0 0 0 8px;
-  transition: padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-work-group-body.open .ai-work-group-body-inner {
-  padding: 4px 0 8px 8px;
-}
-
-/* Step rows inside the group: 20px icon slot + 1px connector */
-.ai-step-row {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 8px 0;
-  color: var(--color-text-tertiary);
-  animation: ai-row-ease-in 320ms ease-out;
-}
-
-.ai-step-row:not(:last-child) {
-  padding-bottom: 16px;
-}
-
-.ai-step-row:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  left: 9.5px;
-  top: 32px;
-  bottom: -4px;
-  width: 1px;
-  background: var(--color-border-default);
-}
-
-.ai-step-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-tertiary);
-}
-
-.ai-step-icon.done {
-  color: var(--color-text-secondary);
-}
-
-.ai-step-icon.error {
-  color: var(--sheets-ai-error);
-}
-
-.ai-step-icon.running svg {
-  animation: ai-hourglass-flip 1.8s ease-in-out infinite;
-}
-
-@keyframes ai-hourglass-flip {
-  0%,
-  12% {
-    transform: rotate(0);
-  }
-  44%,
-  56% {
-    transform: rotate(180deg);
-  }
-  88%,
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.ai-step-content {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 1px;
-}
-
-.ai-step-title {
-  font-size: 14px;
-  line-height: 1.3;
-  color: var(--color-text-secondary);
-  text-align: left;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-family: inherit;
-}
-
-.ai-step-title.clickable {
-  cursor: pointer;
-  transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-step-title.clickable:hover {
-  color: var(--color-text-primary);
-}
-
-.ai-step-title.clickable:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--sheets-focus-ring);
-  border-radius: 4px;
-}
-
-/* Step detail opens instantly, no animation */
-.ai-step-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ai-step-row,
-  .ai-step-icon.running svg,
-  .ai-work-group-summary.running .ai-work-group-label {
-    animation: none;
-  }
-}
-
-/* Running tool row: two grow/shrink brand dots */
-.ai-tool-chip-spinner {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 12px;
-}
-
-.ai-tool-chip-spinner::before,
-.ai-tool-chip-spinner::after {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-brand-secondary);
-}
-
-.ai-tool-chip-spinner::before {
-  animation: ai-tool-dot-grow 2s infinite;
-}
-
-.ai-tool-chip-spinner::after {
-  animation: ai-tool-dot-shrink 2s infinite;
-}
-
-@keyframes ai-tool-dot-grow {
-  0%,
-  100% {
-    transform: scale(0.333);
-    opacity: 0.45;
-  }
-  50% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes ai-tool-dot-shrink {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(0.333);
-    opacity: 0.45;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ai-tool-chip-spinner::before,
-  .ai-tool-chip-spinner::after {
-    animation: none;
-    opacity: 0.65;
-  }
-}
-
-/* Elapsed run time next to the typing indicator */
-.ai-typing-row {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.ai-elapsed {
-  font-size: 14px;
-  color: var(--color-text-tertiary);
-  font-variant-numeric: tabular-nums;
-}
-
-/* caret: text glyph right after the label, always visible, rotates open */
-.ai-tool-chip-caret {
-  margin-left: 4px;
-  opacity: 0.7;
-  display: inline-block;
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-tool-chip-caret.open {
-  transform: rotate(90deg);
-}
-
-/* stream rows ease in */
-@keyframes ai-row-ease-in {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* expanded step detail: subtle gray card, no border */
-.ai-tool-output {
-  background: var(--color-bg-subtle);
-  border: none;
-  border-radius: 12px;
-  font-family:
-    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-  font-size: 14px;
-  color: var(--color-text-primary);
-  max-height: 300px;
-  overflow-y: auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.ai-tool-output-pre {
-  padding: 12px 16px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  line-height: 1.5;
-}
-
-/* Inline "Applied N edits [Undo]" banner shown after auto-apply */
+/* Inline "Applied N edits [Undo]" note shown after auto-apply */
 .ai-auto-applied {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--surface-subtle);
-  border: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--text-muted);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
 }
 
 .ai-auto-applied-text {
-  color: var(--text-secondary);
-  font-size: 12px;
+  color: var(--ink-secondary);
+  font-size: 13px;
 }
 
-.ai-undo-btn {
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--accent);
-  font-size: 11.5px;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.ai-undo-btn:hover {
-  background: var(--accent);
-  color: var(--sheets-on-accent);
-  border-color: var(--accent);
-}
-
-/* Thinking indicator (white background, no container):
- * phase one = two bouncing blue dots (alternating small/large); phase two = shimmering "Thinking…" text + streaming caret block */
-.ai-typing {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 0;
-  font-size: 15px;
-} /* Thinking indicator: shimmer label above two grow/shrink dots */
-.ai-typing {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 4px 0;
-}
-
-.ai-typing-label {
-  display: inline-block;
-  position: relative;
-  font-size: 14px;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  color: var(--sheets-shimmer-base);
-  -webkit-text-fill-color: transparent;
-  background: var(--sheets-shimmer-base)
-    linear-gradient(
-      to left,
-      var(--sheets-shimmer-base),
-      var(--sheets-shimmer-hi) 50%,
-      var(--sheets-shimmer-base)
-    );
-  background-clip: text;
-  -webkit-background-clip: text;
-  background-repeat: no-repeat;
-  background-size: 70% 100%;
-  animation: ai-thinking-shimmer 1.2s infinite alternate linear;
-}
-
-.ai-typing-elapsed {
-  font-variant-numeric: tabular-nums;
-}
-
-@keyframes ai-thinking-shimmer {
-  0% {
-    background-position: -100% top;
-  }
-  100% {
-    background-position: 250% top;
-  }
-}
-
-.ai-typing-dots {
-  height: 12px;
-  display: flex;
-  gap: 2px;
-}
-
-.ai-typing-dot-slot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 12px;
-}
-
-.ai-typing-dot-grow,
-.ai-typing-dot-shrink {
-  background: var(--color-brand-secondary);
-  border-radius: 50%;
-}
-
-.ai-typing-dot-grow {
-  animation: ai-dot-grow 2s infinite;
-}
-
-.ai-typing-dot-shrink {
-  animation: ai-dot-shrink 2s infinite;
-}
-
-@keyframes ai-dot-grow {
-  0%,
-  100% {
-    width: 4px;
-    height: 4px;
-    opacity: 0.45;
-  }
-  50% {
-    width: 12px;
-    height: 12px;
-    opacity: 1;
-  }
-}
-
-@keyframes ai-dot-shrink {
-  0%,
-  100% {
-    width: 12px;
-    height: 12px;
-    opacity: 1;
-  }
-  50% {
-    width: 4px;
-    height: 4px;
-    opacity: 0.45;
-  }
-}
-
-/* streaming caret at the tail of streaming assistant text */
-.ai-msg-streaming .ai-md > :last-child::after {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 1em;
-  margin-left: 2px;
-  border-radius: 1px;
-  background: var(--color-text-secondary);
-  vertical-align: text-bottom;
-  animation: ai-caret-blink 900ms steps(1, end) infinite;
-}
-
-@keyframes ai-caret-blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ai-typing-label,
-  .ai-msg-streaming .ai-md > :last-child::after {
-    animation: none;
-  }
-}
-
+/* the proposed plan (kit Changes) and any warnings under it */
 .ai-preview-card {
   align-self: stretch;
-}
-
-/* Composer floats over the chat scroll area — no top border (agent-shell §4.6) */
-.ai-composer {
-  border-top: none;
-  padding: 8px 12px 12px;
-  background: var(--color-bg-page);
-}
-
-/* composer card — 16px radius, default border, production float shadow */
-.ai-input-box {
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-16);
-  background: var(--color-bg-page);
-  box-shadow: var(--sheets-shadow-composer);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-/* textarea: 16px / 24px fixed line-height (chat body size), auto-grow band
- * (resting height 25% taller than default, matching the Genspark for PowerPoint prompt box) */
-.ai-input-box textarea {
-  display: block;
-  width: 100%;
-  resize: none;
-  border: none;
-  background: none;
-  border-radius: var(--radius-16) var(--radius-16) 0 0;
-  /* vertical gaps live on margin, not padding: textarea padding scrolls away
-   * with the content, so clipped lines would sit flush against chips/footer */
-  padding: 0 14px;
-  margin: 12px 0 4px;
-  font-size: 16px;
-  line-height: 24px;
-  outline: none;
-  color: var(--color-text-primary);
-  min-height: 48px;
-  max-height: 168px;
-  overflow-y: auto;
-}
-
-.ai-input-box textarea:focus,
-.ai-input-box textarea:focus-visible {
-  border-color: transparent;
-  box-shadow: none;
-}
-
-.ai-input-box textarea::placeholder {
-  color: var(--color-text-tertiary);
-}
-
-.ai-input-footer {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px 8px 10px;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.ai-input-hint {
-  font-size: var(--text-caption);
-  color: var(--color-text-tertiary);
-  user-select: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* icon-only enter key: transparent button chrome, visuals come from brand-supplied PNGs
- * (gray arrow = disabled, black arrow = enabled), size stays 36×36 */
-.ai-send-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  margin-left: auto;
-  flex-shrink: 0;
-  border: none;
-  border-radius: 35%;
-  background: transparent;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.ai-send-btn img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.ai-send-btn:hover:not(:disabled) {
-  filter: brightness(0.92);
-}
-
-.ai-send-btn:active:not(:disabled) {
-  filter: brightness(0.88);
-  transform: scale(0.98);
-}
-
-.ai-send-btn:disabled {
-  cursor: default;
-  /* the send-enter-off art already encodes the disabled look;
-     without this the global button:disabled 0.48 opacity washes it out vs slides */
-  opacity: 1;
-}
-
-/* Stop button while generating: brand-supplied art (white square on black), transparent button chrome */
-.ai-send-btn.ai-stop-btn {
-  background: transparent;
-}
-
-.ai-send-btn.ai-stop-btn:hover {
-  filter: brightness(0.92);
+.ai-composer {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  background: var(--surface-base);
 }
 
 /* ─── Chat attachments (📎 button + chips, same structure as docs/slides AI panels) ── */
-
-/* attach — brand-supplied paperclip art, 20×20 (5/9 of the 36px enter button) */
-.ai-attach-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
-  transition: all var(--transition-fast);
-}
-
-.ai-attach-btn img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.ai-attach-btn:hover {
-  filter: brightness(0.7);
-}
-
-/* Selection-scope chip above the composer: shown only for a deliberate
-   multi-cell selection, so the resting single-cell state adds no chrome. */
-.ai-scope-row {
-  padding: 13px 14px 0;
-}
-
-.ai-scope-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 6px 3px 10px;
-  border-radius: var(--radius-30);
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  font-size: var(--text-caption);
-  font-weight: 500;
-}
-
-/* the run in flight owns this scope: no dismiss control, so no room for one */
-.ai-scope-hint.is-locked {
-  padding-right: 10px;
-}
-
-.ai-scope-hint::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.ai-scope-clear {
-  display: inline-flex;
-  align-items: center;
-  border: none;
-  background: none;
-  padding: 0;
-  color: inherit;
-  opacity: 0.65;
-  cursor: pointer;
-}
-
-.ai-scope-clear:hover {
-  opacity: 1;
-}
-
-/* attachment chips above the composer */
-.ai-attachments {
-  display: flex;
-  gap: 8px;
-  /* single row inside the prompt box, above the textarea (Genspark composer style):
-     extra images run past the box edge and scroll horizontally.
-     scroll (not auto) + zero bottom padding: the always-present 4px scrollbar lane
-     doubles as the bottom padding, so overflowing never grows the strip and
-     shifts its content up */
-  overflow-x: scroll;
-  /* side insets are transparent borders, not padding: overflow clips at the
-     padding edge, so side padding would let scrolled items slide flush against
-     the box edges — borders keep the 14px gaps while scrolling */
-  padding: 13px 0 0;
-  border-inline: 14px solid transparent;
-  margin-bottom: -6px;
-}
-
-.ai-attachments > * {
-  flex-shrink: 0;
-}
-
-/* The 4px scrollbar lane is always reserved (no layout jump when it appears);
-   the thumb is painted only while scrolling (.is-scrolling from the strip's onScroll) */
-.ai-attachments::-webkit-scrollbar {
-  height: 4px;
-}
-
-.ai-attachments::-webkit-scrollbar-thumb {
-  border-radius: 2px;
-  background: transparent;
-}
-
-.ai-attachments.is-scrolling::-webkit-scrollbar-thumb {
-  background: var(--sheets-scroll-thumb);
-}
-
-/* Image attachments: square thumbnail with a round dark remove button on its corner */
-.ai-attachment-thumb {
-  position: relative;
-}
-
-.ai-attachment-thumb img {
-  display: block;
-  width: 56px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: 12px;
-}
-
-.ai-attachment-thumb-remove {
-  position: absolute;
-  top: -10px;
-  right: -2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: var(--sheets-chip-remove-bg);
-  color: var(--sheets-chip-remove-ink);
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.ai-attachment-thumb-remove:hover {
-  background: var(--sheets-chip-remove-hover);
-}
-
-/* The card's 1px border shifts its absolutely-positioned button inward by 1px
-   on both axes; land the borderless thumbs' button on the exact same spot */
-.ai-attachment-thumb .ai-attachment-thumb-remove {
-  top: -9px;
-  right: -1px;
-}
-
-/* image thumb before its preview arrives (or when reading fails): neutral tile + type icon */
-.ai-attachment-thumb-pending {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: var(--bg-content);
-}
-
-.ai-attachment-thumb .ai-attachment-thumb-pending img {
-  width: 26px;
-  height: 26px;
-}
-
-/* Non-image attachments (pdf, xlsx, …): fixed-width bordered card — brand type
-   icon + truncated name and size, same height and remove button as the thumbs */
-.ai-attachment-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 190px;
-  height: 56px;
-  padding: 0 14px 0 8px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 12px;
-  background: var(--bg-content);
-}
-
-/* the type icon sits in its own bordered white tile, like the Genspark card */
-.ai-attachment-card-icon {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--surface);
-}
-
-.ai-attachment-card-icon img {
-  display: block;
-  width: 26px;
-  height: 26px;
-}
-
-.ai-attachment-card-meta {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.ai-attachment-card-name {
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ai-attachment-card-size {
-  margin-top: 4px;
-  font-size: 11px;
-  color: var(--color-text-tertiary);
-}
-
-/* attachments echoed on a sent user message (read-only: no remove button, smaller thumbs) */
-.ai-msg-attachments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.ai-msg-attachments .ai-attachment-thumb img {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-}
-
-.ai-msg-attachments .ai-attachment-card {
-  width: auto;
-  max-width: 190px;
-  height: 44px;
-  background: var(--surface);
-}
-
-.ai-msg-attachments .ai-attachment-card-icon {
-  width: 32px;
-  height: 32px;
-  background: var(--surface-subtle);
-}
-
-.ai-msg-attachments .ai-attachment-card-icon img {
-  width: 22px;
-  height: 22px;
-}
-
-.ai-attachment-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 4px 2px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--sheets-chip-bg);
-  font-size: 11.5px;
-  color: var(--text);
-  max-width: 100%;
-}
-
-.ai-attachment-chip svg {
-  flex-shrink: 0;
-  color: var(--accent);
-}
-
-.ai-attachment-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border: none;
-  border-radius: 50%;
-  background: none;
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-}
-
-.ai-attachment-remove:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-.ai-attach-notice {
-  margin-bottom: 7px;
-  font-size: 11.5px;
-  color: var(--sheets-ai-error);
-}
-
-/* whole-panel drop target highlight */
-.ai-panel-dragover {
-  outline: 2px dashed var(--accent);
-  outline-offset: -4px;
-}
 
 .link-button {
   display: inline;
   border: none;
   padding: 0;
-  color: var(--accent-dark);
+  color: var(--action-primary-hover);
   background: none;
   font-size: inherit;
   text-decoration: underline;
@@ -5013,16 +3721,16 @@ textarea:focus {
 
 .slicer-picker-field {
   padding: 6px 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--surface-base);
   font-size: 12.5px;
   cursor: pointer;
 }
 
 .slicer-picker-field:hover {
-  border-color: var(--accent);
-  color: var(--accent-dark);
+  border-color: var(--action-primary);
+  color: var(--action-primary-hover);
 }
 
 /* Slicer overlay stack on the right side of the worksheet */
@@ -5040,9 +3748,9 @@ textarea:focus {
 
 .slicer-panel {
   width: 190px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-slicer);
   overflow: hidden;
 }
@@ -5052,7 +3760,7 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   padding: 6px 8px 6px 10px;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
   font-size: 12.5px;
   font-weight: 600;
@@ -5099,7 +3807,7 @@ textarea:focus {
 .slicer-member {
   text-align: left;
   padding: 4px 10px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 5px;
   background: var(--sheets-member-bg);
   color: var(--sheets-member-ink);
@@ -5111,13 +3819,13 @@ textarea:focus {
 }
 
 .slicer-member.selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--action-primary);
+  border-color: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
 .slicer-member:hover:not(.selected) {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
 .timeline-range {
@@ -5138,7 +3846,7 @@ textarea:focus {
   flex: 0 0 auto;
   min-width: 22px;
   padding: 4px 4px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   background: var(--sheets-member-bg);
   color: var(--sheets-member-ink);
@@ -5148,63 +3856,27 @@ textarea:focus {
 }
 
 .timeline-month.selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--action-primary);
+  border-color: var(--action-primary);
   color: var(--sheets-on-accent);
 }
 
 .timeline-month:hover:not(.selected) {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
 }
 
-/* Univer's bottom sheet-switcher: the selected tab label ships in Univer's
-   primary blue (univer-text-primary-700); recolor it to the Excel green. */
+/* ── Univer override layer ──
+   Univer's own primary scale is the Redrob blue (univer-theme.ts); these rules
+   only reach what its theme cannot. The selected sheet tab takes the kit's
+   brand ink, matching the ribbon's active tab. */
 [data-u-comp='slide-tab-item'][aria-selected='true'] {
-  color: var(--accent) !important;
+  color: var(--ink-brand) !important;
 }
 
 /* The gridlines toggle at the right of the sheet bar is a two-tone icon whose
    accent path hardcodes fill=var(--univer-primary-600); neutralize the blue. */
 .univerjs-icon-hide-gridlines-double-icon {
   --univer-primary-600: currentColor;
-}
-
-.ai-msg-undelivered {
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--sheets-ai-error);
-}
-
-.ai-retry-btn {
-  border: 1px solid var(--sheets-ai-error-border);
-  border-radius: 4px;
-  background: none;
-  padding: 1px 8px;
-  font-size: 12px;
-  color: var(--sheets-ai-error);
-  cursor: pointer;
-}
-
-.ai-retry-btn:hover {
-  background: var(--sheets-ai-error-bg);
-}
-
-.ai-login-btn {
-  margin-top: 8px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  background: var(--accent);
-  padding: 4px 14px;
-  font-size: 13px;
-  color: var(--sheets-on-accent);
-  cursor: pointer;
-}
-
-.ai-login-btn:hover {
-  opacity: 0.88;
 }
 
 /* ================= transient toast (save feedback) ================= */
@@ -5265,7 +3937,7 @@ textarea:focus {
 .rb-drop-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: var(--ink-secondary);
   padding: 4px 2px 3px;
 }
 
@@ -5282,7 +3954,7 @@ textarea:focus {
   border: 1px solid transparent;
   border-radius: 4px;
   background: none;
-  color: var(--text);
+  color: var(--ink-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -5291,7 +3963,7 @@ textarea:focus {
 }
 
 .menu-select-drop.rb-shape-gallery .rb-shape-cell:hover {
-  border-color: var(--accent);
+  border-color: var(--action-primary);
   background: var(--ribbon-hover);
 }
 
@@ -5310,9 +3982,9 @@ textarea:focus {
   max-height: 320px;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--surface-base);
   box-shadow: var(--sheets-shadow-slicer);
   overflow: hidden;
   z-index: 60;
@@ -5323,7 +3995,7 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   padding: 6px 8px 6px 10px;
-  background: var(--accent);
+  background: var(--action-primary);
   color: var(--sheets-on-accent);
   font-size: 12.5px;
   font-weight: 600;
@@ -5354,7 +4026,7 @@ textarea:focus {
   margin: 0;
   padding: 14px 12px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .watch-table {
@@ -5368,7 +4040,7 @@ textarea:focus {
 .watch-table td {
   padding: 4px 8px;
   text-align: left;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-subtle);
   max-width: 130px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5376,7 +4048,7 @@ textarea:focus {
 }
 
 .watch-table th {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-weight: 500;
 }
 
@@ -5386,21 +4058,21 @@ textarea:focus {
 
 .watch-gone td {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .watch-remove {
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   cursor: pointer;
   border-radius: 4px;
   padding: 2px 4px;
 }
 
 .watch-remove:hover {
-  background: var(--hover);
-  color: var(--text);
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
 }
 
 /* View > Formula Bar toggle: an app-level setting (not in the file), hiding
@@ -5463,4 +4135,42 @@ textarea:focus {
 .fn-filter-row .gs-dd {
   flex-shrink: 0;
   min-width: 120px;
+}
+
+/* ---- the shared editor frame (EditorFrame, @genoffice/ui) ---- */
+
+.app-shell:has(> .go-frame) {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell > .go-frame {
+  flex: 1;
+  min-height: 0;
+}
+
+.go-frame__page > .sheet-main {
+  height: 100%;
+  /* name box / workbook; the status bar is the frame's */
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.go-frame__panel > .copilot {
+  flex: 1;
+  width: 100%;
+}
+
+.go-frame__toolbar > .excel-header {
+  min-width: 0;
+}
+
+.sheets-save-status {
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.status-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
 }

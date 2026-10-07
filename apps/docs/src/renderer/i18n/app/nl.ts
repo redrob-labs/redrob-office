@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const nl = {
   appScTitle: 'Sneltoetsen',
@@ -359,4 +359,4 @@ export const nl = {
     'Deze stijl bijwerken met de huidige selectie (teruggeschreven naar styles.xml)',
   appNewStyleFromSelection: 'Nieuwe stijl op basis van de huidige selectie',
   appStyleNamePlaceholder: 'Stijlnaam',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>
