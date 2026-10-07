@@ -98,3 +98,38 @@ body {
 .hangul-panel__body {
   padding: var(--space-4);
 }
+
+/* The owned editor (next/NextHangulEditor.tsx). Pages are engine-painted
+   canvases; the backdrop is chrome, the paper is the document's own. */
+.hangul-next-host {
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+.hangul-next-host .hwp-page {
+  background: #fff;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 0.2));
+}
+.hangul-next-host .hwp-selection {
+  background: color-mix(in srgb, var(--action-primary) 30%, transparent);
+}
+.hangul-next-host .hwp-caret {
+  color: #000;
+  animation: hangul-caret-blink 1.06s steps(1) infinite;
+}
+@keyframes hangul-caret-blink {
+  50% { opacity: 0; }
+}
+.hangul-next-host .hwp-deco-comment {
+  background: color-mix(in srgb, var(--status-warning) 28%, transparent);
+}
+.hangul-password {
+  display: grid;
+  gap: 12px;
+  max-width: 360px;
+}
+.hangul-next-host .hwp-pages {
+  margin: 0 auto;
+}

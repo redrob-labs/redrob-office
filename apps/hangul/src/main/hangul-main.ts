@@ -13,6 +13,7 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
+import { resolveEditorKind } from './editor-kind'
 import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
 import type {
@@ -407,6 +408,7 @@ function registerHangulIpc(): void {
   ipcRegistered = true
 
   ipcMain.handle(HANGUL_CHANNELS.studioOrigin, () => ensureStudioOrigin())
+  ipcMain.handle(HANGUL_CHANNELS.editorKind, () => resolveEditorKind(process.env, app.isPackaged))
 
   ipcMain.handle(HANGUL_CHANNELS.consumePending, (e) => openPathByWc.get(e.sender.id) ?? null)
 

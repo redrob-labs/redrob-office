@@ -8,6 +8,7 @@ import type { HangulApi, SaveMode, UiTheme } from '../shared/ipc'
 const api: HangulApi = {
   ...officePrefsBridge(ipcRenderer),
   studioOrigin: () => ipcRenderer.invoke(HANGUL_CHANNELS.studioOrigin),
+  editorKind: () => ipcRenderer.invoke(HANGUL_CHANNELS.editorKind),
   consumePending: () => ipcRenderer.invoke(HANGUL_CHANNELS.consumePending),
   readBytes: (path) => ipcRenderer.invoke(HANGUL_CHANNELS.readBytes, path),
   save: (request) => ipcRenderer.invoke(HANGUL_CHANNELS.save, request),

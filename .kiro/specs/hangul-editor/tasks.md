@@ -63,7 +63,7 @@ Requirement references are in brackets, e.g. [R2.1].
   and Office paste. [R4.2]
 - [x] 1.9 Performance benchmark (decision: `docs/decisions/2026-10-hangul-typing-performance.md`; main thread, deferred pagination; no worker) on a 100-page Corpus document. Decide whether to move the Core into
   a worker. [R4.4]
-- [ ] 1.10 Open, save and Save As through the existing main and preload: atomic writes, password
+- [x] 1.10 Open, save and Save As through the existing main and preload: atomic writes, password
   documents, dirty tracking from `changeSeq`. Add the development flag `REDROB_HANGUL_EDITOR=next`.
   Until E5a lands, refuse an in-place save of a document with tracked changes, and offer Save As.
   [R3.4, R3.6, R4.5, R11.1]
