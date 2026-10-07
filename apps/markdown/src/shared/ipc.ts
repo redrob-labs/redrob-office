@@ -1,3 +1,4 @@
+import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { Lang } from '@genoffice/i18n'
 import type { AiSettings, AiStreamChunk, AiStreamRequest } from '@genoffice/ai-provider'
 
@@ -105,7 +106,7 @@ export interface ImageData {
 }
 
 /** API exposed by preload to the renderer (window.markdownApi) */
-export interface MarkdownApi {
+export interface MarkdownApi extends OfficePrefsApi {
   /** Take the md path pending for this view (queued at tab creation); null = new untitled document */
   consumePending(): Promise<string | null>
   /** Read the file as UTF-8 text. Only paths granted to this view are allowed */

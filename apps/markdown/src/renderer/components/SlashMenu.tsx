@@ -57,7 +57,7 @@ export const SlashMenu = forwardRef<SlashMenuHandle, Props>(function SlashMenu(
 
   return (
     <div
-      className="slash-menu"
+      className="slash-menu rr-menu__list"
       style={{ position: 'fixed', top: rect.bottom + 4, left: rect.left }}
       onMouseDown={(e) => e.preventDefault()}
     >
@@ -68,7 +68,7 @@ export const SlashMenu = forwardRef<SlashMenuHandle, Props>(function SlashMenu(
           <button
             key={item.id}
             type="button"
-            className={`slash-item${i === index ? ' active' : ''}`}
+            className={`slash-item rr-menu__item${i === index ? ' active' : ''}`}
             onMouseEnter={() => setIndex(i)}
             onClick={() => state.command(item)}
           >

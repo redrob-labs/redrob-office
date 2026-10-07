@@ -95,10 +95,14 @@ export function PasswordDialog({
           )}
         </label>
         <div className="pdf-modal-actions">
-          <button className="pdf-modal-btn" onClick={onCancel}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn" onClick={onCancel}>
             {t('cancel')}
           </button>
-          <button className="pdf-modal-btn primary" disabled={!value} onClick={onSubmit}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
+            disabled={!value}
+            onClick={onSubmit}
+          >
             {t('pwOpen')}
           </button>
         </div>

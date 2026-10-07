@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ar = {
+  aiYou: 'أنت',
+  aiFailedTitle: 'تعذّر على المساعد الإكمال',
+  aiStepRunning: 'قيد التشغيل',
+  aiStepDone: 'تم',
+  aiStepFailed: 'فشل',
+  aiStartersLabel: 'أسئلة مقترحة',
   aiComposerPlaceholderBuild: 'صف الجدول أو البيانات أو المخطط المطلوب إنشاؤه…',
   aiEmptyBuildTitle: 'دع الذكاء الاصطناعي ينشئ هذا المصنف لك',
   aiEmptyBuildBody: 'صف الجدول أو البيانات أو المخطط الذي تريده - ينشئه الذكاء الاصطناعي مباشرة.',
@@ -106,4 +112,4 @@ export const ar = {
   aiScopeRangeTip:
     'يفهم الذكاء الاصطناعي "هذا العمود / هذه الصفوف / الجزء المحدد" على أنه هذا النطاق، ويُثبَّت طوال التشغيل بعد الإرسال',
   aiScopeClearTitle: 'إلغاء نطاق التحديد واستهداف الورقة بأكملها',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

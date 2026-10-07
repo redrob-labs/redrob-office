@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   appScTitle: 'Keyboard Shortcuts',
@@ -344,4 +344,16 @@ export const en = {
   appUpdateStyleTip: 'Update this style from the current selection (written back to styles.xml)',
   appNewStyleFromSelection: 'New style from the current selection',
   appStyleNamePlaceholder: 'Style name',
-} satisfies Record<keyof typeof zh, string>
+  appSimpleToolbar: 'Everyday tools',
+  appSimpleAsk: 'Ask Redrob',
+  appSimpleSummarize: 'Summarize',
+  appSimpleSummarizePrompt: 'Summarize this document in a few short points.',
+  appSimpleCheckRisks: 'Check risks',
+  appSimpleCheckRisksPrompt: 'Check this document for risks and anything a reader could misread. Point to each place.',
+  appSimplePolish: 'Polish',
+  appSimplePolishPrompt: 'Polish the selected text: clearer, shorter, same meaning.',
+  appSimplePolishAllPrompt: 'Polish this document: clearer, shorter, same meaning.',
+  appSimpleStyle: 'Paragraph style',
+  appSimpleComment: 'Comment',
+  appSaveCopyDocx: 'Save a .docx copy',
+}

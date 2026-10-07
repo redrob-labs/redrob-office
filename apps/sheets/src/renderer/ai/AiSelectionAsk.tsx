@@ -155,10 +155,14 @@ export function AiSelectionAsk({ anchor, range, onSend, onDismiss }: Props): Rea
         </button>
       </div>
       <div className="ai-ask-pop-foot">
-        <button className="ai-ask-cancel" onClick={onDismiss}>
+        <button className="rr-btn rr-btn--secondary rr-btn--sm ai-ask-cancel" onClick={onDismiss}>
           {t('aiCancel')}
         </button>
-        <button className="ai-ask-confirm" disabled={!canSubmit} onClick={submit}>
+        <button
+          className="rr-btn rr-btn--primary rr-btn--sm ai-ask-confirm"
+          disabled={!canSubmit}
+          onClick={submit}
+        >
           {t('aiSend')}
         </button>
       </div>

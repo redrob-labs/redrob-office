@@ -1,0 +1,103 @@
+/* Toolbar, ToolbarGroup, ToolbarButton: editor chrome on the design system's
+ * tokens. Inline (sm) buttons are a 28px square plate; large (lg) buttons put
+ * the icon over a 12px label. Pressed toggles take the brand-subtle fill so a
+ * selected format reads at a glance in both themes. */
+
+.go-toolbar {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  font-family: var(--font-chrome, var(--font-sans));
+  color: var(--ink-primary);
+}
+
+.go-toolbar__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 2px var(--space-1);
+}
+
+/* a hairline between adjacent groups */
+.go-toolbar__group + .go-toolbar__group {
+  border-left: 1px solid var(--border-subtle);
+  margin-left: var(--space-1);
+  padding-left: var(--space-2);
+}
+
+.go-toolbar__spacer {
+  flex: 1;
+}
+
+.go-toolbar__spacer + .go-toolbar__group {
+  border-left: none;
+}
+
+.go-toolbar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-primary);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-instant) var(--easing-standard),
+    color var(--duration-instant) var(--easing-standard);
+}
+
+.go-toolbar__btn--sm {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 var(--space-1);
+}
+
+.go-toolbar__btn--lg {
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 48px;
+  padding: var(--space-1) var(--space-2) 6px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.go-toolbar__btn:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.go-toolbar__btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.go-toolbar__btn--pressed,
+.go-toolbar__btn--pressed:hover:not(:disabled) {
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
+}
+
+.go-toolbar__btn:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+  opacity: 0.6;
+}
+
+.go-toolbar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.go-toolbar__btn--lg .go-toolbar__icon {
+  min-height: 28px;
+}
+
+.go-toolbar__label {
+  color: inherit;
+}

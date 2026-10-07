@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
   paneCancel: 'Batal',
@@ -279,4 +279,4 @@ export const ms = {
   paneShowEnded: 'Persembahan slaid tamat.',
   paneShowRehearseTip: 'Raptai Pemasaan: masa pada slaid ini / jumlah masa',
   paneShowRehearseTotal: 'Jumlah {time}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

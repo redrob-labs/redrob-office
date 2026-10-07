@@ -199,11 +199,11 @@ export function StampDialog({
         )}
 
         <div className="pdf-modal-actions">
-          <button className="pdf-modal-btn" onClick={onCancel}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn" onClick={onCancel}>
             {t('cancel')}
           </button>
           <button
-            className="pdf-modal-btn primary"
+            className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
             disabled={!canApply}
             onClick={() => onApply(wm.text.trim() ? wm : null, hfUsed ? hf : null)}
           >

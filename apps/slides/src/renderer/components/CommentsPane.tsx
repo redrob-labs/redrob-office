@@ -114,7 +114,11 @@ export function CommentsPane({
             }
           }}
         />
-        <button className="btn-primary" disabled={!draft.trim()} onClick={submit}>
+        <button
+          className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+          disabled={!draft.trim()}
+          onClick={submit}
+        >
           {t('paneCommentsPost')}
         </button>
       </div>

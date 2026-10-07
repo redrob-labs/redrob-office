@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const it = {
+  aiYou: 'Tu',
+  aiFailedTitle: 'L’assistente non è riuscito a completare',
+  aiStepRunning: 'In corso',
+  aiStepDone: 'Fatto',
+  aiStepFailed: 'Non riuscito',
+  aiStartersLabel: 'Domande suggerite',
   aiComposerPlaceholderBuild: 'Descrivi la tabella, i dati o il grafico da creare…',
   aiEmptyBuildTitle: "Lascia che l'IA costruisca questa cartella di lavoro",
   aiEmptyBuildBody: 'Descrivi la tabella, i dati o il grafico che ti servono: l’IA li crea subito.',
@@ -107,4 +113,4 @@ export const it = {
   aiScopeRangeTip:
     "L'IA interpreta «questa colonna / queste righe / la parte selezionata» come questo intervallo, che all'invio resta fisso per tutta l'esecuzione",
   aiScopeClearTitle: "Rimuovi l'ambito dell'intervallo e usa tutto il foglio",
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

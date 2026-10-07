@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
+  aiYou: '나',
+  aiFailedTitle: '어시스턴트가 작업을 마치지 못했습니다',
+  aiStepRunning: '실행 중',
+  aiStepDone: '완료',
+  aiStepFailed: '실패',
+  aiStartersLabel: '추천 질문',
   aiEmptyDraftTitle: 'AI에게 초안 작성을 맡기세요',
   aiEmptyDraftBody1: '주제와 요점을 설명하거나 참고 자료를 붙여넣으면',
   aiEmptyDraftBody2: 'AI가 바로 초안을 작성합니다.',
@@ -151,4 +157,4 @@ export const ko = {
   aiCmdImages: '이미지 {count}장을 업데이트했습니다',
   aiCmdToc: '목차를 삽입했습니다({count}개 항목)',
   aiCmdSkipped: ' (보호된 블록 {count}개 건너뜀)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

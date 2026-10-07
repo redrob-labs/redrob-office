@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const es = {
+  aiYou: 'Tú',
+  aiFailedTitle: 'El asistente no pudo terminar',
+  aiStepRunning: 'En curso',
+  aiStepDone: 'Hecho',
+  aiStepFailed: 'Error',
+  aiStartersLabel: 'Preguntas sugeridas',
   aiInputPlaceholderGen: 'Describe la presentación a generar, o pregunta lo que quieras',
   aiEmptyGenTitle: 'Deja que la IA genere tu presentación',
   aiEmptyGenBody1: 'Describe el tema, la ocasión y el número aproximado de páginas;',
@@ -250,4 +256,4 @@ export const es = {
   aiSumSaveTemplate: 'Plantilla de estilo "{name}" guardada',
   aiSumTemplatesEmpty: 'Plantillas de estilo (vacío)',
   aiSumListTemplates: 'Se enumeraron {count} plantillas de estilo',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

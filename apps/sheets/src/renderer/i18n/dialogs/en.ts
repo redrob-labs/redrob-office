@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   dlgAllowEditRangesTitle: 'Allow Edit Ranges',
@@ -250,9 +250,9 @@ export const en = {
   dlgFcAlignBottom: 'Bottom',
   dlgFcRotNone: 'None',
   dlgFcRotCcw: 'Angle counterclockwise (45°)',
-  dlgFcRotCw: 'Angle clockwise (−45°)',
+  dlgFcRotCw: 'Angle clockwise (-45°)',
   dlgFcRotUp: 'Rotate up (90°)',
-  dlgFcRotDown: 'Rotate down (−90°)',
+  dlgFcRotDown: 'Rotate down (-90°)',
   dlgFcRotVertical: 'Vertical text',
   dlgFcFont: 'Font',
   dlgFcFontsCommon: 'Common fonts',
@@ -389,8 +389,8 @@ export const en = {
   dlgFnDescNow: 'Current date and time (recalculates).',
   dlgFnDescDate: 'Builds a date from parts.',
   dlgFnDescYear: 'Year of a date.',
-  dlgFnDescMonth: 'Month of a date (1–12).',
-  dlgFnDescDay: 'Day of a date (1–31).',
+  dlgFnDescMonth: 'Month of a date (1 to 12).',
+  dlgFnDescDay: 'Day of a date (1 to 31).',
   dlgFnDescEdate: 'Date a number of months before/after another.',
   dlgFnDescPmt:
     'Calculates the payment for a loan with constant payments and a constant interest rate.',
@@ -401,4 +401,4 @@ export const en = {
   dlgFnDescNpv: 'Returns the net present value of a cash flow at a discount rate.',
   dlgFnDescIrr: 'Returns the internal rate of return for a series of cash flows.',
   dlgFnCatFinancial: 'Financial',
-} satisfies Record<keyof typeof zh, string>
+}

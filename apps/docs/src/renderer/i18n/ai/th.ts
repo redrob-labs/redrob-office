@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const th = {
+  aiYou: 'คุณ',
+  aiFailedTitle: 'ผู้ช่วยทำงานไม่สำเร็จ',
+  aiStepRunning: 'กำลังทำงาน',
+  aiStepDone: 'เสร็จแล้ว',
+  aiStepFailed: 'ล้มเหลว',
+  aiStartersLabel: 'คำถามที่แนะนำ',
   aiEmptyDraftTitle: 'ให้ AI ร่างเอกสารนี้ให้คุณ',
   aiEmptyDraftBody1: 'อธิบายหัวข้อและประเด็นสำคัญ หรือวางเอกสารอ้างอิง',
   aiEmptyDraftBody2: 'AI จะเขียนร่างแรกลงหน้ากระดาษให้ทันที',
@@ -103,8 +109,7 @@ export const th = {
   aiOverloadedError: 'บริการ AI มีผู้ใช้งานจำนวนมากในขณะนี้ โปรดลองอีกครั้งในอีกสักครู่',
   aiNetworkError:
     'เครือข่ายมีปัญหา ไม่สามารถเชื่อมต่อบริการ AI ได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่',
-  aiCreditsExhausted:
-    'เครดิต Redrob ของคุณหมดแล้ว โปรดเติมเครดิตที่ console.redrob.ai แล้วลองใหม่',
+  aiCreditsExhausted: 'เครดิต Redrob ของคุณหมดแล้ว โปรดเติมเครดิตที่ console.redrob.ai แล้วลองใหม่',
   aiSumReadAttachment: 'อ่านสิ่งที่แนบ',
   aiSumImageAttachment: 'รูปภาพแนบ {name}',
   aiSumRead: 'อ่าน {name}',
@@ -151,4 +156,4 @@ export const th = {
   aiCmdImages: 'อัปเดตรูปภาพ {count} รูปแล้ว',
   aiCmdToc: 'แทรกสารบัญแล้ว ({count} รายการ)',
   aiCmdSkipped: ' (ข้ามบล็อกที่ได้รับการป้องกัน {count} บล็อก)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

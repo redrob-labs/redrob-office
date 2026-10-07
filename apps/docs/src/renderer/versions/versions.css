@@ -1,0 +1,142 @@
+/* Version history, the catch-up and the panel stack: chrome, so kit tokens only. */
+
+button.docs-save-status {
+  padding: 2px 6px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.docs-save-status:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+
+button.docs-save-status:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+}
+
+.doc-panel-stack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.doc-panel-stack > :last-child {
+  flex: 1;
+  min-height: 0;
+}
+
+.doc-catch {
+  flex: none;
+  margin: 12px 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-brand-subtle);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-primary);
+}
+
+.doc-catch__h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.doc-catch h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.doc-catch ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-catch li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  line-height: 18px;
+}
+
+.doc-versions__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-versions__list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.doc-versions__list li.is-current {
+  background: var(--surface-sunken);
+}
+
+.doc-versions__text {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.doc-versions__text span {
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.doc-versions__empty {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 13px;
+}
+
+.doc-versions__name {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  font-size: 13px;
+}
+
+.doc-versions__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.doc-versions__row input {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font: inherit;
+}
+
+.doc-versions__row input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+}

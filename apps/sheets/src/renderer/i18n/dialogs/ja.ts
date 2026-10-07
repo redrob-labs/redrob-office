@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   dlgAllowEditRangesTitle: '範囲の編集の許可',
@@ -399,4 +399,4 @@ export const ja = {
   dlgFnDescNpv: '割引率に基づくキャッシュフローの正味現在価値を返します。',
   dlgFnDescIrr: '一連のキャッシュフローの内部収益率を返します。',
   dlgFnCatFinancial: '財務',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

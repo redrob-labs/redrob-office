@@ -23,6 +23,7 @@ export {
 export type {
   AgentLoopEvents,
   AgentLoopOptions,
+  AgentRunOptions,
   AgentRunResult,
   CompactionOptions,
   ToolExecutedEvent,

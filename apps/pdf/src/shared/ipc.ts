@@ -1,3 +1,4 @@
+import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { Lang } from '@genoffice/i18n'
 import type { AiSettings, AiStreamChunk, AiStreamRequest } from '@genoffice/ai-provider'
 
@@ -668,7 +669,7 @@ export interface ImageSearchResponse {
 }
 
 /** API exposed by preload to the renderer (window.pdfApi) */
-export interface PdfApi {
+export interface PdfApi extends Partial<OfficePrefsApi> {
   /** Take the pdf path pending for this view (queued at tab creation); null if none */
   consumePending(): Promise<string | null>
   /** Read pdf bytes. Only paths granted to this view are allowed */

@@ -256,7 +256,11 @@ export function AiAskPopover({
         }
       }}
     >
-      <button className="ai-ask-pop-close" aria-label={t('paneCancel')} onClick={onCancel}>
+      <button
+        className="rr-iconbtn rr-iconbtn--ghost rr-iconbtn--sm ai-ask-pop-close"
+        aria-label={t('paneCancel')}
+        onClick={onCancel}
+      >
         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" aria-hidden>
           <path
             d="M6 6l12 12M18 6L6 18"
@@ -307,14 +311,14 @@ export function AiAskPopover({
         {onSendNow ? (
           <>
             <button
-              className="ai-ask-cancel"
+              className="rr-btn rr-btn--secondary rr-btn--sm ai-ask-cancel"
               disabled={!canSubmit}
               onClick={() => canSubmit && onSendNow(text.trim())}
             >
               {t('aiAskSendNow')}
             </button>
             <button
-              className="ai-ask-confirm"
+              className="rr-btn rr-btn--primary rr-btn--sm ai-ask-confirm"
               disabled={!canSubmit || queueFull}
               data-tip={queueFull ? t('aiAskQueueFull', { max: EDIT_QUEUE_MAX }) : undefined}
               onClick={() => canSubmit && !queueFull && onSubmit(text.trim())}
@@ -324,11 +328,14 @@ export function AiAskPopover({
           </>
         ) : (
           <>
-            <button className="ai-ask-cancel" onClick={onCancel}>
+            <button
+              className="rr-btn rr-btn--secondary rr-btn--sm ai-ask-cancel"
+              onClick={onCancel}
+            >
               {t('paneCancel')}
             </button>
             <button
-              className="ai-ask-confirm"
+              className="rr-btn rr-btn--primary rr-btn--sm ai-ask-confirm"
               disabled={!canSubmit}
               onClick={() => canSubmit && onSubmit(text.trim())}
             >

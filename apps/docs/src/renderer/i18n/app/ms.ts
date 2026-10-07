@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ms = {
   appScTitle: 'Pintasan Papan Kekunci',
@@ -352,4 +352,4 @@ export const ms = {
   appUpdateStyleTip: 'Kemas kini gaya ini dengan pilihan semasa (ditulis semula ke styles.xml)',
   appNewStyleFromSelection: 'Gaya baharu daripada pilihan semasa',
   appStyleNamePlaceholder: 'Nama gaya',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

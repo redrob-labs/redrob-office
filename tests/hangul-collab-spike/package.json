@@ -1,0 +1,21 @@
+{
+  "name": "@genoffice/hangul-collab-spike",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "Spec task 0.5: two live-collaboration designs for the Hangul core, fuzzed for convergence. A spike, not product code.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@genoffice/hwp-core": "workspace:*",
+    "yjs": "13.6.33"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
+  }
+}

@@ -25,8 +25,7 @@ import {
   type Theme,
 } from '../src/harness'
 
-const RUN =
-  process.platform === 'linux' || process.env.VISUAL_LOCAL === '1'
+const RUN = process.platform === 'linux' || process.env.VISUAL_LOCAL === '1'
 test.skip(!RUN, 'baselines are Linux-only; set VISUAL_LOCAL=1 to render on this OS')
 
 const THEMES: Theme[] = ['light', 'dark']
@@ -62,7 +61,7 @@ for (const theme of THEMES) {
 
     test('settings', async () => {
       await runInView(app, 'shell', `document.querySelector('.account-btn').click(), true`)
-      await waitForSelector(app, 'shell', '.set-dialog')
+      await waitForSelector(app, 'shell', '.set-overlay [role="dialog"]')
       await freeze(app, 'shell')
       expect(await captureStable(app, 'shell')).toMatchSnapshot(`settings-${theme}.png`)
       await runInView(
@@ -70,7 +69,7 @@ for (const theme of THEMES) {
         'shell',
         `window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })), true`,
       )
-      await waitForSelector(app, 'shell', '.set-dialog', { present: false })
+      await waitForSelector(app, 'shell', '.set-overlay [role="dialog"]', { present: false })
     })
 
     for (const kind of EDITORS) {
@@ -82,7 +81,6 @@ for (const theme of THEMES) {
         )
       })
     }
-
   })
 
   // Its own launch: Playwright restarts the worker after any failed test, which
@@ -101,7 +99,9 @@ for (const theme of THEMES) {
       await freeze(app, 'shell')
       const width = await runInView<number>(app, 'shell', 'window.innerWidth')
       expect(
-        await captureStable(app, 'shell', { rect: { x: 0, y: 0, width, height: TAB_STRIP_HEIGHT } }),
+        await captureStable(app, 'shell', {
+          rect: { x: 0, y: 0, width, height: TAB_STRIP_HEIGHT },
+        }),
       ).toMatchSnapshot(`tabstrip-${theme}.png`)
     } finally {
       await closeShell(app)
@@ -110,13 +110,13 @@ for (const theme of THEMES) {
     }
   })
 
-  test(`onboarding (${theme})`, async () => {
-    const profile = createProfile({ name: `onboarding-${theme}`, theme, onboardingSeen: false })
-    const app = await launchShell(profile)
+  test(`launch (${theme})`, async () => {
+    const profile = createProfile({ name: `launch-${theme}`, theme, onboardingSeen: false })
+    const app = await launchShell(profile, { launchScreen: true })
     try {
-      await waitForSelector(app, 'shell', '.onb-overlay')
+      await waitForSelector(app, 'shell', '.launch')
       await freeze(app, 'shell')
-      expect(await captureStable(app, 'shell')).toMatchSnapshot(`onboarding-${theme}.png`)
+      expect(await captureStable(app, 'shell')).toMatchSnapshot(`launch-${theme}.png`)
     } finally {
       await closeShell(app)
       removeDir(profile)

@@ -1,0 +1,39 @@
+/* Other people in a live file: their carets and selections on the paper.
+ * Paper colours only (--docs-paper-peer-*): these sit in the document area. */
+
+.docs-peer-caret {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 2px solid var(--docs-peer);
+  word-break: normal;
+  pointer-events: none;
+}
+
+.docs-peer-caret__name {
+  position: absolute;
+  top: -1.3em;
+  left: -2px;
+  padding: 1px 4px;
+  border-radius: 3px 3px 3px 0;
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  user-select: none;
+  background: var(--docs-peer);
+  color: var(--docs-paper-peer-ink);
+}
+
+.docs-peer-sel {
+  background: color-mix(in srgb, var(--docs-peer) 18%, transparent);
+}
+
+.docs-peer--1 { --docs-peer: var(--docs-paper-peer-1); }
+.docs-peer--2 { --docs-peer: var(--docs-paper-peer-2); }
+.docs-peer--3 { --docs-peer: var(--docs-paper-peer-3); }
+.docs-peer--4 { --docs-peer: var(--docs-paper-peer-4); }
+.docs-peer--5 { --docs-peer: var(--docs-paper-peer-5); }
+.docs-peer--6 { --docs-peer: var(--docs-paper-peer-6); }

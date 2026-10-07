@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
   ribbonAiCreditNote: 'Uses AI and consumes credits',
@@ -712,7 +712,7 @@ export const en = {
   ribbonEqQuadratic: 'Quadratic Formula',
   ribbonEqPythagorean: 'Pythagorean Theorem',
   ribbonEqEuler: "Euler's Identity",
-  ribbonEqMassEnergy: 'Mass–Energy Equivalence',
+  ribbonEqMassEnergy: 'Mass-Energy Equivalence',
   ribbonEqCircleArea: 'Area of a Circle',
   ribbonEqArithSum: 'Arithmetic Series Sum',
   ribbonEqGaussian: 'Gaussian Integral',
@@ -721,4 +721,4 @@ export const en = {
   ribbonEqStdDev: 'Standard Deviation',
   ribbonEqFourier: 'Fourier Transform',
   ribbonEqNormalDist: 'Normal Distribution',
-} satisfies Record<keyof typeof zh, string>
+}

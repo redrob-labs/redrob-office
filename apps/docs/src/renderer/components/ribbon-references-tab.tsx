@@ -218,10 +218,10 @@ function CaptionModal({
           />
         </label>
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('ribbonCancel')}
           </button>
-          <button className="btn-primary" onClick={insert}>
+          <button className="rr-btn rr-btn--primary rr-btn--md btn-primary" onClick={insert}>
             {t('ribbonInsert')}
           </button>
         </div>
@@ -323,10 +323,14 @@ function SourceModal({
           </label>
         )}
         <div className="modal-actions">
-          <button className="btn-ghost" onClick={onClose}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md btn-ghost" onClick={onClose}>
             {t('ribbonCancel')}
           </button>
-          <button className="btn-primary" disabled={!title.trim()} onClick={add}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md btn-primary"
+            disabled={!title.trim()}
+            onClick={add}
+          >
             {t('ribbonAdd')}
           </button>
         </div>

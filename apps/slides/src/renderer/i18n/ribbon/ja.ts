@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
   ribbonAiCreditNote: 'AI を呼び出し、クレジットを消費します',
@@ -747,4 +747,4 @@ export const ja = {
   ribbonEqStdDev: '標準偏差',
   ribbonEqFourier: 'フーリエ変換',
   ribbonEqNormalDist: '正規分布',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

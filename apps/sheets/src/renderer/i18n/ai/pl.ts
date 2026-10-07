@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pl = {
+  aiYou: 'Ty',
+  aiFailedTitle: 'Asystent nie mógł dokończyć',
+  aiStepRunning: 'W toku',
+  aiStepDone: 'Gotowe',
+  aiStepFailed: 'Niepowodzenie',
+  aiStartersLabel: 'Sugerowane pytania',
   aiComposerPlaceholderBuild: 'Opisz tabelę, dane lub wykres do utworzenia…',
   aiEmptyBuildTitle: 'Pozwól AI zbudować ten skoroszyt',
   aiEmptyBuildBody: 'Opisz potrzebną tabelę, dane lub wykres - AI utworzy je od razu.',
@@ -106,4 +112,4 @@ export const pl = {
   aiScopeRangeTip:
     'AI rozumie „tę kolumnę / te wiersze / zaznaczoną część” jako ten zakres; po wysłaniu pozostaje on stały przez cały przebieg',
   aiScopeClearTitle: 'Usuń zakres zaznaczenia i obejmij cały arkusz',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

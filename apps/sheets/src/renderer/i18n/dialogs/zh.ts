@@ -1,4 +1,5 @@
-/** dialogs strings, zh: defines the key set every other locale shard must match. */
+import type { en } from './en'
+/** dialogs strings, zh (en defines the key set; missing strings fall back to English). */
 export const zh = {
   dlgAllowEditRangesTitle: '允许编辑区域',
   dlgAllowEditRangesHint: '工作表受保护时这些区域仍可编辑。保存时写入；不支持密码。',
@@ -385,4 +386,4 @@ export const zh = {
   dlgFnDescNpv: '按贴现率计算现金流的净现值。',
   dlgFnDescIrr: '计算一系列现金流的内部收益率。',
   dlgFnCatFinancial: '财务',
-}
+} satisfies Partial<Record<keyof typeof en, string>>

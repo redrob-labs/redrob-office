@@ -1,0 +1,6 @@
+export * from './model'
+export { factsReducer, MAX_SETTLED_UPDATES, type FactsAction } from './reducer'
+export { normalizeFactDef, normalizeFactsState, normalizeFactUse } from './normalize'
+export { FACTS_CHANNELS, type FactsApi, type FactsCommand } from './ipc'
+export { factsBridge, type FactsBridgeApi, type FactsIpcLike } from './bridge'
+export { FactsStore, MemoryFactsRepository, type FactsListener, type FactsRepository } from './repository'

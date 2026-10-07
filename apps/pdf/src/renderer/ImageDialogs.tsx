@@ -195,7 +195,7 @@ export function CutoutDialog({
             <span
               style={{
                 color: 'var(--pdf-error)',
-                background: 'var(--surface)',
+                background: 'var(--surface-base)',
                 padding: '4px 10px',
                 borderRadius: 4,
               }}
@@ -213,7 +213,7 @@ export function CutoutDialog({
             />
           )}
           {!loaded && !error && (
-            <span style={{ color: 'var(--text-dim)' }}>{t('imageLoading')}</span>
+            <span style={{ color: 'var(--ink-secondary)' }}>{t('imageLoading')}</span>
           )}
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
@@ -230,15 +230,19 @@ export function CutoutDialog({
           />
           <span style={{ width: 32, textAlign: 'right' }}>{tolerance}</span>
         </label>
-        <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--ink-secondary)', marginTop: 4 }}>
           {t('imageCutoutHint', { pct: removedPct })}
         </div>
         <div className="pdf-modal-actions">
-          <button className="pdf-modal-btn" onClick={onCancel} disabled={applying}>
+          <button
+            className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn"
+            onClick={onCancel}
+            disabled={applying}
+          >
             {t('cancel')}
           </button>
           <button
-            className="pdf-modal-btn primary"
+            className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
             onClick={apply}
             disabled={!loaded || !!error || applying}
           >
@@ -407,8 +411,8 @@ export function CropDialog({
       position: 'absolute',
       width: 10,
       height: 10,
-      background: 'var(--surface)',
-      border: '1.5px solid var(--accent)',
+      background: 'var(--surface-base)',
+      border: '1.5px solid var(--action-primary)',
       borderRadius: 2,
       boxSizing: 'border-box',
       zIndex: 2,
@@ -472,7 +476,7 @@ export function CropDialog({
             <span
               style={{
                 color: 'var(--pdf-error)',
-                background: 'var(--surface)',
+                background: 'var(--surface-base)',
                 padding: '4px 10px',
                 borderRadius: 4,
               }}
@@ -541,7 +545,7 @@ export function CropDialog({
                   top: `${crop.t * 100}%`,
                   width: `${(crop.r - crop.l) * 100}%`,
                   height: `${(crop.b - crop.t) * 100}%`,
-                  border: '1.5px solid var(--accent)',
+                  border: '1.5px solid var(--action-primary)',
                   boxSizing: 'border-box',
                   cursor: 'move',
                 }}
@@ -553,18 +557,22 @@ export function CropDialog({
               </div>
             </div>
           ) : (
-            <span style={{ color: 'var(--text-dim)' }}>{t('imageLoading')}</span>
+            <span style={{ color: 'var(--ink-secondary)' }}>{t('imageLoading')}</span>
           )}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 8 }}>
+        <div style={{ fontSize: 12, color: 'var(--ink-secondary)', marginTop: 8 }}>
           {t('imageCropHint')}
         </div>
         {extraFooter}
         <div className="pdf-modal-actions">
-          <button className="pdf-modal-btn" onClick={onCancel}>
+          <button className="rr-btn rr-btn--secondary rr-btn--md pdf-modal-btn" onClick={onCancel}>
             {t('cancel')}
           </button>
-          <button className="pdf-modal-btn primary" onClick={apply} disabled={!loaded || !!error}>
+          <button
+            className="rr-btn rr-btn--primary rr-btn--md pdf-modal-btn"
+            onClick={apply}
+            disabled={!loaded || !!error}
+          >
             {t('imageApply')}
           </button>
         </div>

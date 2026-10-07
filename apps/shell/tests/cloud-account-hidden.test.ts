@@ -96,9 +96,9 @@ describe('Settings has no Genspark sign-in / credits surface when disabled', () 
     const navLabels = Array.from(host.querySelectorAll<HTMLButtonElement>('.set-nav-item')).map(
       (b) => b.textContent ?? '',
     )
-    // No account section in the nav; AI Model / General / About remain.
+    // No account section in the nav; Redrob AI / General / About remain.
     expect(navLabels.some((l) => /Account/i.test(l))).toBe(false)
-    expect(navLabels.some((l) => /AI Model/i.test(l))).toBe(true)
+    expect(navLabels.some((l) => /Redrob AI/i.test(l))).toBe(true)
 
     // No sign-in / logout / credits controls anywhere in the modal.
     const allText = host.textContent ?? ''

@@ -3,6 +3,8 @@ import type { Node as PmNode } from '@tiptap/pm/model'
 import type { CommentInfo } from '@genoffice/docx-engine'
 import { useI18n } from '../i18n/locale'
 import { IconComment, IconTrash } from './icons'
+import { MentionTextarea } from '../comments/MentionTextarea'
+import { MENTION_STRINGS, type MentionPerson } from '../comments/mentions'
 
 function formatDate(iso?: string): string {
   if (!iso) return ''
@@ -56,7 +58,10 @@ export const CommentsPanel = memo(function CommentsPanel({
   onCancelNew,
   onDelete,
   onClose,
+  people = [],
 }: {
+  /** who can be @mentioned, Redrob first */
+  people?: readonly MentionPerson[]
   comments: CommentInfo[]
   /** current PM doc, used only as the anchor-scan cache key (doc unchanged ⇒ anchors unchanged) */
   docNode: PmNode
@@ -173,15 +178,16 @@ export const CommentsPanel = memo(function CommentsPanel({
         <div className="comment-thread-actions">
           {replyTo === c.id ? (
             <div className="comment-reply-compose">
-              <textarea
+              <MentionTextarea
                 autoFocus
                 placeholder={t('appReplyPlaceholder')}
                 value={replyDraft}
-                onChange={(e) => setReplyDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitReply()
-                  if (e.key === 'Escape') setReplyTo(null)
-                }}
+                onChange={setReplyDraft}
+                people={people}
+                onSubmit={submitReply}
+                onEscape={() => setReplyTo(null)}
+                listLabel={MENTION_STRINGS.list}
+                redrobHint={MENTION_STRINGS.redrobHint}
               />
               <div className="comment-compose-actions">
                 <button onClick={() => setReplyTo(null)}>{t('appCancel')}</button>
@@ -220,16 +226,18 @@ export const CommentsPanel = memo(function CommentsPanel({
       </div>
       {composing && (
         <div className="comment-compose">
-          <textarea
-            ref={draftRef}
+          <MentionTextarea
+            textareaRef={draftRef}
             placeholder={t('appCommentPlaceholder')}
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit()
-              if (e.key === 'Escape') onCancelNew()
-            }}
+            onChange={setDraft}
+            people={people}
+            onSubmit={submit}
+            onEscape={onCancelNew}
+            listLabel={MENTION_STRINGS.list}
+            redrobHint={MENTION_STRINGS.redrobHint}
           />
+          <p className="comment-mention-tip">{MENTION_STRINGS.tip}</p>
           <div className="comment-compose-actions">
             <button onClick={onCancelNew}>{t('appCancel')}</button>
             <button className="primary" disabled={!draft.trim()} onClick={submit}>

@@ -1,26 +1,33 @@
 /**
- * Icon set for the markdown app. Everything that exists in the docs ribbon
- * library is re-exported from there so glyph style stays uniform across the
- * suite; the handful of markdown-only glyphs below are drawn on the same
- * 16-grid / pinned-stroke contract. (Long term this belongs in packages/ui.)
+ * Icon set for the markdown app. Every glyph with a Redrob design-system
+ * counterpart comes from the kit through @genoffice/ui's icon map, so the
+ * toolbar glyphs match the rest of the suite; the table-structure and quote
+ * glyphs the kit has no icon for stay drawn here on the 16-grid / pinned-stroke
+ * contract (see KIT_ICON_FALLBACKS).
  */
 
 import type { ReactNode } from 'react'
+import { kitGlyph } from '@genoffice/ui'
 
-export {
-  IconBullets,
-  IconCaret,
-  IconNumbered,
-  IconIndentDec,
-  IconIndentInc,
-  IconTable,
-  IconPicture,
-  IconLink,
-  IconSave,
-  IconUndo,
-  IconRedo,
-  IconCopy,
-} from '../../../../docs/src/renderer/components/icons'
+export const IconBullets = kitGlyph('IconBullets')
+export const IconCaret = kitGlyph('IconCaret')
+export const IconNumbered = kitGlyph('IconNumbered')
+export const IconIndentDec = kitGlyph('IconIndentDec')
+export const IconIndentInc = kitGlyph('IconIndentInc')
+export const IconTable = kitGlyph('IconTable')
+export const IconPicture = kitGlyph('IconPicture')
+export const IconLink = kitGlyph('IconLink')
+export const IconSave = kitGlyph('IconSave')
+export const IconUndo = kitGlyph('IconUndo')
+export const IconRedo = kitGlyph('IconRedo')
+export const IconCopy = kitGlyph('IconCopy')
+export const IconTaskList = kitGlyph('IconTaskList')
+export const IconHr = kitGlyph('IconHr')
+export const IconProperties = kitGlyph('IconProperties')
+export const IconInlineCode = kitGlyph('IconInlineCode')
+export const IconBold = kitGlyph('IconBold')
+export const IconItalic = kitGlyph('IconItalic')
+export const IconStrike = kitGlyph('IconStrike')
 
 interface IconProps {
   size?: number
@@ -47,39 +54,6 @@ function Svg({ size = 20, children }: IconProps & { children: ReactNode }) {
     >
       {children}
     </svg>
-  )
-}
-
-export function IconTaskList(props: IconProps) {
-  return (
-    <Svg {...props}>
-      <rect x="1.8" y="2.2" width="4.4" height="4.4" rx="1" />
-      <path d="M3.2 4.4l1 1 1.7-1.9" />
-      <path d="M8.8 4.4h5.4" />
-      <rect x="1.8" y="9.4" width="4.4" height="4.4" rx="1" />
-      <path d="M8.8 11.6h5.4" />
-    </Svg>
-  )
-}
-
-export function IconHr(props: IconProps) {
-  return (
-    <Svg {...props}>
-      <path d="M2 8h12" />
-      <path d="M4.5 4.2h7M4.5 11.8h7" opacity="0.45" />
-    </Svg>
-  )
-}
-
-/* knobs sit at different offsets on purpose: three flush-left lines read as a
- * hamburger/overflow menu, and left-aligned dots collide with IconBullets */
-export function IconProperties(props: IconProps) {
-  return (
-    <Svg {...props}>
-      <path d="M2.2 4.6h11.6M2.2 11.4h11.6" />
-      <circle cx="10.2" cy="4.6" r="1.7" fill="currentColor" stroke="none" />
-      <circle cx="5.6" cy="11.4" r="1.7" fill="currentColor" stroke="none" />
-    </Svg>
   )
 }
 
@@ -162,14 +136,6 @@ export function IconHeaderRow(props: IconProps) {
       <rect x="2" y="3" width="12" height="10" rx="1" />
       <path d="M2 6.4h12M6.7 6.4V13M11.3 6.4V13" />
       <path d="M2.6 3.6h10.8v2.3H2.6z" fill="currentColor" stroke="none" opacity="0.35" />
-    </Svg>
-  )
-}
-
-export function IconInlineCode(props: IconProps) {
-  return (
-    <Svg {...props}>
-      <path d="M5.4 4.6L2.4 8l3 3.4M10.6 4.6l3 3.4-3 3.4" />
     </Svg>
   )
 }

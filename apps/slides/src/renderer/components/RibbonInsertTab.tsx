@@ -138,6 +138,7 @@ export function RibbonInsertTab({ rb }: { rb: RibbonTabCtx }) {
         <div className="rb-drop-wrap">
           <button
             className={`rb-big ${tableOpen ? 'active' : ''}`}
+            aria-expanded={!!tableOpen}
             disabled={!hasDoc}
             data-tip={t('ribbonInsertTableTip')}
             onMouseDown={(e) => {

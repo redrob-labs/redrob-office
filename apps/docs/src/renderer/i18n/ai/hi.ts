@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const hi = {
+  aiYou: 'आप',
+  aiFailedTitle: 'सहायक पूरा नहीं कर सका',
+  aiStepRunning: 'चल रहा है',
+  aiStepDone: 'पूरा हुआ',
+  aiStepFailed: 'विफल',
+  aiStartersLabel: 'सुझाए गए प्रश्न',
   aiEmptyDraftTitle: 'AI को यह दस्तावेज़ ड्राफ़्ट करने दें',
   aiEmptyDraftBody1: 'विषय और मुख्य बिंदु बताएँ, या संदर्भ सामग्री पेस्ट करें;',
   aiEmptyDraftBody2: 'AI सीधे पेज पर पहला ड्राफ़्ट लिख देता है।',
@@ -153,4 +159,4 @@ export const hi = {
   aiCmdImages: '{count} चित्र अपडेट किए गए',
   aiCmdToc: 'विषय-सूची सम्मिलित की गई ({count} प्रविष्टियाँ)',
   aiCmdSkipped: ' ({count} सुरक्षित ब्लॉक छोड़े गए)',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

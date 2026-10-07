@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ja = {
+  aiYou: 'あなた',
+  aiFailedTitle: 'アシスタントは完了できませんでした',
+  aiStepRunning: '実行中',
+  aiStepDone: '完了',
+  aiStepFailed: '失敗',
+  aiStartersLabel: '提案されたプロンプト',
   aiComposerPlaceholderBuild: '作りたい表・データ・グラフを入力…',
   aiEmptyBuildTitle: 'AI にシート作りを任せる',
   aiEmptyBuildBody: '欲しい表・データ・グラフを伝えると、AI がその場で作成します。',
@@ -106,4 +112,4 @@ export const ja = {
   aiScopeRangeTip:
     'AI は「この列 / これらの行 / 選択部分」をこの範囲として解釈します。送信すると今回の実行中は固定されます',
   aiScopeClearTitle: '範囲指定を解除してシート全体を対象にする',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

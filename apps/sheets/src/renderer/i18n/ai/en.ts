@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+/** English: the master key set every other locale shard is checked against. */
 
 export const en = {
+  aiYou: 'You',
+  aiFailedTitle: 'The assistant could not finish',
+  aiStepRunning: 'Running',
+  aiStepDone: 'Done',
+  aiStepFailed: 'Failed',
+  aiStartersLabel: 'Suggested prompts',
   aiComposerPlaceholderBuild: 'Describe the table, data, or chart to create…',
   aiEmptyBuildTitle: 'Let AI build this workbook for you',
   aiEmptyBuildBody: 'Describe the table, data, or chart you need - AI creates it in place.',
@@ -107,4 +113,4 @@ export const en = {
   aiScopeRangeTip:
     'AI reads "this column / these rows / the selected part" as this range, and it stays fixed for the run once you send',
   aiScopeClearTitle: 'Drop the range scope and target the whole sheet',
-} satisfies Record<keyof typeof zh, string>
+}

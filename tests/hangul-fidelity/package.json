@@ -1,0 +1,34 @@
+{
+  "name": "@genoffice/hangul-fidelity",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "Fidelity harness for the Hangul core: Corpus, 한글 2024 references, Electron renderings, pixel diffs and save round trips",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "fidelity": "tsx src/cli.ts",
+    "bench": "tsx src/bench.ts"
+  },
+  "dependencies": {
+    "@embedpdf/pdfium": "^2.15.0",
+    "@genoffice/hwp-core": "workspace:*",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
+    "@genoffice/hwp-editor": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/pngjs": "^6.0.5",
+    "electron": "^43.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0",
+    "pdf-lib": "^1.17.1",
+    "jszip": "^3.10.1"
+  }
+}

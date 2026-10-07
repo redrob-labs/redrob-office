@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const he = {
+  aiYou: 'את/ה',
+  aiFailedTitle: 'העוזר לא הצליח לסיים',
+  aiStepRunning: 'פועל',
+  aiStepDone: 'הושלם',
+  aiStepFailed: 'נכשל',
+  aiStartersLabel: 'הצעות לשאלות',
   aiInputPlaceholderGen: 'תארו את המצגת ליצירה, או שאלו כל דבר',
   aiEmptyGenTitle: 'תנו ל-AI ליצור את המצגת שלכם',
   aiEmptyGenBody1: 'תארו את הנושא, הקהל ומספר העמודים המשוער;',
@@ -242,4 +248,4 @@ export const he = {
   aiSumSaveTemplate: 'תבנית הסגנון "{name}" נשמרה',
   aiSumTemplatesEmpty: 'תבניות סגנון (ריק)',
   aiSumListTemplates: 'הוצגו {count} תבניות סגנון',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

@@ -1,6 +1,12 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const pl = {
+  aiYou: 'Ty',
+  aiFailedTitle: 'Asystent nie mógł dokończyć',
+  aiStepRunning: 'W toku',
+  aiStepDone: 'Gotowe',
+  aiStepFailed: 'Niepowodzenie',
+  aiStartersLabel: 'Sugerowane pytania',
   aiInputPlaceholderGen: 'Opisz prezentację do wygenerowania albo zadaj pytanie',
   aiEmptyGenTitle: 'Pozwól AI wygenerować twoją prezentację',
   aiEmptyGenBody1: 'Opisz temat, okazję i przybliżoną liczbę stron;',
@@ -247,4 +253,4 @@ export const pl = {
   aiSumSaveTemplate: 'Zapisano szablon stylu „{name}”',
   aiSumTemplatesEmpty: 'Szablony stylu (pusto)',
   aiSumListTemplates: 'Wyświetlono szablony stylu: {count}',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

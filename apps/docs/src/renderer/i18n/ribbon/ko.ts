@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const ko = {
   ribbonAiCreditNote: 'AI를 호출하며 크레딧이 소모됩니다',
@@ -713,4 +713,4 @@ export const ko = {
   ribbonClearAll: '모두 지우기',
   ribbonClearAllTip: '문서의 모든 잉크 삭제',
   ribbonGroupClear: '지우기',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>

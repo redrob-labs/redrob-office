@@ -1,4 +1,4 @@
-import type { zh } from './zh'
+import type { en } from './en'
 
 export const id = {
   dlgAllowEditRangesTitle: 'Izinkan Edit Rentang',
@@ -401,4 +401,4 @@ export const id = {
   dlgFnDescNpv: 'Mengembalikan nilai sekarang bersih arus kas pada tingkat diskonto.',
   dlgFnDescIrr: 'Mengembalikan tingkat pengembalian internal serangkaian arus kas.',
   dlgFnCatFinancial: 'Keuangan',
-} satisfies Record<keyof typeof zh, string>
+} satisfies Partial<Record<keyof typeof en, string>>
