@@ -27,6 +27,7 @@ import { useI18n } from '../i18n/locale'
 import { HangulPanel } from '../HangulEditor'
 import type { SaveMode } from '../../shared/ipc'
 import { CharShapeDialog, ParaShapeDialog } from './ShapeDialogs'
+import { FindDialog, PageSetupDialog } from './FindPageDialogs'
 import { HangulRibbon, HangulSimpleToolbar, commandLabel } from './HangulRibbon'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { HwpPasswordError, base64ToBytes, newDocument, openDocument, saveDocument, type OpenedDocument } from './document'
@@ -49,7 +50,7 @@ export function NextHangulEditor(): React.JSX.Element {
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
   const [panelOpen, setPanelOpen] = useState(false)
   const [mode, setMode] = useState<'editing' | 'viewing'>('editing')
-  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | null>(null)
+  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | null>(null)
   const [, refresh] = useReducer((n: number) => n + 1, 0)
   const openedRef = useRef<OpenedDocument | null>(null)
   const viewRef = useRef<EditorView | null>(null)
@@ -130,6 +131,9 @@ export function NextHangulEditor(): React.JSX.Element {
         if (id === 'file:save-as') return void doSave('saveAs'), true
         if (id === 'format:char-shape') return setDialog('char-shape'), true
         if (id === 'format:para-shape') return setDialog('para-shape'), true
+        if (id === 'edit:find') return setDialog('find'), true
+        if (id === 'edit:find-replace') return setDialog('replace'), true
+        if (id === 'file:page-setup' || id === 'page:setup') return setDialog('page-setup'), true
         return false
       },
     })
@@ -213,7 +217,7 @@ export function NextHangulEditor(): React.JSX.Element {
       ) : null}
     </div>
   )
-  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => setDialog(id === 'format:char-shape' ? 'char-shape' : 'para-shape') }
+  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => setDialog(({ 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup' } as const)[id as 'edit:find'] ?? null) }
   const tools = (classic: boolean) => (
     <div className="hangul-toolbar">
       {classic ? <HangulRibbon {...ribbonProps} /> : <HangulSimpleToolbar {...ribbonProps} />}
@@ -300,6 +304,8 @@ export function NextHangulEditor(): React.JSX.Element {
         {/* the document is Korean whatever the interface language */}
         <div ref={hostRef} className="hangul-next-host" lang="ko" />
         {view && dialog === 'char-shape' ? <CharShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && (dialog === 'find' || dialog === 'replace') ? <FindDialog view={view} replace={dialog === 'replace'} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'page-setup' ? <PageSetupDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'para-shape' ? <ParaShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
       </EditorFrame>
     </div>

@@ -6,6 +6,7 @@ import { at, compare, containerOf, paraIndex, sameContainer, type Pos } from './
 import { collapsed, ordered, type Change, type ChangeOrigin, type Selection, type Session } from './session'
 import { moveHorizontal, moveVerticalFrom, documentEnd, documentStart } from './navigation'
 import { FORMAT_COMMANDS } from './format-commands'
+import { FIND_COMMANDS } from './find-commands'
 
 export interface CommandContext {
   session: Session
@@ -190,7 +191,7 @@ export const CORE_COMMANDS = [
 export class CommandBus {
   private readonly commands = new Map<string, Command<never>>()
 
-  constructor(readonly session: Session, commands: Command<never>[] = [...CORE_COMMANDS, ...FORMAT_COMMANDS]) {
+  constructor(readonly session: Session, commands: Command<never>[] = [...CORE_COMMANDS, ...FORMAT_COMMANDS, ...FIND_COMMANDS]) {
     for (const c of commands) this.register(c)
   }
 

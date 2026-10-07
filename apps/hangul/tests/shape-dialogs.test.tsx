@@ -11,6 +11,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
 import { CommandBus, EditorView, Session, type Pos } from '@genoffice/hwp-editor'
 import { CharShapeDialog, ParaShapeDialog } from '../src/renderer/next/ShapeDialogs'
+import { FindDialog, PageSetupDialog } from '../src/renderer/next/FindPageDialogs'
 import { lineSpacingToEngine, paraLengthToEngine, pxToPt, setPerScript } from '../src/renderer/next/shape-units'
 
 const env = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -128,6 +129,40 @@ describe('문단 모양', () => {
     expect(pxToPt(back.spacingBefore)).toBe(6)
     expect(back.lineSpacing).toBe(200)
     expect(back.keepWithNext).toBe(true)
+    expect(view.session.changeSeq).toBe(1)
+  })
+})
+
+describe('찾아 바꾸기', () => {
+  it('finds, reports the count and replaces all as one undo step', () => {
+    const view = editor('사과 배 사과 감')
+    view.session.select({ anchor: p(0, 0), head: p(0, 0) })
+    act(() => root.render(createElement(FindDialog, { view, replace: true, onClose: () => {}, onApplied: () => {} })))
+    type(field('Find what'), '사과')
+    type(field('Replace with'), '귤')
+    act(() => button('Find next').click())
+    expect(document.querySelector('[role="status"]')!.textContent).toBe('2 matches')
+    expect(view.session.text.textBetween(view.session.selection.anchor, view.session.selection.head)).toBe('사과')
+    act(() => button('Replace all').click())
+    expect(view.session.doc.text(0, 0)).toBe('귤 배 귤 감')
+    expect(document.querySelector('[role="status"]')!.textContent).toBe('Replaced 2')
+    view.run('edit:undo')
+    expect(view.session.doc.text(0, 0)).toBe('사과 배 사과 감')
+  })
+})
+
+describe('편집 용지', () => {
+  it('switches to landscape and sets a margin in mm', () => {
+    const view = editor()
+    act(() => root.render(createElement(PageSetupDialog, { view, onClose: () => {}, onApplied: () => {} })))
+    expect(field('Width').value).toBe('210')
+    type(field('Left'), '25')
+    act(() => (field('Landscape') as HTMLInputElement).click())
+    act(() => button('Apply').click())
+    const back = HwpCoreDocument.open(view.session.export('hwpx'))
+    const def = JSON.parse(back.raw.getPageDef(0))
+    expect(def.landscape).toBe(true)
+    expect(Math.round(def.marginLeft / (7200 / 25.4))).toBe(25)
     expect(view.session.changeSeq).toBe(1)
   })
 })

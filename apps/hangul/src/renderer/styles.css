@@ -177,3 +177,6 @@ body {
 .hangul-dialog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .hangul-dialog-flags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; border: 0; padding: 0; }
 .hangul-dialog-flags legend { font-weight: 600; margin-bottom: 8px; }
+.hangul-find { display: grid; gap: 12px; }
+.hangul-find__status { min-height: 1.2em; color: var(--ink-secondary); font-size: 13px; margin: 0; }
+.hangul-paper-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }

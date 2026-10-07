@@ -278,6 +278,12 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               <ToolbarButton label={L('edit:paste')} icon={<Icon name="clipboard" size={16} />} shortcut={props.mac ? '⌘V' : 'Ctrl+V'} disabled={!view || props.readOnly} onClick={clip(() => clipboardPaste(view!))} />
             </Group>
             <Group label={t('nextGroupSelect')}>{button('edit:select-all', g('⬚'))}</Group>
+            {props.onCommand ? (
+              <Group label={t('nextGroupFind')}>
+                <ToolbarButton label={L('edit:find')} icon={<Icon name="search" size={16} />} shortcut={commandShortcut('edit:find', props.mac)} disabled={!view} onClick={() => props.onCommand!('edit:find')} />
+                <ToolbarButton label={L('edit:find-replace')} icon={g('⇄')} shortcut={commandShortcut('edit:find-replace', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('edit:find-replace')} />
+              </Group>
+            ) : null}
           </>
         ) : null}
         {active === 'insert' ? (
@@ -335,10 +341,17 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
           </>
         ) : null}
         {active === 'page' ? (
-          <Group label={t('nextGroupBreaks')}>
-            {button('page:break', g('⤓'), { size: 'lg' })}
-            {button('page:column-break', g('⫼'), { size: 'lg' })}
-          </Group>
+          <>
+            {props.onCommand ? (
+              <Group label={t('nextGroupPaper')}>
+                <ToolbarButton label={L('page:setup')} icon={<Icon name="file" size={24} />} size="lg" shortcut="F7" disabled={!view || props.readOnly} onClick={() => props.onCommand!('page:setup')} />
+              </Group>
+            ) : null}
+            <Group label={t('nextGroupBreaks')}>
+              {button('page:break', g('⤓'), { size: 'lg' })}
+              {button('page:column-break', g('⫼'), { size: 'lg' })}
+            </Group>
+          </>
         ) : null}
         {active === 'view' ? (
           <Group label={t('nextGroupZoom')}>
