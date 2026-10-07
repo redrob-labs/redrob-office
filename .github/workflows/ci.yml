@@ -46,6 +46,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      # @genoffice/sheets builds a native Rust xlsx-engine (cargo) during
+      # `pnpm build`; without a toolchain the build job dies at `cargo: not found`.
+      - uses: dtolnay/rust-toolchain@stable
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
@@ -129,6 +133,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Install
         run: pnpm install --frozen-lockfile
