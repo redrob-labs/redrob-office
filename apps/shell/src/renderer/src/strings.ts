@@ -169,6 +169,9 @@ export const strings = {
     setAiMaxTokens: '单次输出上限（tokens）',
     setAiMaxTokensDesc:
       '一次回合的输出预算。推理模型会先消耗预算用于思考，预算用完时回复可能变成空白，遇到这种情况请调大此项。',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: '开源项目',
     starOnGitHub: '去 GitHub 点 Star',
     starPromptTitle: '喜欢 Redrob 吗？',
@@ -372,6 +375,9 @@ export const strings = {
     setAiMaxTokens: 'Max output tokens',
     setAiMaxTokensDesc:
       'Output budget for one turn. Reasoning models spend part of it thinking, so an answer can come back empty once the budget runs out; raise this value if that happens.',
+    setHwpAttributionLabel: 'Hangul document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Open Source',
     starOnGitHub: 'Star on GitHub',
     starPromptTitle: 'Enjoying Redrob?',
@@ -691,6 +697,9 @@ export const strings = {
     setAiMaxTokens: '1 回あたりの出力トークン上限',
     setAiMaxTokensDesc:
       '1 ターンの出力予算です。推論モデルは思考に消費するため、耗尽すると返信が空になります。その場合は値を大きくしてください。',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'オープンソース',
     starOnGitHub: 'GitHub でスターを付ける',
     starPromptTitle: 'Redrob はいかがですか？',
@@ -906,6 +915,9 @@ export const strings = {
     setAiMaxTokens: '턴당 출력 토큰 상한',
     setAiMaxTokensDesc:
       '한 턴의 출력 예산입니다. 추론 모델은 생각하는 데 소모하므로 예산이 떨어지면 응답이 비어 올 수 있습니다. 그럴 때 값을 키우세요.',
+    setHwpAttributionLabel: '한글 문서 형식',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX는 국가 표준 KS X 6101(OWPML)입니다. "한글", "한컴", "HWP", "HWPX"는 주식회사 한글과컴퓨터의 등록 상표이며, Redrob Office는 한글과컴퓨터와 관계가 없습니다.',
     setGithub: '오픈 소스',
     starOnGitHub: 'GitHub에서 스타 누르기',
     starPromptTitle: 'Redrob가 마음에 드시나요?',
@@ -1126,6 +1138,9 @@ export const strings = {
     setAiMaxTokens: 'Jetons de sortie max.',
     setAiMaxTokensDesc:
       'Budget de sortie pour un tour. Les modèles à raisonnement le dépensent en réflexion ; quand il est épuisé, la réponse arrive vide : augmentez cette valeur.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Open source',
     starOnGitHub: 'Mettre une étoile sur GitHub',
     starPromptTitle: 'Redrob vous plaît ?',
@@ -1348,6 +1363,9 @@ export const strings = {
     setAiMaxTokens: 'Max. Ausgabe-Tokens',
     setAiMaxTokensDesc:
       'Ausgabe-Budget pro Durchlauf. Denk-Modelle verbrauchen es beim Reasoning; ist es erschöpft, kommt eine leere Antwort zurück - dann diesen Wert erhöhen.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Open Source',
     starOnGitHub: 'Auf GitHub Stern geben',
     starPromptTitle: 'Gefällt Ihnen Redrob?',
@@ -1569,6 +1587,9 @@ export const strings = {
     setAiMaxTokens: 'Tokens de salida máx.',
     setAiMaxTokensDesc:
       'Presupuesto de salida por turno. Los modelos de razonamiento lo gastan en pensar; si se agota, la respuesta llega vacía: suba este valor.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Código abierto',
     starOnGitHub: 'Dar una estrella en GitHub',
     starPromptTitle: '¿Te gusta Redrob?',
@@ -1784,6 +1805,9 @@ export const strings = {
     setAiMaxTokens: 'จำนวนโทเคนขาออกสูงสุด',
     setAiMaxTokensDesc:
       'งบผลลัพท์ต่อหนึ่งรอบ โมเดลท่ีไตร่ตรองจะใช้ส่วนหนึ่่งไปกบการคิด หากงบหมด คำตอบจะกลบมาเปลา ให้เพิ่มคา่นี',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'โอเพนซอร์ส',
     starOnGitHub: 'กดดาวบน GitHub',
     starPromptTitle: 'ชอบ Redrob ไหม?',
@@ -2000,6 +2024,9 @@ export const strings = {
     setAiMaxTokens: 'Token keluaran maks.',
     setAiMaxTokensDesc:
       'Anggaran keluaran untuk satu giliran. Model penalaran memakainya untuk berpikir; jika habis, balasan datang kosong - naikkan nilai ini.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Sumber Terbuka',
     starOnGitHub: 'Beri Bintang di GitHub',
     starPromptTitle: 'Suka Redrob?',
@@ -2217,6 +2244,9 @@ export const strings = {
     setAiMaxTokens: 'Макс. токенов на ответ',
     setAiMaxTokensDesc:
       'Бюджет вывода за один ход. Модели рассуждений тратят его на размышления: если бюджет иссякнет, ответ придёт пустым - увеличьте значение.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Открытый код',
     starOnGitHub: 'Поставить звезду на GitHub',
     starPromptTitle: 'Нравится Redrob?',
@@ -2432,6 +2462,9 @@ export const strings = {
     setAiMaxTokens: 'الحد الأقصى لرموز المخرجات',
     setAiMaxTokensDesc:
       'ميزانية الإخراج في الدورة الواحدة. نماذج الاستدلال تصرفها على التفكير، فإذا نفدت جاء الرد فارغًا؛ ارفع هذه القيمة عندئذ.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'مفتوح المصدر',
     starOnGitHub: 'ضع نجمة على GitHub',
     starPromptTitle: 'هل أعجبك Redrob؟',
@@ -2641,6 +2674,9 @@ export const strings = {
     setAiMaxTokens: 'Máx. de tokens de saída',
     setAiMaxTokensDesc:
       'Orçamento de saída por turno. Modelos de raciocínio gastam-no pensando; se esgotar, a resposta vem vazia - aumente este valor.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Código aberto',
     starOnGitHub: 'Dar uma estrela no GitHub',
     starPromptTitle: 'Gostando do Redrob?',
@@ -2849,6 +2885,9 @@ export const strings = {
     setAiMaxTokens: 'Token di output massimi',
     setAiMaxTokensDesc:
       'Budget di uscita per singolo turno. I modelli di ragionamento lo consumano pensando: se si esaurisce, la risposta arriva vuota; aumentalo.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Open source',
     starOnGitHub: 'Metti una stella su GitHub',
     starPromptTitle: 'Ti piace Redrob?',
@@ -3056,6 +3095,9 @@ export const strings = {
     setAiMaxTokens: 'Maks. tokeny wyjścia',
     setAiMaxTokensDesc:
       'Budżet wyjścia na jedną turę. Modele rozumowania zużywają go na myślenie; gdy się wyczerpie, odpowiedź przychodzi pusta - zwiększ tę wartość.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Open source',
     starOnGitHub: 'Gwiazdka na GitHubie',
     starPromptTitle: 'Podoba Ci się Redrob?',
@@ -3264,6 +3306,9 @@ export const strings = {
     setAiMaxTokens: 'Max. outputtokens',
     setAiMaxTokensDesc:
       'Uitvoerbudget voor één beurt. Redeneermodellen geven dit uit aan denken; is het op, dan komt een leeg antwoord terug - verhoog deze waarde.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Open source',
     starOnGitHub: 'Geef een ster op GitHub',
     starPromptTitle: 'Bevalt Redrob?',
@@ -3471,6 +3516,9 @@ export const strings = {
     setAiMaxTokens: 'Token output maks.',
     setAiMaxTokensDesc:
       'Belanjawan output untuk satu pusingan. Model penaakulan menghabiskannya untuk berfikir; jika habis, balasan datang kosong - tingkatkan nilai ini.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'Sumber Terbuka',
     starOnGitHub: 'Beri Bintang di GitHub',
     starPromptTitle: 'Suka Redrob?',
@@ -3675,6 +3723,9 @@ export const strings = {
     setAiMaxTokens: 'מקסימום טוקנים לתשובה',
     setAiMaxTokensDesc:
       'תקן פלט לסיבוב אחד. מודלי נימוק מבזבזים אותו על מחשבה, ואם הוא נגמר התשובה חוזרת ריקה - העלו את הערך.',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'קוד פתוח',
     starOnGitHub: 'תנו כוכב ב-GitHub',
     starPromptTitle: 'נהנים מ-Redrob?',
@@ -3881,6 +3932,9 @@ export const strings = {
     setAiMaxTokens: 'अधिकतम आउटपुट टोकन',
     setAiMaxTokensDesc:
       'एक मोड़ का आउटपुट बजट। तरक मॉडल इसमें से क्छ हिस्सा सोचने पर खरच करते हैं; बजट खत्म होने पर उत्तर खाली आ सकता है - ज़रूरत पर इसे बढ़ाएँ।',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: 'ओपन सोर्स',
     starOnGitHub: 'GitHub पर स्टार दें',
     starPromptTitle: 'Redrob पसंद आ रहा है?',
@@ -4083,6 +4137,9 @@ export const strings = {
     setAiMaxTokens: '單次輸出上限（tokens）',
     setAiMaxTokensDesc:
       '一次回合的輸出預算。推理模型會先消耗預算用於思考，預算用畢時回覆可能變成空白，遇到此情況請調高本項。',
+    setHwpAttributionLabel: 'Hangul (HWP) document format',
+    setHwpAttribution: '본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.',
+    setHwpTrademarks: 'HWPX is the Korean national standard KS X 6101 (OWPML). "한글", "한컴", "HWP" and "HWPX" are registered trademarks of Hancom Inc.; Redrob Office is not affiliated with Hancom.',
     setGithub: '開源專案',
     starOnGitHub: '到 GitHub 給我們一顆星',
     starPromptTitle: '喜歡 Redrob 嗎？',

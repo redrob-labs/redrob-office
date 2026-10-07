@@ -302,6 +302,7 @@ export function NextHangulEditor(): React.JSX.Element {
               ...(s.layoutPending ? [t('nextPagesPending')] : []),
               ...(substituted ? [t('nextFontsSubstituted', { fonts: substituted })] : []),
               t('nextEngine', { version: coreVersion() }),
+              t('nextAttribution'),
             ]}
             connection={{ online: frame.online, onlineLabel: frameT(lang, 'online'), offlineLabel: frameT(lang, 'offline') }}
           />

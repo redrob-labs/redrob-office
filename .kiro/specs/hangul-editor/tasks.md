@@ -83,7 +83,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [ ] 2.4 Insert flows. Done: table, picture, equation, footnote and endnote, header/footer, bookmark. Open: shape, chart, field, hyperlink. [R5.3]
 - [ ] 2.5 i18n strings in both locales; visual baselines in `tests/visual`; accessibility pass.
   [R5.4, R5.5]
-- [ ] 2.7 Hancom attribution in the Hangul About and help surfaces, in both locales: 「본 제품은
+- [x] 2.7 Hancom attribution (Settings > About in every locale, the Hangul editor status line, NOTICE and source; a printed manual, if one ships, must carry it too) in the Hangul About and help surfaces, in both locales: 「본 제품은
   한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.」 Required by the HWP
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
 - [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over

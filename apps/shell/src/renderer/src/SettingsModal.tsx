@@ -683,6 +683,15 @@ export function SettingsModal({
                   }}
                 />
               </div>
+              <div className="set-field">
+                <div className="set-field-text">
+                  <span className="set-field-label">{t('setHwpAttributionLabel')}</span>
+                  {/* Required verbatim, in Korean, by Hancom's HWP specification terms
+                      (docs/decisions/2026-10-hangul-format-research.md, finding 4). */}
+                  <p className="set-field-desc" lang="ko" data-testid="hwp-attribution">{t('setHwpAttribution')}</p>
+                  <p className="set-field-desc">{t('setHwpTrademarks')}</p>
+                </div>
+              </div>
               <Field
                 label={t('setGithub')}
                 value={
