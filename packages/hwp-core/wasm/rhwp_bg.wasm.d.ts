@@ -9,6 +9,7 @@ export const documentexport_hasBytes: (a: number) => number;
 export const documentexport_takeBytes: (a: number) => [number, number, number, number];
 export const extractThumbnail: (a: number, b: number) => any;
 export const hwpdocument_addBookmark: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+export const hwpdocument_addMemo: (a: number, b: number, c: number) => [number, number, number];
 export const hwpdocument_applyCellBorderFillIds: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_applyCellStyle: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
 export const hwpdocument_applyCharFormat: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
@@ -321,6 +322,7 @@ export const hwpdocument_insertTextInHeaderFooter: (a: number, b: number, c: num
 export const hwpdocument_insertTextLogical: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_isEmptyDocument: (a: number) => number;
 export const hwpdocument_listCharts: (a: number) => [number, number, number, number];
+export const hwpdocument_listMemos: (a: number) => [number, number];
 export const hwpdocument_locateNode: (a: number, b: number) => [number, number];
 export const hwpdocument_logicalToTextOffset: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const hwpdocument_measureWidthDiagnostic: (a: number, b: number, c: number) => [number, number, number, number];
@@ -368,6 +370,7 @@ export const hwpdocument_removeFieldAt: (a: number, b: number, c: number, d: num
 export const hwpdocument_removeFieldAtInCell: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number];
 export const hwpdocument_removeFieldAtInCellEx: (a: number, b: number, c: number) => [number, number];
 export const hwpdocument_removeHyperlinkEx: (a: number, b: number, c: number) => [number, number];
+export const hwpdocument_removeMemo: (a: number, b: number) => [number, number];
 export const hwpdocument_renameBookmark: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_renameField: (a: number, b: number, c: number, d: number, e: number) => [number, number];
 export const hwpdocument_renderEquationPreview: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
@@ -435,6 +438,7 @@ export const hwpdocument_setFormValue: (a: number, b: number, c: number, d: numb
 export const hwpdocument_setFormValueInCell: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number, number];
 export const hwpdocument_setFormValueInCellEx: (a: number, b: number, c: number) => [number, number, number, number];
 export const hwpdocument_setHeaderFooterPictureProperties: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+export const hwpdocument_setMemoBody: (a: number, b: number, c: number, d: number) => [number, number];
 export const hwpdocument_setNoteEquationProperties: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
 export const hwpdocument_setNoteEquationPropertiesEx: (a: number, b: number, c: number) => [number, number, number, number];
 export const hwpdocument_setNumberingRestart: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];

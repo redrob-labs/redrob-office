@@ -112,8 +112,10 @@ Requirement references are in brackets, e.g. [R2.1].
 
 ## Phase 4: Comments and track changes
 
-- [ ] 4.1 E4 Memo API in the Core, byte-level golden tests against the R2 fixtures, and a 한글 2024
+- [x] 4.1 E4 Memo API in the Core, byte-level golden tests against the R2 fixtures, and a 한글 2024
   two-way round trip. [R7.1]
+  API and engine fixes done (`document_core/memos.rs`). Byte-level goldens against R2 fixtures and the
+  한글 2024 two-way round trip wait for the runner (P-1).
 - [ ] 4.2 Comments UI: rail, threads, replies, resolve, @mentions, @Redrob; storage for thread
   metadata that has no native slot (decided in this task). AI `read_comments`, `reply_comment` and
   `resolve_comment`. [R7.2, R6.1]

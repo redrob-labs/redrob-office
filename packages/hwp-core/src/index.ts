@@ -23,6 +23,8 @@ import type {
   NodeId,
   NodeLocation,
   NodeRead,
+  Memo,
+  ParagraphTarget,
   Outline,
   PageInfo,
   ParaProperties,
@@ -205,6 +207,24 @@ export class HwpCoreDocument {
 
   readNodes(ids: NodeId[]): NodeRead[] {
     return decode(this.raw.readNodes(JSON.stringify(ids)))
+  }
+
+  // ── Memos (E4) ────────────────────────────────────────────────────────
+  memos(): Memo[] {
+    return decode(this.raw.listMemos())
+  }
+
+  /** Add a memo over [start, end) of a paragraph; returns its field id. */
+  addMemo(target: ParagraphTarget, start: number, end: number, author: string, body: string): number {
+    return this.raw.addMemo(JSON.stringify({ target, start, end, author, body }))
+  }
+
+  setMemoBody(fieldId: number, body: string): void {
+    this.raw.setMemoBody(fieldId, body)
+  }
+
+  removeMemo(fieldId: number): void {
+    this.raw.removeMemo(fieldId)
   }
 
   // ── Edit ──────────────────────────────────────────────────────────────
