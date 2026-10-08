@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import { AgentLoop, composeSkills, type AgentImage } from '@genoffice/agent-core'
 import type { AiSettings } from '@genoffice/ai-provider'
-import { ROLLBACK_POINTS, collapsed, ordered, sameContainer, type EditorView, type Session } from '@genoffice/hwp-editor'
+import { Anchors, ROLLBACK_POINTS, collapsed, ordered, sameContainer, type EditorView, type Session } from '@genoffice/hwp-editor'
 import {
   AgentComposer,
   AgentEmpty,
@@ -44,6 +44,8 @@ import { createMediaSkill } from './media-skill'
 import { ATTACHMENT_IMAGE_EXTS, type AttachmentAddResult, type AttachmentMeta } from '../../shared/ipc'
 import { createElectronTransport } from './transport'
 import { DOC_NAV_SCHEME, navigateToNode, parseDocNavHref } from './doc-nav'
+import { EditQueueCard } from './EditQueueCard'
+import { EDIT_QUEUE_MAX, buildQueueInstruction, buildQueueSummary, decorate, liveItems, type EditQueueItem } from './edit-queue'
 
 const TOOL_OUTPUT_MAX_CHARS = 2000
 
@@ -122,6 +124,18 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
   attachmentsRef.current = attachments
   const sentImagesRef = useRef(new Set<string>())
   const [attachNotice, setAttachNotice] = useState<string | null>(null)
+  /** queued selection edits; each qid is an anchor that follows the document */
+  const [queue, setQueue] = useState<EditQueueItem[]>([])
+  const [, bumpAnchors] = useState(0)
+  const anchorsRef = useRef<{ session: Session; anchors: Anchors } | null>(null)
+  const anchorsFor = (s: Session): Anchors => {
+    if (anchorsRef.current?.session !== s) {
+      anchorsRef.current?.anchors.dispose()
+      anchorsRef.current = { session: s, anchors: new Anchors(s) }
+    }
+    return anchorsRef.current.anchors
+  }
+  const decoKeysRef = useRef(new Set<string>())
 
   const discard = (id: number | null) => {
     const s = depsRef.current.getSession()
@@ -243,6 +257,7 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
       loopRef.current?.cancel()
       dropPending()
       for (const p of pointsRef.current) discard(p.snapshot)
+      anchorsRef.current?.anchors.dispose()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -357,6 +372,68 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
     const head = session.selection.head
     session.select({ anchor: head, head })
     deps.getView()?.render()
+  }
+
+  // Highlight queued passages and keep the card fresh as anchors move.
+  const liveSession = deps.getSession()
+  useEffect(() => {
+    if (!liveSession) return
+    const anchors = anchorsFor(liveSession)
+    const paint = () => {
+      const view = depsRef.current.getView()
+      if (!view) return
+      decoKeysRef.current = decorate(liveSession, anchors, queue, (key, rects) => (rects ? view.overlay.setDecoration({ key, kind: 'ai-pending', rects }) : view.overlay.clearDecoration(key)), decoKeysRef.current)
+    }
+    paint()
+    const offAnchors = anchors.onUpdate(() => {
+      paint()
+      bumpAnchors((n) => n + 1)
+    })
+    const offSettle = liveSession.onSettle(paint)
+    return () => {
+      offAnchors()
+      offSettle()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveSession, queue])
+
+  const queueAdd = (): void => {
+    const s = depsRef.current.getSession()
+    const instruction = prompt.trim()
+    if (!s || !instruction) return
+    if (queue.length >= EDIT_QUEUE_MAX) return setAttachNotice(t('aiQueueFull', { max: EDIT_QUEUE_MAX }))
+    const qid = anchorsFor(s).add(s.selection)
+    if (!qid) return
+    setQueue((q) => [...q, { qid, instruction, capturedText: selectionText(s) }])
+    setPrompt('')
+  }
+  const queueRemove = (qid: string): void => {
+    const s = depsRef.current.getSession()
+    if (s) anchorsFor(s).remove(qid)
+    setQueue((q) => q.filter((i) => i.qid !== qid))
+  }
+  const queueClear = (): void => {
+    const s = depsRef.current.getSession()
+    if (s) for (const i of queue) anchorsFor(s).remove(i.qid)
+    setQueue([])
+  }
+  const queueFocus = (qid: string): void => {
+    const s = depsRef.current.getSession()
+    const view = depsRef.current.getView()
+    const r = s ? anchorsFor(s).range(qid) : null
+    if (!s || !view || !r) return
+    s.select(r)
+    view.render()
+    view.focus()
+  }
+  const sendQueue = (): void => {
+    const s = depsRef.current.getSession()
+    if (!s || busy) return
+    const entries = liveItems(anchorsFor(s), queue)
+    if (!entries.length) return queueClear()
+    // Consumed at send: a failed run is retried from the transcript.
+    queueClear()
+    send(buildQueueInstruction(entries), buildQueueSummary(t('aiQueueSubmitted', { count: entries.length }), entries))
   }
 
   const stepStrings = (n: number) => ({ worked: t('aiWorkedSteps', { n }), working: t('aiGroupWorking'), running: t('aiStepRunning'), done: t('aiStepDone'), failed: t('aiStepFailed') })
@@ -481,13 +558,32 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
       )}
 
       <div className="ai-composer">
+        {liveSession && queue.length > 0 && (
+          <EditQueueCard
+            items={queue}
+            anchors={anchorsFor(liveSession)}
+            busy={busy}
+            onEditInstruction={(qid, instruction) => setQueue((q) => q.map((i) => (i.qid === qid ? { ...i, instruction } : i)))}
+            onRemove={queueRemove}
+            onDiscardAll={queueClear}
+            onSend={sendQueue}
+            onFocus={queueFocus}
+          />
+        )}
         <AgentComposer
           value={prompt}
           busy={busy}
           leading={
-            <IconButton size="sm" label={t('aiAttachTitle')} disabled={busy} onClick={() => void window.hangulApi.pickAttachments().then(mergeAttachments)}>
-              <Icon name="attachment" size={16} />
-            </IconButton>
+            <>
+              <IconButton size="sm" label={t('aiAttachTitle')} disabled={busy} onClick={() => void window.hangulApi.pickAttachments().then(mergeAttachments)}>
+                <Icon name="attachment" size={16} />
+              </IconButton>
+              {scopeText && (
+                <IconButton size="sm" label={t('aiQueueAdd')} disabled={busy || !prompt.trim()} onClick={queueAdd}>
+                  <Icon name="plus" size={16} />
+                </IconButton>
+              )}
+            </>
           }
           context={
             (scopeText || attachments.length > 0 || attachNotice) && (
