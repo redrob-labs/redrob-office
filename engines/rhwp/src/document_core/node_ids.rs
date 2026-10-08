@@ -397,4 +397,33 @@ mod tests {
         let loc = c.locate_node(2).unwrap();
         assert_eq!((loc.section, loc.para, loc.path.len()), (0, 1, 0));
     }
+
+    #[test]
+    fn a_split_at_the_start_keeps_the_id_on_the_content() {
+        let mut c = core();
+        c.ensure_node_ids();
+        c.document.sections[0].paragraphs[1].char_offsets = (0..3).collect();
+        let tail = c.document.sections[0].paragraphs[1].split_at(0);
+        c.document.sections[0].paragraphs.insert(2, tail);
+        c.ensure_node_ids();
+        let sec = &c.document.sections[0];
+        assert_eq!(sec.paragraphs[2].text, "two");
+        assert_eq!(sec.paragraphs[2].node_id, 2);
+        assert!(sec.paragraphs[1].text.is_empty());
+        assert_eq!(sec.paragraphs[1].node_id, 4);
+    }
+
+    #[test]
+    fn a_split_in_the_middle_keeps_the_id_on_the_head() {
+        let mut c = core();
+        c.ensure_node_ids();
+        // A real paragraph carries one UTF-16 offset per character.
+        c.document.sections[0].paragraphs[2].char_offsets = (0..5).collect();
+        let tail = c.document.sections[0].paragraphs[2].split_at(2);
+        c.document.sections[0].paragraphs.insert(3, tail);
+        c.ensure_node_ids();
+        let sec = &c.document.sections[0];
+        assert_eq!((sec.paragraphs[2].text.as_str(), sec.paragraphs[2].node_id), ("th", 3));
+        assert_eq!((sec.paragraphs[3].text.as_str(), sec.paragraphs[3].node_id), ("ree", 4));
+    }
 }
