@@ -102,7 +102,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 3.5 AI panel on the Agent parts: Plan or Run, status line, receipts with rollback by
   snapshot, fail-closed errors. Preload exposes `getOfficePrefs` and `onOfficePrefsChanged`.
   [R6.5, R6.6]
-- [ ] 3.6 `docnav://node/<id>` navigation and edit-queue anchors that move with edits. [R6.7]
+- [x] 3.6 `docnav://node/<id>` navigation and edit-queue anchors that move with edits. [R6.7]
 - [x] 3.7 `file-parse` case for hwp and hwpx (hwp-core in Node). Turn Home's `ai: false` on for
   Hangul. Composer and attachment tests. [R6.8]
 - [ ] 3.8 AI evaluation set on Corpus documents: tasks for rewrite, restructure, tables and

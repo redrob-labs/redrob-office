@@ -151,6 +151,47 @@ describe('Redrob panel', () => {
   })
 })
 
+describe('edit queue', () => {
+  it('queues selection edits that follow the document, highlights them, and sends one batch', async () => {
+    const view = editor(['제1조 목적', '제2조 정의'])
+    const s = view.session
+    mount(view)
+    const queueButton = () => [...host.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === 'Queue this edit for the selection')!
+    const type = async (text: string) => {
+      const box = host.querySelector('textarea')!
+      await act(async () => {
+        Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(box, text)
+        box.dispatchEvent(new Event('input', { bubbles: true }))
+      })
+    }
+    // First passage
+    s.select({ anchor: { section: 0, para: 1, offset: 4 }, head: { section: 0, para: 1, offset: 6 } })
+    await act(async () => view.render())
+    await type('용어를 바꿔 줘')
+    await act(async () => queueButton().click())
+    // Second passage
+    s.select({ anchor: { section: 0, para: 0, offset: 4 }, head: { section: 0, para: 0, offset: 6 } })
+    await act(async () => view.render())
+    await type('더 구체적으로')
+    await act(async () => queueButton().click())
+    expect(host.textContent).toContain('Queued edits')
+    expect(view.overlay.decorationKeys().filter((k) => k.startsWith('queue:'))).toHaveLength(2)
+    // An edit before both passages moves them; they still resolve.
+    s.select({ anchor: { section: 0, para: 0, offset: 0 }, head: { section: 0, para: 0, offset: 0 } })
+    await act(async () => void view.run('edit:insert-text', { text: '【신설】\n' }))
+    await settle()
+    const send = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Send 2 edits')!
+    expect(send.disabled).toBe(false)
+    await act(async () => send.click())
+    await settle()
+    const sent = JSON.stringify(requests[0]!.messages)
+    expect(sent).toContain('target text: \\"정의\\"')
+    expect(sent).toContain('target text: \\"목적\\"')
+    expect(sent).toContain(`paragraph ${s.doc.nodeIdAt(0, 2)}, characters 4–6`)
+    expect(view.overlay.decorationKeys().filter((k) => k.startsWith('queue:'))).toHaveLength(0)
+  })
+})
+
 describe('docnav', () => {
   it('selects the cited paragraph and survives edits before it', () => {
     const view = editor(['하나', '둘', '셋'])
