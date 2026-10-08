@@ -60,7 +60,7 @@ import {
   SectionSettingsDialog,
   SymbolsDialog,
 } from './MoreDialogs'
-import { documentHtml, fieldAt, pageRenders } from '@genoffice/hwp-editor'
+import { documentHtml, fieldAt, objectProperties, pageRenders } from '@genoffice/hwp-editor'
 import { DIALOG_FIRST, HOST_COMMANDS, runHostCommand, type HostDeps, type HostDialog } from './host-commands'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
 import { InsertPromptDialog, usePicturePicker, type InsertKind } from './InsertDialogs'
@@ -599,7 +599,7 @@ export function NextHangulEditor(): React.JSX.Element {
         {view && dialog === 'char-shape' ? <CharShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && (dialog === 'find' || dialog === 'replace') ? <FindDialog view={view} replace={dialog === 'replace'} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {picture.input}
-        {view && dialog && dialog.includes(':') ? <InsertPromptDialog view={view} kind={dialog as InsertKind} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog && dialog.includes(':') ? <InsertPromptDialog view={view} kind={dialog as InsertKind} initial={dialog === 'insert:equation-edit' ? String(objectProperties(view.session)?.script ?? '') : ''} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'page-setup' ? <PageSetupDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'object-props' && view.session.object ? <ObjectPropertiesDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'hyperlink' ? <HyperlinkDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}

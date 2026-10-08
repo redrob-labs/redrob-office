@@ -428,6 +428,7 @@ export const hwpdocument_setChartData: (a: number, b: number, c: number, d: numb
 export const hwpdocument_setChartDataByIndex: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_setClipEnabled: (a: number, b: number) => void;
 export const hwpdocument_setColumnDef: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+export const hwpdocument_setColumnWidths: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
 export const hwpdocument_setControlFlipAt: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
 export const hwpdocument_setControlLock: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_setControlZOrderAt: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];

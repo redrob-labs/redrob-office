@@ -148,7 +148,7 @@ export function objectsOnPage(s: Session, page: number): ObjectBox[] {
   // The engine lists controls in paint order; its own `zOrder` field is not reliable here.
   for (const [i, c] of (r.controls ?? []).entries()) {
     if (c.secIdx === undefined || c.paraIdx === undefined || c.controlIdx === undefined) continue
-    const kind = c.type === 'image' ? 'picture' : isChart(c.secIdx, c.paraIdx, c.controlIdx) ? 'chart' : c.type === 'shape' ? 'shape' : null
+    const kind = c.type === 'image' ? 'picture' : c.type === 'equation' ? 'equation' : isChart(c.secIdx, c.paraIdx, c.controlIdx) ? 'chart' : c.type === 'shape' ? 'shape' : null
     if (!kind) continue
     out.push({ kind, section: c.secIdx, para: c.paraIdx, control: c.controlIdx, page, x: c.x, y: c.y, width: c.w, height: c.h, zOrder: i })
   }
@@ -174,7 +174,12 @@ export function objectProperties(s: Session, o: ObjectRef | null = s.object): Re
   if (!o) return null
   try {
     const raw = s.doc.raw
-    const r = o.kind === 'picture' ? raw.getPictureProperties(o.section, o.para, o.control) : raw.getShapeProperties(o.section, o.para, o.control)
+    const r =
+      o.kind === 'picture'
+        ? raw.getPictureProperties(o.section, o.para, o.control)
+        : o.kind === 'equation'
+          ? raw.getEquationProperties(o.section, o.para, o.control, -1, -1)
+          : raw.getShapeProperties(o.section, o.para, o.control)
     return json(r, 'objectProperties')
   } catch {
     return null
@@ -206,7 +211,14 @@ export const setObjectProperties: Command<{ props: Record<string, unknown> }> = 
     return session.edit('object:set-properties', () => {
       const raw = session.doc.raw
       const body = JSON.stringify(props)
-      json(o.kind === 'picture' ? raw.setPictureProperties(o.section, o.para, o.control, body) : raw.setShapeProperties(o.section, o.para, o.control, body), 'setObjectProperties')
+      json(
+        o.kind === 'picture'
+          ? raw.setPictureProperties(o.section, o.para, o.control, body)
+          : o.kind === 'equation'
+            ? raw.setEquationProperties(o.section, o.para, o.control, -1, -1, body)
+            : raw.setShapeProperties(o.section, o.para, o.control, body),
+        'setObjectProperties',
+      )
       return sel
     })
   },
@@ -219,7 +231,14 @@ export const deleteObject: Command = {
     const o = session.object!
     const change = session.edit('insert:picture-delete', () => {
       const raw = session.doc.raw
-      json(o.kind === 'picture' ? raw.deletePictureControl(o.section, o.para, o.control) : raw.deleteShapeControl(o.section, o.para, o.control), 'deleteObject')
+      json(
+        o.kind === 'picture'
+          ? raw.deletePictureControl(o.section, o.para, o.control)
+          : o.kind === 'equation'
+            ? raw.deleteEquationControl(o.section, o.para, o.control)
+            : raw.deleteShapeControl(o.section, o.para, o.control),
+        'deleteObject',
+      )
       const q: Pos = { section: o.section, para: o.para, offset: 0 }
       return { anchor: q, head: q }
     })
@@ -231,7 +250,7 @@ export const deleteObject: Command = {
 function zOrder(id: string, op: 'front' | 'back' | 'forward' | 'backward'): Command {
   return {
     id,
-    isEnabled: hasObject,
+    isEnabled: ({ session }) => !!session.object && session.object.kind !== 'equation',
     run({ session }) {
       const o = session.object!
       const sel = session.selection
@@ -330,7 +349,18 @@ export const setChartDataCommand: Command<{ categories: string[]; series: Array<
   },
 }
 
+/** 수식 고치기: the selected equation's script. */
+export const editEquation: Command<{ script: string }> = {
+  id: 'insert:equation-edit',
+  isEnabled: ({ session }) => session.object?.kind === 'equation',
+  run(ctx, { script }) {
+    if (!script.trim()) throw new Error('insert:equation-edit: an equation needs a script')
+    return setObjectProperties.run(ctx, { props: { script } })
+  },
+}
+
 export const OBJECT_COMMANDS = [
+  editEquation,
   insertChart,
   setChartDataCommand,
   setTableProperties,

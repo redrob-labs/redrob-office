@@ -164,6 +164,15 @@ impl HwpDocument {
             .map_err(Into::into)
     }
 
+    /// [Redrob] Columns of different widths: `ratios_json` is an array of positive shares.
+    #[wasm_bindgen(js_name = setColumnWidths)]
+    pub fn set_column_widths(&mut self, section_idx: u32, ratios_json: &str, spacing_hu: i32) -> Result<String, JsValue> {
+        let ratios: Vec<f64> = parse(ratios_json)?;
+        self.core
+            .set_column_widths_native(section_idx as usize, &ratios, spacing_hu.clamp(0, i16::MAX as i32) as i16)
+            .map_err(Into::into)
+    }
+
     #[wasm_bindgen(js_name = removeMemo)]
     pub fn remove_memo(&mut self, field_id: u32) -> Result<(), JsValue> {
         self.core.remove_memo_native(field_id).map_err(Into::into)

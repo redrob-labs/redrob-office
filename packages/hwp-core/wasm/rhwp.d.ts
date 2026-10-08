@@ -2217,6 +2217,10 @@ export class HwpDocument {
      */
     setColumnDef(section_idx: number, column_count: number, column_type: number, same_width: number, spacing_hu: number): string;
     /**
+     * [Redrob] Columns of different widths: `ratios_json` is an array of positive shares.
+     */
+    setColumnWidths(section_idx: number, ratios_json: string, spacing_hu: number): string;
+    /**
      * 개체를 뒤집는다 — 웹한글컨트롤 `Run("ShapeObjHorzFlip")` 계열.
      */
     setControlFlipAt(para_in_list: number, control_index: number, vertical: boolean, org_state: boolean): string;
@@ -3031,6 +3035,7 @@ export interface InitOutput {
     readonly hwpdocument_setChartDataByIndex: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_setClipEnabled: (a: number, b: number) => void;
     readonly hwpdocument_setColumnDef: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly hwpdocument_setColumnWidths: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly hwpdocument_setControlFlipAt: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly hwpdocument_setControlLock: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_setControlZOrderAt: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];

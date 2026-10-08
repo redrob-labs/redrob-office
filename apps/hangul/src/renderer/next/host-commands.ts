@@ -50,7 +50,7 @@ export interface HostDeps {
   setToolbar(choice: 'simple' | 'classic'): void
   toggleMarkup(): void
   /** The kind of the selected object, if any. */
-  objectKind(): 'picture' | 'shape' | 'chart' | null
+  objectKind(): 'picture' | 'shape' | 'chart' | 'equation' | null
   /** Whether the caret is in a table. */
   inTable(): boolean
   /** Whether the caret is in a click-here field. */
@@ -93,7 +93,7 @@ export const HOST_COMMANDS: Record<string, Handler> = {
   'format:object-properties': (d) => {
     const k = d.objectKind()
     if (!k) return false
-    d.openDialog(k === 'chart' ? 'chart' : 'object-props')
+    d.openDialog(k === 'chart' ? 'chart' : k === 'equation' ? 'insert:equation-edit' : 'object-props')
     return true
   },
   // Inserting
@@ -105,6 +105,7 @@ export const HOST_COMMANDS: Record<string, Handler> = {
   'insert:chart-dialog': dialog('chart'),
   'insert:chart-data-edit': (d) => (d.objectKind() === 'chart' ? (d.openDialog('chart'), true) : false),
   'insert:equation': dialog('insert:equation'),
+  'insert:equation-edit': (d) => (d.objectKind() === 'equation' ? (d.openDialog('insert:equation-edit'), true) : false),
   'insert:footnote': dialog('insert:footnote'),
   'insert:bookmark': dialog('insert:bookmark'),
   // Pages
@@ -153,15 +154,12 @@ export const NOT_YET: Record<string, string> = {
   'file:export-doc': 'needs a .doc export',
   'edit:compare-documents': 'needs a document diff view',
   'insert:note-close': 'the editor has no note editing mode yet',
-  'insert:equation-edit': 'equations are not selectable objects yet',
   'insert:group-shapes': 'needs selecting several objects',
   'page:headerfooter-close': 'the editor has no header and footer editing mode yet',
   'page:headerfooter-prev': 'the editor has no header and footer editing mode yet',
   'page:headerfooter-next': 'the editor has no header and footer editing mode yet',
   'page:insert-field-filename': 'a file name field exists only inside headers and footers',
   'tool:options': 'settings live in the shell',
-  'page:col-left': 'columns of different widths lose their widths in an HWP 5.0 save (engine)',
-  'page:col-right': 'columns of different widths lose their widths in an HWP 5.0 save (engine)',
   'view:form-mode': 'needs form mode',
 }
 
@@ -179,6 +177,7 @@ export const DIALOG_FIRST: ReadonlySet<string> = new Set([
   'page:new-page-num',
   'page:hide',
   'table:formula',
+  'insert:equation-edit',
 ])
 
 /** Run a host command; false when the id is not one or it does not apply now. */

@@ -4168,6 +4168,58 @@ impl DocumentCore {
         Ok("{\"ok\":true}".to_string())
     }
 
+    /// [Redrob] Columns of different widths: `ratios` gives each column's share of the
+    /// body width (for example `[1.0, 2.0]` for 한글's 왼쪽 preset), with `spacing_hu`
+    /// between columns. Widths are stored in absolute HWPUNIT (the HWPX form); the
+    /// HWP 5.0 writer turns them into the proportional form that format uses.
+    pub fn set_column_widths_native(
+        &mut self,
+        section_idx: usize,
+        ratios: &[f64],
+        spacing_hu: i16,
+    ) -> Result<String, HwpError> {
+        let n = ratios.len();
+        if !(2..=16).contains(&n) || ratios.iter().any(|r| !r.is_finite() || *r <= 0.0) {
+            return Err(HwpError::RenderError("단 비율은 2~16개의 양수여야 합니다".to_string()));
+        }
+        // Count, type and gap first: this finds or inserts the section's ColumnDef.
+        self.set_column_def_native(section_idx, n as u16, 0, false, spacing_hu)?;
+        let pd = &self.document.sections[section_idx].section_def.page_def;
+        let body = (pd.width as i64 - pd.margin_left as i64 - pd.margin_right as i64 - pd.margin_gutter as i64).max(7200);
+        let gap = spacing_hu.max(0) as i64;
+        let usable = (body - gap * (n as i64 - 1)).max(n as i64 * 200);
+        let total: f64 = ratios.iter().sum();
+        let mut widths: Vec<i16> = ratios.iter().map(|r| ((usable as f64) * r / total).round().clamp(200.0, i16::MAX as f64) as i16).collect();
+        // Rounding must not change the body width: the last column takes the remainder.
+        let sum: i64 = widths.iter().map(|w| *w as i64).sum();
+        if let Some(last) = widths.last_mut() {
+            *last = (*last as i64 + usable - sum).clamp(200, i16::MAX as i64) as i16;
+        }
+        let mut gaps = vec![spacing_hu.max(0); n];
+        gaps[n - 1] = 0;
+        let mut found = false;
+        for para in self.document.sections[section_idx].paragraphs.iter_mut() {
+            for ctrl in para.controls.iter_mut() {
+                if let Control::ColumnDef(ref mut cd) = ctrl {
+                    cd.same_width = false;
+                    cd.widths = widths.clone();
+                    cd.gaps = gaps.clone();
+                    cd.proportional_widths = false;
+                    cd.raw_attr = 0;
+                    found = true;
+                    break;
+                }
+            }
+            if found {
+                break;
+            }
+        }
+        self.document.sections[section_idx].raw_stream = None;
+        self.reflow_body_paragraphs_in_section(section_idx);
+        self.rebuild_section(section_idx);
+        Ok("{\"ok\":true}".to_string())
+    }
+
     /// 문단 병합 (네이티브 에러 타입)
     pub fn merge_paragraph_native(
         &mut self,
@@ -8447,5 +8499,75 @@ mod tests {
             event_count, before_event_count,
             "a rejected convergence must not publish an edit event"
         );
+    }
+}
+
+#[cfg(test)]
+mod redrob_column_widths_tests {
+    use crate::document_core::DocumentCore;
+    use crate::model::control::Control;
+
+    fn column(core: &DocumentCore) -> crate::model::page::ColumnDef {
+        core.document.sections[0]
+            .paragraphs
+            .iter()
+            .flat_map(|p| p.controls.iter())
+            .find_map(|c| match c {
+                Control::ColumnDef(cd) => Some(cd.clone()),
+                _ => None,
+            })
+            .expect("column def")
+    }
+
+    fn shares(cd: &crate::model::page::ColumnDef) -> Vec<f64> {
+        let w: Vec<f64> = cd.widths.iter().map(|w| *w as u16 as f64).collect();
+        let total: f64 = w.iter().sum();
+        w.iter().map(|x| x / total).collect()
+    }
+
+    #[test]
+    fn unequal_widths_survive_hwpx_and_hwp() {
+        let mut core = DocumentCore::new_empty();
+        core.create_blank_document_native().unwrap();
+        core.set_column_widths_native(0, &[1.0, 2.0], 1134).unwrap();
+        let cd = column(&core);
+        assert!(!cd.same_width);
+        assert_eq!(cd.widths.len(), 2);
+        let s = shares(&cd);
+        assert!((s[0] - 1.0 / 3.0).abs() < 0.01, "{s:?}");
+        for bytes in [core.export_hwpx_native().unwrap(), core.export_hwp_with_adapter().unwrap()] {
+            let back = DocumentCore::from_bytes(&bytes).unwrap();
+            let cd2 = column(&back);
+            assert!(!cd2.same_width, "different widths survive");
+            let s2 = shares(&cd2);
+            assert!((s2[0] - 1.0 / 3.0).abs() < 0.02, "{s2:?}");
+        }
+    }
+
+    #[test]
+    fn widths_read_from_hwp_survive_a_save_as_hwpx() {
+        let mut core = DocumentCore::new_empty();
+        core.create_blank_document_native().unwrap();
+        core.set_column_widths_native(0, &[1.0, 2.0], 1134).unwrap();
+        let from_hwp = DocumentCore::from_bytes(&core.export_hwp_with_adapter().unwrap()).unwrap();
+        assert!(column(&from_hwp).proportional_widths);
+        let back = DocumentCore::from_bytes(&from_hwp.export_hwpx_native().unwrap()).unwrap();
+        let cd = column(&back);
+        let s = shares(&cd);
+        assert!((s[0] - 1.0 / 3.0).abs() < 0.02, "{s:?}");
+        // HWPX colSz is absolute: the columns and the gap fill the body width.
+        let pd = &back.document.sections[0].section_def.page_def;
+        let body = pd.width as i64 - pd.margin_left as i64 - pd.margin_right as i64 - pd.margin_gutter as i64;
+        let sum: i64 = cd.widths.iter().chain(cd.gaps.iter()).map(|v| *v as i64).sum();
+        assert!((sum - body).abs() < 10, "{sum} vs {body}");
+    }
+
+    #[test]
+    fn bad_ratios_are_refused() {
+        let mut core = DocumentCore::new_empty();
+        core.create_blank_document_native().unwrap();
+        assert!(core.set_column_widths_native(0, &[1.0], 0).is_err());
+        assert!(core.set_column_widths_native(0, &[1.0, -2.0], 0).is_err());
+        assert!(core.set_column_widths_native(0, &[1.0, f64::NAN], 0).is_err());
     }
 }

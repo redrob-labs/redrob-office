@@ -74,7 +74,7 @@ export interface SessionOptions {
 
 /** A picture or drawing object, by where its control sits in the body. */
 export interface ObjectRef {
-  kind: 'picture' | 'shape' | 'chart'
+  kind: 'picture' | 'shape' | 'chart' | 'equation'
   section: number
   para: number
   control: number

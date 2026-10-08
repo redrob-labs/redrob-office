@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeAll, describe, expect, it } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
-import { CommandBus, EditorView, Session, cellProperties, objectProperties, styleAt, styleList, tableCells, type Pos } from '../src'
+import { CommandBus, EditorView, Session, cellProperties, objectProperties, objectsOnPage, styleAt, styleList, tableCells, type Pos } from '../src'
 
 beforeAll(() => initHwpCoreNode())
 
@@ -258,5 +258,32 @@ describe('format painter, outline, pages and table numbers', () => {
     const v = new EditorView(document.createElement('div'), s, bus, { painter: () => {} })
     bus.run('view:zoom-set', { percent: 150 })
     expect(v.pages.zoom).toBe(1.5)
+  })
+})
+
+describe('engine-backed additions', () => {
+  it('왼쪽/오른쪽 columns keep their different widths through both formats', () => {
+    for (const f of ['hwpx', 'hwp'] as const) {
+      const { s, bus } = doc('본문', f)
+      bus.run('page:col-left')
+      const back = new Session(HwpCoreDocument.open(s.export(f)), f)
+      const c = JSON.parse(back.doc.raw.getColumnDef(0)) as { columnCount: number; sameWidth: boolean }
+      expect([c.columnCount, c.sameWidth], f).toEqual([2, false])
+    }
+  })
+
+  it('selects, edits and deletes an equation', () => {
+    const { s, bus } = doc()
+    bus.run('insert:equation', { script: 'a over b' })
+    const eq = objectsOnPage(s, 0).find((o) => o.kind === 'equation')!
+    s.selectObject(eq)
+    expect(objectProperties(s)!.script).toBe('a over b')
+    bus.run('insert:equation-edit', { script: 'sqrt {x}' })
+    expect(objectProperties(s)!.script).toBe('sqrt {x}')
+    expect(bus.isEnabled('insert:rotate-cw')).toBe(false)
+    bus.run('insert:picture-delete')
+    expect(objectsOnPage(s, 0).filter((o) => o.kind === 'equation')).toHaveLength(0)
+    bus.run('edit:undo')
+    expect(objectsOnPage(s, 0).filter((o) => o.kind === 'equation')).toHaveLength(1)
   })
 })

@@ -102,6 +102,21 @@ function columns(id: string, count: number, sameWidth: 0 | 1): Command {
   }
 }
 
+/** 왼쪽/오른쪽: two columns, the narrow one on that side (1 : 2), 8 mm apart. */
+function unequalColumns(id: string, ratios: number[]): Command {
+  return {
+    id,
+    isEnabled: ({ session }) => body(session) !== null,
+    run({ session }) {
+      const sel = session.selection
+      return session.edit(id, () => {
+        json(session.doc.raw.setColumnWidths(sel.head.section, JSON.stringify(ratios), 2268), 'setColumnWidths')
+        return sel
+      })
+    },
+  }
+}
+
 // ── Header and footer ───────────────────────────────────────────────────
 
 export const deleteHeaderFooter: Command<{ kind?: 'header' | 'footer' } | undefined> = {
@@ -274,7 +289,7 @@ export const tableCaption = tableCommand('table:caption-toggle', (s, c) => {
 function objectCommand(id: string, props: (p: Record<string, unknown>) => Record<string, unknown>): Command {
   return {
     id,
-    isEnabled: ({ session }) => session.object !== null && session.object.kind !== 'chart',
+    isEnabled: ({ session }) => session.object !== null && session.object.kind !== 'chart' && session.object.kind !== 'equation',
     run(ctx) {
       const p = objectProperties(ctx.session)
       if (!p) return null
@@ -561,6 +576,8 @@ export const STRUCTURE_COMMANDS = [
   columns('page:col-1', 1, 1),
   columns('page:col-2', 2, 1),
   columns('page:col-3', 3, 1),
+  unequalColumns('page:col-left', [1, 2]),
+  unequalColumns('page:col-right', [2, 1]),
   deleteHeaderFooter,
   splitTable,
   attachTable,
