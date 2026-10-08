@@ -93,10 +93,10 @@ Requirement references are in brackets, e.g. [R2.1].
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
 - [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
   CommandBus. Done: `apps/hangul/tests/command-coverage.test.ts` checks every listed command and
-  shortcut against the bus and the host command table (`host-commands.ts`); 146 of 176 reachable
-  (from 66), floor raised to 146. Open: the 30 in `NOT_YET`, each with its reason (Home owns
-  opening files; print and exports; header/footer and note editing modes; multi-object selection;
-  several dialogs). [R5.3]
+  shortcut against the bus and the host command table (`host-commands.ts`); 156 of 176 reachable
+  (from 66), floor 156. Open: the 20 in `NOT_YET`, each with its reason (Home owns opening files;
+  print and exports; header/footer and note editing modes; multi-object selection; equations as
+  objects; unequal column widths in HWP 5.0, an engine bug). [R5.3]
 
 ## Phase 3: AI
 

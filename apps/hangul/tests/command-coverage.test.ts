@@ -45,6 +45,7 @@ function recorder(): { deps: HostDeps; calls: string[] } {
     toggleMarkup: rec('toggleMarkup'),
     objectKind: () => 'chart',
     inTable: () => true,
+    inField: () => true,
   }
   return { deps, calls }
 }
@@ -92,7 +93,7 @@ describe('command coverage (task 2.6)', () => {
   it('reports the coverage', () => {
     const reached = commands.filter((id) => onBus.has(id) || id in HOST_COMMANDS)
     // The floor only rises: today's count, from 37 when this test began.
-    expect(reached.length).toBeGreaterThanOrEqual(146)
+    expect(reached.length).toBeGreaterThanOrEqual(156)
     console.log(`coverage ${reached.length}/${commands.length}; not yet ${Object.keys(NOT_YET).length}`)
   })
 })

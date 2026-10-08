@@ -561,9 +561,6 @@ export const STRUCTURE_COMMANDS = [
   columns('page:col-1', 1, 1),
   columns('page:col-2', 2, 1),
   columns('page:col-3', 3, 1),
-  // 왼쪽/오른쪽: two columns of different widths (the engine's preset is 2 : 1 by side).
-  columns('page:col-left', 2, 0),
-  columns('page:col-right', 2, 0),
   deleteHeaderFooter,
   splitTable,
   attachTable,

@@ -46,6 +46,21 @@ import { ClickHereDialog, HyperlinkDialog } from './FieldDialogs'
 import { StyleDialog } from './StyleDialog'
 import { ChartDialog } from './ChartDialog'
 import { AboutDialog, PageHideDialog } from './InfoDialogs'
+import {
+  BulletShapeDialog,
+  ColumnSettingsDialog,
+  DeleteRowsColsDialog,
+  EndnoteShapeDialog,
+  FieldEditDialog,
+  GridSettingsDialog,
+  HeaderFooterTemplateDialog,
+  InsertRowsColsDialog,
+  NumberingShapeDialog,
+  PageBorderDialog,
+  SectionSettingsDialog,
+  SymbolsDialog,
+} from './MoreDialogs'
+import { fieldAt } from '@genoffice/hwp-editor'
 import { DIALOG_FIRST, runHostCommand, type HostDeps, type HostDialog } from './host-commands'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
 import { InsertPromptDialog, usePicturePicker, type InsertKind } from './InsertDialogs'
@@ -127,6 +142,7 @@ export function NextHangulEditor(): React.JSX.Element {
   }, [])
 
   const [markupHidden, setMarkupHidden] = useState(false)
+  const [gridPx, setGridPx] = useState(20)
   // What host commands reach; refreshed every render so it sees the latest state setters.
   const hostDepsRef = useRef<HostDeps>(null as unknown as HostDeps)
   hostDepsRef.current = {
@@ -152,6 +168,7 @@ export function NextHangulEditor(): React.JSX.Element {
     toggleMarkup: () => setMarkupHidden((h) => !h),
     objectKind: () => viewRef.current?.session.object?.kind ?? null,
     inTable: () => !!viewRef.current?.session.selection.head.cell,
+    inField: () => (viewRef.current ? fieldAt(viewRef.current.session) !== null : false),
   }
 
   const mount = useCallback((opened: OpenedDocument) => {
@@ -558,7 +575,7 @@ export function NextHangulEditor(): React.JSX.Element {
         }
       >
         {/* the document is Korean whatever the interface language */}
-        <div ref={hostRef} className={markupHidden ? 'hangul-next-host hangul-hide-markup' : 'hangul-next-host'} lang="ko" />
+        <div ref={hostRef} className={markupHidden ? 'hangul-next-host hangul-hide-markup' : 'hangul-next-host'} style={{ ['--hangul-grid' as string]: `${gridPx}px` }} lang="ko" />
         <VersionHistory open={versionsOpen} onClose={() => setVersionsOpen(false)} path={pathRef.current || null} fileName={opened.fileName} api={window.hangulApi} />
         {window.hangulApi.shareStatus ? <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} path={pathRef.current || null} fileName={opened.fileName || t('untitled')} api={window.hangulApi as ShareApi} /> : null}
         {view && dialog === 'char-shape' ? <CharShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
@@ -575,6 +592,18 @@ export function NextHangulEditor(): React.JSX.Element {
         {view && dialog === 'table-borders' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} initialTab="border" onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'page-hide' ? <PageHideDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {dialog === 'about' ? <AboutDialog engine={`rhwp ${String(info.version ?? '')}`.trim()} onClose={() => (setDialog(null), viewRef.current?.focus())} /> : null}
+        {view && dialog === 'insert-rows-cols' ? <InsertRowsColsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'delete-rows-cols' ? <DeleteRowsColsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'columns' ? <ColumnSettingsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'section' ? <SectionSettingsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'page-border' ? <PageBorderDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'endnote-shape' ? <EndnoteShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'hf-template' ? <HeaderFooterTemplateDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'numbering-shape' ? <NumberingShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'bullet-shape' ? <BulletShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'symbols' ? <SymbolsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'field-edit' ? <FieldEditDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {dialog === 'grid' ? <GridSettingsDialog size={gridPx} onSize={setGridPx} onClose={() => (setDialog(null), viewRef.current?.focus())} /> : null}
         {view && dialog === 'para-shape' ? <ParaShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
       </EditorFrame>
     </div>
