@@ -14,12 +14,13 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
+import { checkPages, pdfOfPages, printPages, standaloneHtml, withPrintWindow, type PrintWindowLike } from './print-export'
 import { cloudToolsOn, createHangulDocument, type HangulAiHooks } from './ai-ipc'
 import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
 import { resolveEditorKind } from './editor-kind'
 import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
-import type { CreateHangulDocumentRequest } from '../shared/ipc'
+import type { CreateHangulDocumentRequest, PrintPagesRequest } from '../shared/ipc'
 import type {
   HangulDocumentBytes,
   HangulFormat,
@@ -48,6 +49,10 @@ const tDlg = createI18n({
     btnSave: 'Save',
     btnDontSave: "Don't Save",
     btnCancel: 'Cancel',
+    dlgPdfTitle: 'Save as PDF',
+    dlgHtmlTitle: 'Export as HTML',
+    filterPdf: 'PDF documents',
+    filterHtml: 'Web pages',
   },
   ja: {
     dlgSaveTitle: 'Hangul ドキュメントを保存',
@@ -68,6 +73,10 @@ const tDlg = createI18n({
     btnSave: '저장',
     btnDontSave: '저장 안 함',
     btnCancel: '취소',
+    dlgPdfTitle: 'PDF로 저장',
+    dlgHtmlTitle: 'HTML로 내보내기',
+    filterPdf: 'PDF 문서',
+    filterHtml: '웹 페이지',
   },
   fr: {
     dlgSaveTitle: 'Enregistrer le document Hangul',
@@ -229,6 +238,10 @@ type DlgKey =
   | 'btnSave'
   | 'btnDontSave'
   | 'btnCancel'
+  | 'dlgPdfTitle'
+  | 'dlgHtmlTitle'
+  | 'filterPdf'
+  | 'filterHtml'
 const tm = (key: DlgKey) => tDlg(getUiLang(), key)
 
 interface RuntimePaths {
@@ -478,6 +491,50 @@ function registerHangulIpc(): void {
       }
     },
   )
+
+  // A hidden window for printing: sandboxed, no scripts, never shown.
+  const printWindow = (): PrintWindowLike =>
+    new BrowserWindow({ show: false, webPreferences: { sandbox: true, javascript: false, contextIsolation: true, nodeIntegration: false } }) as unknown as PrintWindowLike
+  const exportTarget = async (e: Electron.IpcMainInvokeEvent, name: string | undefined, ext: 'pdf' | 'html') => {
+    const current = savePathByWc.get(e.sender.id)
+    const base = (name || (current ? basename(current, extname(current)) : tm('untitledFile'))).replace(/[\\/:*?"<>|]/g, '_')
+    const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
+    const picked = await showSaveDialogWithMemory(dialog, win, {
+      title: tm(ext === 'pdf' ? 'dlgPdfTitle' : 'dlgHtmlTitle'),
+      defaultPath: join(current ? dirname(current) : configuredDefaultSaveDir(app), `${base}.${ext}`),
+      filters: [{ name: tm(ext === 'pdf' ? 'filterPdf' : 'filterHtml'), extensions: ext === 'pdf' ? ['pdf'] : ['html', 'htm'] }],
+    })
+    return picked.canceled || !picked.filePath ? null : picked.filePath
+  }
+
+  ipcMain.handle(HANGUL_CHANNELS.printPages, async (e, request: PrintPagesRequest) => {
+    const pages = checkPages(request?.pages)
+    if (typeof pages === 'string') return { ok: false, error: `hangul: ${pages}` }
+    try {
+      if (request.mode === 'pdf') {
+        const target = await exportTarget(e, request.name, 'pdf')
+        if (!target) return { ok: true, canceled: true }
+        const data = await withPrintWindow(printWindow, pages, pdfOfPages)
+        await atomicWriteFile(target, data)
+        return { ok: true, path: target }
+      }
+      return await withPrintWindow(printWindow, pages, printPages)
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.exportHtml, async (e, request: { html?: unknown; name?: string }) => {
+    if (typeof request?.html !== 'string' || !request.html || request.html.length > 200 * 1024 * 1024) return { ok: false, error: 'hangul: bad export request' }
+    try {
+      const target = await exportTarget(e, request.name, 'html')
+      if (!target) return { ok: true, canceled: true }
+      await atomicWriteFile(target, Buffer.from(standaloneHtml(request.html, basename(target, extname(target))), 'utf8'))
+      return { ok: true, path: target }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
 
   ipcMain.on(HANGUL_CHANNELS.dirtyChanged, (e, dirty: unknown) => {
     if (dirty === true) dirtyByWc.add(e.sender.id)

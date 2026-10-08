@@ -45,7 +45,18 @@ export const HANGUL_CHANNELS = {
   authorName: 'hangul:author-name',
   /** AI generate_image, gated on the Redrob login and the cloud-tools setting */
   generateImage: 'hangul:ai-generate-image',
+  /** print or save as PDF the engine's page renders (SVG), laid out at paper size in main */
+  printPages: 'hangul:print-pages',
+  /** write the engine's HTML for the document to a file the person picks */
+  exportHtml: 'hangul:export-html',
 } as const
+
+export interface PrintPagesRequest {
+  pages: Array<{ svg: string; width: number; height: number }>
+  mode: 'print' | 'pdf'
+  /** suggested file name for a PDF, without the folder */
+  name?: string
+}
 
 /** AI channels are app-wide ipcMain handlers the shell registers once (docs-main registerAiIpc); pass-through only. */
 export const AI_CHANNELS = {
@@ -197,6 +208,8 @@ export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
   /** Download an image URL in main (scheme and target validated there) */
   fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
   generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{ url?: string; error?: string }>
+  printPages?(request: PrintPagesRequest): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
+  exportHtml?(request: { html: string; name?: string }): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
   createDocument(request: CreateHangulDocumentRequest): Promise<CreateHangulDocumentResult>
   /** The name new comments are signed with. */
   authorName(): Promise<string>
