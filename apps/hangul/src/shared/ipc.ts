@@ -7,17 +7,13 @@ import type { Lang } from '@genoffice/i18n'
 /**
  * IPC channels for the Hangul (.hwp/.hwpx) editor module.
  *
- * The editing surface itself comes from rhwp-studio (MIT, Copyright 2025-2026
- * Edward Kim), embedded in the renderer through the @rhwp/editor iframe SDK.
- * The main process only owns the offline studio origin (a loopback server over
- * the bundled studio build), file grants, and the byte read/write round-trip.
- * All HWP/HWPX parsing and serialization happens inside rhwp, never here.
+ * The editor runs in the renderer: packages/hwp-editor over the hwp-core
+ * engine (our fork of rhwp, MIT, Copyright 2025-2026 Edward Kim). The main
+ * process owns file grants, the byte read/write round trip, printing and the
+ * shell's hooks. All HWP/HWPX parsing and serialization happens in the engine,
+ * never here.
  */
 export const HANGUL_CHANNELS = {
-  /** studio origin the renderer hands the SDK's studioUrl (local loopback, never a CDN) */
-  studioOrigin: 'hangul:studio-origin',
-  /** which editor this view runs: the embedded rhwp-studio, or the owned editor on hwp-core */
-  editorKind: 'hangul:editor-kind',
   /** take the .hwp/.hwpx path pending for this view (queued at tab creation); null = nothing to open */
   consumePending: 'hangul:consume-pending',
   /** read a granted document's bytes for rhwp to load */
@@ -141,13 +137,6 @@ export interface WebSearchResult {
 
 export type UiTheme = 'light' | 'dark' | 'system'
 
-/**
- * 'next' is the owned editor (packages/hwp-editor over packages/hwp-core), spec
- * .kiro/specs/hangul-editor. Until cutover it is selected only by
- * REDROB_HANGUL_EDITOR=next in an unpackaged build; packaged builds always get 'studio'.
- */
-export type HangulEditorKind = 'studio' | 'next'
-
 export type HangulFormat = 'hwp' | 'hwpx'
 
 export type SaveMode = 'save' | 'saveAs'
@@ -176,13 +165,6 @@ export interface HangulDocumentBytes {
 
 /** API exposed by preload to the renderer (window.hangulApi). */
 export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi>, Partial<LiveApi> {
-  /**
-   * The local, offline rhwp-studio origin the SDK embeds (http://127.0.0.1:<port>),
-   * or null when the bundled studio is unavailable. Never a public CDN.
-   */
-  studioOrigin(): Promise<string | null>
-  /** Which editor to mount (see HangulEditorKind). */
-  editorKind(): Promise<HangulEditorKind>
   /** Take the .hwp/.hwpx path pending for this view; null = nothing to open. */
   consumePending(): Promise<string | null>
   /** Read a granted document's bytes for rhwp to load. Only granted paths are allowed. */

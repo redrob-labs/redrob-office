@@ -23,8 +23,9 @@ not reintroduce it, its `@redrob/*` packages, root scripts, or release paths int
   `develop`. Do not skip that back-merge. The sibling repository redrob-code spent a month with a
   lockfile its own default branch could not install from because it was missed.
 - Both branches are protected: pull requests only, force pushes and deletions blocked, 0 required
-  reviews, admin enforcement off. Required checks are `build & test (ubuntu-latest)` and
-  `fork boundary & licences`.
+  reviews, admin enforcement off. Required checks are `build & test (ubuntu-latest)`,
+  `fork boundary & licences` and, since the Hangul cutover, `fidelity (synthetic)`
+  (`.github/workflows/hangul-fidelity.yml`, which therefore runs on every pull request).
 
 ### Branch enforcement
 
@@ -80,8 +81,8 @@ install. Neither job is a required check, so today they inform rather than block
 - `packages/ai-search`: Redrob-hosted search/image helpers.
 - `packages/genoffice-ui`, `packages/i18n`, `packages/electron-utils`, `packages/project-store`:
   shared UI/runtime infrastructure.
-- `packages/docx-engine`, `packages/pptx-engine`, `packages/pptx-render`, `packages/rhwp-editor`:
-  document format engines.
+- `packages/docx-engine`, `packages/pptx-engine`, `packages/pptx-render`, `packages/hwp-core`:
+  document format engines. `packages/hwp-editor` is the Hangul editing core over `hwp-core`.
 - `packages/facts`: linked figures. It holds the reducer, the selectors and the `FactsStore` behind
   the shell's one index in userData (`linked-figures.json`), plus the `FACTS_CHANNELS` IPC contract
   and `factsBridge`. The main process stamps the author, time and id of every edit. In a DOCX file a
@@ -104,8 +105,10 @@ are unavailable. Tool mutations must retain rollback snapshots and edit-queue se
 
 ### Hangul core (engines/rhwp, packages/hwp-core)
 
-The Hangul editor is being rebuilt on an engine we build ourselves. The plan is in
-`.kiro/specs/hangul-editor/`.
+The Hangul editor is our own editor (`packages/hwp-editor`, chrome in `apps/hangul/src/renderer/next`)
+over an engine we build ourselves. The plan and its status are in `.kiro/specs/hangul-editor/`. The
+embedded rhwp-studio editor it replaced, its `@rhwp/editor` SDK and its loopback server were removed
+at the cutover (task 6.3); there is no switch back.
 
 - `engines/rhwp` is our fork of the rhwp Rust engine (MIT, Edward Kim), taken from upstream tag
   v0.8.7. `engines/rhwp/REDROB.md` records exactly what was taken and every change since. Add a row
@@ -249,10 +252,8 @@ The suite's chrome is the Redrob design system, `@redrob-labs/ui` (pinned exactl
   run in the build job) fails on a retired legacy token, a colour-scheme media query in renderer
   CSS, or a direct kit import outside `@genoffice/ui`.
 - Third-party canvases get scoped override layers rather than forks. Univer uses
-  `redrobUniverTheme()` (`apps/sheets/src/renderer/univer-theme.ts`). Hangul's built rhwp-studio is
-  served under `/host/` on the studio's own loopback server, so the host page and the studio iframe
-  are same-origin. `apps/hangul/src/renderer/studio-theme.ts` relies on that to inject kit token
-  values into the studio.
+  `redrobUniverTheme()` (`apps/sheets/src/renderer/univer-theme.ts`). The Hangul editor's chrome is
+  built from `@genoffice/ui`; its document pixels come from the engine and never read chrome tokens.
 - Visual regression lives in `tests/visual` and compares the shell's surfaces against committed
   Linux baselines in `tests/visual/__screenshots__/linux/`. The `visual (ubuntu-latest)` job is not a
   required check. When a change is meant to move pixels, the job fails and uploads a fresh render as
