@@ -114,3 +114,36 @@ describe('recording (suggesting)', () => {
     stop()
   })
 })
+
+describe('review commands and whole paragraphs', () => {
+  it('accepting a deleted whole paragraph removes the paragraph', () => {
+    const s = new Session(HwpCoreDocument.blank(), 'hwpx')
+    let p = s.text.insert(P(0, 0), '하나')
+    p = s.text.split(p)
+    s.text.insert(p, '둘')
+    const r = new Revisions(s)
+    s.edit('x', () => (r.markDeleted(P(1, 0), P(1, 1), 'a'), s.selection))
+    r.acceptAll()
+    expect(s.doc.paragraphCount(0)).toBe(1)
+    expect(s.doc.text(0, 0)).toBe('하나')
+  })
+
+  it('commands accept the change under the caret, go next and previous, and toggle recording', async () => {
+    const { revisionCommands } = await import('../src')
+    const s = fixture()
+    const r = new Revisions(s)
+    let on = false
+    const bus = new CommandBus(s)
+    for (const c of revisionCommands(r, { isRecording: () => on, setRecording: (v) => (on = v) })) bus.register(c)
+    s.select({ anchor: P(0, 0), head: P(0, 0) })
+    bus.run('review:revision-next')
+    expect(s.text.textBetween(s.selection.anchor, s.selection.head)).toBe('NEW')
+    bus.run('review:revision-next')
+    expect(s.text.textBetween(s.selection.anchor, s.selection.head)).toBe('OLD')
+    bus.run('review:revision-accept')
+    expect(s.doc.text(0, 1)).toBe('NEXT NEW PARAGRAPH')
+    bus.run('review:track-changes')
+    expect(on).toBe(true)
+    expect(bus.isActive('review:track-changes')).toBe(true)
+  })
+})

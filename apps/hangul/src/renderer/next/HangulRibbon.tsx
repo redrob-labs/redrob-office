@@ -17,7 +17,7 @@ import type { Lang } from '@genoffice/i18n'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { useI18n } from '../i18n/locale'
 
-export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'view' | 'table'
+export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'review' | 'view' | 'table'
 
 /** 한글's own fonts first (installed on government PCs), then the open fonts rhwp bundles. */
 export const HANGUL_FONTS = ['함초롬바탕', '함초롬돋움', '맑은 고딕', '바탕', '돋움', '굴림', '궁서', '휴먼명조', 'HY헤드라인M', '나눔고딕', '나눔명조', 'Noto Sans KR', 'Noto Serif KR', 'Pretendard']
@@ -238,7 +238,7 @@ async function clipboardPaste(view: EditorView): Promise<void> {
 }
 
 export function tabsFor(view: EditorView | null): RibbonTab[] {
-  const base: RibbonTab[] = ['edit', 'insert', 'format', 'page', 'view']
+  const base: RibbonTab[] = ['edit', 'insert', 'format', 'page', 'review', 'view']
   return view?.session.selection.head.cell ? [...base, 'table'] : base
 }
 
@@ -259,6 +259,7 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
     insert: t('nextTabInsert'),
     format: t('nextTabFormat'),
     page: t('nextTabPage'),
+    review: t('nextTabReview'),
     view: t('nextTabView'),
     table: t('nextTabTable'),
   }
@@ -266,6 +267,25 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
     <div className="hangul-ribbon">
       <Tabs label={t('nextRibbonLabel')} variant="line" value={active} items={tabs.map((id) => ({ id, label: tabLabel[id] }))} onChange={(id) => setTab(id as RibbonTab)} />
       <Toolbar label={tabLabel[active]} className="hangul-ribbon__band">
+        {active === 'review' ? (
+          <>
+            <Group label={t('reviewGroupMemos')}>
+              <ToolbarButton label={L('review:memo-insert')} icon={<Icon name="comment" size={16} />} disabled={!view || props.readOnly || !props.onCommand} onClick={() => props.onCommand?.('review:memo-insert')} />
+              <ToolbarButton label={L('review:memo-show')} icon={<Icon name="messages" size={16} />} disabled={!view || !props.onCommand} onClick={() => props.onCommand?.('review:memo-show')} />
+            </Group>
+            <Group label={t('reviewGroupTrack')}>
+              {button('review:track-changes', <Icon name="edit" size={16} />, { toggle: true })}
+              {button('review:revision-previous', <Icon name="chevronsLeft" size={16} />)}
+              {button('review:revision-next', <Icon name="chevronsRight" size={16} />)}
+            </Group>
+            <Group label={t('reviewGroupDecide')}>
+              {button('review:revision-accept', <Icon name="check" size={16} />)}
+              {button('review:revision-reject', <Icon name="close" size={16} />)}
+              {button('review:revision-accept-all', <Icon name="checkAll" size={16} />)}
+              {button('review:revision-reject-all', <Icon name="circleX" size={16} />)}
+            </Group>
+          </>
+        ) : null}
         {active === 'edit' ? (
           <>
             <Group label={t('nextGroupHistory')}>

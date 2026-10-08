@@ -53,9 +53,9 @@ const p = (para: number, offset: number): Pos => ({ section: 0, para, offset })
 describe('Hangul ribbon', () => {
   it('shows 한글’s tabs, and 표 only while the caret is in a table', () => {
     const view = editor()
-    expect(tabsFor(view)).toEqual(['edit', 'insert', 'format', 'page', 'view'])
+    expect(tabsFor(view)).toEqual(['edit', 'insert', 'format', 'page', 'review', 'view'])
     render(view)
-    expect([...host.querySelectorAll('[role="tab"]')].map((t) => t.textContent)).toEqual(['Edit', 'Insert', 'Format', 'Page', 'View'])
+    expect([...host.querySelectorAll('[role="tab"]')].map((t) => t.textContent)).toEqual(['Edit', 'Insert', 'Format', 'Page', 'Review', 'View'])
     view.run('table:create', { rows: 2, cols: 2 })
     render(view)
     expect(tabsFor(view)).toContain('table')

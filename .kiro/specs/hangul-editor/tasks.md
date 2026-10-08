@@ -130,8 +130,10 @@ Requirement references are in brackets, e.g. [R2.1].
   two-way accept/reject test. [R8.1, R8.2]
   HWPX done (`document_core/revisions.rs`, `hwp-editor/src/revisions.ts`). Goldens against R3 fixtures, the 한글 2024
   two-way accept/reject test, HWP 5.0 revisions and tracked paragraph breaks wait for the runner (P-1).
-- [ ] 4.4 Suggesting and viewing modes; revision marks in the overlay; review actions; tracked AI
+- [x] 4.4 Suggesting and viewing modes; revision marks in the overlay; review actions; tracked AI
   edits and the AI `read_revisions`, `accept_revision` and `reject_revision` tools. [R8.1, R8.3, R6.4]
+  HWPX documents. Suggesting on `.hwp` waits for HWP 5.0 revisions (P-1); formatting changes and paragraph
+  breaks are not tracked yet.
 
 ## Phase 5: Versions, sharing, live typing
 

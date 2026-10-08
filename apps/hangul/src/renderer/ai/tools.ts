@@ -4,7 +4,7 @@
 // exactly as it was.
 import type { AgentToolCall, AgentToolDef, ToolExecution } from '@genoffice/agent-core'
 import type { NodeId, Outline, OutlineParagraph } from '@genoffice/hwp-core'
-import { CommandBus, Comments, at, containerOf, ordered, paraIndex, sameContainer, styleList, type Pos, type Selection, type Session } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, Revisions, at, containerOf, ordered, paraIndex, sameContainer, styleList, type Pos, type Selection, type Session } from '@genoffice/hwp-editor'
 import { t } from '../i18n/locale'
 import {
   NodeError,
@@ -33,12 +33,30 @@ const CELL_LINES_PER_TABLE = 40
 /** Commands `apply_commands` may run: formatting, tables, page and inserts. Never history, movement or file commands. */
 const COMMAND_PREFIXES = ['format:', 'table:', 'page:', 'insert:']
 
-export const MUTATING_TOOLS = new Set(['replace_blocks', 'insert_content', 'delete_blocks', 'replace_text', 'apply_commands', 'set_header_footer', 'reply_comment', 'resolve_comment'])
+export const MUTATING_TOOLS = new Set(['accept_revision', 'reject_revision', 'replace_blocks', 'insert_content', 'delete_blocks', 'replace_text', 'apply_commands', 'set_header_footer', 'reply_comment', 'resolve_comment'])
 
 /** The author Redrob's own comment replies carry. */
 export const REDROB_AUTHOR = 'Redrob'
 
 const idsSchema = { type: 'array', items: { type: 'integer' }, description: 'Node ids from the document outline' }
+
+export const REVISION_TOOLS: AgentToolDef[] = [
+  {
+    name: 'read_revisions',
+    description: 'Tracked changes (변경 내용) still to be accepted or rejected: id, insert or delete, author, date, paragraph Node id and the changed text.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'accept_revision',
+    description: 'Accept tracked changes by id (an insertion stays, a deletion’s text goes), or all of them with all=true. Only when the user asks.',
+    inputSchema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'integer' } }, all: { type: 'boolean' } } },
+  },
+  {
+    name: 'reject_revision',
+    description: 'Reject tracked changes by id (an insertion’s text goes, a deletion is undone), or all with all=true. Only when the user asks.',
+    inputSchema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'integer' } }, all: { type: 'boolean' } } },
+  },
+]
 
 export const COMMENT_TOOLS: AgentToolDef[] = [
   {
@@ -306,7 +324,20 @@ function readBlocks(s: Session, input: Record<string, unknown>): ToolExecution {
   return { output: html.slice(offset, end) + more, mutated: false, summary: t('aiSumRead', { count: list.length }) }
 }
 
-function replaceBlocks(s: Session, input: Record<string, unknown>): ToolExecution {
+/** Mark every non-empty paragraph among `ids` inserted by `author`. */
+function markParagraphs(s: Session, ids: NodeId[], kind: 'insert' | 'delete', author: string): void {
+  const rev = new Revisions(s)
+  for (const id of ids) {
+    const p = posOf(s, id)
+    if (!p) continue
+    const len = s.text.length(p)
+    if (!len) continue
+    if (kind === 'insert') rev.markInserted({ ...p, offset: 0 }, { ...p, offset: len }, author)
+    else rev.markDeleted({ ...p, offset: 0 }, { ...p, offset: len }, author)
+  }
+}
+
+function replaceBlocks(s: Session, input: Record<string, unknown>, track: string | null = null): ToolExecution {
   const list = ids(input)
   const blocks = parseBlocks(String(input.html ?? ''))
   if (!blocks.length) throw new NodeError('html has no content; use delete_blocks to remove paragraphs')
@@ -316,6 +347,21 @@ function replaceBlocks(s: Session, input: Record<string, unknown>): ToolExecutio
     const templates = templatesOf(s, run.container, run.first, run.last)
     addNeighbourTemplates(s, run.container, run.first, run.last, blocks, templates)
     const firstRole = roleAt(s, at(run.container, run.first, 0))
+    if (track) {
+      // Suggesting: the old paragraphs stay, marked deleted; the new ones follow them, marked inserted.
+      const old: NodeId[] = []
+      for (let i = run.first; i <= run.last; i++) {
+        const id = s.nodeAt(at(run.container, i, 0))
+        if (id !== null) old.push(id)
+      }
+      const last = at(run.container, run.last, 0)
+      const start = s.text.split({ ...last, offset: s.text.length(last) })
+      const r = writeBlocks(s, start, blocks, templates, firstRole)
+      written = r.ids
+      markParagraphs(s, old, 'delete', track)
+      markParagraphs(s, written, 'insert', track)
+      return { anchor: r.end, head: r.end }
+    }
     const start = clearRun(s, run)
     const r = writeBlocks(s, start, blocks, templates, firstRole)
     written = r.ids
@@ -324,7 +370,7 @@ function replaceBlocks(s: Session, input: Record<string, unknown>): ToolExecutio
   return { output: `Replaced ${list.length} paragraph(s) with ${written.length}. New ids: ${written.join(', ')}`, mutated: true, summary: t('aiSumReplace', { count: written.length }) }
 }
 
-function insertContent(s: Session, input: Record<string, unknown>): ToolExecution {
+function insertContent(s: Session, input: Record<string, unknown>, track: string | null = null): ToolExecution {
   const blocks = parseBlocks(String(input.html ?? ''))
   if (!blocks.length) throw new NodeError('html has no content')
   const where = String(input.where ?? 'after')
@@ -357,13 +403,19 @@ function insertContent(s: Session, input: Record<string, unknown>): ToolExecutio
     }
     const r = writeBlocks(s, start, blocks, templates, role)
     written = r.ids
+    if (track) markParagraphs(s, written, 'insert', track)
     return { anchor: r.end, head: r.end }
   }, 'ai')
   return { output: `Inserted ${written.length} paragraph(s). New ids: ${written.join(', ')}`, mutated: true, summary: t('aiSumInsert', { count: written.length }) }
 }
 
-function deleteBlocks(s: Session, input: Record<string, unknown>): ToolExecution {
+function deleteBlocks(s: Session, input: Record<string, unknown>, track: string | null = null): ToolExecution {
   const list = ids(input)
+  if (track) {
+    for (const id of list) requirePos(s, id)
+    s.group('ai:delete-blocks', () => (markParagraphs(s, list, 'delete', track), s.selection), 'ai')
+    return { output: `Marked ${list.length} paragraph(s) deleted (tracked; the user accepts or rejects).`, mutated: true, summary: t('aiSumDelete', { count: list.length }) }
+  }
   s.group('ai:delete-blocks', () => {
     let p: Pos = s.selection.head
     for (const run of runsOf(s, list)) p = deleteRun(s, run)
@@ -392,7 +444,7 @@ function findText(s: Session, input: Record<string, unknown>): ToolExecution {
   return { output: total ? `${total} match(es) (Node id @offset | context):\n${lines.join('\n')}${more}` : 'no matches', mutated: false, summary: t('aiSumFind', { count: total, query }) }
 }
 
-function replaceText(s: Session, input: Record<string, unknown>): ToolExecution {
+function replaceText(s: Session, input: Record<string, unknown>, track: string | null = null): ToolExecution {
   const find = String(input.find ?? '')
   const replacement = String(input.replace ?? '')
   if (!find) throw new NodeError('find must not be empty')
@@ -411,7 +463,11 @@ function replaceText(s: Session, input: Record<string, unknown>): ToolExecution 
           // match's own character shape, then remove the match.
           const end = { ...p, offset: off + n }
           s.text.insert(end, replacement)
-          s.text.delete({ ...p, offset: off }, end)
+          if (track) {
+            const rev = new Revisions(s)
+            rev.markDeleted({ ...p, offset: off }, end, track)
+            rev.markInserted(end, { ...p, offset: off + n + [...replacement].length }, track)
+          } else s.text.delete({ ...p, offset: off }, end)
           count += 1
         }
         if (!all && count) break
@@ -502,6 +558,8 @@ export interface ToolEnv {
   session: Session
   bus: CommandBus
   frozen: FrozenSelection | null
+  /** Suggesting mode: text edits are recorded as tracked changes by this author. */
+  track?: string | null
 }
 
 export function executeHangulTool(env: ToolEnv, call: AgentToolCall): ToolExecution {
@@ -513,15 +571,39 @@ export function executeHangulTool(env: ToolEnv, call: AgentToolCall): ToolExecut
       case 'read_blocks':
         return readBlocks(s, call.input)
       case 'replace_blocks':
-        return replaceBlocks(s, call.input)
+        return replaceBlocks(s, call.input, env.track ?? null)
       case 'insert_content':
-        return insertContent(s, call.input)
+        return insertContent(s, call.input, env.track ?? null)
       case 'delete_blocks':
-        return deleteBlocks(s, call.input)
+        return deleteBlocks(s, call.input, env.track ?? null)
       case 'find_text':
         return findText(s, call.input)
       case 'replace_text':
-        return replaceText(s, call.input)
+        return replaceText(s, call.input, env.track ?? null)
+      case 'read_revisions': {
+        const list = s.doc.revisions().map((r) => ({ id: r.id, kind: r.kind, author: r.author, date: r.date, paragraph: r.nodeId, text: r.text }))
+        return { output: list.length ? JSON.stringify(list) : 'no tracked changes', mutated: false, summary: t('aiSumReadRevisions', { count: list.length }) }
+      }
+      case 'accept_revision':
+      case 'reject_revision': {
+        const rev = new Revisions(s)
+        const accept = call.name === 'accept_revision'
+        if (call.input.all === true) {
+          const n = rev.list().length
+          if (n) accept ? rev.acceptAll('ai') : rev.rejectAll('ai')
+          return { output: `${accept ? 'Accepted' : 'Rejected'} ${n} change(s).`, mutated: n > 0, summary: t('aiSumRevisions', { count: n }) }
+        }
+        const want = Array.isArray(call.input.ids) ? (call.input.ids as number[]) : []
+        if (!want.length) throw new NodeError('give ids or all=true')
+        const known = new Set(rev.list().map((r) => r.id))
+        const missing = want.filter((id) => !known.has(id))
+        if (missing.length) throw new NodeError(`no tracked change ${missing.join(', ')}; call read_revisions for current ids`)
+        s.group(accept ? 'ai:accept-revisions' : 'ai:reject-revisions', () => {
+          for (const id of want) accept ? rev.accept(id, 'ai') : rev.reject(id, 'ai')
+          return s.selection
+        }, 'ai')
+        return { output: `${accept ? 'Accepted' : 'Rejected'} ${want.length} change(s).`, mutated: true, summary: t('aiSumRevisions', { count: want.length }) }
+      }
       case 'apply_commands':
         return applyCommands(s, bus, call.input, frozen)
       case 'set_header_footer':
