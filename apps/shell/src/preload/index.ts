@@ -300,6 +300,12 @@ const homeApi: HomeApi = {
   async cancelRedrobConnect(id) {
     await ipcRenderer.invoke('redrob:connect-cancel', id)
   },
+  async getModelGuide(locale) {
+    return (await ipcRenderer.invoke('ai:get-model-guide', locale)) as {
+      asOf: string
+      professions: unknown[]
+    } | null
+  },
   async testAiSettings(settings) {
     const result: unknown = await ipcRenderer.invoke('ai:chat', {
       settings,

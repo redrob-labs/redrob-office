@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
 import { Accordion, Alert, Badge, Select, Switch } from '@genoffice/ui'
 import type { CrossCheckLevel, OfficePrefs } from '@genoffice/electron-utils/office-prefs'
-import type { StringKey, TFunc } from '../locale'
+import { useI18n, type StringKey, type TFunc } from '../locale'
+import { ModelGuideDialog } from './ModelGuideDialog'
 
 /** a setting row: what it is, what it does, then its control */
 function Row({
@@ -63,6 +64,7 @@ export interface RedrobPaneProps {
  */
 export function RedrobPane({ t, prefs, onChange, developer }: RedrobPaneProps): ReactElement {
   const [connected, setConnected] = useState<boolean | null>(null)
+  const { lang } = useI18n()
 
   useEffect(() => {
     let alive = true
@@ -189,6 +191,13 @@ export function RedrobPane({ t, prefs, onChange, developer }: RedrobPaneProps): 
             onChange={(_e, o) => o && onChange({ composerMode: o.value === 'plan' ? 'plan' : 'run' })}
           />
         }
+      />
+
+      <Row
+        id="set-guide"
+        title={t('setGuideTitle')}
+        desc={t('setGuideDesc')}
+        control={<ModelGuideDialog t={t} ui={lang === 'ko' ? 'ko' : 'en'} />}
       />
 
       <Accordion

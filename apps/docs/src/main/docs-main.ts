@@ -60,6 +60,7 @@ import {
   cloudToolsEnabled,
   resolveAiSettings,
   maxOutputTokensOf,
+  REDROB_CONSOLE_API_BASE,
   setRescueFetch,
   setRouteLabeller,
   streamForProvider,
@@ -70,7 +71,7 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
-import { createRouteLabeller } from '@genoffice/electron-utils/route-labeller'
+import { createRouteLabeller, loadModelGuide } from '@genoffice/electron-utils/route-labeller'
 import {
   ensureGenofficeLogin,
   gskApiKey,
@@ -2633,6 +2634,12 @@ const activeAiStreams = new Map<string, AbortController>()
  * sheets' standalone AI handlers use the same channel names.
  */
 export function registerAiIpc(): void {
+  // The ModelGuide edition Redrob Auto routes on, for the settings' "How Redrob Auto chooses"
+  ipcMain.handle('ai:get-model-guide', (_event, locale: unknown) =>
+    loadModelGuide(REDROB_CONSOLE_API_BASE, locale === 'ko' ? 'ko' : 'en', (url, init) =>
+      net.fetch(String(url instanceof Request ? url.url : url), init),
+    ),
+  )
   ipcMain.handle('ai:get-settings', (): AiSettings => {
     const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(SETTINGS_PATH(), {})
     // pre-lock legacy file: genspark selected with cloud tools opted out. The

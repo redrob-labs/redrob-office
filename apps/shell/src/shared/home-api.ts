@@ -175,6 +175,11 @@ export interface HomeApi {
   setAiSettings(settings: AiSettings): Promise<void>
   /** provider catalog with each fixed endpoint's default base URL (empty for genspark/custom) */
   getAiProviders(): AiCatalogEntry[]
+  /**
+   * The ModelGuide edition Redrob Auto routes on, from Console, as the ModelGuide component's
+   * professions in the given UI language; null when Console cannot be reached.
+   */
+  getModelGuide(locale: 'en' | 'ko'): Promise<{ asOf: string; professions: unknown[] } | null>
   /** one-shot round trip against the given (possibly unsaved) settings — the settings-UI connection test */
   testAiSettings(settings: AiSettings): Promise<AiChatResponse>
   /**
