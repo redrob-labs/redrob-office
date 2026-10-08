@@ -10,7 +10,8 @@
  * The labels follow Cowork's structural labeler (redrob-cowork apps/server/src/insights/labeler.ts),
  * so a session reads the same whichever app it happened in. What only reading the conversation could
  * tell (the kind of work, whether the first message said what done looks like) is left out, as
- * Cowork leaves it out until a work classifier passes its evaluation.
+ * Cowork leaves it out until a work classifier passes its evaluation. The family of work is known
+ * without reading anything, from which editor ran the session (FAMILY below).
  */
 import { readFileSync, renameSync, writeFileSync } from 'node:fs'
 import {
@@ -20,7 +21,7 @@ import {
 } from '@genoffice/agent-core'
 
 export const LABELER_ID = 'office-structural'
-export const LABELER_VERSION = '1'
+export const LABELER_VERSION = '2'
 
 /** The console's limit for one request. */
 const BATCH = 500
@@ -32,6 +33,19 @@ const DELEGATED_STEPS_PER_TURN = 6
 const ATTENTION_CAP_MIN = 10
 
 const SURFACES: readonly InsightSurface[] = ['docs', 'sheets', 'slides', 'pdf', 'markdown']
+
+/**
+ * The family of work each editor's sessions belong to, in the console's vocabulary. The editor
+ * says it, not the conversation: a session in Sheets works on a spreadsheet. Slides has none, because
+ * a deck is a document and a visual at once, and a family the console counts as fact should not be
+ * a guess.
+ */
+const FAMILY: Partial<Record<InsightSurface, 'write' | 'sheet'>> = {
+  docs: 'write',
+  markdown: 'write',
+  pdf: 'write',
+  sheets: 'sheet',
+}
 const SESSION_ID = /^of_[0-9a-f]{32}$/
 
 export type SessionTally = {
@@ -64,6 +78,7 @@ export type LabeledSession = {
   externalId: string
   startedAt: string
   toolKey: 'office'
+  familyKey?: 'write' | 'sheet'
   mode: number
   producedOutput: boolean
   brief: boolean
@@ -194,6 +209,7 @@ export function labelSession(t: SessionTally): LabeledSession {
     externalId: t.sessionId,
     startedAt: new Date(t.startedAt).toISOString().replace(/\.\d+Z$/, 'Z'),
     toolKey: 'office',
+    ...(FAMILY[t.surface] ? { familyKey: FAMILY[t.surface] } : {}),
     mode,
     producedOutput: t.changes > 0,
     // Needs the work classifier, which reads the first message on this machine.

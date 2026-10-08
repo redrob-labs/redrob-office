@@ -71,8 +71,21 @@ describe('labels', () => {
     const l = labelSession(tallyOf([msg(), tool(), answer]))
     expect(l).toMatchObject({ externalId: ID, toolKey: 'office', labelerId: LABELER_ID, startedAt: '2026-10-06T01:03:03Z' })
     expect(Object.keys(l).sort()).toEqual(
-      ['brief', 'checked', 'context', 'externalId', 'labelerId', 'labelerVersion', 'mode', 'outward', 'producedOutput', 'sensitiveOk', 'sensitiveTouched', 'startedAt', 'steerApplicable', 'steered', 'toolKey', 'turns'].sort(),
+      ['brief', 'checked', 'context', 'externalId', 'familyKey', 'labelerId', 'labelerVersion', 'mode', 'outward', 'producedOutput', 'sensitiveOk', 'sensitiveTouched', 'startedAt', 'steerApplicable', 'steered', 'toolKey', 'turns'].sort(),
     )
+  })
+
+  it('names the family of work from the editor, and none for Slides', () => {
+    const family = (surface: string) => {
+      const tallies = new Map<string, SessionTally>()
+      addFact(tallies, parseRecord({ sessionId: ID, surface, at: T0, ...msg() })!)
+      return labelSession(tallies.get(ID)!).familyKey
+    }
+    expect(family('docs')).toBe('write')
+    expect(family('markdown')).toBe('write')
+    expect(family('pdf')).toBe('write')
+    expect(family('sheets')).toBe('sheet')
+    expect(family('slides')).toBeUndefined()
   })
 })
 

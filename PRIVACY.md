@@ -59,6 +59,8 @@ A session is one stretch of work with the AI panel, ending after 15 minutes
 with nothing happening. Its labels are:
 
 - the day and time it started, and that it was Redrob Office
+- the family of work, from the editor: writing in Docs, Markdown and PDF, a
+  spreadsheet in Sheets (none for Slides)
 - how deep the work went, from a quick question to the agent doing the whole
   task, worked out from how many messages were sent and whether the AI changed
   the file
