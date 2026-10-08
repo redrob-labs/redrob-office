@@ -167,7 +167,8 @@ export class FontEnvironment {
   async provide(): Promise<string[]> {
     const { provider } = this.opts
     if (!provider) return []
-    const fonts = this.opts.fonts ?? (typeof document !== 'undefined' ? document.fonts : undefined)
+    // `FontFaceSet.add` is missing from this TypeScript DOM library; every browser has it.
+    const fonts = this.opts.fonts ?? (typeof document !== 'undefined' ? (document.fonts as unknown as { add(face: FontFace): unknown }) : undefined)
     const make = this.opts.makeFace ?? ((family: string, bytes: Uint8Array) => new FontFace(family, bytes.slice().buffer))
     if (!fonts) return []
     const loaded: string[] = []
