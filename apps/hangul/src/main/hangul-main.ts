@@ -54,6 +54,7 @@ const tDlg = createI18n({
     dlgHtmlTitle: 'Export as HTML',
     filterPdf: 'PDF documents',
     filterHtml: 'Web pages',
+    dlgCompareTitle: 'Compare with Document',
   },
   ja: {
     dlgSaveTitle: 'Hangul ドキュメントを保存',
@@ -78,6 +79,7 @@ const tDlg = createI18n({
     dlgHtmlTitle: 'HTML로 내보내기',
     filterPdf: 'PDF 문서',
     filterHtml: '웹 페이지',
+    dlgCompareTitle: '비교할 문서',
   },
   fr: {
     dlgSaveTitle: 'Enregistrer le document Hangul',
@@ -243,6 +245,7 @@ type DlgKey =
   | 'dlgHtmlTitle'
   | 'filterPdf'
   | 'filterHtml'
+  | 'dlgCompareTitle'
 const tm = (key: DlgKey) => tDlg(getUiLang(), key)
 
 interface RuntimePaths {
@@ -533,6 +536,18 @@ function registerHangulIpc(): void {
     })
     return picked.canceled || !picked.filePath ? null : picked.filePath
   }
+
+  // 문서 비교: the other document is picked here and only its bytes go back; nothing is granted for saving.
+  ipcMain.handle(HANGUL_CHANNELS.pickCompare, async (e) => {
+    const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
+    const opts = { title: tm('dlgCompareTitle'), properties: ['openFile' as const], filters: [{ name: tm('filterHangul'), extensions: ['hwp', 'hwpx'] }] }
+    const picked = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const path = picked.canceled ? undefined : picked.filePaths[0]
+    if (!path) return null
+    const bytes = await readFile(path)
+    if (bytes.length > 200 * 1024 * 1024) return null
+    return { fileName: basename(path), bytes: new Uint8Array(bytes) }
+  })
 
   ipcMain.handle(HANGUL_CHANNELS.printPages, async (e, request: PrintPagesRequest) => {
     const pages = checkPages(request?.pages)

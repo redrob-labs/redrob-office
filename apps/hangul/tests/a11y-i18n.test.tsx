@@ -32,7 +32,7 @@ import { ObjectPropertiesDialog } from '../src/renderer/next/ObjectDialogs'
 import { ClickHereDialog, HyperlinkDialog } from '../src/renderer/next/FieldDialogs'
 import { StyleDialog } from '../src/renderer/next/StyleDialog'
 import { ChartDialog } from '../src/renderer/next/ChartDialog'
-import { AboutDialog, PageHideDialog, RecentDialog } from '../src/renderer/next/InfoDialogs'
+import { AboutDialog, CompareDialog, PageHideDialog, RecentDialog } from '../src/renderer/next/InfoDialogs'
 import * as More from '../src/renderer/next/MoreDialogs'
 
 const env = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -104,6 +104,7 @@ const SURFACES: Array<[string, () => ReactElement]> = [
   ).map(([name, C, table]) => [name, () => createElement(C, { view: editor(table ? (s, bus) => bus.run('table:create', { rows: 2, cols: 2 }) : undefined), onClose: noop, onApplied: noop })] as [string, () => ReactElement]),
   ['grid', () => createElement(More.GridSettingsDialog, { size: 20, onSize: noop, onClose: noop })],
   ['about', () => createElement(AboutDialog, { engine: 'rhwp 0.8.7', onClose: noop })],
+  ['compare', () => createElement(CompareDialog, { name: '계약서-이전.hwpx', entries: [{ kind: 'changed', at: { section: 0, para: 1 }, mine: '제2조 정의 (개정)', theirs: '제2조 정의' }, { kind: 'removed', at: null, mine: '', theirs: '제5조' }], onGo: noop, onClose: noop })],
   ['recent', () => createElement(RecentDialog, { api: { recentFiles: async () => ['/docs/계약서.hwpx'], openRecent: async () => true, clearRecent: async () => undefined }, onClose: noop })],
   ['page hide', () => createElement(PageHideDialog, { view: editor(), onClose: noop, onApplied: noop })],
   ['table borders tab', () => createElement(TableCellDialog, { view: editor((s, bus) => bus.run('table:create', { rows: 2, cols: 2 })), initialTab: 'border', onClose: noop, onApplied: noop })],

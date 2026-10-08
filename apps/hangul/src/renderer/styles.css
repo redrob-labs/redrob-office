@@ -569,3 +569,27 @@ body {
   width: 100%;
   justify-content: flex-start;
 }
+
+/* 문서 비교 */
+.hangul-compare-list {
+  margin: 0;
+  padding: 0 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow: auto;
+}
+.hangul-compare-list li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.hangul-compare-list del {
+  color: var(--status-danger);
+}
+.hangul-compare-list ins {
+  color: var(--status-success);
+  text-decoration: none;
+}

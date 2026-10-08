@@ -57,6 +57,8 @@ export const HANGUL_CHANNELS = {
   recentFiles: 'hangul:recent-files',
   openRecent: 'hangul:open-recent',
   clearRecent: 'hangul:clear-recent',
+  /** 문서 비교: pick another Hangul file and get its bytes */
+  pickCompare: 'hangul:pick-compare',
 } as const
 
 export interface PrintPagesRequest {
@@ -226,6 +228,7 @@ export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
   openRecent?(path: string): Promise<boolean>
   /** Take the Hangul files out of the recent list (other kinds stay). */
   clearRecent?(): Promise<void>
+  pickCompare?(): Promise<{ fileName: string; bytes: Uint8Array } | null>
   createDocument(request: CreateHangulDocumentRequest): Promise<CreateHangulDocumentResult>
   /** The name new comments are signed with. */
   authorName(): Promise<string>

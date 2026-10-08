@@ -3,7 +3,7 @@
  * About carries the Hancom attribution the HWP specification's terms require.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { pageHideAt, type EditorView, type PageHide } from '@genoffice/hwp-editor'
+import { pageHideAt, type CompareEntry, type EditorView, type PageHide } from '@genoffice/hwp-editor'
 import { Button, Checkbox, Dialog } from '@genoffice/ui'
 import { useI18n, type StringKey } from '../i18n/locale'
 import type { HangulApi } from '../../shared/ipc'
@@ -17,6 +17,37 @@ export function AboutDialog({ engine, onClose }: { engine: string; onClose: () =
       <div className="hangul-dialog-stack">
         <p>{t('nextAboutEngine', { engine })}</p>
         <p lang="ko">{t('nextAttribution')}</p>
+      </div>
+    </Dialog>
+  )
+}
+
+/** 문서 비교: how this document differs from another, paragraph by paragraph. */
+export function CompareDialog({ name, entries, onGo, onClose }: { name: string; entries: CompareEntry[]; onGo: (at: { section: number; para: number }) => void; onClose: () => void }): React.JSX.Element {
+  const { t } = useI18n()
+  const label = (e: CompareEntry) => (e.kind === 'added' ? t('nextCompareAdded') : e.kind === 'removed' ? t('nextCompareRemoved', { name }) : t('nextCompareChanged'))
+  return (
+    <Dialog title={t('nextCompareTitle')} closeLabel={t('nextDialogClose')} onClose={onClose} width={640} footer={<Button onClick={onClose}>{t('nextDialogClose')}</Button>}>
+      <div className="hangul-dialog-stack">
+        <p>{t('nextCompareWith', { name })}</p>
+        {entries.length ? (
+          <ol className="hangul-compare-list">
+            {entries.map((e, i) => (
+              <li key={i} className={`hangul-compare-${e.kind}`}>
+                <strong>{label(e)}</strong>
+                {e.kind !== 'added' ? <del lang="ko">{e.theirs}</del> : null}
+                {e.kind !== 'removed' ? <ins lang="ko">{e.mine}</ins> : null}
+                {e.at ? (
+                  <Button size="sm" variant="ghost" onClick={() => onGo(e.at!)}>
+                    {t('nextCompareGo')}
+                  </Button>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p>{t('nextCompareNone')}</p>
+        )}
       </div>
     </Dialog>
   )

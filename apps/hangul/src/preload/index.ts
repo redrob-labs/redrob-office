@@ -73,6 +73,7 @@ const api: HangulApi = {
   recentFiles: () => ipcRenderer.invoke(HANGUL_CHANNELS.recentFiles),
   openRecent: (path) => ipcRenderer.invoke(HANGUL_CHANNELS.openRecent, path),
   clearRecent: () => ipcRenderer.invoke(HANGUL_CHANNELS.clearRecent),
+  pickCompare: () => ipcRenderer.invoke(HANGUL_CHANNELS.pickCompare),
   createDocument: (request) => ipcRenderer.invoke(HANGUL_CHANNELS.createDocument, request),
   authorName: () => ipcRenderer.invoke(HANGUL_CHANNELS.authorName),
   pickAttachments: () => ipcRenderer.invoke(FILES_CHANNELS.pick),

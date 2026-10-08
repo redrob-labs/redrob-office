@@ -60,6 +60,8 @@ export interface HostDeps {
   output(kind: 'print' | 'pdf' | 'html'): void
   /** 새 문서, 불러오기, 최근 목록 지우기: the shell opens files and keeps the recent list. */
   files(kind: 'new' | 'open' | 'clear-recent'): void
+  /** 문서 비교: pick another document and list how this one differs. */
+  compare(): void
 }
 
 type Handler = (d: HostDeps, params?: unknown) => boolean
@@ -91,6 +93,7 @@ export const HOST_COMMANDS: Record<string, Handler> = {
   'edit:find-again': (d) => d.run('edit:find-next') || (d.openDialog('find'), true),
   'edit:goto': dialog('edit:goto-page'),
   'edit:document-history': (d) => (d.versions(), true),
+  'edit:compare-documents': (d) => (d.compare(), true),
   // Formatting
   'format:char-shape': dialog('char-shape'),
   'format:para-shape': dialog('para-shape'),
@@ -155,7 +158,6 @@ export const HOST_COMMANDS: Record<string, Handler> = {
  */
 export const NOT_YET: Record<string, string> = {
   'file:export-doc': 'needs a .doc export',
-  'edit:compare-documents': 'needs a document diff view',
   'tool:options': 'settings live in the shell',
 }
 
