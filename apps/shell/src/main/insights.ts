@@ -327,15 +327,9 @@ export async function syncOnce(opts: {
     } catch {
       return settled ? { status: 'sent', settled } : { status: 'unreachable' }
     }
-    if (res.status === 401 || res.status === 403) return { status: 'refused', code: res.status }
-    // The console refused the batch's shape. Sending it again would not change that, and keeping
-    // it would hold every later session back, so it leaves the outbox.
-    if (res.status === 400) {
-      opts.outbox.remove(new Set(batch.map((s) => s.externalId)))
-      settled += batch.length
-      continue
-    }
-    if (!res.ok) return settled ? { status: 'sent', settled } : { status: 'unreachable' }
+    // Refused as a whole (a key it does not take, or a label an older console does not know yet):
+    // everything stays, as Cowork keeps it, and goes once the console takes it.
+    if (!res.ok) return { status: 'refused', code: res.status }
     // A 200 settles the whole batch: each session was stored, updated, or refused with a reason
     // that sending it again would not change.
     opts.outbox.remove(new Set(batch.map((s) => s.externalId)))
