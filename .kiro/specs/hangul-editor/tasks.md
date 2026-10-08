@@ -149,8 +149,11 @@ Requirement references are in brackets, e.g. [R2.1].
   view reloads the new base. [R9.3, R9.4, R9.5]
 - [ ] 5.5 Done: presence faces, remote carets and selections in body text, read-only for view and
   comment roles. Open: live comment sync (comments reach others with saves). [R9.3, R9.5, R7.3]
-- [ ] 5.6 Multi-client fuzz suite in CI against the Compose sync stack, plus a 한글 2024 open check
-  on the converged files. [R9.4]
+- [ ] 5.6 Done: multi-client fuzz in CI (`packages/hwp-editor/tests/live-fuzz.test.ts`: 2 to 5
+  views, late, reordered, duplicated and held-offline updates, a late joiner, undo and redo, and a
+  save-and-reopen check; 16 rounds per pull request, 400 in the weekly run). Open: the same run
+  against the Compose sync stack, and a 한글 2024 open check on the converged files (Windows runner).
+  [R9.4]
 
 ## Phase 6: Cutover
 
