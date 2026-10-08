@@ -146,7 +146,55 @@ export class Session {
    * error rethrown, so a failed command never leaves half an edit behind.
    */
   edit(command: string, fn: () => Selection, origin: ChangeOrigin = 'user'): Change {
+    if (this.group_) return this.editInGroup(command, fn)
     if (this.editing) throw new Error(`nested edit "${command}"`)
+    return this.commit(command, fn, origin)
+  }
+
+  /**
+   * Run several edits as one undoable change (one AI tool call, one
+   * replace-all). Every `edit` made inside `fn`, directly or through the
+   * command bus, joins the group: no history entry or change event of its
+   * own. If anything throws, the whole group is rolled back.
+   */
+  group(command: string, fn: () => Selection, origin: ChangeOrigin = 'user'): Change {
+    if (this.group_ || this.editing) throw new Error(`nested group "${command}"`)
+    const touched = new Set<NodeId>()
+    return this.commit(
+      command,
+      () => {
+        this.group_ = touched
+        this.groupOrigin = origin
+        // Paginate once for the whole group, not after each of its engine calls:
+        // a rewrite is several calls, and each repaginates the section (seconds
+        // on a long government document).
+        this.doc.raw.beginBatch()
+        try {
+          return fn()
+        } finally {
+          this.group_ = null
+          this.doc.raw.endBatch()
+        }
+      },
+      origin,
+      touched,
+    )
+  }
+
+  /** Node ids touched by the edits of the open group, or null outside a group. */
+  private group_: Set<NodeId> | null = null
+  private groupOrigin: ChangeOrigin = 'user'
+
+  private editInGroup(command: string, fn: () => Selection): Change {
+    const touched = this.group_!
+    for (const id of this.nodesIn(this.selection)) touched.add(id)
+    const selection = fn()
+    this.selection = selection
+    for (const id of this.nodesIn(selection)) touched.add(id)
+    return { seq: this.changeSeq, command, nodes: [], origin: this.groupOrigin, selection }
+  }
+
+  private commit(command: string, fn: () => Selection, origin: ChangeOrigin, extra?: Set<NodeId>): Change {
     // Only a person's typing defers pagination; every other command (AI edits,
     // formatting, remote changes) sees exact pages.
     if (origin === 'user' && DEFERRABLE_COMMANDS.has(command)) {
@@ -155,7 +203,8 @@ export class Session {
         this.deferred = true
       }
     } else this.settle()
-    this.editing = true
+    // A group's inner edits run through `edit`, so `editing` stays off for them.
+    if (!extra) this.editing = true
     const before = this.selection
     const touched = new Set(this.nodesIn(before))
     const snapshot = this.doc.saveSnapshot()
@@ -163,6 +212,7 @@ export class Session {
       const selection = fn()
       this.selection = selection
       for (const id of this.nodesIn(selection)) touched.add(id)
+      for (const id of extra ?? []) touched.add(id)
     } catch (e) {
       this.doc.restoreSnapshot(snapshot)
       this.doc.discardSnapshot(snapshot)
