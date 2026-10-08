@@ -9,7 +9,7 @@ import type { EditorView } from '@genoffice/hwp-editor'
 import { Button, Dialog, Input } from '@genoffice/ui'
 import { useI18n, type StringKey } from '../i18n/locale'
 
-export type InsertKind = 'insert:equation' | 'insert:footnote' | 'insert:bookmark' | 'page:header-create' | 'page:footer-create' | 'edit:goto-page' | 'view:zoom-set' | 'page:new-page-num' | 'table:formula'
+export type InsertKind = 'insert:equation' | 'insert:footnote' | 'insert:bookmark' | 'page:header-create' | 'page:footer-create' | 'edit:goto-page' | 'view:zoom-set' | 'page:new-page-num' | 'table:formula' | 'insert:equation-edit'
 
 const PROMPTS: Record<InsertKind, { title: StringKey; label: StringKey; param: string; required: boolean; number?: boolean; apply?: boolean }> = {
   'insert:equation': { title: 'nextInsertEquation', label: 'nextEquationScript', param: 'script', required: true },
@@ -21,14 +21,15 @@ const PROMPTS: Record<InsertKind, { title: StringKey; label: StringKey; param: s
   'view:zoom-set': { title: 'nextZoomTitle', label: 'nextZoomPercent', param: 'percent', required: true, number: true, apply: true },
   'page:new-page-num': { title: 'nextNewPageNumTitle', label: 'nextNewPageNumStart', param: 'start', required: true, number: true, apply: true },
   'table:formula': { title: 'nextFormulaTitle', label: 'nextFormulaLabel', param: 'formula', required: true, apply: true },
+  'insert:equation-edit': { title: 'nextEditEquation', label: 'nextEquationScript', param: 'script', required: true, apply: true },
 }
 
 /** 한글 equation script is the same in every language, so the examples are not translated. */
 const EQUATION_EXAMPLES = 'a over b, sqrt {x^2 + 1}, sum from {i=1} to n i'
 
-export function InsertPromptDialog({ view, kind, onClose, onApplied }: { view: EditorView; kind: InsertKind; onClose: () => void; onApplied: () => void }): React.JSX.Element {
+export function InsertPromptDialog({ view, kind, initial = '', onClose, onApplied }: { view: EditorView; kind: InsertKind; initial?: string; onClose: () => void; onApplied: () => void }): React.JSX.Element {
   const { t } = useI18n()
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(initial)
   const spec = PROMPTS[kind]
   const bad = spec.number ? !/^\s*\d+\s*$/.test(value) : spec.required && !value.trim()
   const submit = () => {
@@ -61,7 +62,7 @@ export function InsertPromptDialog({ view, kind, onClose, onApplied }: { view: E
         }}
       >
         <Input label={t(spec.label)} value={value} inputMode={spec.number ? 'numeric' : undefined} autoFocus onChange={(e) => setValue(e.target.value)} />
-        {kind === 'insert:equation' ? (
+        {kind === 'insert:equation' || kind === 'insert:equation-edit' ? (
           <p className="hangul-hint">
             {t('nextEquationHint')} <code lang="zxx">{EQUATION_EXAMPLES}</code>
           </p>

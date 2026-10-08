@@ -105,7 +105,7 @@ const SURFACES: Array<[string, () => ReactElement]> = [
   ['about', () => createElement(AboutDialog, { engine: 'rhwp 0.8.7', onClose: noop })],
   ['page hide', () => createElement(PageHideDialog, { view: editor(), onClose: noop, onApplied: noop })],
   ['table borders tab', () => createElement(TableCellDialog, { view: editor((s, bus) => bus.run('table:create', { rows: 2, cols: 2 })), initialTab: 'border', onClose: noop, onApplied: noop })],
-  ...(['insert:equation', 'insert:footnote', 'insert:bookmark', 'page:header-create', 'page:footer-create', 'edit:goto-page', 'view:zoom-set', 'page:new-page-num', 'table:formula'] as InsertKind[]).map(
+  ...(['insert:equation', 'insert:footnote', 'insert:bookmark', 'page:header-create', 'page:footer-create', 'edit:goto-page', 'view:zoom-set', 'page:new-page-num', 'table:formula', 'insert:equation-edit'] as InsertKind[]).map(
     (kind) => [kind, () => createElement(InsertPromptDialog, { view: editor(), kind, onClose: noop, onApplied: noop })] as [string, () => ReactElement],
   ),
   ['table/cell', () => createElement(TableCellDialog, { view: editor((s, bus) => bus.run('table:create', { rows: 2, cols: 2 })), onClose: noop, onApplied: noop })],

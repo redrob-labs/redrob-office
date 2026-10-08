@@ -523,6 +523,8 @@ pub fn write_section(
     ctx: &mut SerializeContext,
 ) -> Result<Vec<u8>, SerializeError> {
     let mut vert_cursor: u32 = 0;
+    let pd = &section.section_def.page_def;
+    ctx.body_width = (pd.width as i64 - pd.margin_left as i64 - pd.margin_right as i64 - pd.margin_gutter as i64).max(7200);
 
     let first_para = section.paragraphs.first();
     // [#1584] 첫 문단 렌더 직전 set — 본문 첫 ColumnDef(섹션 템플릿 흡수분)의 인라인
@@ -588,7 +590,7 @@ pub fn write_section(
             .iter()
             .find(|c| matches!(c, Control::ColumnDef(_)))
         {
-            out = out.replacen(TEMPLATE_BODY_COL_PR, &render_col_pr_ctrl(cd), 1);
+            out = out.replacen(TEMPLATE_BODY_COL_PR, &render_col_pr_ctrl(cd, ctx.body_width), 1);
         }
     }
 
@@ -640,7 +642,7 @@ pub fn write_section(
             {
                 // 위 #1407 치환이 이미 심어 둔 IR colPr 블록을 정확히 되찾아
                 // (render_col_pr_ctrl 은 결정적) secPr 앞으로 옮긴다.
-                let rendered = render_col_pr_ctrl(cd);
+                let rendered = render_col_pr_ctrl(cd, ctx.body_width);
                 if let Some(colpr_at) = out.find(&rendered) {
                     out.replace_range(colpr_at..colpr_at + rendered.len(), "");
                     if let Some(secpr_at) = out.find("<hp:secPr ") {
@@ -2536,7 +2538,7 @@ fn render_control_slot(out: &mut String, control: &Control, ctx: &mut SerializeC
             if ctx.sub_list_depth == 0 && ctx.body_coldef_template_pending {
                 ctx.body_coldef_template_pending = false;
             } else {
-                out.push_str(&render_col_pr_ctrl(cd));
+                out.push_str(&render_col_pr_ctrl(cd, ctx.body_width));
             }
         }
         // [#4388] Unknown은 HWPX 로 옮길 대응 표현이 없어 여기서도 드롭된다.
@@ -2650,7 +2652,7 @@ fn generated_field_parameters(field: &Field) -> Option<String> {
 
 /// 셀·글상자 subList 인라인 `<hp:ctrl><hp:colPr .../></hp:ctrl>` (#1379 3단계).
 /// `parse_col_pr` / `parse_col_line` / `parse_col_sz`(parser/hwpx/section.rs)의 역매핑.
-fn render_col_pr_ctrl(cd: &ColumnDef) -> String {
+fn render_col_pr_ctrl(cd: &ColumnDef, body_width: i64) -> String {
     let col_type = match cd.column_type {
         ColumnType::Distribute => "BalancedNewspaper",
         ColumnType::Parallel => "Parallel",
@@ -2671,9 +2673,17 @@ fn render_col_pr_ctrl(cd: &ColumnDef) -> String {
     // calculate_column_areas)가 균등 분할로 저하한다.
     let mut col_sz_xml = String::new();
     if !cd.same_width {
+        // [Redrob] HWP 5.0 holds widths and gaps as shares of 32768; HWPX colSz is HWPUNIT.
+        let scale = |v: i16| -> i64 {
+            if cd.proportional_widths && body_width > 0 {
+                ((v as u16 as i64) * body_width + 16384) / 32768
+            } else {
+                v as i64
+            }
+        };
         for (i, w) in cd.widths.iter().enumerate() {
             let gap = cd.gaps.get(i).copied().unwrap_or(0);
-            col_sz_xml.push_str(&format!(r#"<hp:colSz width="{}" gap="{}"/>"#, w, gap));
+            col_sz_xml.push_str(&format!(r#"<hp:colSz width="{}" gap="{}"/>"#, scale(*w), scale(gap)));
         }
     }
     if cd.separator_type != 0 || !col_sz_xml.is_empty() {

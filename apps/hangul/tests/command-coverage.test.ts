@@ -30,7 +30,7 @@ function editorBus(): CommandBus {
   return bus
 }
 
-function recorder(): { deps: HostDeps; calls: string[] } {
+function recorder(kind: ReturnType<HostDeps['objectKind']> = 'shape'): { deps: HostDeps; calls: string[] } {
   const calls: string[] = []
   const rec = (name: string) => (...args: unknown[]) => void calls.push(`${name}(${args.map((a) => JSON.stringify(a)).join(',')})`)
   const deps: HostDeps = {
@@ -43,7 +43,7 @@ function recorder(): { deps: HostDeps; calls: string[] } {
     versions: rec('versions'),
     setToolbar: rec('setToolbar'),
     toggleMarkup: rec('toggleMarkup'),
-    objectKind: () => 'chart',
+    objectKind: () => kind,
     inTable: () => true,
     inField: () => true,
     output: rec('output'),
@@ -77,11 +77,13 @@ describe('command coverage (task 2.6)', () => {
   })
 
   it('every host command does something when run', () => {
+    // Some only apply to a selected chart or equation; each must do something for some selection.
     for (const id of Object.keys(HOST_COMMANDS)) {
-      const { deps, calls } = recorder()
-      const handled = runHostCommand(deps, id)
-      expect(handled || calls.length > 0, id).toBe(true)
-      expect(calls.length, `${id} called nothing`).toBeGreaterThan(0)
+      const did = (['shape', 'picture', 'chart', 'equation'] as const).some((kind) => {
+        const { deps, calls } = recorder(kind)
+        return runHostCommand(deps, id) && calls.length > 0
+      })
+      expect(did, `${id} did nothing for any selection`).toBe(true)
     }
   })
 
@@ -94,7 +96,7 @@ describe('command coverage (task 2.6)', () => {
   it('reports the coverage', () => {
     const reached = commands.filter((id) => onBus.has(id) || id in HOST_COMMANDS)
     // The floor only rises: today's count, from 37 when this test began.
-    expect(reached.length).toBeGreaterThanOrEqual(159)
+    expect(reached.length).toBeGreaterThanOrEqual(162)
     console.log(`coverage ${reached.length}/${commands.length}; not yet ${Object.keys(NOT_YET).length}`)
   })
 })
