@@ -15,11 +15,11 @@
     "wasmOpt": "117",
     "command": "scripts/build-hwp-core.sh"
   },
-  "sourceSha256": "b42ed6b42b2831025cdf907143805cf3b39decb6f1a671568b3690306ecfbd60",
+  "sourceSha256": "1fc60cadc2c199c71976d7f5a652c1fa187cd2b91164657bb2e29169e1805a66",
   "artifacts": {
-    "rhwp.js": "b60514d6ba2b297db81caee7f2e987a64b160dddafd19649be248c5135b5017c",
-    "rhwp.d.ts": "32fbd92bb61cede6c6a4558c399eff1c290a9386736bc3b6fa5b962c8c1fd687",
-    "rhwp_bg.wasm": "5e9a8d0041207f28b2ee35e887f71d2c3bbc78df8e4a3ca154683d22ca6c5a86",
-    "rhwp_bg.wasm.d.ts": "f1877bdb78b78fc7e15203c9f42b374faac3f19d2bcb392f5c51e8b55e7e4721"
+    "rhwp.js": "32c052e3d7364e2d4a92aebf63cd1aacf4988ee98d3b6a84474f6eeff0a6033c",
+    "rhwp.d.ts": "e69b716b2d8c95b6fd61f24f1605c0bedd65ca70996a8979a4aa22f523b18f5b",
+    "rhwp_bg.wasm": "9a8f2d40e869c2accb691626afbdf3b66b0729a9b9f2eb343ded4eea9bb096eb",
+    "rhwp_bg.wasm.d.ts": "307ee26624e887280affef96784ca43c3f31d3e199a6c8cf201514827dd37f8e"
   }
 }

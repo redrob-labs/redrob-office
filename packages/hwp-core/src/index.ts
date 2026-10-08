@@ -24,6 +24,7 @@ import type {
   NodeLocation,
   NodeRead,
   Memo,
+  Revision,
   ParagraphTarget,
   Outline,
   PageInfo,
@@ -225,6 +226,21 @@ export class HwpCoreDocument {
 
   removeMemo(fieldId: number): void {
     this.raw.removeMemo(fieldId)
+  }
+
+  // ── Tracked changes (E5b) ─────────────────────────────────────────────
+  revisions(): Revision[] {
+    return decode(this.raw.listRevisions())
+  }
+
+  /** Mark existing text [start, end) of one paragraph as inserted or deleted. Returns the revision id. */
+  addRevision(target: ParagraphTarget, start: number, end: number, kind: 'insert' | 'delete', author: string, date: string): number {
+    return this.raw.addRevision(JSON.stringify({ target, start, end, kind, author, date }))
+  }
+
+  /** Drop a revision's marks and table entry. The text stays. */
+  removeRevision(id: number): void {
+    this.raw.removeRevision(id)
   }
 
   // ── Edit ──────────────────────────────────────────────────────────────

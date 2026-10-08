@@ -118,6 +118,25 @@ impl HwpDocument {
         self.core.set_redrob_comments_native(json);
     }
 
+    /// [Redrob E5b] Every tracked change: id, kind, author, date, range and text.
+    #[wasm_bindgen(js_name = listRevisions)]
+    pub fn list_revisions(&mut self) -> String {
+        serde_json::to_string(&self.core.list_revisions_native()).unwrap_or_else(|_| "[]".into())
+    }
+
+    /// [Redrob E5b] `{target, start, end, kind, author, date}` → revision id.
+    #[wasm_bindgen(js_name = addRevision)]
+    pub fn add_revision(&mut self, options_json: &str) -> Result<u32, JsValue> {
+        let o: RevisionAddOptions = parse(options_json)?;
+        self.core.add_revision_native(&o.target, o.start, o.end, &o.kind, &o.author, &o.date).map_err(Into::into)
+    }
+
+    /// [Redrob E5b] Remove a revision's marks and table entry; the text stays.
+    #[wasm_bindgen(js_name = removeRevision)]
+    pub fn remove_revision(&mut self, id: u32) -> Result<(), JsValue> {
+        self.core.remove_revision_native(id).map_err(Into::into)
+    }
+
     #[wasm_bindgen(js_name = removeMemo)]
     pub fn remove_memo(&mut self, field_id: u32) -> Result<(), JsValue> {
         self.core.remove_memo_native(field_id).map_err(Into::into)
@@ -132,4 +151,15 @@ struct MemoAddOptions {
     end: usize,
     author: String,
     body: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct RevisionAddOptions {
+    target: HyperlinkTarget,
+    start: usize,
+    end: usize,
+    kind: String,
+    author: String,
+    date: String,
 }

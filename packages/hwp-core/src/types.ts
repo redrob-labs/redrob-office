@@ -194,3 +194,25 @@ export interface Memo {
   /** The annotated text. */
   text: string
 }
+
+// ── Tracked changes (engine extension E5b, document_core/revisions.rs) ──
+
+/** One tracked change (변경 내용): an insertion or a deletion still to be accepted or rejected. */
+export interface Revision {
+  /** The mark pair's id. */
+  id: number
+  /** The header entry's id. */
+  tcId: number
+  kind: 'insert' | 'delete'
+  author: string
+  /** ISO 8601, as the file stores it. */
+  date: string
+  target: ParagraphTarget
+  nodeId: NodeId
+  start: number
+  /** Where it ends; the same paragraph unless the change spans paragraphs. */
+  endTarget: ParagraphTarget
+  endNodeId: NodeId
+  end: number
+  text: string
+}

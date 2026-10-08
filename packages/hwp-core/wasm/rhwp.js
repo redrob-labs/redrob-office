@@ -130,6 +130,20 @@ export class HwpDocument {
         return ret[0] >>> 0;
     }
     /**
+     * [Redrob E5b] `{target, start, end, kind, author, date}` → revision id.
+     * @param {string} options_json
+     * @returns {number}
+     */
+    addRevision(options_json) {
+        const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_addRevision(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] >>> 0;
+    }
+    /**
      * [#5959] 셀/zone border_fill_id 직접 대입 (undo·redo 전용).
      *
      * 스타일 테이블을 건드리지 않고 execute 의 변경 기록을 되돌린다.
@@ -7655,6 +7669,22 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob E5b] Every tracked change: id, kind, author, date, range and text.
+     * @returns {string}
+     */
+    listRevisions() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_listRevisions(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
      * Where node `id` is now as JSON `{section, para, path}`, or `null` when it is gone.
      * Ids are JS numbers; they stay below 2^53.
      * @param {number} id
@@ -8810,6 +8840,16 @@ export class HwpDocument {
      */
     removeMemo(field_id) {
         const ret = wasm.hwpdocument_removeMemo(this.__wbg_ptr, field_id);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
+    }
+    /**
+     * [Redrob E5b] Remove a revision's marks and table entry; the text stays.
+     * @param {number} id
+     */
+    removeRevision(id) {
+        const ret = wasm.hwpdocument_removeRevision(this.__wbg_ptr, id);
         if (ret[1]) {
             throw takeFromExternrefTable0(ret[0]);
         }

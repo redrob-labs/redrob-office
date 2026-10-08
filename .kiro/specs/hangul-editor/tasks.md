@@ -126,8 +126,10 @@ Requirement references are in brackets, e.g. [R2.1].
   before Phase 4. [R3.3]
   HWPX done. HWP 5.0: the raw records are kept by the engine; checking that they stay on the right
   paragraphs through edits needs files 한글 2024 writes with tracked changes (P-1).
-- [ ] 4.3 E5b Revision API with recording mode, golden tests against the R3 fixtures, and a 한글 2024
+- [x] 4.3 E5b Revision API with recording mode, golden tests against the R3 fixtures, and a 한글 2024
   two-way accept/reject test. [R8.1, R8.2]
+  HWPX done (`document_core/revisions.rs`, `hwp-editor/src/revisions.ts`). Goldens against R3 fixtures, the 한글 2024
+  two-way accept/reject test, HWP 5.0 revisions and tracked paragraph breaks wait for the runner (P-1).
 - [ ] 4.4 Suggesting and viewing modes; revision marks in the overlay; review actions; tracked AI
   edits and the AI `read_revisions`, `accept_revision` and `reject_revision` tools. [R8.1, R8.3, R6.4]
 

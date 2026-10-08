@@ -66,11 +66,13 @@ export function mentionsIn(text: string, people: readonly string[]): string[] {
   return out.sort((a, b) => a.at - b.at).map((x) => x.name)
 }
 
-function targetOf(p: Pos): ParagraphTarget {
+/** The engine's paragraph address for a position. */
+export function targetOf(p: Pos): ParagraphTarget {
   return { section: p.section, para: p.para, cellPath: p.cell ? [[p.cell.control, p.cell.cell, p.cell.para]] : [] }
 }
 
-function posOfTarget(t: ParagraphTarget, offset: number): Pos {
+/** A position from the engine's paragraph address. */
+export function posOfTarget(t: ParagraphTarget, offset: number): Pos {
   const c = t.cellPath[0]
   return c ? { section: t.section, para: t.para, offset, cell: { control: c[0], cell: c[1], para: c[2] } } : { section: t.section, para: t.para, offset }
 }

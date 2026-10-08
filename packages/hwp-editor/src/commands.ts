@@ -219,9 +219,19 @@ export class CommandBus {
     return !!c?.isActive?.({ session: this.session })
   }
 
+  /**
+   * Takes a command before it runs (suggesting mode records edits as tracked
+   * changes). Return undefined to let the command run normally.
+   */
+  intercept: ((id: string, params: unknown, origin: ChangeOrigin) => Change | null | undefined) | null = null
+
   run(id: string, params?: unknown, origin: ChangeOrigin = 'user'): Change | null {
     const c = this.commands.get(id)
     if (!c) throw new Error(`unknown command ${id}`)
+    if (this.intercept) {
+      const r = this.intercept(id, params, origin)
+      if (r !== undefined) return r
+    }
     if (!c.isEnabled({ session: this.session, origin }, params as never)) return null
     return c.run({ session: this.session, origin }, params as never)
   }
