@@ -146,6 +146,7 @@ export class Comments {
 
   /** The selection's range as a comment anchor, or null (collapsed, or spanning paragraphs). */
   static anchorOf(sel: Selection): { target: ParagraphTarget; start: number; end: number } | null {
+    if (sel.anchor.story || sel.head.story) return null
     const [a, b] = ordered(sel)
     if (!sameContainer(a, b)) return null
     const sameParagraph = a.cell ? a.cell.para === b.cell!.para : a.para === b.para

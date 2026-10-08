@@ -5,7 +5,7 @@
 // presets are those rhwp-studio uses (MIT).
 import type { Command } from './commands'
 import type { Session } from './session'
-import type { Pos } from './position'
+import { inBody, type Pos } from './position'
 import { applyParaShape } from './format-commands'
 import { selectedCells, tableAt, tableCells } from './object-commands'
 import { fieldAt } from './field-commands'
@@ -16,7 +16,7 @@ function json(r: string, what: string): Record<string, unknown> {
   return v
 }
 
-const body = (s: Session): Pos | null => (s.selection.head.cell ? null : s.selection.head)
+const body = (s: Session): Pos | null => (inBody(s.selection.head) ? s.selection.head : null)
 
 /** The rows and columns the selected cells span. */
 function block(s: Session) {

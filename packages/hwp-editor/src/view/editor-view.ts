@@ -385,7 +385,35 @@ export class EditorView {
   private posAt(clientX: number, clientY: number): Pos | null {
     const pt = this.pages.pageAt(clientX, clientY)
     if (!pt) return null
-    return fromEngine(this.session.doc.hitTest(pt.page, pt.x, pt.y))
+    return this.storyPosAt(pt.page, pt.x, pt.y) ?? fromEngine(this.session.doc.hitTest(pt.page, pt.x, pt.y))
+  }
+
+  /**
+   * A click in a footnote goes to the note's text. A click in a header or footer
+   * goes there only while the caret is already in that header or footer; to enter
+   * one, double-click it, as in 한글.
+   */
+  private storyPosAt(page: number, x: number, y: number, enter = false): Pos | null {
+    const raw = this.session.doc.raw
+    try {
+      const fn = JSON.parse(raw.hitTestInFootnote(page, x, y)) as { hit?: boolean; footnoteIndex: number; fnParaIndex: number; charOffset: number }
+      if (fn.hit) {
+        const fi = JSON.parse(raw.getPageFootnoteInfo(page, fn.footnoteIndex)) as { ok?: boolean; sectionIdx: number; paraIdx: number; controlIdx: number; sourceType?: string }
+        if (fi.ok !== false && (fi.sourceType ?? 'body') === 'body') {
+          return { section: fi.sectionIdx, para: fn.fnParaIndex, offset: fn.charOffset, story: { kind: 'note', host: fi.paraIdx, control: fi.controlIdx } }
+        }
+      }
+      const cur = this.session.selection.head.story
+      const hf = JSON.parse(raw.hitTestHeaderFooter(page, x, y)) as { hit?: boolean; isHeader: boolean; sectionIndex: number; applyTo: number }
+      if (!hf.hit) return null
+      const kind = hf.isHeader ? 'header' : 'footer'
+      if (!enter && (!cur || cur.kind !== kind)) return null
+      const r = JSON.parse(raw.hitTestInHeaderFooter(page, hf.isHeader, x, y)) as { hit?: boolean; sectionIndex: number; applyTo: number; paraIndex: number; charOffset: number }
+      if (!r.hit) return null
+      return { section: r.sectionIndex, para: r.paraIndex, offset: r.charOffset, story: { kind, applyTo: r.applyTo, page } }
+    } catch {
+      return null
+    }
   }
 
   /** The picture or drawing object under the pointer, if any. */
@@ -411,14 +439,47 @@ export class EditorView {
   }
 
   onDoubleClick(e: MouseEvent): void {
-    if (e.button !== 0 || !this.session.object) return
+    if (e.button !== 0) return
+    if (this.session.object) {
+      e.preventDefault()
+      this.opts.onUnhandledCommand?.('format:object-properties')
+      return
+    }
+    // Double-clicking a header or footer area enters it (creating it when there is none).
+    const pt = this.pages.pageAt(e.clientX, e.clientY)
+    if (!pt) return
+    let hf: { hit?: boolean; isHeader: boolean; applyTo: number }
+    try {
+      hf = JSON.parse(this.session.doc.raw.hitTestHeaderFooter(pt.page, pt.x, pt.y)) as typeof hf
+    } catch {
+      return
+    }
+    if (!hf.hit) return
     e.preventDefault()
-    this.opts.onUnhandledCommand?.('format:object-properties')
+    // The first click of the double-click moved the caret; go back to where the person was typing.
+    if (this.beforeClick && !this.session.selection.head.story) this.session.select(this.beforeClick)
+    if (!this.readOnly) this.bus.run('page:headerfooter-edit', { kind: hf.isHeader ? 'header' : 'footer', applyTo: hf.applyTo, page: pt.page })
+    const q = this.storyPosAt(pt.page, pt.x, pt.y, true)
+    if (q) this.session.select({ anchor: q, head: q })
+    this.render()
+    this.focus()
   }
+
+  /** The selection before the latest click, so a double-click into a header can return there. */
+  private beforeClick: { anchor: Pos; head: Pos } | null = null
 
   onMouseDown(e: MouseEvent): void {
     if (e.button !== 0) return
-    const hit = e.shiftKey ? null : this.objectUnder(e.clientX, e.clientY)
+    if (e.detail <= 1) this.beforeClick = this.session.selection
+    let hit = e.shiftKey ? null : this.objectUnder(e.clientX, e.clientY)
+    // Inside a text box, a click places the caret in its text; its edge selects the box, as in 한글.
+    if (hit && hit.kind === 'shape') {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      const edge = 4 / this.pages.zoom
+      const inner = !!pt && pt.x > hit.x + edge && pt.x < hit.x + hit.width - edge && pt.y > hit.y + edge && pt.y < hit.y + hit.height - edge
+      const q = inner ? this.posAt(e.clientX, e.clientY) : null
+      if (q?.cell?.textBox && q.cell.control === hit.control && q.para === hit.para) hit = null
+    }
     if (hit) {
       e.preventDefault()
       this.session.selectObject({ kind: hit.kind, section: hit.section, para: hit.para, control: hit.control })

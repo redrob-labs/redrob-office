@@ -4,7 +4,7 @@
 // whose guide text 한글 shows until someone types into it.
 import { targetOf } from './comments'
 import { collapsed, ordered, type Session } from './session'
-import { sameContainer, type Pos } from './position'
+import { inBody, sameContainer, type Pos } from './position'
 import type { Command } from './commands'
 
 export interface HyperlinkInfo {
@@ -48,6 +48,7 @@ export function hyperlinksIn(s: Session, p: Pos): HyperlinkInfo[] {
 
 /** The link the caret (or the selection's start) sits in. */
 export function hyperlinkAt(s: Session, p: Pos = ordered(s.selection)[0]): HyperlinkInfo | null {
+  if (p.story) return null
   try {
     return hyperlinksIn(s, p).find((l) => p.offset >= l.start && p.offset <= l.end) ?? null
   } catch {
@@ -57,7 +58,7 @@ export function hyperlinkAt(s: Session, p: Pos = ordered(s.selection)[0]): Hyper
 
 /** Fields in the body paragraph at the caret (cell fields are not addressed yet). */
 export function fieldAt(s: Session, p: Pos = s.selection.head): FieldInfo | null {
-  if (p.cell) return null
+  if (!inBody(p)) return null
   const list = JSON.parse(s.doc.raw.getFieldList()) as Array<{
     fieldId: number
     fieldType: string
@@ -87,7 +88,7 @@ export const insertHyperlink: Command<{ uri: string; text?: string }> = {
   id: 'insert:hyperlink',
   isEnabled: ({ session }) => {
     const [a, b] = ordered(session.selection)
-    return sameContainer(a, b) && a.para === b.para
+    return !a.story && sameContainer(a, b) && a.para === b.para
   },
   run({ session }, { uri, text }) {
     const address = normalizeUri(uri)
@@ -150,7 +151,7 @@ export const removeHyperlink: Command = {
 /** Insert a 누름틀 at the caret (body text). */
 export const insertField: Command<{ guide: string; memo?: string; name?: string }> = {
   id: 'insert:field',
-  isEnabled: ({ session }) => collapsed(session.selection) && !session.selection.head.cell,
+  isEnabled: ({ session }) => collapsed(session.selection) && inBody(session.selection.head),
   run({ session }, { guide, memo = '', name = '' }) {
     const p = session.selection.head
     return session.edit('insert:field', () => {
