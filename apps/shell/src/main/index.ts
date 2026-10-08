@@ -225,6 +225,7 @@ import {
   setHangulFileSavedHook,
   teardownHangul,
 } from '../../../hangul/src/main/hangul-main'
+import { resolveEditorKind } from '../../../hangul/src/main/editor-kind'
 import type {
   AccountLoginEvent,
   RecentEntry,
@@ -3085,6 +3086,8 @@ function registerHomeIpc(): void {
   })
 
   ipcMain.handle(HOME_CHANNELS.getAppVersion, (): string => app.getVersion())
+  // Home's AI chip on the Hangul card follows the editor a new document opens in
+  ipcMain.handle(HOME_CHANNELS.hangulAi, (): boolean => resolveEditorKind(process.env, app.isPackaged) === 'next')
 
   ipcMain.handle(HOME_CHANNELS.recents, (_event, query: unknown): RecentPage =>
     pageRecentPaths(readRecentFiles(), query, new Set(readStarredFiles())),

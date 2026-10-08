@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { extname } from 'node:path'
 import { docToText } from './doc'
 import { docxToText } from './docx'
+import { hwpToText } from './hwp'
 import { pdfToText } from './pdf'
 import { pptToText } from './ppt'
 import { pptxToText } from './pptx'
@@ -63,6 +64,9 @@ export async function parseFileToText(filePath: string): Promise<ParsedFile> {
         return { ok: true, kind: 'text', text: await xlsxToText(await readFile(filePath)) }
       case 'pdf':
         return { ok: true, kind: 'text', text: await pdfToText(await readFile(filePath)) }
+      case 'hwp':
+      case 'hwpx':
+        return { ok: true, kind: 'text', text: await hwpToText(new Uint8Array(await readFile(filePath))) }
     }
   } catch (e) {
     return { ok: false, kind: 'text', error: e instanceof Error ? e.message : String(e) }

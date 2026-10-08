@@ -1042,6 +1042,18 @@ export function Home() {
   const [cloudMode, setCloudMode] = useState(false)
   // Updates and Shared with you take over the content area like a selected project
   const [pane, setPane] = useState<'updates' | 'shared' | null>(null)
+  // AI chip on the Hangul card: only when the Hangul editor has Redrob (see hangulAi)
+  const [hangulAi, setHangulAi] = useState(false)
+  useEffect(() => {
+    let live = true
+    void window.aiOffice
+      .hangulAi?.()
+      .then((on) => live && setHangulAi(on))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [])
   const updatesMode = pane === 'updates'
   const sharedMode = pane === 'shared'
   const setUpdatesMode = (on: boolean) => setPane(on ? 'updates' : null)
@@ -1503,7 +1515,7 @@ export function Home() {
     { ext: 'pptx', title: t('newSlide'), sub: '.pptx', action: handleNewSlide },
     { ext: 'md', title: t('newMarkdown'), sub: '.md', action: handleNewMarkdown },
     { ext: 'pdf', title: t('newPdf'), sub: '.pdf', action: handleNewPdf },
-    { ext: 'hwp', title: t('newHangul'), sub: '.hwp', action: handleNewHangul, ai: false },
+    { ext: 'hwp', title: t('newHangul'), sub: '.hwp', action: handleNewHangul, ai: hangulAi },
   ]
 
   function renderQuickCards() {

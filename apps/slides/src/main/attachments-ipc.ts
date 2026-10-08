@@ -62,6 +62,9 @@ const ATTACHMENT_EXTS = new Set([
   'xlsx',
   'xlsm',
   'xls',
+  // Hangul, parsed by our rhwp fork (packages/file-parse/src/hwp.ts)
+  'hwp',
+  'hwpx',
   ...ATTACHMENT_IMAGE_EXTS,
 ])
 

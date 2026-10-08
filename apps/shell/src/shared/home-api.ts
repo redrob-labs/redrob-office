@@ -125,6 +125,8 @@ export interface HomeApi {
   accountLogout(): Promise<void>
   /** app version (from package.json / electron app.getVersion) */
   getAppVersion(): Promise<string>
+  /** whether new Hangul documents open in an editor with Redrob AI (the owned editor; rhwp-studio has none) */
+  hangulAi(): Promise<boolean>
   /** whether the first-run onboarding has been completed or skipped (persisted in userData/app-settings.json) */
   onboardingSeen(): Promise<boolean>
   /** mark onboarding done; analytics remains enabled unless separately opted out */
@@ -341,6 +343,7 @@ export const HOME_CHANNELS = {
   accountLoginOpenUrl: 'home:account-login-open-url',
   accountLogout: 'home:account-logout',
   getAppVersion: 'home:get-app-version',
+  hangulAi: 'home:hangul-ai',
   onboardingSeen: 'home:onboarding-seen',
   setOnboardingSeen: 'home:set-onboarding-seen',
   getTheme: 'home:get-theme',
