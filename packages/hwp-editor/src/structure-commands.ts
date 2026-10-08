@@ -10,7 +10,7 @@ import { ordered, type Session } from './session'
 import { inBody, fromEngine, type Pos } from './position'
 import { deleteForward, type Command } from './commands'
 import { applyCharShape, applyParaShape, styleAt, styleList } from './format-commands'
-import { insertShape, objectProperties, selectedCells, tableAt, tableCells, type TableTarget } from './object-commands'
+import { insertShape, objectBox, objectProperties, selectedCells, tableAt, tableCells, type TableTarget } from './object-commands'
 
 function json(r: string, what: string): Record<string, unknown> {
   const v = JSON.parse(r) as Record<string, unknown>
@@ -314,14 +314,34 @@ export const insertTextbox: Command = {
   run: (ctx) => insertShape.run(ctx, { shapeType: 'textbox' }),
 }
 
+/** 개체 묶기: the objects Shift+clicked together become one group. */
+export const group: Command = {
+  id: 'insert:group-shapes',
+  isEnabled: ({ session }) => {
+    const all = session.selectedObjects()
+    return all.length >= 2 && all.every((o) => (o.kind === 'shape' || o.kind === 'picture') && o.section === all[0]!.section)
+  },
+  run({ session }) {
+    const all = session.selectedObjects()
+    const section = all[0]!.section
+    let made: { paraIdx: number; controlIdx: number } | null = null
+    const change = session.edit('insert:group-shapes', () => {
+      made = json(session.doc.raw.groupShapes(JSON.stringify({ sectionIdx: section, targets: all.map((o) => ({ paraIdx: o.para, controlIdx: o.control })) })), 'groupShapes') as { paraIdx: number; controlIdx: number }
+      return session.selection
+    })
+    const m = made as { paraIdx: number; controlIdx: number } | null
+    session.selectObject(m ? { kind: 'shape', section, para: m.paraIdx, control: m.controlIdx } : null)
+    return change
+  },
+}
+
 export const ungroup: Command = {
   id: 'insert:ungroup-shapes',
   isEnabled: ({ session }) => {
     const o = session.object
-    if (!o || o.kind !== 'shape') return false
+    if (!o || o.kind !== 'shape' || session.others.length) return false
     try {
-      const objs = JSON.parse(session.doc.raw.getObjects()) as Array<{ para: number; controlIndex: number; kind: string }>
-      return objs.some((x) => x.para === o.para && x.controlIndex === o.control && x.kind === 'group')
+      return !!objectBox(session, o)?.group
     } catch {
       return false
     }
@@ -623,6 +643,7 @@ export const STRUCTURE_COMMANDS = [
   objectCommand('insert:flip-vert', (p) => ({ vertFlip: !p.vertFlip })),
   objectCommand('insert:caption-toggle', (p) => ({ hasCaption: !p.hasCaption })),
   insertTextbox,
+  group,
   ungroup,
   deleteCommand,
   memoMove('review:memo-next', 1),

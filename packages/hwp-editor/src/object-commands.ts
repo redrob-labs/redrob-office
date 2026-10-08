@@ -123,6 +123,8 @@ export interface ObjectBox extends ObjectRef {
   height: number
   /** paint order on the page: higher is drawn later, on top */
   zOrder: number
+  /** a group of objects (개체 묶기), selected and moved as one shape */
+  group?: true
 }
 
 interface LayoutControl {
@@ -148,9 +150,9 @@ export function objectsOnPage(s: Session, page: number): ObjectBox[] {
   // The engine lists controls in paint order; its own `zOrder` field is not reliable here.
   for (const [i, c] of (r.controls ?? []).entries()) {
     if (c.secIdx === undefined || c.paraIdx === undefined || c.controlIdx === undefined) continue
-    const kind = c.type === 'image' ? 'picture' : c.type === 'equation' ? 'equation' : isChart(c.secIdx, c.paraIdx, c.controlIdx) ? 'chart' : c.type === 'shape' ? 'shape' : null
+    const kind = c.type === 'image' ? 'picture' : c.type === 'equation' ? 'equation' : isChart(c.secIdx, c.paraIdx, c.controlIdx) ? 'chart' : c.type === 'shape' || c.type === 'group' ? 'shape' : null
     if (!kind) continue
-    out.push({ kind, section: c.secIdx, para: c.paraIdx, control: c.controlIdx, page, x: c.x, y: c.y, width: c.w, height: c.h, zOrder: i })
+    out.push({ kind, section: c.secIdx, para: c.paraIdx, control: c.controlIdx, page, x: c.x, y: c.y, width: c.w, height: c.h, zOrder: i, ...(c.type === 'group' ? { group: true as const } : {}) })
   }
   return out
 }

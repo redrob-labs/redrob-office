@@ -96,7 +96,7 @@ describe('command coverage (task 2.6)', () => {
   it('reports the coverage', () => {
     const reached = commands.filter((id) => onBus.has(id) || id in HOST_COMMANDS)
     // The floor only rises: today's count, from 37 when this test began.
-    expect(reached.length).toBeGreaterThanOrEqual(167)
+    expect(reached.length).toBeGreaterThanOrEqual(168)
     console.log(`coverage ${reached.length}/${commands.length}; not yet ${Object.keys(NOT_YET).length}`)
   })
 })
