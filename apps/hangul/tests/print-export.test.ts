@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkPages, printableHtml, standaloneHtml } from '../src/main/print-export'
+import { checkPages, printableHtml, standaloneHtml, wordHtml } from '../src/main/print-export'
 
 const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="794" height="1123"><text>가</text></svg>'
 
@@ -31,5 +31,14 @@ describe('print and export (main)', () => {
     expect(out).toMatch(/^<!doctype html>/)
     expect(out).toContain('<title>계약서 &lt;초안&gt;</title>')
     expect(standaloneHtml('<html><body>x</body></html>', 't')).toBe('<html><body>x</body></html>')
+  })
+
+  it('a .doc export is the HTML-based Word document, with the body of the engine HTML', () => {
+    const out = wordHtml('<html><body><!--StartFragment--><p>제1조 목적</p><!--EndFragment--></body></html>', '계약서 <초안>')
+    expect(out).toContain('xmlns:w="urn:schemas-microsoft-com:office:word"')
+    expect(out).toContain('<meta name="ProgId" content="Word.Document">')
+    expect(out).toContain('<title>계약서 &lt;초안&gt;</title>')
+    expect(out).toContain('<p>제1조 목적</p>')
+    expect(out.match(/<body/g)).toHaveLength(1)
   })
 })

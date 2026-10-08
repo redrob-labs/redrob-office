@@ -14,7 +14,7 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
-import { checkPages, pdfOfPages, printPages, standaloneHtml, withPrintWindow, type PrintWindowLike } from './print-export'
+import { checkPages, pdfOfPages, printPages, standaloneHtml, withPrintWindow, wordHtml, type PrintWindowLike } from './print-export'
 import { cloudToolsOn, createHangulDocument, type HangulAiHooks } from './ai-ipc'
 import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
 import { resolveEditorKind } from './editor-kind'
@@ -54,6 +54,8 @@ const tDlg = createI18n({
     dlgHtmlTitle: 'Export as HTML',
     filterPdf: 'PDF documents',
     filterHtml: 'Web pages',
+    dlgDocTitle: 'Export as Word Document',
+    filterDoc: 'Word documents',
     dlgCompareTitle: 'Compare with Document',
   },
   ja: {
@@ -79,6 +81,8 @@ const tDlg = createI18n({
     dlgHtmlTitle: 'HTML로 내보내기',
     filterPdf: 'PDF 문서',
     filterHtml: '웹 페이지',
+    dlgDocTitle: 'Word 문서로 내보내기',
+    filterDoc: 'Word 문서',
     dlgCompareTitle: '비교할 문서',
   },
   fr: {
@@ -245,6 +249,8 @@ type DlgKey =
   | 'dlgHtmlTitle'
   | 'filterPdf'
   | 'filterHtml'
+  | 'dlgDocTitle'
+  | 'filterDoc'
   | 'dlgCompareTitle'
 const tm = (key: DlgKey) => tDlg(getUiLang(), key)
 
@@ -527,14 +533,19 @@ function registerHangulIpc(): void {
   // A hidden window for printing: sandboxed, no scripts, never shown.
   const printWindow = (): PrintWindowLike =>
     new BrowserWindow({ show: false, webPreferences: { sandbox: true, javascript: false, contextIsolation: true, nodeIntegration: false } }) as unknown as PrintWindowLike
-  const exportTarget = async (e: Electron.IpcMainInvokeEvent, name: string | undefined, ext: 'pdf' | 'html') => {
+  const EXPORT = {
+    pdf: { title: 'dlgPdfTitle', filter: 'filterPdf', extensions: ['pdf'] },
+    html: { title: 'dlgHtmlTitle', filter: 'filterHtml', extensions: ['html', 'htm'] },
+    doc: { title: 'dlgDocTitle', filter: 'filterDoc', extensions: ['doc'] },
+  } as const
+  const exportTarget = async (e: Electron.IpcMainInvokeEvent, name: string | undefined, ext: keyof typeof EXPORT) => {
     const current = savePathByWc.get(e.sender.id)
     const base = (name || (current ? basename(current, extname(current)) : tm('untitledFile'))).replace(/[\\/:*?"<>|]/g, '_')
     const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
     const picked = await showSaveDialogWithMemory(dialog, win, {
-      title: tm(ext === 'pdf' ? 'dlgPdfTitle' : 'dlgHtmlTitle'),
+      title: tm(EXPORT[ext].title),
       defaultPath: join(current ? dirname(current) : configuredDefaultSaveDir(app), `${base}.${ext}`),
-      filters: [{ name: tm(ext === 'pdf' ? 'filterPdf' : 'filterHtml'), extensions: ext === 'pdf' ? ['pdf'] : ['html', 'htm'] }],
+      filters: [{ name: tm(EXPORT[ext].filter), extensions: [...EXPORT[ext].extensions] }],
     })
     return picked.canceled || !picked.filePath ? null : picked.filePath
   }
@@ -584,12 +595,14 @@ function registerHangulIpc(): void {
   const fontSource = hancomFontSource(() => hancomFontRoots(process.platform, process.env))
   ipcMain.handle(HANGUL_CHANNELS.fontSource, (_e, face: unknown) => fontSource(face))
 
-  ipcMain.handle(HANGUL_CHANNELS.exportHtml, async (e, request: { html?: unknown; name?: string }) => {
+  ipcMain.handle(HANGUL_CHANNELS.exportHtml, async (e, request: { html?: unknown; name?: string; format?: unknown }) => {
     if (typeof request?.html !== 'string' || !request.html || request.html.length > 200 * 1024 * 1024) return { ok: false, error: 'hangul: bad export request' }
+    const format = request.format === 'doc' ? 'doc' : 'html'
     try {
-      const target = await exportTarget(e, request.name, 'html')
+      const target = await exportTarget(e, request.name, format)
       if (!target) return { ok: true, canceled: true }
-      await atomicWriteFile(target, Buffer.from(standaloneHtml(request.html, basename(target, extname(target))), 'utf8'))
+      const title = basename(target, extname(target))
+      await atomicWriteFile(target, Buffer.from(format === 'doc' ? wordHtml(request.html, title) : standaloneHtml(request.html, title), 'utf8'))
       return { ok: true, path: target }
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err) }

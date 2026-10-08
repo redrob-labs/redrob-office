@@ -101,16 +101,13 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 2.7 Hancom attribution (Settings > About in every locale, the Hangul editor status line, NOTICE and source; a printed manual, if one ships, must carry it too) in the Hangul About and help surfaces, in both locales: 「본 제품은
   한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.」 Required by the HWP
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
-- [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
-  CommandBus. Done: `apps/hangul/tests/command-coverage.test.ts` checks every listed command and
-  shortcut against the bus and the host command table (`host-commands.ts`); 175 of 176 reachable
-  (from 66), floor 175 (개체 묶기 through Shift+click multi-object selection; 새 문서, 불러오기,
-  최근 문서, 최근 목록 지우기 and 환경 설정 through the shell's hooks, `setHangulShellHooks`;
-  양식 모드 in `form-mode.ts`; 문서 비교 in `compare.ts`). Open: `file:export-doc` (.doc export
-  needs a Word 97 binary writer, which no engine in the suite has). [R5.3]
-
-## Phase 3: AI
-
+- [x] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
+  CommandBus (`apps/hangul/tests/command-coverage.test.ts` checks every listed command and shortcut
+  against the bus and the host command table, `host-commands.ts`): 176 of 176 (from 66), floor 176,
+  `NOT_YET` empty. The last ones: 개체 묶기 through Shift+click multi-object selection; 새 문서,
+  불러오기, 최근 문서, 최근 목록 지우기 and 환경 설정 through the shell's hooks
+  (`setHangulShellHooks`); 양식 모드 (`form-mode.ts`); 문서 비교 (`compare.ts`); Word 문서(.doc)로
+  내보내기 as the HTML-based Word document rhwp-studio wrote (`wordHtml`). [R5.3]
 - [x] 3.1 `createHangulSkill`: context, selection frozen per run, Node-id addressing. Compose it
   with the files, search and image skills. [R6.1]
 - [x] 3.2 Read tools: `get_document_context`, `read_blocks` (the Docs restricted-HTML dialect

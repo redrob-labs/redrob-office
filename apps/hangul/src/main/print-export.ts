@@ -115,3 +115,21 @@ export function standaloneHtml(fragment: string, title: string): string {
   const esc = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   return `<!doctype html>\n<html lang="ko"><head><meta charset="utf-8"><title>${esc}</title></head><body>\n${fragment}\n</body></html>\n`
 }
+
+/**
+ * A Word document (.doc) of the document's HTML, as rhwp-studio exported it:
+ * the HTML-based Word format, which Word opens as a document (not the binary
+ * Word 97 format, which no engine here writes). Fidelity is HTML's: text,
+ * paragraphs, tables and character formatting, not page layout.
+ */
+export function wordHtml(fragment: string, title: string): string {
+  const body = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(fragment)?.[1] ?? fragment
+  const esc = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><meta name="ProgId" content="Word.Document"><meta name="Generator" content="Redrob Hangul"><title>${esc}</title></head>
+<body lang="ko">
+${body.trim()}
+</body>
+</html>
+`
+}
