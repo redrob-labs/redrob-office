@@ -19,6 +19,7 @@ import { fromEngine, sameContainer, type Pos } from '../position'
 import { collapsed, ordered, type Change, type Session } from '../session'
 import { HANDLES, draggedBox, objectAt, objectBox, type Handle } from '../object-commands'
 import { hyperlinkAt } from '../field-commands'
+import { formAllows, gotoFormField } from '../form-mode'
 import { resolveKey, type KeyLike } from './keymap'
 import { Overlay } from './overlay'
 import { PageView, type PageViewOptions } from './page-view'
@@ -50,6 +51,8 @@ export class EditorView {
   /** Suggesting mode: cut marks text deleted and paste goes in as tracked plain text. */
   recording = false
   readOnly: boolean
+  /** 양식 모드: only click-here fields take typing; Tab goes from field to field. */
+  formMode = false
   private pendingKey: { e: KeyLike; timer: ReturnType<typeof setTimeout> | null } | null = null
   private dragging = false
   private unsubscribe: () => void
@@ -116,6 +119,7 @@ export class EditorView {
   run(id: string, params?: unknown): Change | null | 'unhandled' {
     if (!this.bus.has(id)) return this.opts.onUnhandledCommand?.(id, params) ? null : 'unhandled'
     if (this.readOnly && !id.startsWith('move:') && id !== 'edit:select-all') return null
+    if (this.formMode && !formAllows(this.session, id)) return null
     const r = this.bus.run(id, params)
     this.render()
     return r
@@ -213,6 +217,11 @@ export class EditorView {
       clip = !show
       raw.setClipEnabled(clip)
     })
+    toggle('view:form-mode', () => this.formMode, (on) => {
+      this.formMode = on
+      this.session.selectObject(null)
+      this.render()
+    })
     toggle('view:toggle-grid', () => this.pages.content.classList.contains('hwp-show-grid'), (on) => this.pages.content.classList.toggle('hwp-show-grid', on))
     // 현재 쪽만 감추기 (header and footer) and 머리말/꼬리말 감추기 (header) on the caret's page.
     const page = () => {
@@ -284,6 +293,10 @@ export class EditorView {
   }
 
   private handleKey(e: KeyLike): boolean {
+    if (this.formMode && e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (gotoFormField(this.session, e.shiftKey ? -1 : 1)) this.render()
+      return true
+    }
     if (this.session.object && !e.ctrlKey && !e.metaKey && !e.altKey) {
       if (e.key === 'Escape') {
         this.session.selectObject(null)
@@ -291,7 +304,7 @@ export class EditorView {
         return true
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (!this.readOnly) this.run('insert:picture-delete')
+        if (!this.readOnly && !this.formMode) this.run('insert:picture-delete')
         return true
       }
       if (e.key === 'Enter') return !!this.opts.onUnhandledCommand?.('format:object-properties')
@@ -357,7 +370,7 @@ export class EditorView {
 
   onCut(e: { clipboardData: DataTransfer | null; preventDefault(): void }): void {
     e.preventDefault()
-    if (this.readOnly) return this.onCopy(e)
+    if (this.readOnly || this.formMode) return this.onCopy(e)
     if (this.recording) {
       // Suggesting: the cut text is marked deleted, not removed.
       const data = copy(this.session)
@@ -374,6 +387,11 @@ export class EditorView {
     e.preventDefault()
     if (this.readOnly) return
     const data = fromDataTransfer(e.clipboardData)
+    // Form mode: plain text into the field, if the caret is in one.
+    if (this.formMode) {
+      if (data?.text) this.run('edit:insert-text', { text: data.text.replace(/[\r\n]+/g, ' ') })
+      return
+    }
     // Suggesting: paste as text through the bus, so it is recorded as an insertion.
     if (data && this.recording) this.bus.run('edit:insert-text', { text: data.text })
     else if (data) paste(this.session, data)
@@ -463,7 +481,7 @@ export class EditorView {
     if (others.length) this.overlay.setDecoration({ key: 'object:others', kind: 'object-selection', rects: others })
     else this.overlay.clearDecoration('object:others')
     // Handles move or size one object; with several selected there are none.
-    if (o.kind === 'equation' || this.readOnly || this.session.others.length) this.overlay.clearDecoration('object:handles')
+    if (o.kind === 'equation' || this.readOnly || this.formMode || this.session.others.length) this.overlay.clearDecoration('object:handles')
     else this.overlay.setDecoration({ key: 'object:handles', kind: 'object-handle', rects: this.handleRects(box) })
   }
 
@@ -474,7 +492,7 @@ export class EditorView {
   private objectGrip(page: number, x: number, y: number): Handle | 'move' | null {
     const o = this.session.object
     const box = o ? objectBox(this.session, o) : null
-    if (!o || !box || box.page !== page || o.kind === 'equation' || this.readOnly || this.session.others.length) return null
+    if (!o || !box || box.page !== page || o.kind === 'equation' || this.readOnly || this.formMode || this.session.others.length) return null
     const slop = 3 / this.pages.zoom
     for (const r of this.handleRects(box)) if (x >= r.x - slop && x <= r.x + r.width + slop && y >= r.y - slop && y <= r.y + r.height + slop) return r.handle
     return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height ? 'move' : null
@@ -526,7 +544,7 @@ export class EditorView {
     e.preventDefault()
     // The first click of the double-click moved the caret; go back to where the person was typing.
     if (this.beforeClick && !this.session.selection.head.story) this.session.select(this.beforeClick)
-    if (!this.readOnly) this.bus.run('page:headerfooter-edit', { kind: hf.isHeader ? 'header' : 'footer', applyTo: hf.applyTo, page: pt.page })
+    if (!this.readOnly && !this.formMode) this.bus.run('page:headerfooter-edit', { kind: hf.isHeader ? 'header' : 'footer', applyTo: hf.applyTo, page: pt.page })
     const q = this.storyPosAt(pt.page, pt.x, pt.y, true)
     if (q) this.session.select({ anchor: q, head: q })
     this.render()
@@ -552,7 +570,7 @@ export class EditorView {
       }
     }
     // Shift+click on another object adds it to the selected one (for 개체 묶기).
-    if (e.shiftKey && this.session.object && !this.readOnly) {
+    if (e.shiftKey && this.session.object && !this.readOnly && !this.formMode) {
       const add = this.objectUnder(e.clientX, e.clientY)
       if (add) {
         e.preventDefault()
