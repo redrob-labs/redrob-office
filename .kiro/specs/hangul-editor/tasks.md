@@ -177,9 +177,12 @@ Requirement references are in brackets, e.g. [R2.1].
   comments but does not write them into the room. [R9.3, R9.5, R7.3]
 - [ ] 5.6 Done: multi-client fuzz in CI (`packages/hwp-editor/tests/live-fuzz.test.ts`: 2 to 5
   views, late, reordered, duplicated and held-offline updates, a late joiner, undo and redo, and a
-  save-and-reopen check; 16 rounds per pull request, 400 in the weekly run). Open: the same run
-  against the Compose sync stack, and a 한글 2024 open check on the converged files (Windows runner).
-  [R9.4]
+  save-and-reopen check; 16 rounds per pull request, 400 in the weekly run). Over the Compose sync
+  stack: `apps/hangul/tests/live-stack.test.ts`, run by the `sync service (docker compose)` job
+  (8 rounds; 2 to 4 editors and a viewer per shared file, joined through `hocuspocusRooms` as the
+  shell joins; random typing, a dropped and restored connection, convergence of every view and
+  engine, a viewer's write refused by the server, save-and-reopen, and a late joiner served from
+  the stored copy). Open: a 한글 2024 open check on the converged files (Windows runner). [R9.4]
 
 ## Phase 6: Cutover
 
