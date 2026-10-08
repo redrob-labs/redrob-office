@@ -11,7 +11,7 @@
  */
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { coreVersion, initHwpCore } from '@genoffice/hwp-core'
-import { CommandBus, Comments, EditorView, FontEnvironment, Revisions, measureFontCheck, catchUpComments, catchUpRevisions, changedParagraphs, revisionCommands } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, EditorView, FontEnvironment, compareDocuments, type CompareEntry, Revisions, measureFontCheck, catchUpComments, catchUpRevisions, changedParagraphs, revisionCommands } from '@genoffice/hwp-editor'
 import { HwpCoreDocument } from '@genoffice/hwp-core'
 import { catchUpItems, type CatchUpItem } from '@genoffice/versions'
 import type { ShareApi } from '@genoffice/sync-client'
@@ -45,7 +45,7 @@ import { ObjectPropertiesDialog } from './ObjectDialogs'
 import { ClickHereDialog, HyperlinkDialog } from './FieldDialogs'
 import { StyleDialog } from './StyleDialog'
 import { ChartDialog } from './ChartDialog'
-import { AboutDialog, RecentDialog, PageHideDialog } from './InfoDialogs'
+import { AboutDialog, CompareDialog, RecentDialog, PageHideDialog } from './InfoDialogs'
 import {
   BulletShapeDialog,
   ColumnSettingsDialog,
@@ -99,6 +99,7 @@ export function NextHangulEditor(): React.JSX.Element {
   const stopRecordingRef = useRef<(() => void) | null>(null)
   const authorRef = useRef('User')
   const [dialog, setDialog] = useState<HostDialog | null>(null)
+  const [compared, setCompared] = useState<{ name: string; entries: CompareEntry[] } | null>(null)
   const [revision, refresh] = useReducer((n: number) => n + 1, 0)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [commentComposing, setCommentComposing] = useState(false)
@@ -186,6 +187,23 @@ export function NextHangulEditor(): React.JSX.Element {
         return
       }
       if (api.printPages) void api.printPages({ pages: pageRenders(opened.session), mode: kind, name }).then(report)
+    },
+    compare: () => {
+      const api = window.hangulApi
+      const s = viewRef.current?.session
+      if (!api.pickCompare || !s) return
+      void api.pickCompare().then((picked) => {
+        if (!picked) return
+        let other: HwpCoreDocument | null = null
+        try {
+          other = HwpCoreDocument.open(picked.bytes)
+          setCompared({ name: picked.fileName, entries: compareDocuments(s.doc, other) })
+        } catch {
+          setSaveState({ kind: 'error', message: t('nextCompareFailed', { name: picked.fileName }) })
+        } finally {
+          other?.dispose()
+        }
+      })
     },
     files: (kind) => {
       const api = window.hangulApi
@@ -650,6 +668,20 @@ export function NextHangulEditor(): React.JSX.Element {
         {view && dialog === 'table-props' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'table-borders' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} initialTab="border" onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'page-hide' ? <PageHideDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {compared && view ? (
+          <CompareDialog
+            name={compared.name}
+            entries={compared.entries}
+            onGo={(at) => {
+              const p = { section: at.section, para: at.para, offset: 0 }
+              view.session.select({ anchor: p, head: p })
+              setCompared(null)
+              view.render()
+              view.focus()
+            }}
+            onClose={() => (setCompared(null), view.focus())}
+          />
+        ) : null}
         {dialog === 'recent' ? <RecentDialog api={window.hangulApi} onClose={() => (setDialog(null), viewRef.current?.focus())} /> : null}
         {dialog === 'about' ? <AboutDialog engine={`rhwp ${String(info.version ?? '')}`.trim()} onClose={() => (setDialog(null), viewRef.current?.focus())} /> : null}
         {view && dialog === 'insert-rows-cols' ? <InsertRowsColsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}

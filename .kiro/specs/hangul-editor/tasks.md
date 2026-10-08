@@ -103,11 +103,12 @@ Requirement references are in brackets, e.g. [R2.1].
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
 - [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
   CommandBus. Done: `apps/hangul/tests/command-coverage.test.ts` checks every listed command and
-  shortcut against the bus and the host command table (`host-commands.ts`); 173 of 176 reachable
-  (from 66), floor 173 (개체 묶기 through Shift+click multi-object selection; 새 문서, 불러오기,
+  shortcut against the bus and the host command table (`host-commands.ts`); 174 of 176 reachable
+  (from 66), floor 174 (개체 묶기 through Shift+click multi-object selection; 새 문서, 불러오기,
   최근 문서 and 최근 목록 지우기 through the shell's hooks, `setHangulShellHooks`; 양식 모드 in
-  `form-mode.ts`). Open: the 3 in `NOT_YET`, each with its reason (.doc export; compare
-  documents; the shell's options). [R5.3]
+  `form-mode.ts`; 문서 비교 in `compare.ts`). Open: the 2 in `NOT_YET`, each with its reason
+  (.doc export, which needs a Word 97 writer; the shell's options, which the shell cannot open
+  from main yet). [R5.3]
 
 ## Phase 3: AI
 
