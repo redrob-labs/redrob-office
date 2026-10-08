@@ -215,6 +215,11 @@ const homeApi: HomeApi = {
     ipcRenderer.on('app:theme-changed', listener)
     return () => ipcRenderer.removeListener('app:theme-changed', listener)
   },
+  onOpenSettings(handler) {
+    const listener = () => handler()
+    ipcRenderer.on('app:open-settings', listener)
+    return () => ipcRenderer.removeListener('app:open-settings', listener)
+  },
   async getOfficePrefs() {
     return normalizeOfficePrefs(await ipcRenderer.invoke(HOME_CHANNELS.getOfficePrefs))
   },

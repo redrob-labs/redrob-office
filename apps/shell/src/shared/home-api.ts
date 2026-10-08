@@ -152,6 +152,8 @@ export interface HomeApi {
   pickDefaultSaveDir(): Promise<string | null>
   /** theme switched anywhere (broadcast from the main process) */
   onThemeChanged(handler: (theme: UiTheme) => void): () => void
+  /** an editor asked for Settings (한글's 환경 설정); Home is already in front */
+  onOpenSettings?(handler: () => void): () => void
   /** open the GenTeam community page in the default browser */
   openGenTeam(): Promise<void>
   /** open the Genspark credit-usage page in the default browser */

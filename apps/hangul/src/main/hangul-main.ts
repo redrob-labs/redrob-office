@@ -301,6 +301,8 @@ export interface HangulShellHooks {
   recentFiles(): string[]
   openPath(path: string): boolean
   removeRecent(paths: string[]): void
+  /** Bring Home forward with Settings open (한글's 환경 설정). */
+  openSettings(): void
 }
 
 let shellHooks: HangulShellHooks | null = null
@@ -574,6 +576,7 @@ function registerHangulIpc(): void {
     if (!shellHooks || typeof path !== 'string' || !hangulRecentFiles(shellHooks.recentFiles()).includes(path)) return false
     return shellHooks.openPath(path)
   })
+  ipcMain.handle(HANGUL_CHANNELS.openSettings, () => shellHooks?.openSettings())
   ipcMain.handle(HANGUL_CHANNELS.clearRecent, () => {
     if (shellHooks) shellHooks.removeRecent(shellHooks.recentFiles().filter((p) => HANGUL_FILE.test(p)))
   })
