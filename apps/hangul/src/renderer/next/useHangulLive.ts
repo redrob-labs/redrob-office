@@ -12,11 +12,13 @@
 //   - when someone saves (the base moves on), a view with no unsaved changes
 //     of its own reloads that version, which brings formatting and objects
 //     the live text does not carry.
+// Comments travel through the room's `hwp:comments` map as they are written
+// (LiveComments), so others see a memo without waiting for a save.
 // View and comment roles are read-only.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as Y from 'yjs'
 import { LIVE_BASE_KEY, LIVE_META, type LiveApi, type LivePeer, type Role } from '@genoffice/sync-client'
-import { LiveBinding, type EditorView } from '@genoffice/hwp-editor'
+import { LiveBinding, LiveComments, type Comments, type EditorView } from '@genoffice/hwp-editor'
 import { seatOf, type PresencePerson } from '@genoffice/ui'
 
 const FROM_ROOM = Symbol('from-room')
@@ -32,6 +34,8 @@ export interface HangulLiveDeps {
   api: Partial<LiveApi> | undefined
   path: string | null
   view: EditorView | null
+  /** This view's comments, shared with the room while live. */
+  comments?: Comments | null
   /** Replace the open document with these bytes (in memory; the file on disk is not touched). */
   reload(bytes: Uint8Array): void
   /** Called when the binding changes the document view (remote text, carets). */
@@ -48,12 +52,12 @@ export function facesFor(peers: readonly LivePeer[], me: number | null): Presenc
   return [...byId.values()]
 }
 
-export function useHangulLive({ api, path, view, reload, onChange }: HangulLiveDeps): { state: HangulLiveState; faces: PresencePerson[]; binding: LiveBinding | null } {
+export function useHangulLive({ api, path, view, comments, reload, onChange }: HangulLiveDeps): { state: HangulLiveState; faces: PresencePerson[]; binding: LiveBinding | null } {
   const [state, setState] = useState<HangulLiveState>({ kind: 'off' })
   const [peers, setPeers] = useState<LivePeer[]>([])
   const [binding, setBinding] = useState<LiveBinding | null>(null)
-  const depsRef = useRef({ reload, onChange })
-  depsRef.current = { reload, onChange }
+  const depsRef = useRef({ reload, onChange, comments })
+  depsRef.current = { reload, onChange, comments }
   const clientRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -96,6 +100,8 @@ export function useHangulLive({ api, path, view, reload, onChange }: HangulLiveD
       doc.on('update', send)
       const live = new LiveBinding(view.session, doc, view.bus, { seed, readOnly: r.readOnly })
       if (seed) meta.set(LIVE_BASE_KEY, r.version)
+      const c = depsRef.current.comments
+      const liveComments = c && c.session === view.session ? new LiveComments(c, doc, live, { readOnly: r.readOnly }) : null
       view.readOnly = view.readOnly || r.readOnly
       const offUpdate = api.onLiveUpdate?.((fileId, update) => {
         if (fileId !== r.fileId) return
@@ -142,6 +148,7 @@ export function useHangulLive({ api, path, view, reload, onChange }: HangulLiveD
         offUpdate?.()
         offPeers?.()
         doc.off('update', send)
+        liveComments?.destroy()
         live.destroy()
         api.liveLeave!(r.fileId)
         doc.destroy()

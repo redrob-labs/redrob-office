@@ -23,6 +23,14 @@ export interface CommentMeta {
   mentions?: string[]
   /** ISO time the comment was written here (memos carry no date). */
   at?: string
+  /** Stable id across the people editing live (memo numbers differ between copies). */
+  live?: string
+}
+
+/** A new live id: random, short, never reused. */
+export function newLiveId(): string {
+  const c = globalThis.crypto as Crypto | undefined
+  return c?.randomUUID ? c.randomUUID() : `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
 }
 
 interface MetaFile {
@@ -174,7 +182,7 @@ export class Comments {
       const memos = this.memos()
       number = memos.find((m) => m.fieldId === fieldId)!.number
       const m = this.meta()
-      m.comments[String(number)] = { at: this.now(), ...(mentionsIn(text, people).length ? { mentions: mentionsIn(text, people) } : {}) }
+      m.comments[String(number)] = { at: this.now(), live: newLiveId(), ...(mentionsIn(text, people).length ? { mentions: mentionsIn(text, people) } : {}) }
       this.writeMeta(m, memos)
       return this.session.selection
     }, origin)
@@ -192,7 +200,7 @@ export class Comments {
       number = memos.find((m) => m.fieldId === fieldId)!.number
       const m = this.meta()
       const mentions = mentionsIn(text, people)
-      m.comments[String(number)] = { parent: t.id, at: this.now(), ...(mentions.length ? { mentions } : {}) }
+      m.comments[String(number)] = { parent: t.id, at: this.now(), live: newLiveId(), ...(mentions.length ? { mentions } : {}) }
       // Replying reopens a resolved thread, as in Docs.
       if (m.comments[String(t.id)]?.resolved) m.comments[String(t.id)]!.resolved = false
       this.writeMeta(m, memos)
@@ -232,6 +240,39 @@ export class Comments {
       this.writeMeta(this.meta(), this.memos())
       return this.session.selection
     }, origin)
+  }
+
+  /** The live id of a memo: from its metadata, else its number (copies opened from one file agree on those). */
+  liveIdOf(number: number): string {
+    return this.meta().comments[String(number)]?.live ?? `n${number}`
+  }
+
+  /** The memo number holding a live id, if this copy has it. */
+  numberOfLive(id: string): number | null {
+    const meta = this.meta().comments
+    for (const m of this.memos()) if ((meta[String(m.number)]?.live ?? `n${m.number}`) === id) return m.number
+    return null
+  }
+
+  /** Add a comment as given (someone else's, arriving live): its anchor, author, time and live id. */
+  addAt(c: { target: ParagraphTarget; start: number; end: number; author: string; text: string; at?: string; mentions?: string[]; parent?: number; resolved?: boolean; live: string }, origin: ChangeOrigin = 'remote'): number {
+    let number = 0
+    this.session.edit('review:memo-insert', () => {
+      const fieldId = this.session.doc.addMemo(c.target, c.start, c.end, c.author, c.text)
+      const memos = this.memos()
+      number = memos.find((m) => m.fieldId === fieldId)!.number
+      const m = this.meta()
+      m.comments[String(number)] = {
+        live: c.live,
+        ...(c.parent !== undefined ? { parent: c.parent } : {}),
+        ...(c.at ? { at: c.at } : {}),
+        ...(c.mentions?.length ? { mentions: c.mentions } : {}),
+        ...(c.resolved ? { resolved: true } : {}),
+      }
+      this.writeMeta(m, memos)
+      return this.session.selection
+    }, origin)
+    return number
   }
 
   /** The anchored range of a thread, for the overlay and for jumping to it. */

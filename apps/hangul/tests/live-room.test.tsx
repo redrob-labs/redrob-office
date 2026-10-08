@@ -10,7 +10,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import * as Y from 'yjs'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
-import { CommandBus, EditorView, Session, type Pos } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, EditorView, Session, type Pos } from '@genoffice/hwp-editor'
 import { LIVE_BASE_KEY, LIVE_META, type LiveApi, type LivePeer, type LivePresence } from '@genoffice/sync-client'
 import { useHangulLive } from '../src/renderer/next/useHangulLive'
 
@@ -78,6 +78,7 @@ class Room {
 
 interface Mounted {
   view: EditorView
+  comments: Comments
   state: () => ReturnType<typeof useHangulLive>
   reloads: Uint8Array[]
 }
@@ -92,10 +93,11 @@ async function mount(api: Partial<LiveApi>, b: Uint8Array): Promise<Mounted> {
   const el = document.createElement('div')
   document.body.append(el)
   const view = new EditorView(el, s, new CommandBus(s), { painter: () => {} })
+  const comments = new Comments(s)
   let last: ReturnType<typeof useHangulLive> | null = null
   const reloads: Uint8Array[] = []
   function Probe() {
-    last = useHangulLive({ api, path: '/docs/공유.hwpx', view, reload: (x) => reloads.push(x), onChange: () => {} })
+    last = useHangulLive({ api, path: '/docs/공유.hwpx', view, comments, reload: (x) => reloads.push(x), onChange: () => {} })
     return null
   }
   const host = document.createElement('div')
@@ -103,7 +105,7 @@ async function mount(api: Partial<LiveApi>, b: Uint8Array): Promise<Mounted> {
   roots.push(root)
   await act(async () => root.render(createElement(Probe)))
   await act(async () => new Promise((r) => setTimeout(r, 10)))
-  return { view, state: () => last!, reloads }
+  return { view, comments, state: () => last!, reloads }
 }
 
 const text = (v: EditorView) => v.session.doc.text(0, 0)
@@ -163,5 +165,22 @@ describe('live Hangul room', () => {
     await act(async () => new Promise((r) => setTimeout(r, 10)))
     expect(b.reloads).toHaveLength(1)
     expect(a.reloads).toHaveLength(0)
+  })
+
+  it('a comment written in one view appears in the other without marking it unsaved; a view role sees it too', async () => {
+    const base = bytes('제1조 목적')
+    const room = new Room(base)
+    const a = await mount(room.api('갑'), base)
+    const b = await mount(room.api('을'), base)
+    const v = await mount(room.api('병', 'view'), base)
+    await act(async () => void a.comments.add({ anchor: P(0, 0), head: P(0, 3) }, '갑', '조 번호 확인'))
+    for (const m of [b, v]) {
+      const t = m.comments.threads()
+      expect(t.map((x) => [x.root.author, x.root.text, x.anchor.text])).toEqual([['갑', '조 번호 확인', '제1조']])
+      expect(m.view.session.dirty).toBe(false)
+    }
+    // A view role cannot comment into the room.
+    await act(async () => void v.comments.add({ anchor: P(0, 4), head: P(0, 6) }, '병', '무시'))
+    expect(a.comments.threads()).toHaveLength(1)
   })
 })
