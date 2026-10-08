@@ -517,6 +517,7 @@ fn parse_hwp_with_cfb(
         .any(|(p, _)| p == crate::model::document::HWPX_ORIGIN_STREAM_PATH);
 
     let mut doc = Document {
+        redrob_comments: None,
         header: model_header,
         doc_properties,
         doc_info,
@@ -595,6 +596,17 @@ fn parse_hwp_with_cfb(
         normalize_variant_paragraph_vpos(&mut doc);
     }
 
+    // [Redrob 4.2] comment thread metadata stream
+    if let Some(idx) = doc
+        .extra_streams
+        .iter()
+        .position(|(p, _)| p == crate::model::document::REDROB_COMMENTS_HWP_STREAM)
+    {
+        let (_, bytes) = doc.extra_streams.remove(idx);
+        if bytes.len() <= 16 * 1024 * 1024 {
+            doc.redrob_comments = Some(bytes);
+        }
+    }
     if let Some(idx) = doc
         .extra_streams
         .iter()
@@ -1033,6 +1045,7 @@ fn parse_hwp_with_lenient(
     };
 
     let mut doc = Document {
+        redrob_comments: None,
         header: model_header,
         doc_properties,
         doc_info,

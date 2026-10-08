@@ -116,9 +116,11 @@ Requirement references are in brackets, e.g. [R2.1].
   two-way round trip. [R7.1]
   API and engine fixes done (`document_core/memos.rs`). Byte-level goldens against R2 fixtures and the
   한글 2024 two-way round trip wait for the runner (P-1).
-- [ ] 4.2 Comments UI: rail, threads, replies, resolve, @mentions, @Redrob; storage for thread
+- [x] 4.2 Comments UI: rail, threads, replies, resolve, @mentions, @Redrob; storage for thread
   metadata that has no native slot (decided in this task). AI `read_comments`, `reply_comment` and
   `resolve_comment`. [R7.2, R6.1]
+  Storage decided: memos for the comments, a Redrob package part for thread state. Checking that 한글 2024
+  opens files carrying the part (HWPX entry, HWP 5.0 stream) waits for the runner (P-1).
 - [x] 4.0 E5a revision preservation in the engine (HWPX marks and tables; HWP 5.0 raw data kept on
   the right paragraphs through edits). Flip `known-gaps.test.ts` to assert preservation. Can land
   before Phase 4. [R3.3]

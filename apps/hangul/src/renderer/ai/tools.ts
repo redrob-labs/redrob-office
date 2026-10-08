@@ -4,7 +4,7 @@
 // exactly as it was.
 import type { AgentToolCall, AgentToolDef, ToolExecution } from '@genoffice/agent-core'
 import type { NodeId, Outline, OutlineParagraph } from '@genoffice/hwp-core'
-import { CommandBus, at, containerOf, ordered, paraIndex, sameContainer, styleList, type Pos, type Selection, type Session } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, at, containerOf, ordered, paraIndex, sameContainer, styleList, type Pos, type Selection, type Session } from '@genoffice/hwp-editor'
 import { t } from '../i18n/locale'
 import {
   NodeError,
@@ -33,9 +33,30 @@ const CELL_LINES_PER_TABLE = 40
 /** Commands `apply_commands` may run: formatting, tables, page and inserts. Never history, movement or file commands. */
 const COMMAND_PREFIXES = ['format:', 'table:', 'page:', 'insert:']
 
-export const MUTATING_TOOLS = new Set(['replace_blocks', 'insert_content', 'delete_blocks', 'replace_text', 'apply_commands', 'set_header_footer'])
+export const MUTATING_TOOLS = new Set(['replace_blocks', 'insert_content', 'delete_blocks', 'replace_text', 'apply_commands', 'set_header_footer', 'reply_comment', 'resolve_comment'])
+
+/** The author Redrob's own comment replies carry. */
+export const REDROB_AUTHOR = 'Redrob'
 
 const idsSchema = { type: 'array', items: { type: 'integer' }, description: 'Node ids from the document outline' }
+
+export const COMMENT_TOOLS: AgentToolDef[] = [
+  {
+    name: 'read_comments',
+    description: 'All comment threads (한글 memos): thread id, the commented paragraph’s Node id and text, author, text and replies, and whether it is resolved.',
+    inputSchema: { type: 'object', properties: { includeResolved: { type: 'boolean', description: 'default true' } } },
+  },
+  {
+    name: 'reply_comment',
+    description: 'Reply in a comment thread, signed Redrob. Use it to answer a question or say what you changed for that comment.',
+    inputSchema: { type: 'object', properties: { threadId: { type: 'integer' }, text: { type: 'string' } }, required: ['threadId', 'text'] },
+  },
+  {
+    name: 'resolve_comment',
+    description: 'Mark a comment thread resolved (or reopen it with resolved=false), after its request is done.',
+    inputSchema: { type: 'object', properties: { threadId: { type: 'integer' }, resolved: { type: 'boolean', description: 'default true' } }, required: ['threadId'] },
+  },
+]
 
 export const HANGUL_TOOLS: AgentToolDef[] = [
   {
@@ -192,6 +213,15 @@ function stats(s: Session, outline: Outline): string {
   return `${s.doc.pageCount()} pages, ${outline.sections.length} section(s), ${paragraphs} body paragraphs, ${chars} body characters, format ${s.format}`
 }
 
+/** Unresolved threads for the context (resolved ones are in read_comments). */
+export function commentContext(s: Session): string {
+  const open = new Comments(s).threads().filter((t) => !t.resolved)
+  if (!open.length) return ''
+  const line = (t: (typeof open)[number]) =>
+    `${t.id} | on ${t.anchor.nodeId} "${clip(t.anchor.text, 60)}" | ${t.root.author}: ${clip(t.root.text, 200)}${t.replies.length ? ` (+${t.replies.length} replies, last ${t.replies.at(-1)!.author}: ${clip(t.replies.at(-1)!.text, 120)})` : ''}`
+  return ['Open comment threads (id | commented paragraph | first comment):', ...open.slice(0, 50).map(line)].join('\n')
+}
+
 export function buildContext(s: Session, frozen: FrozenSelection | null, offset = 0): string {
   const outline = s.doc.outline()
   const lines = outlineLines(s, outline)
@@ -200,6 +230,8 @@ export function buildContext(s: Session, frozen: FrozenSelection | null, offset 
   if (offset + CONTEXT_LINE_LIMIT < lines.length) parts.push(`… outline continues: get_document_context with offset=${offset + CONTEXT_LINE_LIMIT} (${lines.length} lines in total)`)
   if (frozen) parts.push('', `User selection: paragraphs ${frozen.ids.join(', ')}`, `Selected text: ${clip(frozen.text, SELECTION_CHARS)}`)
   else parts.push('', 'User selection: none (caret only)')
+  const comments = commentContext(s)
+  if (comments) parts.push('', comments)
   return parts.join('\n')
 }
 
@@ -494,6 +526,31 @@ export function executeHangulTool(env: ToolEnv, call: AgentToolCall): ToolExecut
         return applyCommands(s, bus, call.input, frozen)
       case 'set_header_footer':
         return setHeaderFooter(s, call.input)
+      case 'read_comments': {
+        const threads = new Comments(s).threads().filter((t) => call.input.includeResolved !== false || !t.resolved)
+        const out = threads.map((t) => ({
+          threadId: t.id,
+          resolved: t.resolved,
+          paragraph: t.anchor.nodeId,
+          commentedText: t.anchor.text,
+          comments: [t.root, ...t.replies].map((c) => ({ author: c.author, text: c.text, ...(c.at ? { at: c.at } : {}) })),
+        }))
+        return { output: out.length ? JSON.stringify(out) : 'no comments', mutated: false, summary: t('aiSumReadComments', { count: out.length }) }
+      }
+      case 'reply_comment': {
+        const text = String(call.input.text ?? '').trim()
+        if (!text) throw new NodeError('text must not be empty')
+        const c = new Comments(s)
+        if (!c.thread(Number(call.input.threadId))) throw new NodeError(`no comment thread ${String(call.input.threadId)}; call read_comments for current ids`)
+        c.reply(Number(call.input.threadId), REDROB_AUTHOR, text, [], 'ai')
+        return { output: 'Replied.', mutated: true, summary: t('aiSumReplyComment') }
+      }
+      case 'resolve_comment': {
+        const c = new Comments(s)
+        if (!c.thread(Number(call.input.threadId))) throw new NodeError(`no comment thread ${String(call.input.threadId)}; call read_comments for current ids`)
+        c.resolve(Number(call.input.threadId), call.input.resolved !== false, 'ai')
+        return { output: call.input.resolved === false ? 'Reopened.' : 'Resolved.', mutated: true, summary: t('aiSumResolveComment') }
+      }
       default:
         return err(`Unknown tool: ${call.name}`, call.name)
     }

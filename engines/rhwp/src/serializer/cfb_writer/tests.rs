@@ -32,6 +32,7 @@ fn test_serialize_hwp_empty_document() {
 #[test]
 fn test_serialize_hwp_cfb_streams() {
     let doc = Document {
+        redrob_comments: None,
         header: FileHeader {
             version: HwpVersion {
                 major: 5,
@@ -90,6 +91,7 @@ fn test_serialize_hwp_cfb_streams() {
 #[test]
 fn test_serialize_hwp_compressed() {
     let doc = Document {
+        redrob_comments: None,
         header: FileHeader {
             version: HwpVersion {
                 major: 5,
@@ -171,6 +173,7 @@ fn test_full_roundtrip_uncompressed() {
     });
 
     let original = Document {
+        redrob_comments: None,
         header: FileHeader {
             version: HwpVersion {
                 major: 5,
@@ -252,6 +255,7 @@ fn test_full_roundtrip_uncompressed() {
 #[test]
 fn test_full_roundtrip_compressed() {
     let original = Document {
+        redrob_comments: None,
         header: FileHeader {
             version: HwpVersion {
                 major: 5,
@@ -1652,6 +1656,7 @@ fn test_ole_storage_size_prefix_restored() {
     });
 
     let doc = Document {
+        redrob_comments: None,
         header: FileHeader {
             version: HwpVersion {
                 major: 5,
@@ -1740,6 +1745,7 @@ fn test_compressed_ole_storage_payload_is_deflated() {
     });
 
     let doc = Document {
+        redrob_comments: None,
         header: FileHeader {
             version: HwpVersion {
                 major: 5,

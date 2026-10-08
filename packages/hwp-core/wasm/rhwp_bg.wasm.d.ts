@@ -236,6 +236,7 @@ export const hwpdocument_getParagraphCount: (a: number, b: number) => [number, n
 export const hwpdocument_getParagraphLength: (a: number, b: number, c: number) => [number, number, number];
 export const hwpdocument_getPictureProperties: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_getPositionOfPage: (a: number, b: number) => [number, number, number, number];
+export const hwpdocument_getRedrobComments: (a: number) => [number, number];
 export const hwpdocument_getScanItems: (a: number) => [number, number];
 export const hwpdocument_getSectionCount: (a: number) => number;
 export const hwpdocument_getSectionDef: (a: number, b: number) => [number, number, number, number];
@@ -448,6 +449,7 @@ export const hwpdocument_setPageHide: (a: number, b: number, c: number, d: numbe
 export const hwpdocument_setPageHideEx: (a: number, b: number, c: number) => [number, number, number, number];
 export const hwpdocument_setParaShapeId: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_setPictureProperties: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+export const hwpdocument_setRedrobComments: (a: number, b: number, c: number) => void;
 export const hwpdocument_setSectionDef: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_setSectionDefAll: (a: number, b: number, c: number) => [number, number, number, number];
 export const hwpdocument_setShapeProperties: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];

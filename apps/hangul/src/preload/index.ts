@@ -61,6 +61,7 @@ const api: HangulApi = {
   fetchImage: (url) => ipcRenderer.invoke(AI_CHANNELS.fetchImage, url),
   generateImage: (op) => ipcRenderer.invoke(HANGUL_CHANNELS.generateImage, op),
   createDocument: (request) => ipcRenderer.invoke(HANGUL_CHANNELS.createDocument, request),
+  authorName: () => ipcRenderer.invoke(HANGUL_CHANNELS.authorName),
   pickAttachments: () => ipcRenderer.invoke(FILES_CHANNELS.pick),
   addAttachments: (paths) => ipcRenderer.invoke(FILES_CHANNELS.add, paths),
   readAttachment: (path, offset, maxChars) => ipcRenderer.invoke(FILES_CHANNELS.read, path, offset, maxChars),

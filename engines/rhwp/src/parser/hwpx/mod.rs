@@ -679,6 +679,7 @@ pub fn parse_hwpx(data: &[u8]) -> Result<Document, HwpxError> {
         contract_streams::extract_contract_streams(&mut reader, super::MAX_THUMBNAIL_BYTES);
 
     let mut doc = Document {
+        redrob_comments: None,
         header: model_header,
         doc_properties,
         doc_info,
@@ -714,6 +715,9 @@ pub fn parse_hwpx(data: &[u8]) -> Result<Document, HwpxError> {
         reader.read_file_bytes_limited(crate::model::hyperlink_format::HWPX_ENTRY, 16 * 1024 * 1024)
     {
         crate::model::hyperlink_format::decode(&mut doc, &bytes);
+    }
+    if let Ok(bytes) = reader.read_file_bytes_limited(crate::model::document::REDROB_COMMENTS_HWPX_ENTRY, 16 * 1024 * 1024) {
+        doc.redrob_comments = Some(bytes);
     }
     Ok(doc)
 }

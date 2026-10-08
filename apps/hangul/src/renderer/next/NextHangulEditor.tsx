@@ -11,7 +11,7 @@
  */
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { coreVersion, initHwpCore } from '@genoffice/hwp-core'
-import { CommandBus, EditorView } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, EditorView } from '@genoffice/hwp-editor'
 import {
   Alert,
   Badge,
@@ -24,7 +24,8 @@ import {
   useFrameState,
 } from '@genoffice/ui'
 import { useI18n } from '../i18n/locale'
-import { HangulAiPanel } from '../ai/AiPanel'
+import { HangulAiPanel, type AiPreset } from '../ai/AiPanel'
+import { CommentsRail } from './CommentsRail'
 import type { SaveMode } from '../../shared/ipc'
 import { CharShapeDialog, ParaShapeDialog } from './ShapeDialogs'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
@@ -43,6 +44,12 @@ type SaveState = { kind: 'idle' } | { kind: 'saving' } | { kind: 'saved' } | { k
 
 const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.platform)
 
+/** The request Redrob runs for a comment that mentions it (same contract as Docs). */
+export function redrobCommentPrompt(threadId: number, text: string): string {
+  const body = text.replace(/\s+/g, ' ').trim().slice(0, 600)
+  return `A comment in this document mentions @Redrob (comment thread ${threadId}): "${body}". Answer it in its thread with reply_comment, threadId ${threadId}. Do not change the document and do not resolve the comment.`
+}
+
 export function NextHangulEditor(): React.JSX.Element {
   const { t, lang } = useI18n()
   const frame = useFrameState(window.hangulApi, 'hangul-frame-panel-width')
@@ -52,7 +59,15 @@ export function NextHangulEditor(): React.JSX.Element {
   const [panelOpen, setPanelOpen] = useState(false)
   const [mode, setMode] = useState<'editing' | 'viewing'>('editing')
   const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | InsertKind | null>(null)
-  const [, refresh] = useReducer((n: number) => n + 1, 0)
+  const [revision, refresh] = useReducer((n: number) => n + 1, 0)
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [commentComposing, setCommentComposing] = useState(false)
+  const [author, setAuthor] = useState('User')
+  const [aiPreset, setAiPreset] = useState<AiPreset | null>(null)
+  const commentsRef = useRef<Comments | null>(null)
+  useEffect(() => {
+    void window.hangulApi.authorName?.().then((n) => n && setAuthor(n)).catch(() => {})
+  }, [])
   const openedRef = useRef<OpenedDocument | null>(null)
   const viewRef = useRef<EditorView | null>(null)
   const hostRef = useRef<HTMLDivElement | null>(null)
@@ -140,6 +155,9 @@ export function NextHangulEditor(): React.JSX.Element {
       },
     })
     viewRef.current = view
+    commentsRef.current = new Comments(opened.session)
+    // A document that arrives with memos opens with them showing, as in 한글.
+    if (commentsRef.current.threads().length) setCommentsOpen(true)
     const offChange = opened.session.onChange(() => {
       window.hangulApi.setDirty(opened.session.dirty)
       setSaveState((s) => (s.kind === 'saved' ? { kind: 'idle' } : s))
@@ -152,6 +170,7 @@ export function NextHangulEditor(): React.JSX.Element {
       offSettle()
       view.dispose()
       viewRef.current = null
+      commentsRef.current = null
     }
   }, [phase.kind, doSave])
 
@@ -178,6 +197,24 @@ export function NextHangulEditor(): React.JSX.Element {
       offRename()
     }
   }, [doSave])
+
+  // Commented text is highlighted on the page (overlay decorations, never the canvas).
+  useEffect(() => {
+    const view = viewRef.current
+    const comments = commentsRef.current
+    if (!view || !comments) return
+    for (const k of view.overlay.decorationKeys()) if (k.startsWith('comment:')) view.overlay.clearDecoration(k)
+    if (!commentsOpen) return
+    for (const th of comments.threads()) {
+      if (th.resolved) continue
+      const r = comments.range(th)
+      try {
+        view.overlay.setDecoration({ key: `comment:${th.id}`, kind: 'comment', rects: view.session.text.selectionRects(r.anchor, r.head), label: th.root.text })
+      } catch {
+        /* the anchor is mid-relayout; the next render paints it */
+      }
+    }
+  }, [revision, commentsOpen])
 
   if (phase.kind === 'loading') {
     return (
@@ -264,6 +301,8 @@ export function NextHangulEditor(): React.JSX.Element {
             { id: 'save-as', label: t('saveAs'), run: () => void doSave('saveAs') },
             ...(view ? view.bus.ids().filter((id) => COMMAND_LABELS[id]).map((id) => ({ id, label: commandLabel(id, lang), run: run(id), disabled: !view.bus.isEnabled(id) })) : []),
             { id: 'ask', label: t('askRedrob'), keywords: ['redrob', 'ai'], run: () => setPanelOpen(true) },
+            { id: 'comments', label: t('commentsOpen'), keywords: ['memo', '메모', 'comment'], run: () => setCommentsOpen(true) },
+            { id: 'comment-new', label: t('commentsNew'), keywords: ['memo', '메모', 'comment'], run: () => (setCommentsOpen(true), setCommentComposing(true)), disabled: !view || view.session.selection.anchor === view.session.selection.head },
           ],
           strings: frameText.search,
         }}
@@ -285,8 +324,31 @@ export function NextHangulEditor(): React.JSX.Element {
         }
         simpleToolbar={tools(false)}
         classicToolbar={tools(true)}
+        rail={
+          commentsOpen && view && commentsRef.current ? (
+            <CommentsRail
+              view={view}
+              comments={commentsRef.current}
+              me={author}
+              revision={revision}
+              composing={commentComposing}
+              onComposingChange={setCommentComposing}
+              onChanged={() => {
+                window.hangulApi.setDirty(s.dirty)
+                refresh()
+              }}
+              onAskRedrob={(threadId, text) => {
+                setPanelOpen(true)
+                setAiPreset({ text: redrobCommentPrompt(threadId, text), nonce: Date.now() })
+              }}
+              onClose={() => setCommentsOpen(false)}
+            />
+          ) : undefined
+        }
+        railWidth={300}
         panel={
           <HangulAiPanel
+            preset={aiPreset}
             readOnly={mode === 'viewing'}
             onCollapse={() => setPanelOpen(false)}
             deps={{

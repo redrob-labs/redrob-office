@@ -350,3 +350,111 @@ body {
   font-size: 12px;
   color: var(--status-danger);
 }
+
+/* Comments rail (task 4.2): chrome tokens only; the page highlight is an overlay decoration. */
+.hangul-comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-3);
+  overflow-y: auto;
+  border-left: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+}
+.hangul-comments__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+.hangul-comments__title {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+.hangul-comments__composer,
+.hangul-comment__reply {
+  display: grid;
+  gap: var(--space-1);
+}
+.hangul-comments__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+.hangul-comments__empty,
+.hangul-comments__error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.hangul-comments__error {
+  color: var(--status-danger);
+}
+.hangul-comments__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hangul-comment {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+.hangul-comment.is-active {
+  border-color: var(--action-primary);
+}
+.hangul-comment.is-resolved {
+  opacity: 0.7;
+}
+.hangul-comment__quote {
+  padding: 0 0 0 var(--space-2);
+  border: 0;
+  border-left: 2px solid var(--status-warning);
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hangul-comment__quote:focus-visible {
+  outline: 2px solid var(--action-primary);
+  outline-offset: 2px;
+}
+.hangul-comment__entry.is-reply {
+  padding-left: var(--space-3);
+}
+.hangul-comment__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+}
+.hangul-comment__author {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+.hangul-comment__time {
+  flex: 1;
+  color: var(--ink-muted);
+}
+.hangul-comment__text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-primary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

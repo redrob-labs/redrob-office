@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
+import { userInfo } from 'node:os'
 import { BrowserWindow, WebContentsView, app, dialog, ipcMain, shell } from 'electron'
 import type { WebContents } from 'electron'
 import {
@@ -486,6 +487,14 @@ function registerHangulIpc(): void {
   ipcMain.handle(HANGUL_CHANNELS.createDocument, (_e, request: CreateHangulDocumentRequest) =>
     createHangulDocument(request, configuredDefaultSaveDir(app), { openGeneratedPath: runtime.openGeneratedPath, createDocument: runtime.createDocument }),
   )
+
+  ipcMain.handle(HANGUL_CHANNELS.authorName, () => {
+    try {
+      return userInfo().username || 'User'
+    } catch {
+      return 'User'
+    }
+  })
 
   ipcMain.handle(HANGUL_CHANNELS.generateImage, async (_e, op: { prompt?: unknown; aspectRatio?: unknown }) => {
     if (!hasGskAuth()) return { error: 'Redrob account is not logged in on this machine; ask the user to log in first' }

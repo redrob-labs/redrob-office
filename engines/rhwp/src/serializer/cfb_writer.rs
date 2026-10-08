@@ -218,7 +218,10 @@ fn serialize_hwp_inner(
     // 6. CFB 컨테이너 조립
     let mut content_loss = ContentLossReport::new(SerializedFormat::Hwp);
     let mut extra_streams = doc.extra_streams.clone();
-    extra_streams.retain(|(path, _)| path != crate::model::hyperlink_format::HWP_STREAM);
+    extra_streams.retain(|(path, _)| path != crate::model::hyperlink_format::HWP_STREAM && path != crate::model::document::REDROB_COMMENTS_HWP_STREAM);
+    if let Some(bytes) = doc.redrob_comments.as_ref().filter(|b| !b.is_empty()) {
+        extra_streams.push((crate::model::document::REDROB_COMMENTS_HWP_STREAM.into(), bytes.clone()));
+    }
     if let Some(bytes) = crate::model::hyperlink_format::encode(doc) {
         extra_streams.push((crate::model::hyperlink_format::HWP_STREAM.into(), bytes));
     }
