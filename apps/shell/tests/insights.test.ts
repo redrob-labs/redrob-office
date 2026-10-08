@@ -115,6 +115,8 @@ describe('outbox and sync', () => {
     expect(await syncOnce({ outbox, apiKey: null, base: 'x', fetch: vi.fn() })).toEqual({ status: 'no-key' })
     const refused = vi.fn(async () => new Response('', { status: 401 }))
     expect((await syncOnce({ outbox, apiKey: 'k', base: 'x', fetch: refused })).status).toBe('refused')
+    const olderConsole = vi.fn(async () => new Response('', { status: 400 }))
+    expect((await syncOnce({ outbox, apiKey: 'k', base: 'x', fetch: olderConsole })).status).toBe('refused')
     const down = vi.fn(async () => {
       throw new Error('offline')
     })
