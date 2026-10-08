@@ -28,6 +28,7 @@ import {
   maxOutputTokensOf,
   resolveAiSettings,
   setRescueFetch,
+  setRouteLabeller,
   streamForProvider,
   type AiSettings,
   type AiStreamChunk,
@@ -35,6 +36,7 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import { createRouteLabeller } from '@genoffice/electron-utils/route-labeller'
 import { fetchRemoteImage } from '@genoffice/electron-utils'
 import {
   webSearch,
@@ -109,6 +111,9 @@ function appendRunFailure(entry: AiRunFailure): void {
 export function registerAiIpc(): void {
   // Node fetch (undici) direct connections get reset under VPN/tun setups; retry over Chromium's stack
   setRescueFetch((url, init) => net.fetch(url, init))
+  // Labels each turn to Redrob Auto with its ModelGuide profession and task on this computer;
+  // one labeller per process, shared by every editor (@genoffice/electron-utils/route-labeller)
+  setRouteLabeller(createRouteLabeller({ modelDir: join(app.getPath('userData'), 'route-model') }))
 
   ipcMain.handle('ai:get-settings', (): AiSettings => {
     const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(AI_SETTINGS_PATH(), {})

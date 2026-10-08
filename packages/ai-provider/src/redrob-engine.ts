@@ -1,6 +1,7 @@
 import type { AgentMessage, AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
 import { AiAuthError } from './auth-error'
 import { aiFetch } from './fetch'
+import { routeFieldsFor } from './route-labels'
 import {
   AiCreditsError,
   jsonBodyInsteadOfSse,
@@ -181,6 +182,8 @@ export async function redrobEngineChat(
           model: REDROB_ENGINE_MODEL,
           messages: toWireMessages(system, [{ role: 'user', text: user }]),
           stream: false,
+          // the ModelGuide profession and task, labelled on this machine; see route-labels.ts
+          ...(await routeFieldsFor([{ role: 'user', text: user }])),
         }),
         signal: watchdog.signal,
       })
@@ -233,6 +236,8 @@ export async function redrobEngineStream(
       messages: toWireMessages(system, messages),
       max_tokens: maxTokens,
       stream: true,
+      // the ModelGuide profession and task, labelled on this machine; see route-labels.ts
+      ...(await routeFieldsFor(messages)),
     }
     if (wireTools) {
       body.tools = wireTools

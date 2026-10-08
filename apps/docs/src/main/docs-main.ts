@@ -61,6 +61,7 @@ import {
   resolveAiSettings,
   maxOutputTokensOf,
   setRescueFetch,
+  setRouteLabeller,
   streamForProvider,
   type AiChatRequest,
   type AiSettings,
@@ -69,6 +70,7 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import { createRouteLabeller } from '@genoffice/electron-utils/route-labeller'
 import {
   ensureGenofficeLogin,
   gskApiKey,
@@ -3055,6 +3057,9 @@ export function registerProjectIpc(): void {
 export function registerDocsIpc(): void {
   // Node fetch (undici) direct connections get reset under VPN/tun setups; retry over Chromium's stack
   setRescueFetch((url, init) => net.fetch(url, init))
+  // Labels each turn to Redrob Auto with its ModelGuide profession and task on this computer;
+  // one labeller per process, shared by every editor (@genoffice/electron-utils/route-labeller)
+  setRouteLabeller(createRouteLabeller({ modelDir: join(app.getPath('userData'), 'route-model') }))
 
   // shared with the other editor modules — last (identical) registration wins
   ipcMain.removeHandler('app:get-language')

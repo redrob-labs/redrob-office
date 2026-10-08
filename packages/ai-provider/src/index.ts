@@ -64,6 +64,7 @@ export {
 } from './redrob-engine'
 export type { RedrobEngineAuth } from './redrob-engine'
 export { setRescueFetch } from './fetch'
+export { routeFieldsFor, setRouteLabeller, type RouteLabelFn } from './route-labels'
 export { AiAuthError, isAiAuthError } from './auth-error'
 export { isAiNetworkError } from './network-error'
 export { isAiOverloadedError } from './overload-error'

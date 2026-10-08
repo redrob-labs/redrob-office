@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./drop-open": "./src/drop-open.ts",
-    "./office-prefs": "./src/office-prefs.ts"
+    "./office-prefs": "./src/office-prefs.ts",
+    "./route-labeller": "./src/route-labeller.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -22,6 +23,8 @@
     "vitest": "^4.1.0"
   },
   "dependencies": {
+    "@redrob-labs/route-labeller": "^1.0.0",
+    "onnxruntime-web": "1.23.0",
     "parse5": "^8.0.1"
   }
 }
