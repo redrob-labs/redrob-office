@@ -162,6 +162,11 @@ export function NextHangulEditor(): React.JSX.Element {
     }
   }, [load, mount])
 
+  // The document body's accessible name follows the UI language.
+  useEffect(() => {
+    viewRef.current?.setInputLabel(t('nextDocumentBody'))
+  }, [lang])
+
   // Mount the editor view once a document is open.
   useEffect(() => {
     const opened = openedRef.current
@@ -170,6 +175,7 @@ export function NextHangulEditor(): React.JSX.Element {
     const bus = new CommandBus(opened.session)
     const view = new EditorView(host, opened.session, bus, {
       mac: isMac,
+      inputLabel: t('nextDocumentBody'),
       // The main process opens http(s) and mailto links in the browser and refuses anything else.
       onOpenLink: (uri) => void window.open(uri, '_blank', 'noopener'),
       onRender: refresh,

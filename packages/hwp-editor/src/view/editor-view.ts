@@ -36,6 +36,8 @@ export interface EditorViewOptions extends PageViewOptions {
   onUnhandledCommand?: (id: string, params?: unknown) => boolean
   /** Ctrl+click (⌘+click) on a hyperlink, as in 한글. The host opens it outside the editor. */
   onOpenLink?: (uri: string) => void
+  /** Accessible name of the text input (the document body), in the host's language. */
+  inputLabel?: string
 }
 
 export class EditorView {
@@ -70,7 +72,7 @@ export class EditorView {
     const d = root.ownerDocument
     this.input = d.createElement('textarea')
     this.input.className = 'hwp-input'
-    this.input.setAttribute('aria-label', 'Document')
+    this.input.setAttribute('aria-label', opts.inputLabel ?? 'Document')
     this.input.setAttribute('autocapitalize', 'off')
     this.input.setAttribute('autocomplete', 'off')
     this.input.spellcheck = false
@@ -97,6 +99,11 @@ export class EditorView {
     this.unsubscribe = session.onChange((c) => this.onChange(c))
     this.unsubscribeSettle = session.onSettle(() => this.onSettled())
     this.render()
+  }
+
+  /** Rename the text input after a language change. */
+  setInputLabel(label: string): void {
+    this.input.setAttribute('aria-label', label)
   }
 
   focus(): void {

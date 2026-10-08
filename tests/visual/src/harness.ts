@@ -73,6 +73,8 @@ const MASKS: Partial<Record<ViewName, string>> = {
   shell: '.hero-title, .recent-time, .cloud-row-time',
   sheets: '.workbook-status, .status-msg',
   slides: '.status-msg',
+  // the owned Hangul editor's blinking caret (an overlay box, not the CSS caret)
+  hangul: '.hwp-caret',
 }
 
 /** Per-view selector that exists once the document has loaded, where first paint is not enough. */
@@ -230,12 +232,13 @@ const STRIPPED_ENV = [
 
 export async function launchShell(
   profileDir: string,
-  { launchScreen = false }: { launchScreen?: boolean } = {},
+  { launchScreen = false, env: extraEnv = {} }: { launchScreen?: boolean; env?: Record<string, string> } = {},
 ): Promise<ElectronApplication> {
   const env: Record<string, string> = {}
   for (const [k, v] of Object.entries(process.env)) {
     if (v !== undefined && !STRIPPED_ENV.includes(k)) env[k] = v
   }
+  Object.assign(env, extraEnv)
   env.GENOFFICE_USER_DATA = profileDir
   env.GENOFFICE_LANG = 'en'
   // the launch screen plays once a session; every capture but its own skips it

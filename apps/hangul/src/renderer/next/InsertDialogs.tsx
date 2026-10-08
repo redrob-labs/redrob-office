@@ -19,6 +19,9 @@ const PROMPTS: Record<InsertKind, { title: StringKey; label: StringKey; param: s
   'page:footer-create': { title: 'nextInsertFooter', label: 'nextFooterText', param: 'text', required: true },
 }
 
+/** 한글 equation script is the same in every language, so the examples are not translated. */
+const EQUATION_EXAMPLES = 'a over b, sqrt {x^2 + 1}, sum from {i=1} to n i'
+
 export function InsertPromptDialog({ view, kind, onClose, onApplied }: { view: EditorView; kind: InsertKind; onClose: () => void; onApplied: () => void }): React.JSX.Element {
   const { t } = useI18n()
   const [value, setValue] = useState('')
@@ -53,7 +56,11 @@ export function InsertPromptDialog({ view, kind, onClose, onApplied }: { view: E
         }}
       >
         <Input label={t(spec.label)} value={value} autoFocus onChange={(e) => setValue(e.target.value)} />
-        {kind === 'insert:equation' ? <p className="hangul-hint">{t('nextEquationHint')}</p> : null}
+        {kind === 'insert:equation' ? (
+          <p className="hangul-hint">
+            {t('nextEquationHint')} <code lang="zxx">{EQUATION_EXAMPLES}</code>
+          </p>
+        ) : null}
       </form>
     </Dialog>
   )

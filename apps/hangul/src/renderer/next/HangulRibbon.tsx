@@ -12,7 +12,7 @@ import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { EditorView } from '@genoffice/hwp-editor'
 import { FONT_SIZE_STEPS, copy, paste, styleAt, styleList } from '@genoffice/hwp-editor'
-import { ColorPicker, Dropdown, Icon, Tabs, Toolbar, ToolbarButton, useDismissablePopover } from '@genoffice/ui'
+import { ColorPicker, Dropdown, Icon, TabbedPanels, Toolbar, ToolbarButton, useDismissablePopover } from '@genoffice/ui'
 import type { Lang } from '@genoffice/i18n'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { useI18n } from '../i18n/locale'
@@ -41,6 +41,8 @@ interface RibbonProps {
   /** Re-render after a command (the host bumps a counter). */
   onRan: () => void
   onCommand?: (id: string) => void
+  /** Tab shown first (tests, and reopening the ribbon where it was). */
+  initialTab?: RibbonTab
 }
 
 /** A glyph for commands the icon set has no picture for (자간, 장평 …), e.g. "자+". */
@@ -246,7 +248,7 @@ export function tabsFor(view: EditorView | null): RibbonTab[] {
 export function HangulRibbon(props: RibbonProps): React.JSX.Element {
   const { t } = useI18n()
   const { button, lang } = useCommands(props)
-  const [tab, setTab] = useState<RibbonTab>('format')
+  const [tab, setTab] = useState<RibbonTab>(props.initialTab ?? 'format')
   const tabs = tabsFor(props.view)
   const active = tabs.includes(tab) ? tab : 'format'
   const L = (id: string) => commandLabel(id, lang)
@@ -267,8 +269,8 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
   }
   return (
     <div className="hangul-ribbon">
-      <Tabs label={t('nextRibbonLabel')} variant="line" value={active} items={tabs.map((id) => ({ id, label: tabLabel[id] }))} onChange={(id) => setTab(id as RibbonTab)} />
-      <Toolbar label={tabLabel[active]} className="hangul-ribbon__band">
+      <TabbedPanels idPrefix="hangul-ribbon" label={t('nextRibbonLabel')} value={active} items={tabs.map((id) => ({ id, label: tabLabel[id] }))} onChange={setTab}>
+        <Toolbar label={tabLabel[active]} className="hangul-ribbon__band">
         {active === 'review' ? (
           <>
             <Group label={t('reviewGroupMemos')}>
@@ -455,7 +457,8 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
             </Group>
           </>
         ) : null}
-      </Toolbar>
+        </Toolbar>
+      </TabbedPanels>
     </div>
   )
 }
