@@ -45,7 +45,7 @@ import { ObjectPropertiesDialog } from './ObjectDialogs'
 import { ClickHereDialog, HyperlinkDialog } from './FieldDialogs'
 import { StyleDialog } from './StyleDialog'
 import { ChartDialog } from './ChartDialog'
-import { AboutDialog, PageHideDialog } from './InfoDialogs'
+import { AboutDialog, RecentDialog, PageHideDialog } from './InfoDialogs'
 import {
   BulletShapeDialog,
   ColumnSettingsDialog,
@@ -186,6 +186,12 @@ export function NextHangulEditor(): React.JSX.Element {
         return
       }
       if (api.printPages) void api.printPages({ pages: pageRenders(opened.session), mode: kind, name }).then(report)
+    },
+    files: (kind) => {
+      const api = window.hangulApi
+      if (kind === 'new') void api.newDocument?.()
+      else if (kind === 'open') void api.openDialog?.()
+      else void api.clearRecent?.()
     },
   }
 
@@ -642,6 +648,7 @@ export function NextHangulEditor(): React.JSX.Element {
         {view && dialog === 'table-props' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'table-borders' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} initialTab="border" onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'page-hide' ? <PageHideDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {dialog === 'recent' ? <RecentDialog api={window.hangulApi} onClose={() => (setDialog(null), viewRef.current?.focus())} /> : null}
         {dialog === 'about' ? <AboutDialog engine={`rhwp ${String(info.version ?? '')}`.trim()} onClose={() => (setDialog(null), viewRef.current?.focus())} /> : null}
         {view && dialog === 'insert-rows-cols' ? <InsertRowsColsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'delete-rows-cols' ? <DeleteRowsColsDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}

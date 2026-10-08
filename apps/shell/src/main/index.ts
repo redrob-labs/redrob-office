@@ -224,6 +224,7 @@ import {
   requestHangulSave,
   setHangulFileSavedHook,
   setHangulDocSavedHook,
+  setHangulShellHooks,
   teardownHangul,
 } from '../../../hangul/src/main/hangul-main'
 import { resolveEditorKind } from '../../../hangul/src/main/editor-kind'
@@ -2643,6 +2644,14 @@ function createShellWindow(): void {
     manager.setTabFileFor(wc.id, path)
     recordRecentFile(path)
     applyPendingProject(path)
+  })
+  // 새 문서, 불러오기 and 최근 문서 from inside the Hangul editor go through the shell's own pipeline
+  setHangulShellHooks({
+    newDocument: () => newHangulTab(),
+    openViaDialog: () => openFileViaDialog(),
+    recentFiles: () => readRecentFiles(),
+    openPath: (path) => openDocumentPath(path),
+    removeRecent: (paths) => removeRecentFiles(paths),
   })
   // hangul untitled first save / Save As lands on a new path
   setHangulFileSavedHook((wc, path) => {

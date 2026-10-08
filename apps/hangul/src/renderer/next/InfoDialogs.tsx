@@ -2,10 +2,11 @@
  * 정보 (About) and 감추기 (hide on this page) for the owned editor (spec task 2.6).
  * About carries the Hancom attribution the HWP specification's terms require.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { pageHideAt, type EditorView, type PageHide } from '@genoffice/hwp-editor'
 import { Button, Checkbox, Dialog } from '@genoffice/ui'
 import { useI18n, type StringKey } from '../i18n/locale'
+import type { HangulApi } from '../../shared/ipc'
 
 type Props = { view: EditorView; onClose: () => void; onApplied: () => void }
 
@@ -17,6 +18,56 @@ export function AboutDialog({ engine, onClose }: { engine: string; onClose: () =
         <p>{t('nextAboutEngine', { engine })}</p>
         <p lang="ko">{t('nextAttribution')}</p>
       </div>
+    </Dialog>
+  )
+}
+
+/** 최근 문서: the Hangul files in the suite's recent list; one opens in its own tab. */
+export function RecentDialog({ api, onClose }: { api: Pick<HangulApi, 'recentFiles' | 'openRecent' | 'clearRecent'>; onClose: () => void }): React.JSX.Element {
+  const { t } = useI18n()
+  const [files, setFiles] = useState<string[] | null>(null)
+  useEffect(() => {
+    let live = true
+    void (api.recentFiles?.() ?? Promise.resolve([])).then((f) => live && setFiles(f))
+    return () => {
+      live = false
+    }
+  }, [api])
+  const open = (p: string) => {
+    void api.openRecent?.(p)
+    onClose()
+  }
+  const clear = () => {
+    void api.clearRecent?.().then(() => setFiles([]))
+  }
+  return (
+    <Dialog
+      title={t('nextRecentTitle')}
+      closeLabel={t('nextDialogClose')}
+      onClose={onClose}
+      width={520}
+      footer={
+        <>
+          <Button variant="secondary" disabled={!files?.length} onClick={clear}>
+            {t('nextRecentClear')}
+          </Button>
+          <Button onClick={onClose}>{t('nextDialogClose')}</Button>
+        </>
+      }
+    >
+      {files === null ? null : files.length ? (
+        <ul className="hangul-recent-list" aria-label={t('nextRecentTitle')}>
+          {files.map((p) => (
+            <li key={p}>
+              <Button variant="ghost" title={p} onClick={() => open(p)}>
+                {p.split(/[\\/]/).pop()}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>{t('nextRecentEmpty')}</p>
+      )}
     </Dialog>
   )
 }

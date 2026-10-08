@@ -51,6 +51,12 @@ export const HANGUL_CHANNELS = {
   exportHtml: 'hangul:export-html',
   /** bytes of a font face found in 한컴오피스's own font folders, or null */
   fontSource: 'hangul:font-source',
+  /** 새 문서, 불러오기, 최근 문서: the shell opens files, so the editor asks it */
+  newDocument: 'hangul:new-document',
+  openDialog: 'hangul:open-dialog',
+  recentFiles: 'hangul:recent-files',
+  openRecent: 'hangul:open-recent',
+  clearRecent: 'hangul:clear-recent',
 } as const
 
 export interface PrintPagesRequest {
@@ -213,6 +219,13 @@ export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
   printPages?(request: PrintPagesRequest): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
   exportHtml?(request: { html: string; name?: string }): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
   fontSource?(face: string): Promise<Uint8Array | null>
+  newDocument?(): Promise<void>
+  openDialog?(): Promise<void>
+  /** Hangul files in the suite's recent list, newest first */
+  recentFiles?(): Promise<string[]>
+  openRecent?(path: string): Promise<boolean>
+  /** Take the Hangul files out of the recent list (other kinds stay). */
+  clearRecent?(): Promise<void>
   createDocument(request: CreateHangulDocumentRequest): Promise<CreateHangulDocumentResult>
   /** The name new comments are signed with. */
   authorName(): Promise<string>

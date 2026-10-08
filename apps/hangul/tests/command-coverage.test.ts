@@ -47,6 +47,7 @@ function recorder(kind: ReturnType<HostDeps['objectKind']> = 'shape'): { deps: H
     inTable: () => true,
     inField: () => true,
     output: rec('output'),
+    files: rec('files'),
   }
   return { deps, calls }
 }
@@ -96,7 +97,7 @@ describe('command coverage (task 2.6)', () => {
   it('reports the coverage', () => {
     const reached = commands.filter((id) => onBus.has(id) || id in HOST_COMMANDS)
     // The floor only rises: today's count, from 37 when this test began.
-    expect(reached.length).toBeGreaterThanOrEqual(168)
+    expect(reached.length).toBeGreaterThanOrEqual(172)
     console.log(`coverage ${reached.length}/${commands.length}; not yet ${Object.keys(NOT_YET).length}`)
   })
 })
