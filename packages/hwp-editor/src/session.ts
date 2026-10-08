@@ -72,6 +72,14 @@ export interface SessionOptions {
   historyLimit?: number
 }
 
+/** A picture or drawing object, by where its control sits in the body. */
+export interface ObjectRef {
+  kind: 'picture' | 'shape'
+  section: number
+  para: number
+  control: number
+}
+
 export class Session {
   readonly text: Text
   selection: Selection
@@ -90,6 +98,11 @@ export class Session {
    * through Yjs): edits then keep no snapshots of their own.
    */
   historyEnabled = true
+  /**
+   * The picture or drawing object selected by a click, or null when the
+   * selection is text. Moving the text selection clears it.
+   */
+  object: ObjectRef | null = null
 
   constructor(
     readonly doc: HwpCoreDocument,
@@ -256,6 +269,7 @@ export class Session {
     this.doc.restoreSnapshot(entry.snapshot)
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
+    this.object = null
     this.changeSeq = entry.seq
     return this.emit(`edit:undo`, [...touched, ...this.nodesIn(this.selection)], 'history')
   }
@@ -269,6 +283,7 @@ export class Session {
     this.doc.restoreSnapshot(entry.snapshot)
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
+    this.object = null
     this.changeSeq = entry.seq
     return this.emit(`edit:redo`, this.nodesIn(this.selection), 'history')
   }
@@ -294,6 +309,12 @@ export class Session {
   /** Move the selection without changing the document (no history entry, no change). */
   select(selection: Selection): void {
     this.selection = selection
+    this.object = null
+  }
+
+  /** Select a picture or drawing object (the text selection stays where it was). */
+  selectObject(object: ObjectRef | null): void {
+    this.object = object
   }
 
   /** Export for saving. Call `markSaved()` only after the write is confirmed. */

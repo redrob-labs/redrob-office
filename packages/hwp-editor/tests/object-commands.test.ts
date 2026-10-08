@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
-import { CommandBus, Session, cellProperties, selectedCells, tableCells, tableProperties, type Pos } from '../src'
+import { CommandBus, Session, cellProperties, colorRefToCss, cssToColorRef, objectAt, objectBox, objectProperties, objectsOnPage, selectedCells, tableCells, tableProperties, type Pos } from '../src'
 
 beforeAll(() => initHwpCoreNode())
 
@@ -82,5 +82,86 @@ describe('table and cell properties (task 2.3)', () => {
     expect(bus.isEnabled('table:set-properties', { props: {} })).toBe(false)
     expect(bus.isEnabled('table:cell-set-properties', { props: {} })).toBe(false)
     expect(tableProperties(s)).toBeNull()
+  })
+})
+
+describe('pictures and drawing objects (tasks 2.3, 2.4)', () => {
+  const PNG = Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'))
+
+  it('insert:shape adds a rectangle anchored to its paragraph and selects it', () => {
+    const s = new Session(HwpCoreDocument.blank(), 'hwpx')
+    const bus = new CommandBus(s)
+    bus.run('insert:shape', { shapeType: 'rectangle' })
+    expect(s.object?.kind).toBe('shape')
+    const p = objectProperties(s)!
+    expect([p.width, p.vertRelTo, p.horzRelTo]).toEqual([14173, 'Para', 'Para'])
+    const box = objectBox(s, s.object!)!
+    expect(box.width).toBeGreaterThan(100)
+    expect(objectAt(s, box.page, box.x + 5, box.y + 5)).toMatchObject({ kind: 'shape', control: s.object!.control })
+    bus.run('edit:undo')
+    expect(s.object).toBeNull()
+    expect(objectsOnPage(s, 0)).toHaveLength(0)
+  })
+
+  it('shape line, fill and size apply as one undo step and survive both formats', () => {
+    for (const format of ['hwpx', 'hwp'] as const) {
+      const s = new Session(HwpCoreDocument.blank(), format)
+      const bus = new CommandBus(s)
+      bus.run('insert:shape', { shapeType: 'ellipse' })
+      const ref = s.object!
+      bus.run('object:set-properties', { props: { width: 20000, height: 10000, borderColor: cssToColorRef('#cc0000'), borderWidth: 100, fillType: 'solid', fillBgColor: cssToColorRef('#ffcc00') } })
+      const p = objectProperties(s)!
+      expect([p.width, p.height, colorRefToCss(p.borderColor), colorRefToCss(p.fillBgColor)]).toEqual([20000, 10000, '#cc0000', '#ffcc00'])
+      const reopened = new Session(HwpCoreDocument.open(s.export(format)), format)
+      const r = objectProperties(reopened, ref)!
+      expect([r.width, colorRefToCss(r.fillBgColor)], format).toEqual([20000, '#ffcc00'])
+      s.selectObject(ref)
+      bus.run('edit:undo')
+      expect(objectProperties(s, ref)!.width).toBe(14173)
+    }
+  })
+
+  it('picture size, effect and wrap apply; delete removes the picture', () => {
+    const s = new Session(HwpCoreDocument.blank(), 'hwpx')
+    const bus = new CommandBus(s)
+    bus.run('insert:image', { bytes: PNG, extension: 'png', widthPx: 1, heightPx: 1 })
+    const pic = objectsOnPage(s, 0).find((o) => o.kind === 'picture')!
+    s.selectObject(pic)
+    bus.run('object:set-properties', { props: { width: 14400, height: 14400, effect: 'GrayScale', textWrap: 'TopAndBottom' } })
+    const p = objectProperties(s)!
+    expect([p.width, p.effect, p.textWrap]).toEqual([14400, 'GrayScale', 'TopAndBottom'])
+    bus.run('insert:picture-delete')
+    expect(s.object).toBeNull()
+    expect(objectsOnPage(s, 0).filter((o) => o.kind === 'picture')).toHaveLength(0)
+  })
+
+  it('z-order moves the selected object in front of the other', () => {
+    const s = new Session(HwpCoreDocument.blank(), 'hwpx')
+    const bus = new CommandBus(s)
+    bus.run('insert:shape', { shapeType: 'rectangle' })
+    const first = s.object!
+    s.select(s.selection)
+    bus.run('insert:shape', { shapeType: 'ellipse' })
+    const z = (o: { control: number }) => objectsOnPage(s, 0).find((b) => b.control === o.control)!.zOrder
+    expect(z(first)).toBeLessThan(z(s.object!))
+    const second = s.object!
+    s.selectObject(first)
+    bus.run('insert:arrange-front')
+    expect(z(first)).toBeGreaterThan(z(second))
+  })
+
+  it('colour conversion matches HWP COLORREF byte order', () => {
+    expect(cssToColorRef('#112233')).toBe(0x332211)
+    expect(colorRefToCss(0x332211)).toBe('#112233')
+  })
+
+  it('object commands are disabled with no object selected; moving the caret clears it', () => {
+    const s = new Session(HwpCoreDocument.blank(), 'hwpx')
+    const bus = new CommandBus(s)
+    expect(bus.isEnabled('object:set-properties', { props: {} })).toBe(false)
+    bus.run('insert:shape', { shapeType: 'rectangle' })
+    expect(bus.isEnabled('insert:picture-delete')).toBe(true)
+    s.select(s.selection)
+    expect(s.object).toBeNull()
   })
 })

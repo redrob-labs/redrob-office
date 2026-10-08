@@ -17,7 +17,7 @@ import type { Lang } from '@genoffice/i18n'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { useI18n } from '../i18n/locale'
 
-export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'review' | 'view' | 'table'
+export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'review' | 'view' | 'table' | 'object'
 
 /** 한글's own fonts first (installed on government PCs), then the open fonts rhwp bundles. */
 export const HANGUL_FONTS = ['함초롬바탕', '함초롬돋움', '맑은 고딕', '바탕', '돋움', '굴림', '궁서', '휴먼명조', 'HY헤드라인M', '나눔고딕', '나눔명조', 'Noto Sans KR', 'Noto Serif KR', 'Pretendard']
@@ -65,7 +65,7 @@ function useCommands(props: RibbonProps) {
     const enabled = !!view && view.bus.has(id) && view.bus.isEnabled(id, opts.params) && (!readOnly || id.startsWith('view:') || id.startsWith('move:'))
     return (
       <ToolbarButton
-        key={id}
+        key={opts.label ? `${id}:${opts.label}` : id}
         label={opts.label ?? commandLabel(id, lang)}
         icon={icon}
         size={opts.size ?? 'sm'}
@@ -239,6 +239,7 @@ async function clipboardPaste(view: EditorView): Promise<void> {
 
 export function tabsFor(view: EditorView | null): RibbonTab[] {
   const base: RibbonTab[] = ['edit', 'insert', 'format', 'page', 'review', 'view']
+  if (view?.session.object) return [...base, 'object']
   return view?.session.selection.head.cell ? [...base, 'table'] : base
 }
 
@@ -262,6 +263,7 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
     review: t('nextTabReview'),
     view: t('nextTabView'),
     table: t('nextTabTable'),
+    object: t('nextTabObject'),
   }
   return (
     <div className="hangul-ribbon">
@@ -322,6 +324,12 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
                 ))}
               </Group>
             ) : null}
+            <Group label={L('insert:shape')}>
+              {button('insert:shape', g('□'), { params: { shapeType: 'rectangle' }, label: t('nextShapeRectangle') })}
+              {button('insert:shape', g('◯'), { params: { shapeType: 'ellipse' }, label: t('nextShapeEllipse') })}
+              {button('insert:shape', g('╱'), { params: { shapeType: 'line' }, label: t('nextShapeLine') })}
+              {button('insert:shape', g('Ⓣ'), { params: { shapeType: 'textbox' }, label: t('nextShapeTextbox') })}
+            </Group>
             {props.onCommand ? (
               <Group label={t('nextGroupNotes')}>
                 <ToolbarButton label={L('insert:footnote')} icon={g('¹')} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:footnote')} onClick={() => props.onCommand!('insert:footnote')} />
@@ -401,6 +409,20 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
             {button('view:zoom-fit-width', g('↔'))}
             {button('view:zoom-fit-page', g('▢'))}
           </Group>
+        ) : null}
+        {active === 'object' ? (
+          <>
+            <Group label={t('nextGroupObject')}>
+              {props.onCommand ? <ToolbarButton label={L('format:object-properties')} icon={g('⚙')} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled('object:set-properties', { props: {} })} onClick={() => props.onCommand!('format:object-properties')} /> : null}
+              {button('insert:picture-delete', <Icon name="trash" size={16} />)}
+            </Group>
+            <Group label={t('nextGroupArrange')}>
+              {button('insert:arrange-front', g('⇈'))}
+              {button('insert:arrange-forward', g('↑'))}
+              {button('insert:arrange-backward', g('↓'))}
+              {button('insert:arrange-back', g('⇊'))}
+            </Group>
+          </>
         ) : null}
         {active === 'table' ? (
           <>
