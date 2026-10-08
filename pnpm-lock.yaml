@@ -183,9 +183,15 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@rhwp/editor':
         specifier: workspace:*
         version: link:../../packages/rhwp-editor
@@ -933,6 +939,12 @@ importers:
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../pptx-render
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../sync-client
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../versions
       '@redrob-labs/ui':
         specifier: 1.0.2
         version: 1.0.2(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -979,6 +991,9 @@ importers:
       '@genoffice/hwp-core':
         specifier: workspace:*
         version: link:../hwp-core
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../versions
     devDependencies:
       '@types/node':
         specifier: ^24.10.1

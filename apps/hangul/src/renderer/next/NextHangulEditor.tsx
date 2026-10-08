@@ -11,11 +11,21 @@
  */
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { coreVersion, initHwpCore } from '@genoffice/hwp-core'
-import { CommandBus, Comments, EditorView, Revisions, revisionCommands } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, EditorView, Revisions, catchUpComments, catchUpRevisions, changedParagraphs, revisionCommands } from '@genoffice/hwp-editor'
+import { HwpCoreDocument } from '@genoffice/hwp-core'
+import { catchUpItems, type CatchUpItem } from '@genoffice/versions'
+import type { ShareApi } from '@genoffice/sync-client'
+import '@genoffice/ui/collab/versions.css'
+import '@genoffice/ui/collab/share.css'
 import {
   Alert,
   Badge,
   Button,
+  CatchUp,
+  SHARE_STRINGS,
+  ShareDialog,
+  VersionHistory,
+  verT,
   EditorFrame,
   Input,
   StatusBar,
@@ -69,6 +79,10 @@ export function NextHangulEditor(): React.JSX.Element {
   const [commentComposing, setCommentComposing] = useState(false)
   const [author, setAuthor] = useState('User')
   const [aiPreset, setAiPreset] = useState<AiPreset | null>(null)
+  const [versionsOpen, setVersionsOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [catchUp, setCatchUp] = useState<{ since: string; items: CatchUpItem[] } | null>(null)
+  const visitedRef = useRef<string | null>(null)
   const commentsRef = useRef<Comments | null>(null)
   useEffect(() => {
     void window.hangulApi.authorName?.().then((n) => n && (setAuthor(n), (authorRef.current = n))).catch(() => {})
@@ -235,6 +249,54 @@ export function NextHangulEditor(): React.JSX.Element {
     }
   }, [doSave])
 
+  // Catch-up on open: what others did since this person last had the file open.
+  useEffect(() => {
+    const opened = openedRef.current
+    const path = pathRef.current
+    const api = window.hangulApi
+    if (phase.kind !== 'ready' || !opened || !path || visitedRef.current === path || !api.markVisit) return
+    visitedRef.current = path
+    void (async () => {
+      const since = await api.markVisit!(path)
+      if (!since || visitedRef.current !== path) return
+      const s = opened.session
+      const items: CatchUpItem[] = catchUpItems({ since, me: authorRef.current, comments: catchUpComments(s), revisions: catchUpRevisions(s), waitingFigures: 0 })
+      // Plain edits: compare with the newest version saved before the last visit.
+      try {
+        const versions = (await api.listVersions?.(path)) ?? []
+        const then = versions.find((v) => Date.parse(v.at) <= Date.parse(since))
+        const b64 = then ? await api.readVersion?.(path, then.id) : null
+        if (b64) {
+          const old = HwpCoreDocument.open(base64ToBytes(b64), opened.password)
+          const changed = changedParagraphs(old, s.doc)
+          old.dispose()
+          if (changed.length) items.push({ kind: 'edits', count: changed.length, at: changed[0]! })
+        }
+      } catch {
+        /* an unreadable old version only loses the edits line */
+      }
+      if (items.length) {
+        setCatchUp({ since, items })
+        setPanelOpen(true)
+      }
+    })()
+  }, [phase.kind])
+
+  const showCatchUpItem = (item: CatchUpItem) => {
+    const view = viewRef.current
+    if (!view) return
+    if (item.kind === 'comment') {
+      setCommentsOpen(true)
+      const th = commentsRef.current?.thread(Number(item.commentId))
+      if (th) view.session.select(commentsRef.current!.range(th))
+    } else if (item.kind === 'suggestion' || item.kind === 'edits') {
+      const loc = view.session.doc.locate(item.at)
+      if (loc && !loc.path.length) view.session.select({ anchor: { section: loc.section, para: loc.para, offset: 0 }, head: { section: loc.section, para: loc.para, offset: 0 } })
+    }
+    view.render()
+    view.focus()
+  }
+
   // Commented text is highlighted on the page (overlay decorations, never the canvas).
   useEffect(() => {
     const view = viewRef.current
@@ -322,6 +384,9 @@ export function NextHangulEditor(): React.JSX.Element {
         canRedo={s.canRedo && mode === 'editing'}
         saveStatus={
           <span className="hangul-status" role="status" aria-live="polite">
+            <button type="button" className="hangul-save-status" aria-haspopup="dialog" title={verT('verOpen')} onClick={() => setVersionsOpen(true)}>
+              {s.dirty ? frameT(lang, 'unsaved') : frameT(lang, 'saved')}
+            </button>
             {saveState.kind === 'saved' && !s.dirty ? (
               <Badge tone="success" size="sm" dot>
                 {t('saved')}
@@ -334,8 +399,16 @@ export function NextHangulEditor(): React.JSX.Element {
             ) : null}
           </span>
         }
+        share={
+          window.hangulApi.shareStatus ? (
+            <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>
+              {SHARE_STRINGS.button}
+            </Button>
+          ) : undefined
+        }
         search={{
           tools: [
+            { id: 'versions', label: verT('verOpen'), keywords: ['history', '버전'], run: () => setVersionsOpen(true) },
             { id: 'save', label: t('save'), run: () => void doSave('save') },
             { id: 'save-as', label: t('saveAs'), run: () => void doSave('saveAs') },
             ...(view ? view.bus.ids().filter((id) => COMMAND_LABELS[id]).map((id) => ({ id, label: commandLabel(id, lang), run: run(id), disabled: !view.bus.isEnabled(id) })) : []),
@@ -387,6 +460,8 @@ export function NextHangulEditor(): React.JSX.Element {
         }
         railWidth={300}
         panel={
+          <div className="hangul-panel-stack">
+          {catchUp && <CatchUp since={catchUp.since} items={catchUp.items} onShow={showCatchUpItem} onDismiss={() => setCatchUp(null)} />}
           <HangulAiPanel
             preset={aiPreset}
             readOnly={mode === 'viewing'}
@@ -402,6 +477,7 @@ export function NextHangulEditor(): React.JSX.Element {
               },
             }}
           />
+          </div>
         }
         panelOpen={panelOpen}
         onPanelOpenChange={setPanelOpen}
@@ -425,6 +501,8 @@ export function NextHangulEditor(): React.JSX.Element {
       >
         {/* the document is Korean whatever the interface language */}
         <div ref={hostRef} className="hangul-next-host" lang="ko" />
+        <VersionHistory open={versionsOpen} onClose={() => setVersionsOpen(false)} path={pathRef.current || null} fileName={opened.fileName} api={window.hangulApi} />
+        {window.hangulApi.shareStatus ? <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} path={pathRef.current || null} fileName={opened.fileName || t('untitled')} api={window.hangulApi as ShareApi} /> : null}
         {view && dialog === 'char-shape' ? <CharShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && (dialog === 'find' || dialog === 'replace') ? <FindDialog view={view} replace={dialog === 'replace'} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {picture.input}

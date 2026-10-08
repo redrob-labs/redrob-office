@@ -267,6 +267,13 @@ const saveWaiters = new Map<number, (ok: boolean) => void>()
 /** Fired after a save lands on a NEW path (untitled first save / Save As) — the shell syncs tab title, recents, projects */
 let fileSavedHook: ((wc: WebContents, path: string) => void) | null = null
 
+/** Fired after every successful save with the bytes written: the shell records a version and uploads a shared file. */
+let docSavedHook: ((path: string, bytes: Uint8Array) => void) | null = null
+
+export function setHangulDocSavedHook(hook: (path: string, bytes: Uint8Array) => void): void {
+  docSavedHook = hook
+}
+
 export function setHangulFileSavedHook(hook: (wc: WebContents, path: string) => void): void {
   fileSavedHook = hook
 }
@@ -451,7 +458,13 @@ function registerHangulIpc(): void {
         if (!target) return done({ ok: false, error: 'hangul: no save target' })
         const currentPath = savePathByWc.get(e.sender.id)
         const isNewPath = currentPath !== target
-        await atomicWriteFile(target, Buffer.from(request.base64, 'base64'))
+        const bytes = Buffer.from(request.base64, 'base64')
+        await atomicWriteFile(target, bytes)
+        try {
+          docSavedHook?.(target, new Uint8Array(bytes))
+        } catch {
+          /* history and sharing never fail a save */
+        }
         savePathByWc.set(e.sender.id, target)
         openPathByWc.set(e.sender.id, target)
         const allowed = allowedByWc.get(e.sender.id) ?? new Set<string>()

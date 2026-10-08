@@ -2,12 +2,16 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
+import { versionsBridge } from '@genoffice/versions'
+import { shareBridge } from '@genoffice/sync-client'
 import type { AiStreamChunk } from '@genoffice/ai-provider'
 import { AI_CHANNELS, FILES_CHANNELS, HANGUL_CHANNELS } from '../shared/ipc'
 import type { HangulApi, SaveMode, UiTheme } from '../shared/ipc'
 
 const api: HangulApi = {
   ...officePrefsBridge(ipcRenderer),
+  ...versionsBridge(ipcRenderer),
+  ...shareBridge(ipcRenderer),
   studioOrigin: () => ipcRenderer.invoke(HANGUL_CHANNELS.studioOrigin),
   editorKind: () => ipcRenderer.invoke(HANGUL_CHANNELS.editorKind),
   consumePending: () => ipcRenderer.invoke(HANGUL_CHANNELS.consumePending),

@@ -6,6 +6,7 @@ export const VERSIONS_CHANNELS = {
   name: 'versions:name',
   restore: 'versions:restore',
   visit: 'versions:visit',
+  read: 'versions:read',
 } as const
 
 /** What an editor preload exposes. Every call is about a document this view has open. */
@@ -17,6 +18,8 @@ export interface VersionsApi {
   restoreVersion(path: string, id: string): Promise<string | null>
   /** records this visit; resolves with the previous one (null on a first visit) */
   markVisit(path: string): Promise<string | null>
+  /** the bytes of one version, base64; null when it is gone */
+  readVersion(path: string, id: string): Promise<string | null>
 }
 
 export interface VersionsBridgeIpc {
@@ -44,6 +47,11 @@ export function versionsBridge(ipc: VersionsBridgeIpc): VersionsApi {
     markVisit: (path) =>
       ipc
         .invoke(VERSIONS_CHANNELS.visit, path)
+        .then((r) => (typeof r === 'string' ? r : null))
+        .catch(() => null),
+    readVersion: (path, id) =>
+      ipc
+        .invoke(VERSIONS_CHANNELS.read, path, id)
         .then((r) => (typeof r === 'string' ? r : null))
         .catch(() => null),
   }

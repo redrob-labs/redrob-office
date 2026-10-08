@@ -9,8 +9,8 @@ import { Editor } from '@tiptap/core'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { VersionInfo } from '@genoffice/versions'
 import { editorExtensions } from '../src/renderer/editor/extensions'
-import { CatchUp, catchUpLine } from '../src/renderer/versions/CatchUp'
-import { VersionHistory } from '../src/renderer/versions/VersionHistory'
+import { CatchUp, catchUpLine } from '@genoffice/ui'
+import { VersionHistory } from '@genoffice/ui'
 import { collectRevisions } from '../src/renderer/versions/revisions'
 
 const actEnv = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }

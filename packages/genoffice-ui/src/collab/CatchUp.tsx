@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
-import { Button, Icon, IconButton } from '@genoffice/ui'
+import { Button, IconButton } from '../kit'
+import { Icon } from '../Icon'
 import type { CatchUpItem } from '@genoffice/versions'
 import { verT } from './strings'
 
@@ -18,6 +19,8 @@ export function catchUpLine(item: CatchUpItem): string {
         : verT('catchSuggestion', { name: item.author || '?', n: item.count })
     case 'figures':
       return item.count === 1 ? verT('catchFiguresOne') : verT('catchFigures', { n: item.count })
+    case 'edits':
+      return item.count === 1 ? verT('catchEditsOne') : verT('catchEdits', { n: item.count })
   }
 }
 

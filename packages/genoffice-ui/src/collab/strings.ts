@@ -22,6 +22,8 @@ const en = {
   catchSuggestionOne: '{name} suggested a change.',
   catchFigures: '{n} linked figures wait for you.',
   catchFiguresOne: '1 linked figure waits for you.',
+  catchEdits: '{n} paragraphs changed.',
+  catchEditsOne: 'A paragraph changed.',
   catchShow: 'Show me',
   catchDismiss: 'Dismiss',
 } as const
