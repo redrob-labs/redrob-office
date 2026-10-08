@@ -1,6 +1,6 @@
 # Redrob Privacy
 
-Last updated: August 26, 2026
+Last updated: October 8, 2026
 
 Redrob opens, edits, and saves documents locally. Document editing does not
 upload files to Redrob. AI features require a network connection and send
@@ -45,6 +45,38 @@ The Google Analytics 4 payload also uses a random install UUID as `client_id`.
 The country code is sent through GA4's country-only `user_location` field; the
 app does not send a city or region. Neither identifier is an account or
 email address.
+
+## AI work insights
+
+When Redrob is connected to a Redrob Console workspace, each AI session in
+Docs, Sheets, Slides, PDF and Markdown is labeled on this computer and the
+labels are sent to that workspace's Redrob Console with the workspace's key.
+The console uses them for its AI work insights: each person sees their own
+work, team leads their team as a whole, and admins the workspace, never for a
+group smaller than the workspace's minimum.
+
+A session is one stretch of work with the AI panel, ending after 15 minutes
+with nothing happening. Its labels are:
+
+- the day and time it started, and that it was Redrob Office
+- how deep the work went, from a quick question to the agent doing the whole
+  task, worked out from how many messages were sent and whether the AI changed
+  the file
+- whether the AI changed the file, and whether the first message went with the
+  open file, a selection or an image
+- how many messages were sent, whether the run was stopped, and whether a new
+  message followed the stop
+- for sessions where the agent did the work: how many steps it took, and the
+  minutes it ran and the minutes between its answers and the next message
+
+Each AI request of a session also carries the session's random id, so the
+console can match the session to its own record of the request's model and
+cost.
+
+Insights never send what you typed, what the AI wrote, the file or any part of
+it, file names or paths. Labels wait in `insights-outbox.json` in the app's
+data folder until the console accepts them, so you can read exactly what will
+be sent.
 
 ## Network information
 

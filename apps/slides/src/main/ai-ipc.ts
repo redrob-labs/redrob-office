@@ -190,7 +190,7 @@ export function registerAiIpc(): void {
         onStopReason: (reason) => {
           stopReason = reason
         },
-      })
+      }, request.sessionId)
       send(
         stopReason === undefined
           ? { requestId, type: 'done' }

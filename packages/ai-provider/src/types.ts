@@ -85,6 +85,8 @@ export interface AiStreamRequest {
   messages: AgentMessage[]
   tools?: AgentToolDef[]
   maxTokens?: number
+  /** The insights session the turn belongs to, from the agent loop; sent as x-redrob-session. */
+  sessionId?: string
 }
 
 export interface AiStreamChunk {

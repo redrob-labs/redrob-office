@@ -3144,7 +3144,7 @@ export function registerSheetsAiIpc(): void {
         onStopReason: (reason) => {
           stopReason = reason
         },
-      })
+      }, request.sessionId)
       // sheets tsconfig sets exactOptionalPropertyTypes: an explicit
       // `stopReason: undefined` is not assignable to AiStreamChunk, so only
       // include the property when a reason was actually reported.

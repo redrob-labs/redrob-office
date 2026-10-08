@@ -20,7 +20,7 @@ import {
 import { applyRevisionsBy } from '../editor/revisions'
 import { DOCS_CONTINUE_INSTRUCTION } from './continuation'
 import { createFilesSkill } from './files-skill'
-import { createElectronTransport } from './transport'
+import { createElectronTransport, insightsSink } from './transport'
 import { useI18n, t as tModule, aiLangDirective, type StringKey } from '../i18n/locale'
 import {
   AgentComposer,
@@ -633,6 +633,7 @@ export function AiPanel({
     })
     loopRef.current = new AgentLoop<PmNode>({
       transport: createElectronTransport(() => settingsRef.current),
+      insights: insightsSink,
       systemSuffix: aiLangDirective,
       skill: composeSkills('docs+files', '', [
         createDocsSkill(

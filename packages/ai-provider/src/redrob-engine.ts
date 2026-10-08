@@ -78,7 +78,16 @@ export function hasDegradedSteering(text: string): boolean {
  */
 export interface RedrobEngineAuth {
   apiKey: string
+  /**
+   * The insights session the request belongs to, a random id made on this computer. Sent as
+   * x-redrob-session so the console can join the session to its own record of the request's cost
+   * and model; the console takes neither from the device.
+   */
+  sessionId?: string
 }
+
+/** The console accepts 1-128 letters, digits, ".", "_", ":" or "-"; anything else is not sent. */
+const SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
 
 class RedrobEngineError extends Error {
   constructor(message: string) {
@@ -91,6 +100,9 @@ function authHeaders(auth: RedrobEngineAuth): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${auth.apiKey}`,
+    ...(auth.sessionId && SESSION_ID.test(auth.sessionId)
+      ? { 'x-redrob-session': auth.sessionId }
+      : {}),
   }
 }
 

@@ -1563,6 +1563,8 @@ export interface SlidesApi extends Partial<OfficePrefsApi> {
   setAiSettings: (settings: AiSettings) => Promise<void>
   aiStream: (request: AiStreamRequest) => Promise<void>
   aiStreamCancel: (requestId: string) => Promise<void>
+  /** One fact about an AI session for Redrob Console insights: counts and flags, never text. */
+  insightsFact: (fact: unknown) => void
   /** Genspark account status (gsk login state); with withEmail also fetches the email (needs a network request, slower) */
   aiGskStatus: (withEmail?: boolean) => Promise<GenSparkAccountStatus>
   /** Open the browser to log into Genspark (fire-and-forget; aiGskStatus turns logged-in once done) */
