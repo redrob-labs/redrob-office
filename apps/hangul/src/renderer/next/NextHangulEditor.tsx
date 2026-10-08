@@ -182,8 +182,8 @@ export function NextHangulEditor(): React.JSX.Element {
       const report = (r: { ok: boolean; error?: string }) => {
         if (!r.ok) setSaveState({ kind: 'error', message: r.error ?? t('nextOutputFailed') })
       }
-      if (kind === 'html') {
-        if (api.exportHtml) void api.exportHtml({ html: documentHtml(opened.session), name }).then(report)
+      if (kind === 'html' || kind === 'doc') {
+        if (api.exportHtml) void api.exportHtml({ html: documentHtml(opened.session), name, format: kind }).then(report)
         return
       }
       if (api.printPages) void api.printPages({ pages: pageRenders(opened.session), mode: kind, name }).then(report)

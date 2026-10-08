@@ -57,7 +57,7 @@ export interface HostDeps {
   /** Whether the caret is in a click-here field. */
   inField(): boolean
   /** Print, or save as PDF, the engine's pages; export the document as HTML. */
-  output(kind: 'print' | 'pdf' | 'html'): void
+  output(kind: 'print' | 'pdf' | 'html' | 'doc'): void
   /** 새 문서, 불러오기, 최근 목록 지우기: the shell opens files and keeps the recent list. */
   files(kind: 'new' | 'open' | 'clear-recent'): void
   /** 문서 비교: pick another document and list how this one differs. */
@@ -85,6 +85,7 @@ export const HOST_COMMANDS: Record<string, Handler> = {
   'file:print': (d) => (d.output('print'), true),
   'file:print-to-pdf': (d) => (d.output('pdf'), true),
   'file:export-html': (d) => (d.output('html'), true),
+  'file:export-doc': (d) => (d.output('doc'), true),
   // Editing
   'edit:cut': (d) => (d.clipboard('cut'), true),
   'edit:copy': (d) => (d.clipboard('copy'), true),
@@ -157,10 +158,9 @@ export const HOST_COMMANDS: Record<string, Handler> = {
 /**
  * Coverage-list commands that are not reachable yet, with why. The coverage
  * test fails when an id is neither on the bus, nor here, nor in HOST_COMMANDS,
- * so this list only shrinks.
+ * so this list only shrinks. It is empty: every listed command is reachable.
  */
 export const NOT_YET: Record<string, string> = {
-  'file:export-doc': 'needs a .doc export',
 }
 
 /**

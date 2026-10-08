@@ -221,7 +221,8 @@ export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
   fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
   generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{ url?: string; error?: string }>
   printPages?(request: PrintPagesRequest): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
-  exportHtml?(request: { html: string; name?: string }): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
+  /** `format: 'doc'` writes the HTML-based Word document (.doc) instead of a web page */
+  exportHtml?(request: { html: string; name?: string; format?: 'html' | 'doc' }): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
   fontSource?(face: string): Promise<Uint8Array | null>
   newDocument?(): Promise<void>
   openDialog?(): Promise<void>
