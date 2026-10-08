@@ -1,13 +1,11 @@
 /**
- * The owned Hangul editor (spec .kiro/specs/hangul-editor), mounted only when
- * main reports editor kind 'next' (REDROB_HANGUL_EDITOR=next, unpackaged).
+ * The Hangul editor (spec .kiro/specs/hangul-editor).
  *
  * The engine (packages/hwp-core) paints every document pixel; EditorView
  * (packages/hwp-editor) owns input, caret, selection, IME and the clipboard.
  * This component is the frame around it: open and save through the existing
  * host seam (window.hangulApi), dirty state to main for the close prompt, and
- * the shared EditorFrame with real undo/redo and formatting toggles. The full
- * 한글 ribbon and dialogs are Phase 2.
+ * the shared EditorFrame, the 한글 ribbon and its dialogs.
  */
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { coreVersion, initHwpCore } from '@genoffice/hwp-core'

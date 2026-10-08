@@ -115,6 +115,25 @@ touching product behavior.
 
 ## Unreleased
 
+### Redrob Hangul: the new editor
+
+- **Hangul files open in Redrob's own editor.** It replaces the embedded
+  rhwp-studio. The engine is our fork of rhwp (`engines/rhwp`, built to
+  WebAssembly as `packages/hwp-core`), and everything above it is ours
+  (`packages/hwp-editor`, `apps/hangul/src/renderer/next`).
+- **What it has:** the 한글 ribbon and shortcuts, the 한글 dialogs, tables,
+  pictures, shapes, charts, equations, headers, footers and notes, comments and
+  track changes, print and PDF, live editing in shared files, Redrob AI, and
+  catch-up. It saves `.hwp` and `.hwpx` equally.
+- **Fonts:** a font this computer does not have is named in the status bar, and
+  the page says when it may differ from 한글. Fonts installed with 한컴오피스 are
+  used.
+- **Removed:** rhwp-studio (`apps/hangul/resources/rhwp-studio`), the
+  `@rhwp/editor` SDK (`packages/rhwp-editor`), the loopback server it was served
+  from, and its theme injection. The Hangul renderer now loads from the app like
+  every other editor. `REDROB_HANGUL_EDITOR` no longer does anything.
+- **New required check:** `fidelity (synthetic)`.
+
 ### Naming and cloud-account honesty
 
 - The suite product name is **Redrob Office** (not bare "Redrob"): window title,
