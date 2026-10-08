@@ -97,7 +97,8 @@ Requirement references are in brackets, e.g. [R2.1].
   mapped to HWP shapes). [R6.1, R6.2]
 - [x] 3.3 Write tools: `replace_blocks` and `insert_content` with formatting inheritance;
   `apply_commands`; `set_header_footer`; tables and cells; text boxes. [R6.2, R6.3]
-- [ ] 3.4 Media and shared tools: images, charts, search, attachments, `create_document`. [R6.1]
+- [x] 3.4 Media and shared tools: images, charts, search, attachments, `create_document`. [R6.1]
+  (`insert_chart` waits for chart creation in the engine, Phase 2 charts; `edit_chart` works on existing charts.)
 - [x] 3.5 AI panel on the Agent parts: Plan or Run, status line, receipts with rollback by
   snapshot, fail-closed errors. Preload exposes `getOfficePrefs` and `onOfficePrefsChanged`.
   [R6.5, R6.6]

@@ -13,9 +13,12 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
+import { cloudToolsOn, createHangulDocument, type HangulAiHooks } from './ai-ipc'
+import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
 import { resolveEditorKind } from './editor-kind'
 import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
+import type { CreateHangulDocumentRequest } from '../shared/ipc'
 import type {
   HangulDocumentBytes,
   HangulFormat,
@@ -236,6 +239,10 @@ interface RuntimePaths {
    * (index.html + assets). Served over an app-local loopback origin; never a CDN.
    */
   studioDir: string
+  /** open a generated file in a new tab (shell openGeneratedDocument) */
+  openGeneratedPath?: HangulAiHooks['openGeneratedPath']
+  /** Docs-owned create_document for docx/pdf/md */
+  createDocument?: HangulAiHooks['createDocument']
 }
 
 let runtime: RuntimePaths = { preloadPath: '', studioDir: '' }
@@ -474,6 +481,23 @@ function registerHangulIpc(): void {
     const waiter = saveWaiters.get(e.sender.id)
     saveWaiters.delete(e.sender.id)
     waiter?.(ok === true)
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.createDocument, (_e, request: CreateHangulDocumentRequest) =>
+    createHangulDocument(request, configuredDefaultSaveDir(app), { openGeneratedPath: runtime.openGeneratedPath, createDocument: runtime.createDocument }),
+  )
+
+  ipcMain.handle(HANGUL_CHANNELS.generateImage, async (_e, op: { prompt?: unknown; aspectRatio?: unknown }) => {
+    if (!hasGskAuth()) return { error: 'Redrob account is not logged in on this machine; ask the user to log in first' }
+    if (!cloudToolsOn(app.getPath('userData'))) return { error: 'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool' }
+    const prompt = String(op?.prompt ?? '').trim()
+    if (!prompt) return { error: 'prompt must not be empty' }
+    try {
+      const r = await gskGenerateImage({ prompt, aspectRatio: op?.aspectRatio ? String(op.aspectRatio) : undefined })
+      return { url: r.url }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
   })
 
   // Language channel shared with other modules; removeHandler tolerates duplicate registration

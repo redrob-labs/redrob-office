@@ -37,6 +37,10 @@ export const HANGUL_CHANNELS = {
   languageChanged: 'app:language-changed',
   getTheme: 'app:get-theme',
   themeChanged: 'app:theme-changed',
+  /** AI create_document: write a new .hwpx (or hand docx/pdf/md to Docs) and open it in a tab */
+  createDocument: 'hangul:create-document',
+  /** AI generate_image, gated on the Redrob login and the cloud-tools setting */
+  generateImage: 'hangul:ai-generate-image',
 } as const
 
 /** AI channels are app-wide ipcMain handlers the shell registers once (docs-main registerAiIpc); pass-through only. */
@@ -46,7 +50,59 @@ export const AI_CHANNELS = {
   streamChunk: 'ai:stream-chunk',
   streamCancel: 'ai:stream-cancel',
   webSearch: 'ai:web-search',
+  imageSearch: 'ai:image-search',
+  fetchImage: 'ai:fetch-image',
 } as const
+
+/** Chat attachments: the shell-wide files:* handlers (docs-main registerDocsIpc). */
+export const FILES_CHANNELS = {
+  pick: 'files:pick',
+  add: 'files:add',
+  read: 'files:read',
+  readImage: 'files:read-image',
+} as const
+
+export interface AttachmentMeta {
+  path: string
+  name: string
+  /** lowercased extension without the dot */
+  ext: string
+  sizeBytes: number
+}
+
+export interface AttachmentAddResult {
+  accepted: AttachmentMeta[]
+  rejected: string[]
+}
+
+export interface AttachmentReadResult {
+  ok: boolean
+  error?: string
+  name?: string
+  totalChars?: number
+  offset?: number
+  text?: string
+}
+
+export type AttachmentImageResult = { ok: true; base64: string; mime: string } | { ok: false; error: string }
+
+export const ATTACHMENT_IMAGE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp'])
+
+export interface ImageSearchResult {
+  images: Array<{ imageUrl: string; title?: string; thumbnailUrl?: string; width?: number; height?: number; source?: string }>
+  method?: string
+  error?: string
+}
+
+export type CreateHangulDocumentRequest =
+  | { type: 'hwpx'; title: string; base64: string }
+  | { type: 'docx' | 'pdf' | 'md'; title: string; content: string }
+
+export interface CreateHangulDocumentResult {
+  ok: boolean
+  path?: string
+  error?: string
+}
 
 export interface WebSearchResult {
   answer?: string
@@ -133,4 +189,13 @@ export interface HangulApi extends Partial<OfficePrefsApi> {
   onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
   /** Main-process web search (the shared ai:web-search handler) */
   webSearch(query: string, maxResults?: number): Promise<WebSearchResult>
+  imageSearch(query: string, maxResults?: number): Promise<ImageSearchResult>
+  /** Download an image URL in main (scheme and target validated there) */
+  fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
+  generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{ url?: string; error?: string }>
+  createDocument(request: CreateHangulDocumentRequest): Promise<CreateHangulDocumentResult>
+  pickAttachments(): Promise<AttachmentAddResult | null>
+  addAttachments(paths: string[]): Promise<AttachmentAddResult>
+  readAttachment(path: string, offset: number, maxChars: number): Promise<AttachmentReadResult>
+  readAttachmentImage(path: string): Promise<AttachmentImageResult>
 }

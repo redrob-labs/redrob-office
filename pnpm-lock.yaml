@@ -168,6 +168,9 @@ importers:
       '@genoffice/ai-provider':
         specifier: workspace:*
         version: link:../../packages/ai-provider
+      '@genoffice/ai-search':
+        specifier: workspace:*
+        version: link:../../packages/ai-search
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils

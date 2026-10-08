@@ -9,7 +9,7 @@
 // because the engine keeps at most 100 (see HISTORY_LIMIT in hwp-editor).
 import { useEffect, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
-import { AgentLoop, composeSkills } from '@genoffice/agent-core'
+import { AgentLoop, composeSkills, type AgentImage } from '@genoffice/agent-core'
 import type { AiSettings } from '@genoffice/ai-provider'
 import { ROLLBACK_POINTS, collapsed, ordered, sameContainer, type EditorView, type Session } from '@genoffice/hwp-editor'
 import {
@@ -40,6 +40,8 @@ import {
 import { aiLangDirective, t as tGlobal, useI18n } from '../i18n/locale'
 import { createHangulSkill } from './hangul-skill'
 import { createSearchSkill } from './search-skill'
+import { createMediaSkill } from './media-skill'
+import { ATTACHMENT_IMAGE_EXTS, type AttachmentAddResult, type AttachmentMeta } from '../../shared/ipc'
 import { createElectronTransport } from './transport'
 import { DOC_NAV_SCHEME, navigateToNode, parseDocNavHref } from './doc-nav'
 
@@ -114,6 +116,12 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
   const pendingSnapRef = useRef<number | null>(null)
   const pointsRef = useRef<RollbackPoint[]>([])
   pointsRef.current = points
+  /** chat attachments: listed in the context for the whole conversation, images sent once */
+  const [attachments, setAttachments] = useState<AttachmentMeta[]>([])
+  const attachmentsRef = useRef<AttachmentMeta[]>([])
+  attachmentsRef.current = attachments
+  const sentImagesRef = useRef(new Set<string>())
+  const [attachNotice, setAttachNotice] = useState<string | null>(null)
 
   const discard = (id: number | null) => {
     const s = depsRef.current.getSession()
@@ -138,7 +146,11 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
   if (!loopRef.current) {
     loopRef.current = new AgentLoop<number>({
       transport: createElectronTransport(() => settingsRef.current!),
-      skill: composeSkills('hangul+search', '', [createHangulSkill({ getSession: () => depsRef.current.getSession(), getBus: () => depsRef.current.getView()?.bus ?? null }), createSearchSkill()]),
+      skill: composeSkills('hangul+search+media', '', [
+        createHangulSkill({ getSession: () => depsRef.current.getSession(), getBus: () => depsRef.current.getView()?.bus ?? null }),
+        createSearchSkill(),
+        createMediaSkill({ getSession: () => depsRef.current.getSession(), api: window.hangulApi, getAttachments: () => attachmentsRef.current }),
+      ]),
       captureSnapshot: () => {
         dropPending()
         const s = depsRef.current.getSession()
@@ -257,15 +269,42 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
     void (async () => {
       try {
         settingsRef.current = await window.hangulApi.getAiSettings()
+        const images = await collectImages()
         if (!mountedRef.current) return
         // A Plan run, and any run in viewing mode, is read-only: no tools are offered.
-        await loop.run(instruction, undefined, { readOnly: !!opts?.planOf || readOnly })
+        await loop.run(instruction, images.length ? images : undefined, { readOnly: !!opts?.planOf || readOnly })
       } catch (err) {
         if (!mountedRef.current) return
         patchLast({ streaming: false, text: err instanceof Error ? err.message : String(err), isError: true })
         setBusy(false)
       }
     })()
+  }
+
+  /** Image attachments go multimodal once, with the first message after they were attached. */
+  const collectImages = async (): Promise<AgentImage[]> => {
+    const images: AgentImage[] = []
+    const failures: string[] = []
+    for (const a of attachmentsRef.current) {
+      if (!ATTACHMENT_IMAGE_EXTS.has(a.ext) || sentImagesRef.current.has(a.path)) continue
+      sentImagesRef.current.add(a.path)
+      const r = await window.hangulApi.readAttachmentImage(a.path)
+      if (r.ok) images.push({ base64: r.base64, mime: r.mime })
+      else failures.push(t('aiImageReadFail', { name: a.name }))
+    }
+    if (failures.length) setAttachNotice(failures.join('; '))
+    return images
+  }
+
+  const mergeAttachments = (result: AttachmentAddResult | null): void => {
+    if (!result) return
+    if (result.accepted.length) {
+      setAttachments((prev) => {
+        const seen = new Set(prev.map((a) => a.path))
+        return [...prev, ...result.accepted.filter((a) => !seen.has(a.path))]
+      })
+    }
+    setAttachNotice(result.rejected.length ? result.rejected.join('; ') : null)
   }
 
   const sendPrompt = (): void => {
@@ -340,6 +379,8 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
               loopRef.current?.reset()
               setBusy(false)
               setChat([])
+              setAttachments([])
+              sentImagesRef.current.clear()
             },
           },
           { label: t('aiCollapsePanel'), icon: <Icon name="sidebar" size={16} />, onClick: onCollapse },
@@ -443,8 +484,29 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
         <AgentComposer
           value={prompt}
           busy={busy}
+          leading={
+            <IconButton size="sm" label={t('aiAttachTitle')} disabled={busy} onClick={() => void window.hangulApi.pickAttachments().then(mergeAttachments)}>
+              <Icon name="attachment" size={16} />
+            </IconButton>
+          }
           context={
-            scopeText && (
+            (scopeText || attachments.length > 0 || attachNotice) && (
+              <>
+              {attachments.length > 0 && (
+                <ul className="hangul-ai-attachments" aria-label={t('aiAttachmentsLabel')}>
+                  {attachments.map((a) => (
+                    <li key={a.path} className="hangul-ai-attachment" data-tip={a.path}>
+                      <span className="hangul-ai-attachment__ext">{a.ext.toUpperCase()}</span>
+                      <span className="hangul-ai-attachment__name">{a.name}</span>
+                      <button type="button" className="hangul-ai-attachment__remove" aria-label={t('aiRemoveAttachment', { name: a.name })} onClick={() => setAttachments((prev) => prev.filter((x) => x.path !== a.path))}>
+                        <Icon name="close" size={12} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {attachNotice && <div className="hangul-ai-attach-notice" role="status">{attachNotice}</div>}
+              {scopeText && (
               <div className="ai-scope-row">
                 <span className="ai-scope-hint">
                   <button type="button" className="ai-scope-label" onClick={() => setScopePreviewOpen((v) => !v)} aria-expanded={scopePreviewOpen} data-tip={t('aiScopeSelectionTip')}>
@@ -456,6 +518,8 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
                 </span>
                 {scopePreviewOpen && <div className="ai-scope-preview">{scopeText.length > 400 ? `${scopeText.slice(0, 400)}…` : scopeText}</div>}
               </div>
+              )}
+              </>
             )
           }
           placeholder={t('aiComposerPlaceholder')}
