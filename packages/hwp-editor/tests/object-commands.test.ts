@@ -150,6 +150,38 @@ describe('pictures and drawing objects (tasks 2.3, 2.4)', () => {
     expect(z(first)).toBeGreaterThan(z(second))
   })
 
+  it('Shift+click adds objects; 개체 묶기 groups them, 개체 풀기 takes the group apart, and both undo', () => {
+    const s = new Session(HwpCoreDocument.blank(), 'hwpx')
+    const bus = new CommandBus(s)
+    bus.run('insert:shape', { shapeType: 'rectangle' })
+    const first = s.object!
+    s.select(s.selection)
+    bus.run('insert:shape', { shapeType: 'ellipse' })
+    const second = s.object!
+    expect(bus.isEnabled('insert:group-shapes')).toBe(false)
+    s.selectObject(first)
+    s.toggleObject(second)
+    expect(s.selectedObjects()).toEqual([first, second])
+    // a second Shift+click takes it out again
+    s.toggleObject(second)
+    expect(s.selectedObjects()).toEqual([first])
+    s.toggleObject(second)
+    expect(bus.isEnabled('insert:group-shapes')).toBe(true)
+    const kinds = () => objectsOnPage(s, 0).map((o) => (o.group ? 'group' : o.kind)).sort()
+    const before = kinds()
+    bus.run('insert:group-shapes')
+    expect(kinds()).toContain('group')
+    expect(kinds()).toHaveLength(1)
+    expect(s.selectedObjects()).toHaveLength(1)
+    expect(bus.isEnabled('insert:ungroup-shapes')).toBe(true)
+    bus.run('insert:ungroup-shapes')
+    expect(kinds()).toEqual(before)
+    bus.run('edit:undo')
+    expect(kinds()).toContain('group')
+    bus.run('edit:undo')
+    expect(kinds()).toEqual(before)
+  })
+
   it('colour conversion matches HWP COLORREF byte order', () => {
     expect(cssToColorRef('#112233')).toBe(0x332211)
     expect(colorRefToCss(0x332211)).toBe('#112233')

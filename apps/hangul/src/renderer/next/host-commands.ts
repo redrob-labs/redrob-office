@@ -153,7 +153,6 @@ export const NOT_YET: Record<string, string> = {
   'file:clear-recent': 'recent files are listed on Home in the shell',
   'file:export-doc': 'needs a .doc export',
   'edit:compare-documents': 'needs a document diff view',
-  'insert:group-shapes': 'needs selecting several objects',
   'tool:options': 'settings live in the shell',
   'view:form-mode': 'needs form mode',
 }

@@ -449,10 +449,12 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               {props.onCommand && view?.session.object?.kind === 'chart' ? <ToolbarButton label={t('nextChartEditData')} icon={g('▤')} disabled={props.readOnly} onClick={() => props.onCommand!('insert:chart-data-edit')} /> : null}
             </Group>
             <Group label={t('nextGroupArrange')}>
-              {button('insert:arrange-front', g('⇈'))}
+              {button('insert:arrange-front', <Icon name="chevronsUp" size={16} />)}
               {button('insert:arrange-forward', g('↑'))}
               {button('insert:arrange-backward', g('↓'))}
-              {button('insert:arrange-back', g('⇊'))}
+              {button('insert:arrange-back', <Icon name="chevronsDown" size={16} />)}
+              {button('insert:group-shapes', <Icon name="merge" size={16} />)}
+              {button('insert:ungroup-shapes', <Icon name="split" size={16} />)}
             </Group>
           </>
         ) : null}

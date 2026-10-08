@@ -451,11 +451,19 @@ export class EditorView {
     if (!o || !box) {
       if (o) this.session.selectObject(null)
       this.overlay.clearDecoration('object:selected')
+      this.overlay.clearDecoration('object:others')
       this.overlay.clearDecoration('object:handles')
       return
     }
     this.overlay.setDecoration({ key: 'object:selected', kind: 'object-selection', rects: [{ pageIndex: box.page, x: box.x, y: box.y, width: box.width, height: box.height }] })
-    if (o.kind === 'equation' || this.readOnly) this.overlay.clearDecoration('object:handles')
+    const others = this.session.others.flatMap((x) => {
+      const b = objectBox(this.session, x)
+      return b ? [{ pageIndex: b.page, x: b.x, y: b.y, width: b.width, height: b.height }] : []
+    })
+    if (others.length) this.overlay.setDecoration({ key: 'object:others', kind: 'object-selection', rects: others })
+    else this.overlay.clearDecoration('object:others')
+    // Handles move or size one object; with several selected there are none.
+    if (o.kind === 'equation' || this.readOnly || this.session.others.length) this.overlay.clearDecoration('object:handles')
     else this.overlay.setDecoration({ key: 'object:handles', kind: 'object-handle', rects: this.handleRects(box) })
   }
 
@@ -466,7 +474,7 @@ export class EditorView {
   private objectGrip(page: number, x: number, y: number): Handle | 'move' | null {
     const o = this.session.object
     const box = o ? objectBox(this.session, o) : null
-    if (!o || !box || box.page !== page || o.kind === 'equation' || this.readOnly) return null
+    if (!o || !box || box.page !== page || o.kind === 'equation' || this.readOnly || this.session.others.length) return null
     const slop = 3 / this.pages.zoom
     for (const r of this.handleRects(box)) if (x >= r.x - slop && x <= r.x + r.width + slop && y >= r.y - slop && y <= r.y + r.height + slop) return r.handle
     return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height ? 'move' : null
@@ -539,6 +547,18 @@ export class EditorView {
       if (grip !== 'move' || e.detail <= 1) {
         e.preventDefault()
         this.objectDrag = { handle: grip, page: ptDown.page, x: ptDown.x, y: ptDown.y, box }
+        this.focus()
+        return
+      }
+    }
+    // Shift+click on another object adds it to the selected one (for 개체 묶기).
+    if (e.shiftKey && this.session.object && !this.readOnly) {
+      const add = this.objectUnder(e.clientX, e.clientY)
+      if (add) {
+        e.preventDefault()
+        this.session.toggleObject({ kind: add.kind, section: add.section, para: add.para, control: add.control })
+        this.dragging = false
+        this.render()
         this.focus()
         return
       }

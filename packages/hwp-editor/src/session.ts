@@ -103,6 +103,8 @@ export class Session {
    * selection is text. Moving the text selection clears it.
    */
   object: ObjectRef | null = null
+  /** More objects Shift+clicked into the selection with `object` (for grouping). */
+  others: ObjectRef[] = []
 
   constructor(
     readonly doc: HwpCoreDocument,
@@ -271,6 +273,7 @@ export class Session {
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
     this.object = null
+    this.others = []
     this.changeSeq = entry.seq
     return this.emit(`edit:undo`, [...touched, ...this.nodesIn(this.selection)], 'history')
   }
@@ -285,6 +288,7 @@ export class Session {
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
     this.object = null
+    this.others = []
     this.changeSeq = entry.seq
     return this.emit(`edit:redo`, this.nodesIn(this.selection), 'history')
   }
@@ -311,11 +315,38 @@ export class Session {
   select(selection: Selection): void {
     this.selection = selection
     this.object = null
+    this.others = []
   }
 
   /** Select a picture or drawing object (the text selection stays where it was). */
   selectObject(object: ObjectRef | null): void {
     this.object = object
+    this.others = []
+  }
+
+  /**
+   * Shift+click: add an object to the selection, or take it out if it is in.
+   * Only objects in the same section as the first can join it.
+   */
+  toggleObject(object: ObjectRef): void {
+    const same = (a: ObjectRef) => a.section === object.section && a.para === object.para && a.control === object.control
+    if (!this.object) return this.selectObject(object)
+    if (same(this.object)) {
+      const [next, ...rest] = this.others
+      this.object = next ?? null
+      this.others = rest
+      return
+    }
+    if (this.others.some(same)) {
+      this.others = this.others.filter((o) => !same(o))
+      return
+    }
+    if (object.section === this.object.section) this.others = [...this.others, object]
+  }
+
+  /** Every selected object, the first one first. */
+  selectedObjects(): ObjectRef[] {
+    return this.object ? [this.object, ...this.others] : []
   }
 
   /** Export for saving. Call `markSaved()` only after the write is confirmed. */

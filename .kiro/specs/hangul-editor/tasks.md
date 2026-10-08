@@ -103,10 +103,10 @@ Requirement references are in brackets, e.g. [R2.1].
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
 - [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
   CommandBus. Done: `apps/hangul/tests/command-coverage.test.ts` checks every listed command and
-  shortcut against the bus and the host command table (`host-commands.ts`); 167 of 176 reachable
-  (from 66), floor 167. Open: the 9 in `NOT_YET`, each with its reason (Home owns opening files;
-  doc export; multi-object selection; compare
-  documents; form mode; the shell's options). [R5.3]
+  shortcut against the bus and the host command table (`host-commands.ts`); 168 of 176 reachable
+  (from 66), floor 168 (개체 묶기 through Shift+click multi-object selection). Open: the 8 in
+  `NOT_YET`, each with its reason (Home owns opening files; doc export; compare documents; form
+  mode; the shell's options). [R5.3]
 
 ## Phase 3: AI
 
