@@ -51,6 +51,15 @@ export type SettleListener = () => void
  */
 export const DEFERRABLE_COMMANDS = new Set(['edit:insert-text', 'edit:delete-backward', 'edit:delete-forward', 'edit:split-paragraph'])
 
+/**
+ * The engine keeps at most 100 snapshots (`DocumentCore::MAX_SNAPSHOTS`) and
+ * silently evicts the oldest. Undo and redo entries together never exceed the
+ * history limit, one more is taken during an edit, and AI receipts keep up to
+ * `ROLLBACK_POINTS` for rollback; 70 + 1 + 20 stays under the cap.
+ */
+export const HISTORY_LIMIT = 70
+export const ROLLBACK_POINTS = 20
+
 interface HistoryEntry {
   snapshot: number
   selection: Selection
@@ -83,7 +92,7 @@ export class Session {
     opts: SessionOptions = {},
   ) {
     this.text = new Text(doc)
-    this.historyLimit = opts.historyLimit ?? 200
+    this.historyLimit = Math.min(opts.historyLimit ?? HISTORY_LIMIT, HISTORY_LIMIT)
     const start: Pos = { section: 0, para: 0, offset: 0 }
     this.selection = { anchor: start, head: start }
   }
@@ -253,6 +262,24 @@ export class Session {
     this.selection = entry.selection
     this.changeSeq = entry.seq
     return this.emit(`edit:redo`, this.nodesIn(this.selection), 'history')
+  }
+
+  /**
+   * Put the document back to an engine snapshot taken earlier (an AI receipt's
+   * rollback point), as one undoable change. The snapshot itself is kept, so
+   * the caller decides when to discard it.
+   */
+  restore(snapshot: number, command = 'ai:rollback'): Change {
+    return this.edit(
+      command,
+      () => {
+        const r = this.doc.restoreSnapshot(snapshot) as { ok?: boolean; error?: string }
+        if (r.ok === false) throw new Error(`restoreSnapshot: ${r.error ?? 'failed'}`)
+        const start: Pos = { section: 0, para: 0, offset: 0 }
+        return { anchor: start, head: start }
+      },
+      'user',
+    )
   }
 
   /** Move the selection without changing the document (no history entry, no change). */

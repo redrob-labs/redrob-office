@@ -24,7 +24,7 @@ import {
   useFrameState,
 } from '@genoffice/ui'
 import { useI18n } from '../i18n/locale'
-import { HangulPanel } from '../HangulEditor'
+import { HangulAiPanel } from '../ai/AiPanel'
 import type { SaveMode } from '../../shared/ipc'
 import { CharShapeDialog, ParaShapeDialog } from './ShapeDialogs'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
@@ -288,7 +288,21 @@ export function NextHangulEditor(): React.JSX.Element {
         }
         simpleToolbar={tools(false)}
         classicToolbar={tools(true)}
-        panel={<HangulPanel onClose={() => setPanelOpen(false)} />}
+        panel={
+          <HangulAiPanel
+            readOnly={mode === 'viewing'}
+            onCollapse={() => setPanelOpen(false)}
+            deps={{
+              getSession: () => openedRef.current?.session ?? null,
+              getView: () => viewRef.current,
+              onRunDone: () => {
+                const opened = openedRef.current
+                if (opened) window.hangulApi.setDirty(opened.session.dirty)
+                refresh()
+              },
+            }}
+          />
+        }
         panelOpen={panelOpen}
         onPanelOpenChange={setPanelOpen}
         panelWidth={frame.panelWidth}

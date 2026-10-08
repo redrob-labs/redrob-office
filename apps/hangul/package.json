@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@genoffice/agent-core": "workspace:*",
+    "@genoffice/ai-provider": "workspace:*",
     "@genoffice/electron-utils": "workspace:*",
     "@genoffice/hwp-core": "workspace:*",
     "@genoffice/hwp-editor": "workspace:*",

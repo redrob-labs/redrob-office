@@ -98,7 +98,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 3.3 Write tools: `replace_blocks` and `insert_content` with formatting inheritance;
   `apply_commands`; `set_header_footer`; tables and cells; text boxes. [R6.2, R6.3]
 - [ ] 3.4 Media and shared tools: images, charts, search, attachments, `create_document`. [R6.1]
-- [ ] 3.5 AI panel on the Agent parts: Plan or Run, status line, receipts with rollback by
+- [x] 3.5 AI panel on the Agent parts: Plan or Run, status line, receipts with rollback by
   snapshot, fail-closed errors. Preload exposes `getOfficePrefs` and `onOfficePrefsChanged`.
   [R6.5, R6.6]
 - [ ] 3.6 `docnav://node/<id>` navigation and edit-queue anchors that move with edits. [R6.7]

@@ -165,6 +165,9 @@ importers:
       '@genoffice/agent-core':
         specifier: workspace:*
         version: link:../../packages/agent-core
+      '@genoffice/ai-provider':
+        specifier: workspace:*
+        version: link:../../packages/ai-provider
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
