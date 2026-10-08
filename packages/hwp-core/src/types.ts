@@ -216,3 +216,32 @@ export interface Revision {
   end: number
   text: string
 }
+
+/** [E7] A new chart: 묶은 세로/가로 막대형, 꺾은선형 or 2차원 원형 (first series only). */
+export type ChartKind = 'column' | 'bar' | 'line' | 'pie'
+
+export interface NewChart {
+  kind: ChartKind
+  title?: string
+  categories: string[]
+  series: Array<{ name: string; values: number[] }>
+  /** HWPUNIT; 한글's default is 32250 × 18750 */
+  width?: number
+  height?: number
+}
+
+export interface ChartRef {
+  index: number
+  section: number
+  paragraph: number
+  control: number
+}
+
+/** A chart's data as the engine reads it (values stay text, as stored). */
+export interface ChartData {
+  ok: boolean
+  plot?: string
+  labels?: string[]
+  series?: Array<{ name: string | null; values: string[] }>
+  invalid?: Array<{ reason: string; message: string }>
+}

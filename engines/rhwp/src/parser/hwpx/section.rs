@@ -2637,7 +2637,7 @@ fn materialize_hwpx_table_attrs(table: &mut Table, table_record_flags: u32) {
     table.raw_table_record_attr = record_attr;
 }
 
-fn pack_hwpx_common_obj_attr(common: &CommonObjAttr) -> u32 {
+pub(crate) fn pack_hwpx_common_obj_attr(common: &CommonObjAttr) -> u32 {
     let mut attr = 0u32;
     if common.treat_as_char {
         attr |= 0x01;
@@ -7727,7 +7727,7 @@ fn parse_hp_ole_element(
     ))))))
 }
 
-fn apply_hwpx_ole_shape_component_contract(ole: &mut crate::model::shape::OleShape) {
+pub(crate) fn apply_hwpx_ole_shape_component_contract(ole: &mut crate::model::shape::OleShape) {
     let extent_w = if ole.extent_x > 0 {
         ole.extent_x as u32
     } else {

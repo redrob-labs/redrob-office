@@ -137,6 +137,33 @@ impl HwpDocument {
         self.core.remove_revision_native(id).map_err(Into::into)
     }
 
+    /// [Redrob E7] `{section, para, offset, kind, title?, categories, series:[{name, values}], width?, height?}`
+    /// → `{ok, paraIdx, controlIdx, chart}`. `kind` is column, bar, line or pie; the default
+    /// size is 한글's for a new chart (32250 × 18750 HWPUNIT).
+    #[wasm_bindgen(js_name = insertChart)]
+    pub fn insert_chart(&mut self, options_json: &str) -> Result<String, JsValue> {
+        use crate::ooxml_chart::writer::{NewChart, NewChartKind, NewSeries};
+        let o: ChartInsertOptions = parse(options_json)?;
+        let kind = NewChartKind::parse(&o.kind)
+            .ok_or_else(|| JsValue::from_str(&format!("unknown chart kind {:?}", o.kind)))?;
+        let chart = NewChart {
+            kind,
+            title: o.title,
+            categories: o.categories,
+            series: o.series.into_iter().map(|s| NewSeries { name: s.name, values: s.values }).collect(),
+        };
+        self.core
+            .insert_chart_native(
+                o.section,
+                o.para,
+                o.offset,
+                &chart,
+                o.width.unwrap_or(32250),
+                o.height.unwrap_or(18750),
+            )
+            .map_err(Into::into)
+    }
+
     #[wasm_bindgen(js_name = removeMemo)]
     pub fn remove_memo(&mut self, field_id: u32) -> Result<(), JsValue> {
         self.core.remove_memo_native(field_id).map_err(Into::into)
@@ -162,4 +189,28 @@ struct RevisionAddOptions {
     kind: String,
     author: String,
     date: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ChartSeriesOptions {
+    name: String,
+    values: Vec<f64>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ChartInsertOptions {
+    section: usize,
+    para: usize,
+    offset: usize,
+    kind: String,
+    #[serde(default)]
+    title: Option<String>,
+    categories: Vec<String>,
+    series: Vec<ChartSeriesOptions>,
+    #[serde(default)]
+    width: Option<u32>,
+    #[serde(default)]
+    height: Option<u32>,
 }

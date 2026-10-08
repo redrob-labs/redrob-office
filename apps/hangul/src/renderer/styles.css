@@ -224,6 +224,14 @@ body {
 .hangul-style-editor__list li:focus-visible { outline: 2px solid var(--action-primary); outline-offset: -2px; }
 .hangul-style-editor__actions { display: flex; gap: 8px; }
 .hangul-style-editor__form { min-width: 0; }
+.hangul-chart-sheet { max-height: 320px; overflow: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); }
+.hangul-chart-sheet table { border-collapse: collapse; width: 100%; }
+.hangul-chart-sheet th, .hangul-chart-sheet td { padding: 0; border: 1px solid var(--border-subtle); }
+.hangul-chart-sheet thead th, .hangul-chart-sheet tbody th { background: var(--surface-sunken); }
+.hangul-chart-sheet input { width: 100%; min-width: 72px; box-sizing: border-box; border: 0; padding: 6px 8px; font: inherit; font-size: 13px; color: var(--ink-primary); background: transparent; }
+.hangul-chart-sheet th input { font-weight: 600; }
+.hangul-chart-sheet input:focus-visible { outline: 2px solid var(--action-primary); outline-offset: -2px; }
+.hangul-chart-sheet input[aria-invalid='true'] { box-shadow: inset 0 0 0 2px var(--status-danger); }
 .hangul-dialog-note { margin: 0 0 8px; font-size: 12px; color: var(--ink-secondary); }
 .hangul-find { display: grid; gap: 12px; }
 .hangul-find__status { min-height: 1.2em; color: var(--ink-secondary); font-size: 13px; margin: 0; }

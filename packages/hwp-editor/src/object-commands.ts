@@ -6,6 +6,7 @@
 // border-fill: `borderLeft/Right/Top/Bottom` ({ type, width, color }, where
 // `type` is the HWP line type 0–17 and `width` the HWP width index 0–15) and
 // `fillType` ('none' | 'solid') with `fillColor`.
+import type { ChartData, NewChart } from '@genoffice/hwp-core'
 import type { Pos } from './position'
 import type { ObjectRef, Session } from './session'
 import type { Command } from './commands'
@@ -139,10 +140,16 @@ interface LayoutControl {
 export function objectsOnPage(s: Session, page: number): ObjectBox[] {
   const r = JSON.parse(s.doc.raw.getPageControlLayout(page)) as { controls?: LayoutControl[] }
   const out: ObjectBox[] = []
+  let charts: Set<string> | null = null
+  const isChart = (sec: number, para: number, ctrl: number) => {
+    charts ??= new Set(s.doc.charts().map((c) => `${c.section}:${c.paragraph}:${c.control}`))
+    return charts.has(`${sec}:${para}:${ctrl}`)
+  }
   // The engine lists controls in paint order; its own `zOrder` field is not reliable here.
   for (const [i, c] of (r.controls ?? []).entries()) {
-    const kind = c.type === 'image' ? 'picture' : c.type === 'shape' ? 'shape' : null
-    if (!kind || c.secIdx === undefined || c.paraIdx === undefined || c.controlIdx === undefined) continue
+    if (c.secIdx === undefined || c.paraIdx === undefined || c.controlIdx === undefined) continue
+    const kind = c.type === 'image' ? 'picture' : isChart(c.secIdx, c.paraIdx, c.controlIdx) ? 'chart' : c.type === 'shape' ? 'shape' : null
+    if (!kind) continue
     out.push({ kind, section: c.secIdx, para: c.paraIdx, control: c.controlIdx, page, x: c.x, y: c.y, width: c.w, height: c.h, zOrder: i })
   }
   return out
@@ -270,7 +277,62 @@ export const insertShape: Command<{ shapeType: ShapeKind; width?: number; height
   },
 }
 
+/** The selected object, when it is a chart. */
+export function selectedChart(s: Session): ObjectRef | null {
+  const o = s.object
+  if (!o || o.kind !== 'chart') return null
+  return o
+}
+
+export function chartData(s: Session, o: ObjectRef | null = selectedChart(s)): ChartData | null {
+  if (!o) return null
+  try {
+    return s.doc.chartData(o.section, o.para, o.control)
+  } catch {
+    return null
+  }
+}
+
+/** Insert a chart at the caret (body text) and select it. */
+export const insertChart: Command<{ chart: NewChart }> = {
+  id: 'insert:chart',
+  isEnabled: ({ session }) => !session.selection.head.cell,
+  run({ session }, { chart }) {
+    const p = session.selection.head
+    let created: ObjectRef | null = null
+    const change = session.edit('insert:chart', () => {
+      const r = session.doc.insertChart(p.section, p.para, p.offset, chart)
+      created = { kind: 'chart', section: p.section, para: r.paraIdx, control: r.controlIdx }
+      return session.selection
+    })
+    session.selectObject(created)
+    return change
+  },
+}
+
+/**
+ * Replace the selected chart's categories and series (rows and columns may
+ * change). Values are numbers here and stored as the shortest text that reads
+ * back the same.
+ */
+export const setChartDataCommand: Command<{ categories: string[]; series: Array<{ name: string; values: number[] }> }> = {
+  id: 'chart:set-data',
+  isEnabled: ({ session }) => selectedChart(session) !== null,
+  run({ session }, { categories, series }) {
+    const o = selectedChart(session)!
+    if (series.some((x) => x.values.length !== categories.length || x.values.some((v) => !Number.isFinite(v)))) throw new Error('chart:set-data: every series needs one number per category')
+    const sel = session.selection
+    return session.edit('chart:set-data', () => {
+      const r = session.doc.setChartData(o.section, o.para, o.control, { labels: categories, series: series.map((x) => ({ name: x.name, values: x.values.map((v) => String(v)) })), structure: true })
+      if (!r.ok) throw new Error(`chart:set-data: ${(r.invalid ?? []).map((i) => i.message).join('; ') || 'refused'}`)
+      return sel
+    })
+  },
+}
+
 export const OBJECT_COMMANDS = [
+  insertChart,
+  setChartDataCommand,
   setTableProperties,
   setCellProperties,
   setObjectProperties,

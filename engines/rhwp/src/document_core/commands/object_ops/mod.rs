@@ -5,6 +5,8 @@
 
 /// [#4100] 차트 숫자 데이터 읽기·쓰기.
 mod chart;
+/// [Redrob E7] Insert a new chart from data.
+mod chart_create;
 mod common;
 mod connector;
 mod equation;

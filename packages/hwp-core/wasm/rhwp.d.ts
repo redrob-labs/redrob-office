@@ -1516,6 +1516,12 @@ export class HwpDocument {
      */
     insertAutoNumberAtCursor(list_id: number, para_in_list: number, pos: number, kind: string): string;
     /**
+     * [Redrob E7] `{section, para, offset, kind, title?, categories, series:[{name, values}], width?, height?}`
+     * → `{ok, paraIdx, controlIdx, chart}`. `kind` is column, bar, line or pie; the default
+     * size is 한글's for a new chart (32250 × 18750 HWPUNIT).
+     */
+    insertChart(options_json: string): string;
+    /**
      * 현재 본문 위치에 ClickHere 누름틀 필드를 삽입한다.
      */
     insertClickHereField(section_idx: number, para_idx: number, char_offset: number, guide: string, memo: string, name: string, editable: boolean): string;
@@ -2890,6 +2896,7 @@ export interface InitOutput {
     readonly hwpdocument_injectExternalImage: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
     readonly hwpdocument_injectExternalImageByKey: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
     readonly hwpdocument_insertAutoNumberAtCursor: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly hwpdocument_insertChart: (a: number, b: number, c: number) => [number, number, number, number];
     readonly hwpdocument_insertClickHereField: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number, number, number];
     readonly hwpdocument_insertClickHereFieldAtCursor: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number, number, number];
     readonly hwpdocument_insertClickHereFieldByPath: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => [number, number, number, number];

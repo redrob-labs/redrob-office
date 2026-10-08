@@ -15,6 +15,9 @@
 import init, { initSync, HwpDocument, version as rawVersion } from '../wasm/rhwp.js'
 import type {
   CharProperties,
+  ChartData,
+  ChartRef,
+  NewChart,
   CursorRect,
   DocumentInfo,
   EditResult,
@@ -241,6 +244,28 @@ export class HwpCoreDocument {
   /** Drop a revision's marks and table entry. The text stays. */
   removeRevision(id: number): void {
     this.raw.removeRevision(id)
+  }
+
+  // ── Charts (E7 and upstream #4100) ────────────────────────────────────
+  /** Insert a new chart at a body position; returns where its control sits. */
+  insertChart(section: number, para: number, offset: number, chart: NewChart): { paraIdx: number; controlIdx: number; chart: number } {
+    return decode(this.raw.insertChart(JSON.stringify({ section, para, offset, ...chart })))
+  }
+
+  charts(): ChartRef[] {
+    return decode(this.raw.listCharts())
+  }
+
+  chartData(section: number, para: number, control: number): ChartData {
+    return decode(this.raw.getChartData(section, para, control))
+  }
+
+  /**
+   * Replace a chart's data. With `structure`, series and categories may be
+   * added or removed; values are strings, as the engine stores them.
+   */
+  setChartData(section: number, para: number, control: number, data: { labels?: string[]; series: Array<{ name?: string; values: string[] }>; structure?: boolean }): ChartData {
+    return decode(this.raw.setChartData(section, para, control, JSON.stringify(data)))
   }
 
   // ── Edit ──────────────────────────────────────────────────────────────
