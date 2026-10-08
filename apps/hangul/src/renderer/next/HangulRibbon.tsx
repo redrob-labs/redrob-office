@@ -428,6 +428,9 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
             {button('view:zoom-fit-page', g('▢'))}
           </Group>
         ) : null}
+        {active === 'view' ? (
+          <Group label={t('nextGroupForm')}>{button('view:form-mode', <Icon name="checklist" size={16} />, { toggle: true, size: 'lg' })}</Group>
+        ) : null}
         {active === 'story' ? (
           <Group label={tabLabel.story}>
             {view?.session.selection.head.story?.kind === 'note' ? (

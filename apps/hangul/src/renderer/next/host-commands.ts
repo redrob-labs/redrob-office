@@ -157,7 +157,6 @@ export const NOT_YET: Record<string, string> = {
   'file:export-doc': 'needs a .doc export',
   'edit:compare-documents': 'needs a document diff view',
   'tool:options': 'settings live in the shell',
-  'view:form-mode': 'needs form mode',
 }
 
 /**

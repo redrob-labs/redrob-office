@@ -485,7 +485,9 @@ export function NextHangulEditor(): React.JSX.Element {
   // A face this machine lacks is drawn with another, so that page cannot match 한글 (R2.4).
   const fonts = fontsRef.current
   const missingFonts = fonts ? fonts.missing() : []
-  const substituted = missingFonts.map((m) => (m.paintedWith ? `${m.face} → ${m.paintedWith}` : m.face)).join(', ')
+  // The status line has little room: the first face and how many more.
+  const firstMissing = missingFonts[0]
+  const substituted = firstMissing ? `${firstMissing.paintedWith ? `${firstMissing.face} → ${firstMissing.paintedWith}` : firstMissing.face}${missingFonts.length > 1 ? ` +${missingFonts.length - 1}` : ''}` : ''
   let caretPage = 0
   try {
     caretPage = s.text.cursorRect(s.selection.head).pageIndex
