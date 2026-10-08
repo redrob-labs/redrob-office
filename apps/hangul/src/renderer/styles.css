@@ -130,6 +130,15 @@ body {
 .hangul-next-host.hangul-hide-markup .hwp-deco-suggestion-insert,
 .hangul-next-host.hangul-hide-markup .hwp-deco-suggestion-delete { display: none; }
 .hangul-next-host .hwp-show-grid .hwp-page { background-image: linear-gradient(rgb(0 0 0 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(0 0 0 / 0.06) 1px, transparent 1px); background-size: var(--hangul-grid, 20px) var(--hangul-grid, 20px); }
+.hangul-next-host .hwp-deco-object-handle {
+  background: var(--surface-base);
+  border: 1px solid var(--action-primary);
+  pointer-events: none;
+}
+.hangul-next-host .hwp-deco-object-ghost {
+  outline: 1px dashed var(--action-primary);
+  pointer-events: none;
+}
 .hangul-next-host .hwp-deco-ai-pending {
   background: color-mix(in srgb, var(--action-primary) 18%, transparent);
   border-bottom: 2px dotted var(--action-primary);
