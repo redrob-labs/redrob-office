@@ -473,12 +473,37 @@ export const newPageNumber: Command<{ start: number }> = {
   },
 }
 
-/** 쪽 번호 / 전체 쪽 수 at the caret, as an automatic number. */
+/** In a header or footer: 1 page number, 2 total pages, 3 file name, as 한글's field markers. */
+function headerFooterField(s: Session, id: string, fieldType: 1 | 2 | 3): ReturnType<Command['run']> {
+  const p = s.selection.head
+  const st = p.story!
+  if (st.kind === 'note') return null
+  return s.edit(id, () => {
+    json(s.doc.raw.insertFieldInHf(p.section, st.kind === 'header', st.applyTo, p.para, p.offset, fieldType), 'insertFieldInHf')
+    const q: Pos = { ...p, offset: Math.min(s.text.length(p), p.offset + 1) }
+    return { anchor: q, head: q }
+  })
+}
+
+const inHeaderFooter = (s: Session) => {
+  const st = s.selection.head.story
+  return !!st && st.kind !== 'note'
+}
+
+/** 파일 이름: only inside a header or footer, where 한글 keeps it. */
+export const fileNameField: Command = {
+  id: 'page:insert-field-filename',
+  isEnabled: ({ session }) => inHeaderFooter(session),
+  run: ({ session }) => headerFooterField(session, 'page:insert-field-filename', 3),
+}
+
+/** 쪽 번호 / 전체 쪽 수 at the caret, as an automatic number (a field marker in a header or footer). */
 function autoNumber(id: string, kind: 'page' | 'total'): Command {
   return {
     id,
-    isEnabled: ({ session }) => body(session) !== null && session.selection.head.section === 0,
+    isEnabled: ({ session }) => inHeaderFooter(session) || (body(session) !== null && session.selection.head.section === 0),
     run({ session }) {
+      if (inHeaderFooter(session)) return headerFooterField(session, id, kind === 'page' ? 1 : 2)
       const p = body(session)!
       return session.edit(id, () => {
         json(session.doc.raw.insertAutoNumberAtCursor(0, p.para, p.offset, kind), 'insertAutoNumberAtCursor')
@@ -558,6 +583,7 @@ export const setPageHide: Command<PageHide> = {
 
 export const STRUCTURE_COMMANDS = [
   setPageHide,
+  fileNameField,
   toggleOutline,
   formatCopy,
   formatPaste,

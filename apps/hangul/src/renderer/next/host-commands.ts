@@ -154,7 +154,6 @@ export const NOT_YET: Record<string, string> = {
   'file:export-doc': 'needs a .doc export',
   'edit:compare-documents': 'needs a document diff view',
   'insert:group-shapes': 'needs selecting several objects',
-  'page:insert-field-filename': 'a file name field exists only inside headers and footers',
   'tool:options': 'settings live in the shell',
   'view:form-mode': 'needs form mode',
 }

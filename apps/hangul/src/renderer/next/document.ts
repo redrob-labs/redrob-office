@@ -77,6 +77,8 @@ export async function openDocument(bytes: Uint8Array, fileName: string, password
   const source = doc.sourceFormat()
   const format: HangulFormat = source === 'hwpx' || source === 'hwp' ? source : formatOfName(fileName)
   const session = new Session(doc, format)
+  // File name fields in headers and footers take this name when the document is saved.
+  if (fileName) session.doc.raw.setFileName(fileName)
   return { session, format, fileName, password, trackedChanges: await trackedChanges(bytes, format) }
 }
 
@@ -114,6 +116,7 @@ export async function saveDocument(opened: OpenedDocument, host: HostWriter, mod
     opened.trackedChanges = false
     opened.format = format
     opened.fileName = result.path.split(/[\\/]/).pop() ?? opened.fileName
+    opened.session.doc.raw.setFileName(opened.fileName)
   }
   return { saved: true, path: result.path, format }
 }
