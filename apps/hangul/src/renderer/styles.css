@@ -180,6 +180,7 @@ body {
 .hangul-ribbon-group__label { font-size: 11px; color: var(--ink-muted); text-align: center; padding-top: 2px; }
 .hangul-glyph { font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; }
 .hangul-picker--style { width: 110px; }
+.hangul-picker--style, .hangul-picker--style * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hangul-picker--font { width: 130px; }
 .hangul-picker--size { width: 64px; }
 .hangul-file-buttons { display: flex; gap: 6px; align-items: center; padding-top: 4px; }
@@ -214,6 +215,15 @@ body {
 .hangul-dialog-group legend { font-weight: 600; margin-bottom: 8px; }
 .hangul-dialog-sides { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .hangul-dialog-span { grid-column: 1 / -1; }
+.hangul-style-editor { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; }
+.hangul-style-editor__list { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.hangul-style-editor__list ul { list-style: none; margin: 0; padding: 4px; max-height: 420px; overflow: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); }
+.hangul-style-editor__list li { padding: 6px 8px; border-radius: var(--radius-sm); cursor: default; font-size: 13px; color: var(--ink-primary); }
+.hangul-style-editor__list li:hover { background: var(--surface-hover); }
+.hangul-style-editor__list li[aria-selected='true'] { background: color-mix(in srgb, var(--action-primary) 14%, transparent); font-weight: 600; }
+.hangul-style-editor__list li:focus-visible { outline: 2px solid var(--action-primary); outline-offset: -2px; }
+.hangul-style-editor__actions { display: flex; gap: 8px; }
+.hangul-style-editor__form { min-width: 0; }
 .hangul-dialog-note { margin: 0 0 8px; font-size: 12px; color: var(--ink-secondary); }
 .hangul-find { display: grid; gap: 12px; }
 .hangul-find__status { min-height: 1.2em; color: var(--ink-secondary); font-size: 13px; margin: 0; }
