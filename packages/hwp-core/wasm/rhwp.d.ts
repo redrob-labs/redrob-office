@@ -1182,6 +1182,10 @@ export class HwpDocument {
      */
     getPositionOfPage(global_page: number): string;
     /**
+     * [Redrob 4.2] The Redrob comment-metadata part (JSON text), or "" when absent.
+     */
+    getRedrobComments(): string;
+    /**
      * 문서 글을 한글 스캔 차례로 — `InitScan`·`GetText`·`ReleaseScan` 이 쓴다.
      */
     getScanItems(): string;
@@ -2326,6 +2330,10 @@ export class HwpDocument {
      */
     setPictureProperties(section_idx: number, parent_para_idx: number, control_idx: number, props_json: string): string;
     /**
+     * [Redrob 4.2] Set the comment-metadata part; "" removes it.
+     */
+    setRedrobComments(json: string): void;
+    /**
      * 구역 정의(SectionDef)를 변경하고 재페이지네이션한다.
      */
     setSectionDef(section_idx: number, json: string): string;
@@ -2813,6 +2821,7 @@ export interface InitOutput {
     readonly hwpdocument_getParagraphLength: (a: number, b: number, c: number) => [number, number, number];
     readonly hwpdocument_getPictureProperties: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_getPositionOfPage: (a: number, b: number) => [number, number, number, number];
+    readonly hwpdocument_getRedrobComments: (a: number) => [number, number];
     readonly hwpdocument_getScanItems: (a: number) => [number, number];
     readonly hwpdocument_getSectionCount: (a: number) => number;
     readonly hwpdocument_getSectionDef: (a: number, b: number) => [number, number, number, number];
@@ -3025,6 +3034,7 @@ export interface InitOutput {
     readonly hwpdocument_setPageHideEx: (a: number, b: number, c: number) => [number, number, number, number];
     readonly hwpdocument_setParaShapeId: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_setPictureProperties: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly hwpdocument_setRedrobComments: (a: number, b: number, c: number) => void;
     readonly hwpdocument_setSectionDef: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_setSectionDefAll: (a: number, b: number, c: number) => [number, number, number, number];
     readonly hwpdocument_setShapeProperties: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];

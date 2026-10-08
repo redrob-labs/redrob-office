@@ -39,6 +39,8 @@ export const HANGUL_CHANNELS = {
   themeChanged: 'app:theme-changed',
   /** AI create_document: write a new .hwpx (or hand docx/pdf/md to Docs) and open it in a tab */
   createDocument: 'hangul:create-document',
+  /** the name comments are signed with: this computer's user name */
+  authorName: 'hangul:author-name',
   /** AI generate_image, gated on the Redrob login and the cloud-tools setting */
   generateImage: 'hangul:ai-generate-image',
 } as const
@@ -194,6 +196,8 @@ export interface HangulApi extends Partial<OfficePrefsApi> {
   fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
   generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{ url?: string; error?: string }>
   createDocument(request: CreateHangulDocumentRequest): Promise<CreateHangulDocumentResult>
+  /** The name new comments are signed with. */
+  authorName(): Promise<string>
   pickAttachments(): Promise<AttachmentAddResult | null>
   addAttachments(paths: string[]): Promise<AttachmentAddResult>
   readAttachment(path: string, offset: number, maxChars: number): Promise<AttachmentReadResult>

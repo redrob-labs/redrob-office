@@ -13,6 +13,9 @@ use super::*;
 /// 이 마커가 있는 HWPX는 XML 컨테이너 형식이지만 pagination/lineSeg 부재 시멘틱은
 /// HWP5 원본을 따라야 한다. 한컴은 미지의 ZIP 엔트리를 무시하며, 한컴에서 다시 저장하면
 /// 마커가 사라져 native HWPX로 취급된다.
+pub const REDROB_COMMENTS_HWPX_ENTRY: &str = "META-INF/redrob-comments.json";
+pub const REDROB_COMMENTS_HWP_STREAM: &str = "/RedrobComments";
+
 pub const HWP5_ORIGIN_HWPX_MARKER_PATH: &str = "META-INF/rhwp-hwp5-origin";
 
 /// 제어 슬롯을 포함하는 문단 UTF-16 축으로 LineSeg를 저장하는 생산자 계약.
@@ -84,6 +87,11 @@ pub struct Document {
     /// 원본 바이트를 (경로, 데이터)로 보존한다. HWPX 직렬화 시 하드코딩 상수 대신
     /// 같은 경로의 원본을 그대로 출력하여 플랫폼/인쇄설정/미리보기 손실을 막는다.
     pub hwpx_aux_entries: Vec<(String, Vec<u8>)>,
+    /// [Redrob 4.2] Comment thread metadata that 한글's memos have no slot for
+    /// (resolved state, mentions), written as a private part like upstream's
+    /// hyperlink-format entry: HWPX `META-INF/redrob-comments.json`, HWP 5.0
+    /// CFB stream `/RedrobComments`. Opaque to the engine.
+    pub redrob_comments: Option<Vec<u8>>,
     /// [Task #1001] HWP3 → HWP5 변환본 여부 (휴리스틱 식별).
     /// 변환본의 ParaShape spacing/margin 은 HWP3 원본의 2배 단위로 저장되어
     /// 한컴 viewer 와 일치하려면 typeset 단계에서 1/2 보정 필요.

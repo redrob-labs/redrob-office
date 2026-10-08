@@ -89,7 +89,13 @@ export function selectionText(s: Session | null): string {
   return sameContainer(a, b) ? s.text.textBetween(a, b).trim() : ''
 }
 
-export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: HangulAiDeps; onCollapse: () => void; readOnly?: boolean }): ReactElement {
+/** A request to run once (ribbon presets, @Redrob in a comment); a new nonce runs it again. */
+export interface AiPreset {
+  text: string
+  nonce: number
+}
+
+export function HangulAiPanel({ deps, onCollapse, readOnly = false, preset = null }: { deps: HangulAiDeps; onCollapse: () => void; readOnly?: boolean; preset?: AiPreset | null }): ReactElement {
   const { lang, t } = useI18n()
   const redrob = useRedrobPrefs(window.hangulApi)
   const planRunRef = useRef<string | null>(null)
@@ -334,6 +340,16 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false }: { deps: Ha
   }
   const keepPlan = (idx: number): void => setChat((prev) => prev.map((e, i) => (i === idx && e.plan ? { ...e, plan: { ...e.plan, status: 'kept' } } : e)))
   const stop = (): void => loopRef.current?.cancel()
+
+  // A preset runs once; while a run is active it lands in the composer instead.
+  const presetNonceRef = useRef(0)
+  useEffect(() => {
+    if (!preset || preset.nonce === presetNonceRef.current) return
+    presetNonceRef.current = preset.nonce
+    if (loopRef.current?.busy) setPrompt(preset.text)
+    else send(preset.text)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preset])
   const retry = (): void => send(runInstructionRef.current, runDisplayRef.current)
 
   const rollback = (point: RollbackPoint): void => {

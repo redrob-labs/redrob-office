@@ -6,7 +6,7 @@
 // addressed by Node id (E1), so edits never shift what an id means.
 import type { AgentSkill, ExecutedToolCall } from '@genoffice/agent-core'
 import { CommandBus, styleList, type Session } from '@genoffice/hwp-editor'
-import { HANGUL_TOOLS, MUTATING_TOOLS, buildContext, executeHangulTool, freezeSelection, type FrozenSelection } from './tools'
+import { COMMENT_TOOLS, HANGUL_TOOLS, MUTATING_TOOLS, buildContext, executeHangulTool, freezeSelection, type FrozenSelection } from './tools'
 
 const HTML_RULES = [
   'HTML passed to replace_blocks and insert_content is a restricted fragment:',
@@ -55,6 +55,11 @@ export const HANGUL_SYSTEM_PROMPT = [
   '',
   COMMAND_GUIDE,
   '',
+  '# Comments',
+  '- Comments are 한글 memos. Open threads are listed in the context (thread id | commented paragraph | first comment); read_comments returns all of them with replies.',
+  '- To handle comments, take them one at a time: read the commented paragraph, make the requested change with the editing tools, reply_comment with one sentence on what changed, then resolve_comment. A comment that is a question gets a reply and stays open.',
+  '- Never change text beyond what a comment asks for.',
+  '',
   '# Citations',
   '- When an answer draws on specific passages, cite them as [short label](docnav://node/ID) with an id from the outline. Never cite an id you have not seen.',
   '',
@@ -87,7 +92,7 @@ export function createHangulSkill(deps: HangulSkillDeps): AgentSkill {
   return {
     id: 'hangul',
     systemPrompt: HANGUL_SYSTEM_PROMPT,
-    tools: HANGUL_TOOLS,
+    tools: [...HANGUL_TOOLS, ...COMMENT_TOOLS],
     buildContext: () => {
       const s = deps.getSession()
       if (!s) return ''

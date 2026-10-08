@@ -206,6 +206,11 @@ impl DocumentCore {
         Ok(())
     }
 
+    /// The Redrob comment-metadata part (thread state 한글 has no slot for).
+    pub fn set_redrob_comments_native(&mut self, json: &str) {
+        self.document.redrob_comments = (!json.is_empty()).then(|| json.as_bytes().to_vec());
+    }
+
     /// Remove a memo; the annotated text stays.
     pub fn remove_memo_native(&mut self, field_id: u32) -> Result<(), HwpError> {
         let (target, _) = self.memo_location(field_id)?;

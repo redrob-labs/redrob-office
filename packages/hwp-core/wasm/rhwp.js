@@ -5425,6 +5425,22 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob 4.2] The Redrob comment-metadata part (JSON text), or "" when absent.
+     * @returns {string}
+     */
+    getRedrobComments() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_getRedrobComments(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
      * 문서 글을 한글 스캔 차례로 — `InitScan`·`GetText`·`ReleaseScan` 이 쓴다.
      * @returns {string}
      */
@@ -10654,6 +10670,15 @@ export class HwpDocument {
         } finally {
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
+    }
+    /**
+     * [Redrob 4.2] Set the comment-metadata part; "" removes it.
+     * @param {string} json
+     */
+    setRedrobComments(json) {
+        const ptr0 = passStringToWasm0(json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.hwpdocument_setRedrobComments(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * 구역 정의(SectionDef)를 변경하고 재페이지네이션한다.

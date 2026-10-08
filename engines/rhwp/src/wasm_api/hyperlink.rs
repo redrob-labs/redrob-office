@@ -106,6 +106,18 @@ impl HwpDocument {
         self.core.set_memo_body_native(field_id, body).map_err(Into::into)
     }
 
+    /// [Redrob 4.2] The Redrob comment-metadata part (JSON text), or "" when absent.
+    #[wasm_bindgen(js_name = getRedrobComments)]
+    pub fn get_redrob_comments(&self) -> String {
+        self.core.document().redrob_comments.as_deref().map(|b| String::from_utf8_lossy(b).into_owned()).unwrap_or_default()
+    }
+
+    /// [Redrob 4.2] Set the comment-metadata part; "" removes it.
+    #[wasm_bindgen(js_name = setRedrobComments)]
+    pub fn set_redrob_comments(&mut self, json: &str) {
+        self.core.set_redrob_comments_native(json);
+    }
+
     #[wasm_bindgen(js_name = removeMemo)]
     pub fn remove_memo(&mut self, field_id: u32) -> Result<(), JsValue> {
         self.core.remove_memo_native(field_id).map_err(Into::into)
