@@ -204,6 +204,12 @@ body {
 .hangul-dialog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .hangul-dialog-flags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; border: 0; padding: 0; }
 .hangul-dialog-flags legend { font-weight: 600; margin-bottom: 8px; }
+.hangul-dialog-stack { display: flex; flex-direction: column; gap: 4px; margin-top: 16px; }
+.hangul-dialog-group { border: 0; padding: 0; margin: 8px 0 0; }
+.hangul-dialog-group legend { font-weight: 600; margin-bottom: 8px; }
+.hangul-dialog-sides { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.hangul-dialog-span { grid-column: 1 / -1; }
+.hangul-dialog-note { margin: 0 0 8px; font-size: 12px; color: var(--ink-secondary); }
 .hangul-find { display: grid; gap: 12px; }
 .hangul-find__status { min-height: 1.2em; color: var(--ink-secondary); font-size: 13px; margin: 0; }
 .hangul-paper-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }

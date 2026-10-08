@@ -40,6 +40,7 @@ import { CommentsRail } from './CommentsRail'
 import { useHangulLive } from './useHangulLive'
 import type { SaveMode } from '../../shared/ipc'
 import { CharShapeDialog, ParaShapeDialog } from './ShapeDialogs'
+import { TableCellDialog } from './TableDialogs'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
 import { InsertPromptDialog, usePicturePicker, type InsertKind } from './InsertDialogs'
 import { HangulRibbon, HangulSimpleToolbar, commandLabel } from './HangulRibbon'
@@ -75,7 +76,7 @@ export function NextHangulEditor(): React.JSX.Element {
   const revisionsRef = useRef<Revisions | null>(null)
   const stopRecordingRef = useRef<(() => void) | null>(null)
   const authorRef = useRef('User')
-  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | InsertKind | null>(null)
+  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | 'table-props' | InsertKind | null>(null)
   const [revision, refresh] = useReducer((n: number) => n + 1, 0)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [commentComposing, setCommentComposing] = useState(false)
@@ -174,6 +175,7 @@ export function NextHangulEditor(): React.JSX.Element {
         if (id === 'edit:find') return setDialog('find'), true
         if (id === 'edit:find-replace') return setDialog('replace'), true
         if (id === 'file:page-setup' || id === 'page:setup') return setDialog('page-setup'), true
+        if (id === 'table:cell-props') return setDialog('table-props'), true
         return false
       },
     })
@@ -382,7 +384,7 @@ export function NextHangulEditor(): React.JSX.Element {
       if (id === 'insert:image') return picture.open()
       if (id === 'review:memo-insert') return void (setCommentsOpen(true), setCommentComposing(true))
       if (id === 'review:memo-show') return void setCommentsOpen((v) => !v)
-      const map: Record<string, NonNullable<typeof dialog>> = { 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup', 'insert:equation': 'insert:equation', 'insert:footnote': 'insert:footnote', 'insert:bookmark': 'insert:bookmark', 'page:header-create': 'page:header-create', 'page:footer-create': 'page:footer-create' }
+      const map: Record<string, NonNullable<typeof dialog>> = { 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup', 'table:cell-props': 'table-props', 'insert:equation': 'insert:equation', 'insert:footnote': 'insert:footnote', 'insert:bookmark': 'insert:bookmark', 'page:header-create': 'page:header-create', 'page:footer-create': 'page:footer-create' }
       setDialog(map[id] ?? null)
     } }
   const tools = (classic: boolean) => (
@@ -537,6 +539,7 @@ export function NextHangulEditor(): React.JSX.Element {
         {picture.input}
         {view && dialog && dialog.includes(':') ? <InsertPromptDialog view={view} kind={dialog as InsertKind} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'page-setup' ? <PageSetupDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'table-props' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'para-shape' ? <ParaShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
       </EditorFrame>
     </div>

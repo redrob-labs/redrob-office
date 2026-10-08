@@ -413,6 +413,7 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               {button('table:delete-col', g('−칸'))}
             </Group>
             <Group label={t('nextGroupCells')}>
+              {props.onCommand ? <ToolbarButton label={L('table:cell-props')} icon={g('▦')} disabled={!view || props.readOnly || !view.bus.isEnabled('table:set-properties', { props: {} })} onClick={() => props.onCommand!('table:cell-props')} /> : null}
               {button('table:cell-merge', <Icon name="merge" size={16} />)}
               {button('table:delete', <Icon name="trash" size={16} />)}
             </Group>
