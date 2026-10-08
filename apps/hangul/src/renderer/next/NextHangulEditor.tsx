@@ -60,8 +60,8 @@ import {
   SectionSettingsDialog,
   SymbolsDialog,
 } from './MoreDialogs'
-import { fieldAt } from '@genoffice/hwp-editor'
-import { DIALOG_FIRST, runHostCommand, type HostDeps, type HostDialog } from './host-commands'
+import { documentHtml, fieldAt, pageRenders } from '@genoffice/hwp-editor'
+import { DIALOG_FIRST, HOST_COMMANDS, runHostCommand, type HostDeps, type HostDialog } from './host-commands'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
 import { InsertPromptDialog, usePicturePicker, type InsertKind } from './InsertDialogs'
 import { HangulRibbon, HangulSimpleToolbar, clipboardCopy, clipboardPaste, commandLabel } from './HangulRibbon'
@@ -169,6 +169,20 @@ export function NextHangulEditor(): React.JSX.Element {
     objectKind: () => viewRef.current?.session.object?.kind ?? null,
     inTable: () => !!viewRef.current?.session.selection.head.cell,
     inField: () => (viewRef.current ? fieldAt(viewRef.current.session) !== null : false),
+    output: (kind) => {
+      const opened = openedRef.current
+      const api = window.hangulApi
+      if (!opened) return
+      const name = (opened.fileName || t('untitled')).replace(/\.(hwpx?|HWPX?)$/, '')
+      const report = (r: { ok: boolean; error?: string }) => {
+        if (!r.ok) setSaveState({ kind: 'error', message: r.error ?? t('nextOutputFailed') })
+      }
+      if (kind === 'html') {
+        if (api.exportHtml) void api.exportHtml({ html: documentHtml(opened.session), name }).then(report)
+        return
+      }
+      if (api.printPages) void api.printPages({ pages: pageRenders(opened.session), mode: kind, name }).then(report)
+    },
   }
 
   const mount = useCallback((opened: OpenedDocument) => {
@@ -486,6 +500,10 @@ export function NextHangulEditor(): React.JSX.Element {
             { id: 'save', label: t('save'), run: () => void doSave('save') },
             { id: 'save-as', label: t('saveAs'), run: () => void doSave('saveAs') },
             ...(view ? view.bus.ids().filter((id) => COMMAND_LABELS[id]).map((id) => ({ id, label: commandLabel(id, lang), run: run(id), disabled: !view.bus.isEnabled(id) })) : []),
+            // Host commands with a 한글 label (print, PDF, dialogs…) that the bus does not run itself.
+            ...Object.keys(HOST_COMMANDS)
+              .filter((id) => COMMAND_LABELS[id] && !(view?.bus.has(id) ?? false) && !['file:save', 'file:save-as'].includes(id))
+              .map((id) => ({ id: `host:${id}`, label: commandLabel(id, lang), run: () => void runHostCommand(hostDepsRef.current, id) })),
             { id: 'ask', label: t('askRedrob'), keywords: ['redrob', 'ai'], run: () => setPanelOpen(true) },
             { id: 'comments', label: t('commentsOpen'), keywords: ['memo', '메모', 'comment'], run: () => setCommentsOpen(true) },
             { id: 'comment-new', label: t('commentsNew'), keywords: ['memo', '메모', 'comment'], run: () => (setCommentsOpen(true), setCommentComposing(true)), disabled: !view || view.session.selection.anchor === view.session.selection.head },

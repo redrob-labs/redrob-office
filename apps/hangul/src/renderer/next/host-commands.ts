@@ -55,6 +55,8 @@ export interface HostDeps {
   inTable(): boolean
   /** Whether the caret is in a click-here field. */
   inField(): boolean
+  /** Print, or save as PDF, the engine's pages; export the document as HTML. */
+  output(kind: 'print' | 'pdf' | 'html'): void
 }
 
 type Handler = (d: HostDeps, params?: unknown) => boolean
@@ -69,6 +71,9 @@ export const HOST_COMMANDS: Record<string, Handler> = {
   'file:save-as-hwpx': (d) => (d.save('saveAs', 'hwpx'), true),
   'file:page-setup': dialog('page-setup'),
   'file:about': dialog('about'),
+  'file:print': (d) => (d.output('print'), true),
+  'file:print-to-pdf': (d) => (d.output('pdf'), true),
+  'file:export-html': (d) => (d.output('html'), true),
   // Editing
   'edit:cut': (d) => (d.clipboard('cut'), true),
   'edit:copy': (d) => (d.clipboard('copy'), true),
@@ -145,9 +150,6 @@ export const NOT_YET: Record<string, string> = {
   'file:open': 'opened from Home in the shell',
   'file:open-recent': 'recent files are listed on Home in the shell',
   'file:clear-recent': 'recent files are listed on Home in the shell',
-  'file:print': 'needs a print path over engine pages',
-  'file:print-to-pdf': 'needs a PDF export over engine pages',
-  'file:export-html': 'needs an HTML export',
   'file:export-doc': 'needs a .doc export',
   'edit:compare-documents': 'needs a document diff view',
   'insert:note-close': 'the editor has no note editing mode yet',
