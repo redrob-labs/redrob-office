@@ -11,7 +11,7 @@
  */
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { coreVersion, initHwpCore } from '@genoffice/hwp-core'
-import { CommandBus, Comments, EditorView } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, EditorView, Revisions, revisionCommands } from '@genoffice/hwp-editor'
 import {
   Alert,
   Badge,
@@ -57,7 +57,12 @@ export function NextHangulEditor(): React.JSX.Element {
   const [phase, setPhase] = useState<Phase>({ kind: 'loading' })
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
   const [panelOpen, setPanelOpen] = useState(false)
-  const [mode, setMode] = useState<'editing' | 'viewing'>('editing')
+  const [mode, setMode] = useState<'editing' | 'suggesting' | 'viewing'>('editing')
+  const modeRef = useRef(mode)
+  modeRef.current = mode
+  const revisionsRef = useRef<Revisions | null>(null)
+  const stopRecordingRef = useRef<(() => void) | null>(null)
+  const authorRef = useRef('User')
   const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | InsertKind | null>(null)
   const [revision, refresh] = useReducer((n: number) => n + 1, 0)
   const [commentsOpen, setCommentsOpen] = useState(false)
@@ -66,7 +71,7 @@ export function NextHangulEditor(): React.JSX.Element {
   const [aiPreset, setAiPreset] = useState<AiPreset | null>(null)
   const commentsRef = useRef<Comments | null>(null)
   useEffect(() => {
-    void window.hangulApi.authorName?.().then((n) => n && setAuthor(n)).catch(() => {})
+    void window.hangulApi.authorName?.().then((n) => n && (setAuthor(n), (authorRef.current = n))).catch(() => {})
   }, [])
   const openedRef = useRef<OpenedDocument | null>(null)
   const viewRef = useRef<EditorView | null>(null)
@@ -156,6 +161,12 @@ export function NextHangulEditor(): React.JSX.Element {
     })
     viewRef.current = view
     commentsRef.current = new Comments(opened.session)
+    revisionsRef.current = new Revisions(opened.session)
+    for (const c of revisionCommands(revisionsRef.current, {
+      isRecording: () => modeRef.current === 'suggesting',
+      setRecording: (on) => setMode(on ? 'suggesting' : 'editing'),
+    }))
+      bus.register(c)
     // A document that arrives with memos opens with them showing, as in 한글.
     if (commentsRef.current.threads().length) setCommentsOpen(true)
     const offChange = opened.session.onChange(() => {
@@ -171,12 +182,38 @@ export function NextHangulEditor(): React.JSX.Element {
       view.dispose()
       viewRef.current = null
       commentsRef.current = null
+      stopRecordingRef.current?.()
+      stopRecordingRef.current = null
+      revisionsRef.current = null
     }
   }, [phase.kind, doSave])
 
   useEffect(() => {
-    if (viewRef.current) viewRef.current.readOnly = mode === 'viewing'
-  }, [mode])
+    const view = viewRef.current
+    if (!view) return
+    view.readOnly = mode === 'viewing'
+    // Suggesting records typing and deleting as tracked changes, signed with this computer's user.
+    stopRecordingRef.current?.()
+    stopRecordingRef.current = null
+    if (mode === 'suggesting' && revisionsRef.current) stopRecordingRef.current = revisionsRef.current.record(view.bus, authorRef.current)
+    refresh()
+  }, [mode, phase.kind])
+
+  // Tracked changes are marked on the page: insertions underlined, deletions struck through.
+  useEffect(() => {
+    const view = viewRef.current
+    const rev = revisionsRef.current
+    if (!view || !rev) return
+    for (const k of view.overlay.decorationKeys()) if (k.startsWith('rev:')) view.overlay.clearDecoration(k)
+    for (const r of rev.list()) {
+      const range = rev.range(r)
+      try {
+        view.overlay.setDecoration({ key: `rev:${r.id}`, kind: r.kind === 'insert' ? 'suggestion-insert' : 'suggestion-delete', rects: view.session.text.selectionRects(range.anchor, range.head), label: `${r.author} · ${r.kind === 'insert' ? t('reviewInserted') : t('reviewDeleted')}` })
+      } catch {
+        /* mid-relayout; the next render paints it */
+      }
+    }
+  }, [revision, t])
 
   // Shell menu Save / Save As, and the close prompt.
   useEffect(() => {
@@ -258,6 +295,8 @@ export function NextHangulEditor(): React.JSX.Element {
   )
   const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => {
       if (id === 'insert:image') return picture.open()
+      if (id === 'review:memo-insert') return void (setCommentsOpen(true), setCommentComposing(true))
+      if (id === 'review:memo-show') return void setCommentsOpen((v) => !v)
       const map: Record<string, NonNullable<typeof dialog>> = { 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup', 'insert:equation': 'insert:equation', 'insert:footnote': 'insert:footnote', 'insert:bookmark': 'insert:bookmark', 'page:header-create': 'page:header-create', 'page:footer-create': 'page:footer-create' }
       setDialog(map[id] ?? null)
     } }
@@ -308,16 +347,17 @@ export function NextHangulEditor(): React.JSX.Element {
         }}
         mode={{
           value: mode,
-          onChange: (m) => setMode(m === 'viewing' ? 'viewing' : 'editing'),
+          onChange: (m) => setMode(m === 'viewing' ? 'viewing' : m === 'suggesting' && opened.format === 'hwpx' ? 'suggesting' : 'editing'),
           strings: frameText.mode,
-          unavailable: ['suggesting'],
+          // HWP 5.0 revisions are undocumented (P-1): suggesting needs an .hwpx document.
+          unavailable: opened.format === 'hwpx' ? [] : ['suggesting'],
         }}
         toolbar={frame.toolbar}
         onToolbarChange={frame.setToolbar}
         toolbarStrings={frameText.toolbar}
         banner={
           opened.trackedChanges === true ? (
-            <Alert tone="warning" title={t('nextTrackedTitle')} className="hangul-tracked-banner">
+            <Alert tone="info" title={t('nextTrackedTitle')} className="hangul-tracked-banner">
               {t('nextTrackedBody')}
             </Alert>
           ) : undefined
@@ -354,6 +394,7 @@ export function NextHangulEditor(): React.JSX.Element {
             deps={{
               getSession: () => openedRef.current?.session ?? null,
               getView: () => viewRef.current,
+              getTrack: () => (modeRef.current === 'suggesting' ? 'Redrob' : null),
               onRunDone: () => {
                 const opened = openedRef.current
                 if (opened) window.hangulApi.setDirty(opened.session.dirty)
@@ -370,7 +411,8 @@ export function NextHangulEditor(): React.JSX.Element {
           <StatusBar
             label={frameT(lang, 'status')}
             items={[
-              mode === 'viewing' ? frameText.mode.viewing : frameText.mode.editing,
+              mode === 'viewing' ? frameText.mode.viewing : mode === 'suggesting' ? frameText.mode.suggesting : frameText.mode.editing,
+              ...(revisionsRef.current && revisionsRef.current.list().length ? [t('reviewPending', { count: revisionsRef.current.list().length })] : []),
               `${s.doc.pageCount()} pp`,
               ...(s.layoutPending ? [t('nextPagesPending')] : []),
               ...(substituted ? [t('nextFontsSubstituted', { fonts: substituted })] : []),

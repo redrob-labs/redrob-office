@@ -6,7 +6,7 @@
 // addressed by Node id (E1), so edits never shift what an id means.
 import type { AgentSkill, ExecutedToolCall } from '@genoffice/agent-core'
 import { CommandBus, styleList, type Session } from '@genoffice/hwp-editor'
-import { COMMENT_TOOLS, HANGUL_TOOLS, MUTATING_TOOLS, buildContext, executeHangulTool, freezeSelection, type FrozenSelection } from './tools'
+import { COMMENT_TOOLS, HANGUL_TOOLS, REVISION_TOOLS, MUTATING_TOOLS, buildContext, executeHangulTool, freezeSelection, type FrozenSelection } from './tools'
 
 const HTML_RULES = [
   'HTML passed to replace_blocks and insert_content is a restricted fragment:',
@@ -60,6 +60,9 @@ export const HANGUL_SYSTEM_PROMPT = [
   '- To handle comments, take them one at a time: read the commented paragraph, make the requested change with the editing tools, reply_comment with one sentence on what changed, then resolve_comment. A comment that is a question gets a reply and stays open.',
   '- Never change text beyond what a comment asks for.',
   '',
+  '# Tracked changes',
+  '- read_revisions lists changes awaiting review. Accept or reject only when the user asks; never decide for them.',
+  '',
   '# Citations',
   '- When an answer draws on specific passages, cite them as [short label](docnav://node/ID) with an id from the outline. Never cite an id you have not seen.',
   '',
@@ -73,6 +76,8 @@ export interface HangulSkillDeps {
   getSession(): Session | null
   /** The editor's command bus; a private one is made per session when omitted. */
   getBus?(): CommandBus | null
+  /** Suggesting mode: the author AI edits are recorded under, or null for direct edits. */
+  getTrack?(): string | null
 }
 
 export function createHangulSkill(deps: HangulSkillDeps): AgentSkill {
@@ -92,7 +97,7 @@ export function createHangulSkill(deps: HangulSkillDeps): AgentSkill {
   return {
     id: 'hangul',
     systemPrompt: HANGUL_SYSTEM_PROMPT,
-    tools: [...HANGUL_TOOLS, ...COMMENT_TOOLS],
+    tools: [...HANGUL_TOOLS, ...COMMENT_TOOLS, ...REVISION_TOOLS],
     buildContext: () => {
       const s = deps.getSession()
       if (!s) return ''
@@ -103,12 +108,15 @@ export function createHangulSkill(deps: HangulSkillDeps): AgentSkill {
         .slice(0, 40)
         .map((x) => `${x.id} ${x.name}`)
         .join(', ')
-      return `${buildContext(s, frozen)}\n\nParagraph styles (id name): ${styles || '(none)'}`
+      const track = deps.getTrack?.() ? '\n\nSuggesting mode is on: your text edits (replace_blocks, insert_content, delete_blocks, replace_text) are recorded as tracked changes for the user to accept or reject; deleted text stays visible until then. Formatting changes are not tracked.' : ''
+      const revs = s.doc.revisions().length
+      const pending = revs ? `\n\nThe document has ${revs} tracked change(s) awaiting review (read_revisions). Text marked deleted still appears in the outline and read_blocks.` : ''
+      return `${buildContext(s, frozen)}\n\nParagraph styles (id name): ${styles || '(none)'}${track}${pending}`
     },
     executeTool: (call) => {
       const s = deps.getSession()
       if (!s) return { output: 'The document is not open yet.', isError: true, summary: call.name }
-      return executeHangulTool({ session: s, bus: busFor(s), frozen: frozenFor === s ? frozen : null }, call)
+      return executeHangulTool({ session: s, bus: busFor(s), frozen: frozenFor === s ? frozen : null, track: s.format === 'hwpx' ? (deps.getTrack?.() ?? null) : null }, call)
     },
     verifyResponse: (finalText: string, executed: readonly ExecutedToolCall[]) => {
       if (!CLAIM.test(finalText)) return null

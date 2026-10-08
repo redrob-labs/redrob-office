@@ -126,6 +126,13 @@ body {
   background: color-mix(in srgb, var(--action-primary) 18%, transparent);
   border-bottom: 2px dotted var(--action-primary);
 }
+.hangul-next-host .hwp-deco-suggestion-insert {
+  border-bottom: 2px solid var(--status-success);
+  background: color-mix(in srgb, var(--status-success) 10%, transparent);
+}
+.hangul-next-host .hwp-deco-suggestion-delete {
+  background: linear-gradient(transparent calc(50% - 1px), var(--status-danger) calc(50% - 1px), var(--status-danger) calc(50% + 1px), transparent calc(50% + 1px));
+}
 .hangul-next-host .hwp-deco-comment {
   background: color-mix(in srgb, var(--status-warning) 28%, transparent);
 }

@@ -16,7 +16,7 @@
 // Enter still splits the paragraph untracked; 한글 tracks paragraph marks in a
 // way that needs files 한글 2024 writes to learn (P-1).
 import type { ParagraphTarget, Revision } from '@genoffice/hwp-core'
-import type { CommandBus } from './commands'
+import type { Command, CommandBus } from './commands'
 import { posOfTarget, targetOf } from './comments'
 import { moveHorizontal } from './navigation'
 import { at, compare, containerOf, paraIndex, sameContainer, type Pos } from './position'
@@ -84,7 +84,7 @@ export class Revisions {
           this.session.doc.removeRevision(r.id)
           const dropText = accept ? r.kind === 'delete' : r.kind === 'insert'
           if (dropText && sameContainer(range.anchor, range.head)) {
-            const p = this.session.text.delete(range.anchor, range.head)
+            const p = this.dropRange(range.anchor, range.head)
             sel = { anchor: p, head: p }
           }
         }
@@ -93,6 +93,31 @@ export class Revisions {
       },
       origin,
     )
+  }
+
+  /**
+   * Delete a revision's text. When it was a whole paragraph (a paragraph Redrob
+   * or a person deleted or inserted in suggesting mode), the paragraph goes too,
+   * so accepting a deleted paragraph leaves no empty line behind.
+   */
+  private dropRange(a: Pos, b: Pos): Pos {
+    const t = this.session.text
+    const c = containerOf(a)
+    const whole = paraIndex(a) === paraIndex(b) && a.offset === 0 && b.offset === t.length(b) && t.paragraphCount(c) > 1
+    if (!whole) return t.delete(a, b)
+    const i = paraIndex(a)
+    if (i > 0) {
+      const prev = at(c, i - 1, 0)
+      const end = { ...prev, offset: t.length(prev) }
+      t.delete(end, b)
+      return end
+    }
+    return t.delete(a, at(c, 1, 0))
+  }
+
+  /** Mark [a, b) of one paragraph inserted by `author`. */
+  markInserted(a: Pos, b: Pos, author: string): void {
+    if (b.offset > a.offset) this.session.doc.addRevision(targetOf(a), a.offset, b.offset, 'insert', author, this.now())
   }
 
   /** Revisions left with no text (their text was deleted) are removed. */
@@ -223,4 +248,53 @@ export class Revisions {
       bus.intercept = before
     }
   }
+}
+
+/** Ordered position of a revision's start, for next/previous. */
+function startKey(r: Revision): number[] {
+  return [r.target.section, r.target.para, ...r.target.cellPath.flat(), r.start]
+}
+
+function cmpKey(x: number[], y: number[]): number {
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const d = (x[i] ?? -1) - (y[i] ?? -1)
+    if (d) return d
+  }
+  return 0
+}
+
+export interface RecordingControl {
+  isRecording(): boolean
+  setRecording(on: boolean): void
+}
+
+/** The 검토 commands for the command bus: accept, reject, all, next, previous, and the track-changes toggle. */
+export function revisionCommands(rev: Revisions, recording: RecordingControl): Command<never>[] {
+  const s = rev.session
+  const caretKey = (): number[] => {
+    const h = ordered(s.selection)[0]
+    return [h.section, h.para, ...(h.cell ? [h.cell.control, h.cell.cell, h.cell.para] : []), h.offset]
+  }
+  const go = (dir: 1 | -1): Change | null => {
+    const list = rev.list().sort((x, y) => cmpKey(startKey(x), startKey(y)))
+    const here = caretKey()
+    const r = dir > 0 ? list.find((x) => cmpKey(startKey(x), here) > 0) ?? list[0] : [...list].reverse().find((x) => cmpKey(startKey(x), here) < 0) ?? list.at(-1)
+    if (r) s.select(rev.range(r))
+    return null
+  }
+  const cmds: Command<unknown>[] = [
+    { id: 'review:revision-accept', isEnabled: () => !!rev.at(), run: () => (rev.at() ? rev.accept(rev.at()!.id) : null) },
+    { id: 'review:revision-reject', isEnabled: () => !!rev.at(), run: () => (rev.at() ? rev.reject(rev.at()!.id) : null) },
+    { id: 'review:revision-accept-all', isEnabled: () => rev.list().length > 0, run: () => rev.acceptAll() },
+    { id: 'review:revision-reject-all', isEnabled: () => rev.list().length > 0, run: () => rev.rejectAll() },
+    { id: 'review:revision-next', isEnabled: () => rev.list().length > 0, run: () => go(1) },
+    { id: 'review:revision-previous', isEnabled: () => rev.list().length > 0, run: () => go(-1) },
+    {
+      id: 'review:track-changes',
+      isEnabled: () => s.format === 'hwpx',
+      isActive: () => recording.isRecording(),
+      run: () => (recording.setRecording(!recording.isRecording()), null),
+    },
+  ]
+  return cmds as Command<never>[]
 }

@@ -167,7 +167,9 @@ export class Session {
    * own. If anything throws, the whole group is rolled back.
    */
   group(command: string, fn: () => Selection, origin: ChangeOrigin = 'user'): Change {
-    if (this.group_ || this.editing) throw new Error(`nested group "${command}"`)
+    // A group inside a group joins it (tracked AI edits wrap a tool's own group).
+    if (this.group_) return this.editInGroup(command, fn)
+    if (this.editing) throw new Error(`nested group "${command}"`)
     const touched = new Set<NodeId>()
     return this.commit(
       command,

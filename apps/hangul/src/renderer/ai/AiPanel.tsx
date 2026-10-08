@@ -78,6 +78,8 @@ export interface RollbackPoint {
 export interface HangulAiDeps {
   getSession(): Session | null
   getView(): EditorView | null
+  /** Suggesting mode: the author AI edits are tracked under, or null. */
+  getTrack?(): string | null
   /** fired when a run finishes; mutated = at least one tool changed the document */
   onRunDone(mutated: boolean): void
 }
@@ -167,7 +169,7 @@ export function HangulAiPanel({ deps, onCollapse, readOnly = false, preset = nul
     loopRef.current = new AgentLoop<number>({
       transport: createElectronTransport(() => settingsRef.current!),
       skill: composeSkills('hangul+search+media', '', [
-        createHangulSkill({ getSession: () => depsRef.current.getSession(), getBus: () => depsRef.current.getView()?.bus ?? null }),
+        createHangulSkill({ getSession: () => depsRef.current.getSession(), getBus: () => depsRef.current.getView()?.bus ?? null, getTrack: () => depsRef.current.getTrack?.() ?? null }),
         createSearchSkill(),
         createMediaSkill({ getSession: () => depsRef.current.getSession(), api: window.hangulApi, getAttachments: () => attachmentsRef.current }),
       ]),
