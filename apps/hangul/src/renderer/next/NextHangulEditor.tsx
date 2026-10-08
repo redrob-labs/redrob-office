@@ -11,7 +11,7 @@
  */
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { coreVersion, initHwpCore } from '@genoffice/hwp-core'
-import { CommandBus, Comments, EditorView, Revisions, catchUpComments, catchUpRevisions, changedParagraphs, revisionCommands } from '@genoffice/hwp-editor'
+import { CommandBus, Comments, EditorView, FontEnvironment, Revisions, measureFontCheck, catchUpComments, catchUpRevisions, changedParagraphs, revisionCommands } from '@genoffice/hwp-editor'
 import { HwpCoreDocument } from '@genoffice/hwp-core'
 import { catchUpItems, type CatchUpItem } from '@genoffice/versions'
 import type { ShareApi } from '@genoffice/sync-client'
@@ -95,6 +95,7 @@ export function NextHangulEditor(): React.JSX.Element {
   const modeRef = useRef(mode)
   modeRef.current = mode
   const revisionsRef = useRef<Revisions | null>(null)
+  const fontsRef = useRef<FontEnvironment | null>(null)
   const stopRecordingRef = useRef<(() => void) | null>(null)
   const authorRef = useRef('User')
   const [dialog, setDialog] = useState<HostDialog | null>(null)
@@ -249,6 +250,19 @@ export function NextHangulEditor(): React.JSX.Element {
     viewRef.current = view
     commentsRef.current = new Comments(opened.session)
     revisionsRef.current = new Revisions(opened.session)
+    // Faces this machine lacks: 한컴오피스's own font folders may have them (main reads them).
+    const fonts = new FontEnvironment(() => opened.session.doc, {
+      check: measureFontCheck(),
+      provider: window.hangulApi.fontSource ? (face) => window.hangulApi.fontSource!(face) : undefined,
+      seq: () => opened.session.changeSeq,
+    })
+    fontsRef.current = fonts
+    void fonts.provide().then((loaded) => {
+      if (loaded.length && viewRef.current === view) {
+        view.pages.invalidate()
+        refresh()
+      }
+    })
     for (const c of revisionCommands(revisionsRef.current, {
       isRecording: () => modeRef.current === 'suggesting',
       setRecording: (on) => setMode(on ? 'suggesting' : 'editing'),
@@ -270,6 +284,7 @@ export function NextHangulEditor(): React.JSX.Element {
       view.dispose()
       viewRef.current = null
       commentsRef.current = null
+      fontsRef.current = null
       opened.session.dispose()
       stopRecordingRef.current?.()
       stopRecordingRef.current = null
@@ -461,9 +476,17 @@ export function NextHangulEditor(): React.JSX.Element {
     </div>
   )
   const info = s.doc.info()
-  const substituted = info.fontSubstitutions.length
-    ? info.fontSubstitutions.map((f) => String(f.requested ?? JSON.stringify(f))).join(', ')
-    : ''
+  // A face this machine lacks is drawn with another, so that page cannot match 한글 (R2.4).
+  const fonts = fontsRef.current
+  const missingFonts = fonts ? fonts.missing() : []
+  const substituted = missingFonts.map((m) => (m.paintedWith ? `${m.face} → ${m.paintedWith}` : m.face)).join(', ')
+  let caretPage = 0
+  try {
+    caretPage = s.text.cursorRect(s.selection.head).pageIndex
+  } catch {
+    /* mid-relayout */
+  }
+  const pageUnfaithful = !!fonts && missingFonts.length > 0 && !fonts.page(caretPage).faithful
 
   return (
     <div className="hangul-root">
@@ -594,6 +617,7 @@ export function NextHangulEditor(): React.JSX.Element {
               `${s.doc.pageCount()} pp`,
               ...(s.layoutPending ? [t('nextPagesPending')] : []),
               ...(substituted ? [t('nextFontsSubstituted', { fonts: substituted })] : []),
+              ...(pageUnfaithful ? [t('nextPageNotFaithful', { page: caretPage + 1 })] : []),
               t('nextEngine', { version: coreVersion() }),
               t('nextAttribution'),
             ]}

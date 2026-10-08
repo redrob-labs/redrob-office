@@ -18,6 +18,7 @@ import { checkPages, pdfOfPages, printPages, standaloneHtml, withPrintWindow, ty
 import { cloudToolsOn, createHangulDocument, type HangulAiHooks } from './ai-ipc'
 import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
 import { resolveEditorKind } from './editor-kind'
+import { hancomFontRoots, hancomFontSource } from './hancom-fonts'
 import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
 import type { CreateHangulDocumentRequest, PrintPagesRequest } from '../shared/ipc'
@@ -523,6 +524,9 @@ function registerHangulIpc(): void {
       return { ok: false, error: err instanceof Error ? err.message : String(err) }
     }
   })
+
+  const fontSource = hancomFontSource(() => hancomFontRoots(process.platform, process.env))
+  ipcMain.handle(HANGUL_CHANNELS.fontSource, (_e, face: unknown) => fontSource(face))
 
   ipcMain.handle(HANGUL_CHANNELS.exportHtml, async (e, request: { html?: unknown; name?: string }) => {
     if (typeof request?.html !== 'string' || !request.html || request.html.length > 200 * 1024 * 1024) return { ok: false, error: 'hangul: bad export request' }

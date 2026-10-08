@@ -121,7 +121,10 @@ export class HwpCoreDocument {
 
   // ── Document ──────────────────────────────────────────────────────────
   info(): DocumentInfo {
-    return decode(this.raw.getDocumentInfo())
+    const info = decode<Omit<DocumentInfo, 'fontSubstitutions'> & { fontSubstitutions: unknown[] }>(this.raw.getDocumentInfo())
+    // The core writes each substitution as a `[face, substitute]` pair.
+    const fontSubstitutions = info.fontSubstitutions.flatMap((f) => (Array.isArray(f) && typeof f[0] === 'string' && typeof f[1] === 'string' ? [{ requested: f[0], substitute: f[1] }] : []))
+    return { ...info, fontSubstitutions }
   }
 
   sourceFormat(): HwpFormat | 'hml' {
@@ -156,6 +159,29 @@ export class HwpCoreDocument {
 
   pageSvg(page: number): string {
     return this.raw.renderPageSvg(page)
+  }
+
+  /**
+   * The font chains the core paints this page's text with, one per distinct
+   * chain: the face the document asks for first, then the core's fallbacks,
+   * ending in a generic family. Read from the page's painted output, so it is
+   * exactly what reaches the browser's font matching.
+   */
+  pageFontChains(page: number): string[][] {
+    const svg = this.pageSvg(page)
+    const seen = new Set<string>()
+    const out: string[][] = []
+    for (const m of svg.matchAll(/font-family="([^"]*)"/g)) {
+      const raw = m[1]!
+      if (seen.has(raw)) continue
+      seen.add(raw)
+      const chain = unescapeXml(raw)
+        .split(',')
+        .map((f) => f.trim().replace(/^(['"])(.*)\1$/, '$2'))
+        .filter(Boolean)
+      if (chain.length) out.push(chain)
+    }
+    return out
   }
 
   // ── Geometry ──────────────────────────────────────────────────────────
@@ -295,4 +321,16 @@ export class HwpCoreDocument {
     if (format === 'hwpx') return password ? this.raw.exportHwpxWithPassword(password) : this.raw.exportHwpx()
     return password ? this.raw.exportHwpWithPassword(password) : this.raw.exportHwp()
   }
+}
+
+function unescapeXml(s: string): string {
+  return s.replace(/&(apos|quot|amp|lt|gt|#\d+|#x[0-9a-f]+);/gi, (_, e: string) => {
+    const k = e.toLowerCase()
+    if (k === 'apos') return "'"
+    if (k === 'quot') return '"'
+    if (k === 'amp') return '&'
+    if (k === 'lt') return '<'
+    if (k === 'gt') return '>'
+    return String.fromCodePoint(k.startsWith('#x') ? parseInt(k.slice(2), 16) : parseInt(k.slice(1), 10))
+  })
 }

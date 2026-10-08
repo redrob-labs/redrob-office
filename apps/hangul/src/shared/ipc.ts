@@ -49,6 +49,8 @@ export const HANGUL_CHANNELS = {
   printPages: 'hangul:print-pages',
   /** write the engine's HTML for the document to a file the person picks */
   exportHtml: 'hangul:export-html',
+  /** bytes of a font face found in 한컴오피스's own font folders, or null */
+  fontSource: 'hangul:font-source',
 } as const
 
 export interface PrintPagesRequest {
@@ -210,6 +212,7 @@ export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>
   generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{ url?: string; error?: string }>
   printPages?(request: PrintPagesRequest): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
   exportHtml?(request: { html: string; name?: string }): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
+  fontSource?(face: string): Promise<Uint8Array | null>
   createDocument(request: CreateHangulDocumentRequest): Promise<CreateHangulDocumentResult>
   /** The name new comments are signed with. */
   authorName(): Promise<string>

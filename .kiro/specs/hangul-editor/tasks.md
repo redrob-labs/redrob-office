@@ -50,8 +50,15 @@ Requirement references are in brackets, e.g. [R2.1].
 
 - [x] 1.1 E1 stable Node ids (Rust, with round-trip tests in both formats). Propose upstream. [R6.1]
 - [x] 1.2 E2 change stream (`Op`, `changeSeq`). Implemented at the editor's single mutation entry (`Session.edit`) instead of inside the engine's edit calls; see `packages/hwp-editor/src/session.ts`. [R4.5]
-- [ ] 1.3 E3 `getOutline` and `readNodes`. E8 font provider hook with a substitution report.
-  [R2.4, R2.5, R6.1]
+- [x] 1.3 E3 `getOutline` and `readNodes` (with E1). E8 font provider hook with a substitution
+  report: `HwpCoreDocument.pageFontChains` reads the chains the core paints each page with;
+  `FontEnvironment` (`packages/hwp-editor/src/fonts.ts`) measures which faces this machine draws
+  (under either name, from the engine's measured name table), reports each missing face with the
+  face that draws it instead, and marks a page that uses one as not faithful in the status bar. The
+  host provider (`apps/hangul/src/main/hancom-fonts.ts`, IPC `hangul:font-source`) serves faces
+  from 한컴오피스's own font folders (and `REDROB_HANGUL_FONT_DIRS`), read from the person's
+  installation and never bundled. No engine change: layout already uses the engine's metrics and
+  embedded fonts. [R2.4, R2.5, R6.1]
 - [x] 1.4 `packages/hwp-editor`: Session, NodeIndex, PageView (virtualized, DPR-aware zoom),
   OverlayLayer. [R2.1, R2.3]
 - [ ] 1.5 Input proxy and IME: preedit overlay, composition commit. Automated composition tests done (`view.test.ts`); still open: the manual matrix for Windows MS-IME, macOS 2-Set and Linux ibus/fcitx. [R4.1]

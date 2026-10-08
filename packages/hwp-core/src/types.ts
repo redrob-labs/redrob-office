@@ -19,10 +19,10 @@ export interface DocumentInfo {
   fontSubstitutions: FontSubstitution[]
 }
 
+/** A face the document itself names a substitute for (its font record's alternate font). */
 export interface FontSubstitution {
-  requested?: string
-  resolved?: string
-  [key: string]: unknown
+  requested: string
+  substitute: string
 }
 
 export interface Rect {
