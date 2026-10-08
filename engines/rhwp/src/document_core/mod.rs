@@ -8,6 +8,7 @@ pub(crate) use helpers::*;
 
 pub mod builders;
 pub mod node_ids;
+pub mod memos;
 mod canvas_metric_requests;
 mod canvas_metrics;
 mod font_environment;

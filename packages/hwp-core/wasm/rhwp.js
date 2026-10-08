@@ -116,6 +116,20 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob E4] `{target, start, end, author, body}` → field id.
+     * @param {string} options_json
+     * @returns {number}
+     */
+    addMemo(options_json) {
+        const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_addMemo(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] >>> 0;
+    }
+    /**
      * [#5959] 셀/zone border_fill_id 직접 대입 (undo·redo 전용).
      *
      * 스타일 테이블을 건드리지 않고 execute 의 변경 기록을 되돌린다.
@@ -7609,6 +7623,22 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob E4] Every memo: field id, number, author, body, target, node id, range and annotated text.
+     * @returns {string}
+     */
+    listMemos() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_listMemos(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
      * Where node `id` is now as JSON `{section, para, path}`, or `null` when it is gone.
      * Ids are JS numbers; they stay below 2^53.
      * @param {number} id
@@ -8755,6 +8785,15 @@ export class HwpDocument {
         const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.hwpdocument_removeHyperlinkEx(this.__wbg_ptr, ptr0, len0);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
+    }
+    /**
+     * @param {number} field_id
+     */
+    removeMemo(field_id) {
+        const ret = wasm.hwpdocument_removeMemo(this.__wbg_ptr, field_id);
         if (ret[1]) {
             throw takeFromExternrefTable0(ret[0]);
         }
@@ -10349,6 +10388,18 @@ export class HwpDocument {
             return getStringFromWasm0(ptr2, len2);
         } finally {
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
+     * @param {number} field_id
+     * @param {string} body
+     */
+    setMemoBody(field_id, body) {
+        const ptr0 = passStringToWasm0(body, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_setMemoBody(this.__wbg_ptr, field_id, ptr0, len0);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
         }
     }
     /**

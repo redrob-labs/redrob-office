@@ -40,6 +40,10 @@ export class HwpDocument {
      */
     addBookmark(sec: number, para: number, char_offset: number, name: string): string;
     /**
+     * [Redrob E4] `{target, start, end, author, body}` → field id.
+     */
+    addMemo(options_json: string): number;
+    /**
      * [#5959] 셀/zone border_fill_id 직접 대입 (undo·redo 전용).
      *
      * 스타일 테이블을 건드리지 않고 execute 의 변경 기록을 되돌린다.
@@ -1684,6 +1688,10 @@ export class HwpDocument {
      */
     listCharts(): string;
     /**
+     * [Redrob E4] Every memo: field id, number, author, body, target, node id, range and annotated text.
+     */
+    listMemos(): string;
+    /**
      * Where node `id` is now as JSON `{section, para, path}`, or `null` when it is gone.
      * Ids are JS numbers; they stay below 2^53.
      */
@@ -1937,6 +1945,7 @@ export class HwpDocument {
      */
     removeFieldAtInCellEx(options_json: string): string;
     removeHyperlinkEx(options_json: string): void;
+    removeMemo(field_id: number): void;
     /**
      * 책갈피 이름 변경
      */
@@ -2270,6 +2279,7 @@ export class HwpDocument {
      * [Task #825] 머리말/꼬리말 안 그림 속성 변경.
      */
     setHeaderFooterPictureProperties(section_idx: number, outer_para_idx: number, outer_control_idx: number, inner_para_idx: number, inner_control_idx: number, props_json: string): string;
+    setMemoBody(field_id: number, body: string): void;
     /**
      * 각주/미주 내부 수식 컨트롤의 속성을 변경한다.
      */
@@ -2576,6 +2586,7 @@ export interface InitOutput {
     readonly documentexport_takeBytes: (a: number) => [number, number, number, number];
     readonly extractThumbnail: (a: number, b: number) => any;
     readonly hwpdocument_addBookmark: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly hwpdocument_addMemo: (a: number, b: number, c: number) => [number, number, number];
     readonly hwpdocument_applyCellBorderFillIds: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_applyCellStyle: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly hwpdocument_applyCharFormat: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
@@ -2888,6 +2899,7 @@ export interface InitOutput {
     readonly hwpdocument_insertTextLogical: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_isEmptyDocument: (a: number) => number;
     readonly hwpdocument_listCharts: (a: number) => [number, number, number, number];
+    readonly hwpdocument_listMemos: (a: number) => [number, number];
     readonly hwpdocument_locateNode: (a: number, b: number) => [number, number];
     readonly hwpdocument_logicalToTextOffset: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly hwpdocument_measureWidthDiagnostic: (a: number, b: number, c: number) => [number, number, number, number];
@@ -2935,6 +2947,7 @@ export interface InitOutput {
     readonly hwpdocument_removeFieldAtInCell: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number];
     readonly hwpdocument_removeFieldAtInCellEx: (a: number, b: number, c: number) => [number, number];
     readonly hwpdocument_removeHyperlinkEx: (a: number, b: number, c: number) => [number, number];
+    readonly hwpdocument_removeMemo: (a: number, b: number) => [number, number];
     readonly hwpdocument_renameBookmark: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_renameField: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly hwpdocument_renderEquationPreview: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
@@ -3002,6 +3015,7 @@ export interface InitOutput {
     readonly hwpdocument_setFormValueInCell: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number, number];
     readonly hwpdocument_setFormValueInCellEx: (a: number, b: number, c: number) => [number, number, number, number];
     readonly hwpdocument_setHeaderFooterPictureProperties: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+    readonly hwpdocument_setMemoBody: (a: number, b: number, c: number, d: number) => [number, number];
     readonly hwpdocument_setNoteEquationProperties: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
     readonly hwpdocument_setNoteEquationPropertiesEx: (a: number, b: number, c: number) => [number, number, number, number];
     readonly hwpdocument_setNumberingRestart: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];

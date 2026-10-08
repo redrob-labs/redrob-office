@@ -168,3 +168,29 @@ export interface Outline {
 export type NodeRead =
   | { id: NodeId; missing: true }
   | { id: NodeId; missing?: false; location: NodeLocation; text: string; styleId: number; paraShapeId: number; charShapes: Array<{ start: number; charShapeId: number }> }
+
+// ── Memos (engine extension E4, document_core/memos.rs) ─────────────────
+
+/** A paragraph address: body paragraph, or a paragraph inside table cells (control, cell, inner paragraph). */
+export interface ParagraphTarget {
+  section: number
+  para: number
+  cellPath: Array<[number, number, number]>
+}
+
+/** A 한글 memo: the format's comment. Replies are further memos on the same range. */
+export interface Memo {
+  fieldId: number
+  /** 한글's memo number. */
+  number: number
+  author: string
+  /** Body, paragraphs joined with "\n". */
+  body: string
+  target: ParagraphTarget
+  /** Session id of the annotated paragraph. */
+  nodeId: NodeId
+  start: number
+  end: number
+  /** The annotated text. */
+  text: string
+}

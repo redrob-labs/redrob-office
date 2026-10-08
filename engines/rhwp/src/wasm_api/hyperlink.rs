@@ -87,4 +87,37 @@ impl HwpDocument {
             .remove_hyperlink_with_format_native(&o.target, o.field_id, o.restore_formatting)
             .map_err(Into::into)
     }
+
+    /// [Redrob E4] Every memo: field id, number, author, body, target, node id, range and annotated text.
+    #[wasm_bindgen(js_name = listMemos)]
+    pub fn list_memos(&mut self) -> String {
+        serde_json::to_string(&self.core.list_memos_native()).unwrap_or_else(|_| "[]".into())
+    }
+
+    /// [Redrob E4] `{target, start, end, author, body}` → field id.
+    #[wasm_bindgen(js_name = addMemo)]
+    pub fn add_memo(&mut self, options_json: &str) -> Result<u32, JsValue> {
+        let o: MemoAddOptions = parse(options_json)?;
+        self.core.add_memo_native(&o.target, o.start, o.end, &o.author, &o.body).map_err(Into::into)
+    }
+
+    #[wasm_bindgen(js_name = setMemoBody)]
+    pub fn set_memo_body(&mut self, field_id: u32, body: &str) -> Result<(), JsValue> {
+        self.core.set_memo_body_native(field_id, body).map_err(Into::into)
+    }
+
+    #[wasm_bindgen(js_name = removeMemo)]
+    pub fn remove_memo(&mut self, field_id: u32) -> Result<(), JsValue> {
+        self.core.remove_memo_native(field_id).map_err(Into::into)
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct MemoAddOptions {
+    target: HyperlinkTarget,
+    start: usize,
+    end: usize,
+    author: String,
+    body: String,
 }
