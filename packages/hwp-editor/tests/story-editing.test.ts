@@ -101,3 +101,25 @@ describe('notes (task 1.7)', () => {
     }
   })
 })
+
+describe('header and footer fields', () => {
+  it('inserts page number, total pages and file name fields in a footer', () => {
+    const { s, bus } = doc()
+    expect(bus.isEnabled('page:insert-field-filename')).toBe(false)
+    bus.run('page:headerfooter-edit', { kind: 'footer' })
+    bus.run('page:insert-field-pagenum')
+    bus.run('edit:insert-text', { text: ' / ' })
+    bus.run('page:insert-field-totalpage')
+    bus.run('edit:insert-text', { text: ' ' })
+    bus.run('page:insert-field-filename')
+    // Three field markers plus " / " and " ".
+    const count = () => (JSON.parse(s.doc.raw.getHeaderFooterParaInfo(0, false, 0, 0)) as { charCount: number }).charCount
+    expect(count()).toBe(7)
+    // The page paints "1 / 1": the fields are live numbers, not text.
+    expect(s.doc.pageSvg(0)).toMatch(/>1<\/text>[\s\S]*>\/<\/text>[\s\S]*>1<\/text>|1 \/ 1/)
+    // On save the file name field takes the document's file name, as 한글 does.
+    s.doc.raw.setFileName('계약서.hwpx')
+    const back = new Session(HwpCoreDocument.open(s.export('hwpx')), 'hwpx')
+    expect(hfText(back, false)).toContain('계약서')
+  })
+})

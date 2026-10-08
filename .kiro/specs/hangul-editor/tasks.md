@@ -77,8 +77,9 @@ Requirement references are in brackets, e.g. [R2.1].
 
 ## Phase 2: Chrome and design parity
 
-- [ ] 2.1 Fill every `EditorFrame` slot that Docs fills: undo/redo, save status, search with Ask,
-  file menu, mode, banner, status line. [R5.1]
+- [x] 2.1 Fill every `EditorFrame` slot that Docs fills: undo/redo, save status, search with Ask,
+  file menu, mode, banner, status line. The Hangul frame passes the same props as Docs (Docs fills no
+  `fileMenu` either); command search also lists host commands. [R5.1]
 - [x] 2.2 Classic Ribbon (검토 tab arrives with Phase 4): 편집 / 입력 / 서식 / 쪽 / 검토 / 보기 tabs on `Toolbar`, driven by
   CommandBus state. Simple toolbar. [R5.1, R5.3]
 - [x] 2.3 Dialogs on `@genoffice/ui`. Done: character shape (per-script font, 자간, 장평, relative size, position, attributes), paragraph shape (alignment, margins, indent, spacing, line spacing, pagination), find and replace, page setup, table and cell properties (표/셀 속성: margins, page breaks, header repeat, placement, caption; cell size, inside margins, alignment, header, protection; borders and fill over the selected cells), object properties (개체 속성 for pictures and drawing objects: size, position, wrapping, margins, line, fill, picture effect; click to select, Delete, arrange), style editor (스타일, F6: create, rename, next style, character and paragraph settings, delete to 바탕글; editing a style restyles its paragraphs). [R5.3]
@@ -95,8 +96,8 @@ Requirement references are in brackets, e.g. [R2.1].
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
 - [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
   CommandBus. Done: `apps/hangul/tests/command-coverage.test.ts` checks every listed command and
-  shortcut against the bus and the host command table (`host-commands.ts`); 166 of 176 reachable
-  (from 66), floor 166. Open: the 10 in `NOT_YET`, each with its reason (Home owns opening files;
+  shortcut against the bus and the host command table (`host-commands.ts`); 167 of 176 reachable
+  (from 66), floor 167. Open: the 9 in `NOT_YET`, each with its reason (Home owns opening files;
   doc export; multi-object selection; compare
   documents; form mode; the shell's options). [R5.3]
 
