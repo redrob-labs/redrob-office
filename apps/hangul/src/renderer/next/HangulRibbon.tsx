@@ -324,6 +324,13 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
                 ))}
               </Group>
             ) : null}
+            {props.onCommand ? (
+              <Group label={t('nextGroupLinks')}>
+                <ToolbarButton label={L('insert:hyperlink')} icon={<Icon name="link" size={16} />} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:hyperlink', { uri: 'https://x' })} onClick={() => props.onCommand!('insert:hyperlink-dialog')} />
+                <ToolbarButton label={L('insert:field')} icon={g('⌷')} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:field', { guide: 'x' })} onClick={() => props.onCommand!('insert:field-dialog')} />
+                {button('field:remove', g('⌷×'))}
+              </Group>
+            ) : null}
             <Group label={L('insert:shape')}>
               {button('insert:shape', g('□'), { params: { shapeType: 'rectangle' }, label: t('nextShapeRectangle') })}
               {button('insert:shape', g('◯'), { params: { shapeType: 'ellipse' }, label: t('nextShapeEllipse') })}
