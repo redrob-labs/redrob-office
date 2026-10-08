@@ -117,9 +117,11 @@ Requirement references are in brackets, e.g. [R2.1].
 - [ ] 4.2 Comments UI: rail, threads, replies, resolve, @mentions, @Redrob; storage for thread
   metadata that has no native slot (decided in this task). AI `read_comments`, `reply_comment` and
   `resolve_comment`. [R7.2, R6.1]
-- [ ] 4.0 E5a revision preservation in the engine (HWPX marks and tables; HWP 5.0 raw data kept on
+- [x] 4.0 E5a revision preservation in the engine (HWPX marks and tables; HWP 5.0 raw data kept on
   the right paragraphs through edits). Flip `known-gaps.test.ts` to assert preservation. Can land
   before Phase 4. [R3.3]
+  HWPX done. HWP 5.0: the raw records are kept by the engine; checking that they stay on the right
+  paragraphs through edits needs files 한글 2024 writes with tracked changes (P-1).
 - [ ] 4.3 E5b Revision API with recording mode, golden tests against the R3 fixtures, and a 한글 2024
   two-way accept/reject test. [R8.1, R8.2]
 - [ ] 4.4 Suggesting and viewing modes; revision marks in the overlay; review actions; tracked AI

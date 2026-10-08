@@ -7,11 +7,13 @@
  * saved, at the change sequence that was exported. Typing that lands while the
  * write is in flight keeps the document dirty.
  *
- * A document carrying tracked changes is refused an in-place save: the engine
- * drops revision marks today (docs/decisions/2026-10-hangul-format-research.md,
- * finding 3), so writing over the original would silently keep every deletion.
- * Save As to a new file is allowed and leaves the original untouched. The
- * guard goes when engine extension E5a preserves revisions.
+ * Tracked changes: since engine extension E5a, an HWPX document keeps its
+ * revision marks and revision tables through edits and saves. Converting such
+ * a document to HWP 5.0 would still drop them (the HWP 5.0 revision records are
+ * undocumented; docs/decisions/2026-10-hangul-format-research.md, finding 3),
+ * so that one save is refused. Showing, accepting and rejecting revisions is
+ * E5b (task 4.3); until then deleted text displays as ordinary text, which the
+ * editor's banner says.
  */
 import JSZip from 'jszip'
 import { HwpCoreDocument, HwpPasswordError, type HwpFormat } from '@genoffice/hwp-core'
@@ -92,13 +94,14 @@ export type SaveOutcome =
 
 export class TrackedChangesSaveBlocked extends Error {
   constructor() {
-    super('This file has tracked changes that saving would lose. Use Save As to keep the original.')
+    super('This file has tracked changes that saving as .hwp would lose. Save it as .hwpx.')
     this.name = 'TrackedChangesSaveBlocked'
   }
 }
 
 export async function saveDocument(opened: OpenedDocument, host: HostWriter, mode: SaveMode, format: HangulFormat = opened.format): Promise<SaveOutcome> {
-  if (mode === 'save' && opened.trackedChanges === true && opened.fileName) return { saved: false, reason: 'tracked-changes' }
+  // HWPX revisions survive an HWPX save (E5a); converting to HWP 5.0 would drop them.
+  if (opened.trackedChanges === true && format !== 'hwpx') return { saved: false, reason: 'tracked-changes' }
   const seq = opened.session.changeSeq
   const bytes = opened.session.export(format, opened.password)
   const result = await host.save({ base64: bytesToBase64(bytes), format, mode })

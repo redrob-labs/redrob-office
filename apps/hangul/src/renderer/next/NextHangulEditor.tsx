@@ -67,7 +67,7 @@ export function NextHangulEditor(): React.JSX.Element {
       const out = await saveDocument(opened, window.hangulApi, saveMode)
       if (!out.saved) {
         setSaveState({ kind: 'idle' })
-        if (out.reason === 'tracked-changes') return doSave('saveAs')
+        // 'tracked-changes' refuses only a conversion to .hwp, which this editor never asks for.
         return false
       }
       pathRef.current = out.path
@@ -279,10 +279,7 @@ export function NextHangulEditor(): React.JSX.Element {
         banner={
           opened.trackedChanges === true ? (
             <Alert tone="warning" title={t('nextTrackedTitle')} className="hangul-tracked-banner">
-              {t('nextTrackedBody')}{' '}
-              <Button size="sm" variant="secondary" onClick={() => void doSave('saveAs')}>
-                {t('nextTrackedSaveCopy')}
-              </Button>
+              {t('nextTrackedBody')}
             </Alert>
           ) : undefined
         }

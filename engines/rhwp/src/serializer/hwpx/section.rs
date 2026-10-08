@@ -1012,12 +1012,13 @@ impl InlineCursor<'_> {
                 break;
             }
             flush_buf(t_xml, buf);
-            match &m.color {
-                Some(color) => t_xml.push_str(&format!(
+            match (&m.revision, &m.color) {
+                (Some(revision), _) => t_xml.push_str(revision),
+                (None, Some(color)) => t_xml.push_str(&format!(
                     r#"<hp:markpenBegin color="{}"/>"#,
                     xml_escape(color)
                 )),
-                None => t_xml.push_str("<hp:markpenEnd/>"),
+                (None, None) => t_xml.push_str("<hp:markpenEnd/>"),
             }
             self.markpen_idx += 1;
         }
@@ -1057,12 +1058,13 @@ impl InlineCursor<'_> {
                 break;
             }
             flush_buf(t_xml, buf);
-            match &m.color {
-                Some(color) => t_xml.push_str(&format!(
+            match (&m.revision, &m.color) {
+                (Some(revision), _) => t_xml.push_str(revision),
+                (None, Some(color)) => t_xml.push_str(&format!(
                     r#"<hp:markpenBegin color="{}"/>"#,
                     xml_escape(color)
                 )),
-                None => t_xml.push_str("<hp:markpenEnd/>"),
+                (None, None) => t_xml.push_str("<hp:markpenEnd/>"),
             }
             self.markpen_idx += 1;
         }
@@ -1499,12 +1501,13 @@ impl PositionedMarkpens<'_> {
             }
             splitter.cut_before(pos);
             splitter.content.push_str("<hp:t>");
-            match &mark.color {
-                Some(color) => splitter.content.push_str(&format!(
+            match (&mark.revision, &mark.color) {
+                (Some(revision), _) => splitter.content.push_str(revision),
+                (None, Some(color)) => splitter.content.push_str(&format!(
                     r#"<hp:markpenBegin color="{}"/>"#,
                     xml_escape(color)
                 )),
-                None => splitter.content.push_str("<hp:markpenEnd/>"),
+                (None, None) => splitter.content.push_str("<hp:markpenEnd/>"),
             }
             splitter.content.push_str("</hp:t>");
             self.next += 1;

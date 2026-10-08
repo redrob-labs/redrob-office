@@ -480,6 +480,13 @@ pub struct MarkpenMark {
     pub color: Option<String>,
     /// 확장 제어를 포함한 HWP5 UTF-16 위치. 표 앞뒤의 같은 char_idx를 구분한다.
     pub utf16_pos: Option<u32>,
+    /// [Redrob E5a] Set for an HWPX revision mark instead of a highlighter mark:
+    /// the element exactly as read (`<hp:insertBegin Id="1" TcId="1"/>`,
+    /// `insertEnd`, `deleteBegin`, `deleteEnd`). Revision marks share the
+    /// markpen machinery because they are the same kind of thing — zero-width
+    /// points inside `<hp:t>` — so they follow every insert, delete, split and
+    /// merge and are written back where they now are. `color` is unused then.
+    pub revision: Option<String>,
 }
 
 impl MarkpenMark {
@@ -536,13 +543,14 @@ impl Paragraph {
                 char_idx: self.char_offsets.partition_point(|&offset| offset < pos),
                 color,
                 utf16_pos: Some(pos),
+                revision: None,
             })
             .collect();
         self.markpen_marks.sort_by_key(|m| m.utf16_pos);
     }
 
     pub(crate) fn effective_markpen_range_tags(&self) -> Vec<RangeTag> {
-        if self.markpen_marks.is_empty() {
+        if self.markpen_marks.iter().all(|m| m.revision.is_some()) {
             return self.range_tags.clone();
         }
         let mut ranges: Vec<_> = self
@@ -552,7 +560,8 @@ impl Paragraph {
             .cloned()
             .collect();
         let mut open = Vec::new();
-        for mark in &self.markpen_marks {
+        // Revision marks have no HWP 5.0 range-tag form here (E5a keeps them for HWPX).
+        for mark in self.markpen_marks.iter().filter(|m| m.revision.is_none()) {
             let pos = mark.stream_position(self);
             if let Some(color) = &mark.color {
                 let rgb = color
@@ -1531,6 +1540,7 @@ impl Paragraph {
                 char_idx: m.char_idx - split_pos,
                 color: m.color.clone(),
                 utf16_pos: m.utf16_pos.map(|pos| pos.saturating_sub(utf16_split)),
+                revision: m.revision.clone(),
             })
             .collect();
         self.markpen_marks.retain(|m| m.char_idx < split_pos);
@@ -1854,6 +1864,7 @@ impl Paragraph {
                 char_idx: m.char_idx + self_text_len,
                 color: m.color.clone(),
                 utf16_pos: m.utf16_pos.map(|pos| pos + utf16_end),
+                revision: m.revision.clone(),
             }));
         for m in &other.title_marks {
             self.title_marks.push(TitleMark {

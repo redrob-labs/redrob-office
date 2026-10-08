@@ -696,6 +696,9 @@ fn parse_paragraph_body(
                 let cname = ce.name();
                 let local = local_name(cname.as_ref());
                 match local {
+                    l if is_revision_element(l) => {
+                        text_parts.push(revision_part(l, ce));
+                    }
                     b"markpenBegin" | b"markpenEnd" => {
                         if local == b"markpenEnd" {
                             text_parts.push(MARKPEN_END_PART.to_string());
@@ -888,6 +891,9 @@ fn parse_paragraph_body(
                 let cname = ce.name();
                 let local = local_name(cname.as_ref());
                 match local {
+                    l if is_revision_element(l) => {
+                        text_parts.push(revision_part(l, ce));
+                    }
                     b"markpenBegin" | b"markpenEnd" => {
                         if local == b"markpenEnd" {
                             text_parts.push(MARKPEN_END_PART.to_string());
@@ -1055,6 +1061,17 @@ fn parse_paragraph_body(
                         color: (p != MARKPEN_END_PART)
                             .then(|| p[MARKPEN_BEGIN_PART_PREFIX.len()..].to_string()),
                         utf16_pos: Some(utf16_pos),
+                        revision: None,
+                    });
+            }
+            // [Redrob E5a] 변경 추적 표지 — 형광펜과 같이 위치만 싣는다.
+            p if p.starts_with(REVISION_PART_PREFIX) => {
+                para.markpen_marks
+                    .push(crate::model::paragraph::MarkpenMark {
+                        char_idx: visual_text.chars().count(),
+                        color: None,
+                        utf16_pos: Some(utf16_pos),
+                        revision: Some(p[REVISION_PART_PREFIX.len()..].to_string()),
                     });
             }
             "\u{0012}" => {
@@ -2083,6 +2100,24 @@ fn parse_lineseg_element(e: &quick_xml::events::BytesStart) -> LineSeg {
 const MARKPEN_BEGIN_PART_PREFIX: &str = "\u{0007}B";
 /// [#6956] 형광펜 닫는 표지 sentinel.
 const MARKPEN_END_PART: &str = "\u{0007}E";
+/// [Redrob E5a] Revision mark sentinel prefix; the element's XML follows.
+const REVISION_PART_PREFIX: &str = "\u{0007}R";
+
+/// A zero-width mark part (highlighter or revision): no text, no axis units.
+fn is_zero_width_mark_part(p: &str) -> bool {
+    p.starts_with(MARKPEN_BEGIN_PART_PREFIX) || p == MARKPEN_END_PART || p.starts_with(REVISION_PART_PREFIX)
+}
+
+/// The revision elements OWPML puts inside `<hp:t>`.
+fn is_revision_element(local: &[u8]) -> bool {
+    matches!(local, b"insertBegin" | b"insertEnd" | b"deleteBegin" | b"deleteEnd")
+}
+
+/// `<hp:insertBegin …/>` rebuilt from the element as read (attributes verbatim).
+fn revision_part(local: &[u8], e: &quick_xml::events::BytesStart) -> String {
+    let attrs = e.attributes_raw();
+    format!("{REVISION_PART_PREFIX}<hp:{}{}/>", String::from_utf8_lossy(local), attrs.trim_end().trim_end_matches('/'))
+}
 
 const TITLE_MARK_PART_IGNORE: &str = "\u{0008}1";
 /// `text_parts` 안의 제목 차례 표시 센티널 — `ignore="0"` 쪽.
@@ -2097,7 +2132,7 @@ fn read_text_content(reader: &mut Reader<&[u8]>) -> Result<String, HwpxError> {
     Ok(parts
         .into_iter()
         .filter(|p| p != TITLE_MARK_PART_IGNORE && p != TITLE_MARK_PART_KEEP)
-        .filter(|p| !p.starts_with(MARKPEN_BEGIN_PART_PREFIX) && p.as_str() != MARKPEN_END_PART)
+        .filter(|p| !is_zero_width_mark_part(p))
         .collect())
 }
 
@@ -2170,6 +2205,13 @@ fn read_text_content_with_tabs(
                     b"fwSpace" => text.push('\u{2007}'),
                     // [#6956] 형광펜 표지. 글자 축을 소비하지 않으므로 `text` 에 넣지
                     // 않고 sentinel part 로 위치만 끊어 둔다(`titleMark` 선례).
+                    // [Redrob E5a] 변경 추적 표지 (insertBegin/End, deleteBegin/End).
+                    l if is_revision_element(l) => {
+                        if !text.is_empty() {
+                            parts.push(std::mem::take(&mut text));
+                        }
+                        parts.push(revision_part(l, ce));
+                    }
                     b"markpenBegin" | b"markpenEnd" => {
                         if !text.is_empty() {
                             parts.push(std::mem::take(&mut text));
@@ -5823,7 +5865,7 @@ fn hwpx_part_utf16_width(s: &str, axis_5251: bool) -> u32 {
         "\u{0002}" | "\u{0003}" | "\u{0004}" | "\u{0012}" => 8,
         TITLE_MARK_PART_IGNORE | TITLE_MARK_PART_KEEP => 8,
         // [#6956] 형광펜 표지는 글자 축을 소비하지 않는다.
-        p if p.starts_with(MARKPEN_BEGIN_PART_PREFIX) || p == MARKPEN_END_PART => 0,
+        p if is_zero_width_mark_part(p) => 0,
         PAGE_FOOTER_SLOT_PART => {
             if axis_5251 {
                 0
@@ -6987,7 +7029,7 @@ fn calc_utf16_len_from_parts(parts: &[String]) -> u32 {
             "\u{0002}" | "\u{0003}" | "\u{0004}" | "\u{0012}" => 8,
             TITLE_MARK_PART_IGNORE | TITLE_MARK_PART_KEEP => 8,
             // [#6956] 형광펜 표지는 글자 축을 소비하지 않는다.
-            p if p.starts_with(MARKPEN_BEGIN_PART_PREFIX) || p == MARKPEN_END_PART => 0,
+            p if is_zero_width_mark_part(p) => 0,
             PAGE_FOOTER_SLOT_PART => 8,
             _ => s.chars().map(hwpx_char_utf16_width).sum(),
         })
