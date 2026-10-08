@@ -266,6 +266,13 @@ export class EditorView {
   onCut(e: { clipboardData: DataTransfer | null; preventDefault(): void }): void {
     e.preventDefault()
     if (this.readOnly) return this.onCopy(e)
+    if (this.bus.intercept) {
+      // Suggesting: the cut text is marked deleted, not removed.
+      const data = copy(this.session)
+      if (data && e.clipboardData) toDataTransfer(e.clipboardData, data)
+      if (data) this.bus.run('edit:delete-backward')
+      return this.render()
+    }
     const r = cut(this.session)
     if (r && e.clipboardData) toDataTransfer(e.clipboardData, r.data)
     this.render()
@@ -275,7 +282,9 @@ export class EditorView {
     e.preventDefault()
     if (this.readOnly) return
     const data = fromDataTransfer(e.clipboardData)
-    if (data) paste(this.session, data)
+    // Suggesting: paste as text through the bus, so it is recorded as an insertion.
+    if (data && this.bus.intercept) this.bus.run('edit:insert-text', { text: data.text })
+    else if (data) paste(this.session, data)
     this.render()
   }
 
