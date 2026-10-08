@@ -388,6 +388,8 @@ configureHangulRuntime({
   rendererUrl: process.env.HANGUL_RENDERER_URL,
   rendererFile: join(HANGUL_OUT, 'renderer', 'index.html'),
   studioDir: HANGUL_STUDIO_DIR,
+  openGeneratedPath: (path) => openGeneratedDocument(path),
+  createDocument: createAiDocument,
 })
 
 // ---- UI language ----

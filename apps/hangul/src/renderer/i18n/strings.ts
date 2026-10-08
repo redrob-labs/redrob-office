@@ -222,6 +222,10 @@ export const strings = {
     aiToolWebSearch: 'Web search',
     aiToolWebSearchDone: 'Searched “{query}” ({count} results)',
     aiRollbackFailed: 'Could not roll back: {error}',
+    aiAttachTitle: 'Attach files',
+    aiRemoveAttachment: 'Remove {name}',
+    aiImageReadFail: 'Could not read the image {name}',
+    aiAttachmentsLabel: 'Attachments',
   },
   ja: {
     save: '保存',
@@ -442,6 +446,10 @@ export const strings = {
     aiToolWebSearch: '웹 검색',
     aiToolWebSearchDone: '“{query}” 검색 ({count}건)',
     aiRollbackFailed: '되돌리지 못했습니다: {error}',
+    aiAttachTitle: '파일 첨부',
+    aiRemoveAttachment: '{name} 제거',
+    aiImageReadFail: '이미지 {name}을(를) 읽지 못했습니다',
+    aiAttachmentsLabel: '첨부 파일',
   },
   fr: {
     save: 'Enregistrer',

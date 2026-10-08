@@ -3,7 +3,7 @@ import type { Lang } from '@genoffice/i18n'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
 import type { AiStreamChunk } from '@genoffice/ai-provider'
-import { AI_CHANNELS, HANGUL_CHANNELS } from '../shared/ipc'
+import { AI_CHANNELS, FILES_CHANNELS, HANGUL_CHANNELS } from '../shared/ipc'
 import type { HangulApi, SaveMode, UiTheme } from '../shared/ipc'
 
 const api: HangulApi = {
@@ -57,6 +57,14 @@ const api: HangulApi = {
     return () => ipcRenderer.removeListener(AI_CHANNELS.streamChunk, listener)
   },
   webSearch: (query, maxResults) => ipcRenderer.invoke(AI_CHANNELS.webSearch, query, maxResults),
+  imageSearch: (query, maxResults) => ipcRenderer.invoke(AI_CHANNELS.imageSearch, query, maxResults),
+  fetchImage: (url) => ipcRenderer.invoke(AI_CHANNELS.fetchImage, url),
+  generateImage: (op) => ipcRenderer.invoke(HANGUL_CHANNELS.generateImage, op),
+  createDocument: (request) => ipcRenderer.invoke(HANGUL_CHANNELS.createDocument, request),
+  pickAttachments: () => ipcRenderer.invoke(FILES_CHANNELS.pick),
+  addAttachments: (paths) => ipcRenderer.invoke(FILES_CHANNELS.add, paths),
+  readAttachment: (path, offset, maxChars) => ipcRenderer.invoke(FILES_CHANNELS.read, path, offset, maxChars),
+  readAttachmentImage: (path) => ipcRenderer.invoke(FILES_CHANNELS.readImage, path),
 }
 
 contextBridge.exposeInMainWorld('hangulApi', api)
