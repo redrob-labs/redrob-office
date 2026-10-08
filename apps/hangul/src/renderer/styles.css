@@ -127,6 +127,9 @@ body {
   outline-offset: 1px;
   pointer-events: none;
 }
+.hangul-next-host.hangul-hide-markup .hwp-deco-suggestion-insert,
+.hangul-next-host.hangul-hide-markup .hwp-deco-suggestion-delete { display: none; }
+.hangul-next-host .hwp-show-grid .hwp-page { background-image: linear-gradient(rgb(0 0 0 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(0 0 0 / 0.06) 1px, transparent 1px); background-size: 20px 20px; }
 .hangul-next-host .hwp-deco-ai-pending {
   background: color-mix(in srgb, var(--action-primary) 18%, transparent);
   border-bottom: 2px dotted var(--action-primary);

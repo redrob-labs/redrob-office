@@ -32,6 +32,7 @@ import { ObjectPropertiesDialog } from '../src/renderer/next/ObjectDialogs'
 import { ClickHereDialog, HyperlinkDialog } from '../src/renderer/next/FieldDialogs'
 import { StyleDialog } from '../src/renderer/next/StyleDialog'
 import { ChartDialog } from '../src/renderer/next/ChartDialog'
+import { AboutDialog, PageHideDialog } from '../src/renderer/next/InfoDialogs'
 
 const env = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 env.IS_REACT_ACT_ENVIRONMENT = true
@@ -84,7 +85,10 @@ const SURFACES: Array<[string, () => ReactElement]> = [
   ['find', () => createElement(FindDialog, { view: editor(), replace: false, onClose: noop, onApplied: noop })],
   ['replace', () => createElement(FindDialog, { view: editor(), replace: true, onClose: noop, onApplied: noop })],
   ['page setup', () => createElement(PageSetupDialog, { view: editor(), onClose: noop, onApplied: noop })],
-  ...(['insert:equation', 'insert:footnote', 'insert:bookmark', 'page:header-create', 'page:footer-create'] as InsertKind[]).map(
+  ['about', () => createElement(AboutDialog, { engine: 'rhwp 0.8.7', onClose: noop })],
+  ['page hide', () => createElement(PageHideDialog, { view: editor(), onClose: noop, onApplied: noop })],
+  ['table borders tab', () => createElement(TableCellDialog, { view: editor((s, bus) => bus.run('table:create', { rows: 2, cols: 2 })), initialTab: 'border', onClose: noop, onApplied: noop })],
+  ...(['insert:equation', 'insert:footnote', 'insert:bookmark', 'page:header-create', 'page:footer-create', 'edit:goto-page', 'view:zoom-set', 'page:new-page-num', 'table:formula'] as InsertKind[]).map(
     (kind) => [kind, () => createElement(InsertPromptDialog, { view: editor(), kind, onClose: noop, onApplied: noop })] as [string, () => ReactElement],
   ),
   ['table/cell', () => createElement(TableCellDialog, { view: editor((s, bus) => bus.run('table:create', { rows: 2, cols: 2 })), onClose: noop, onApplied: noop })],
@@ -147,7 +151,7 @@ function nameOf(el: Element): string {
 const hidden = (el: Element): boolean => !!el.closest('[hidden],[aria-hidden="true"]') || (el instanceof HTMLInputElement && el.type === 'hidden')
 
 /** English words a Korean screen may keep: units, formats, product, fonts and sample data. */
-const KO_ALLOWED = new Set(['mm', 'pt', 'px', 'https', 'http', 'mailto', 'hwp', 'hwpx', 'redrob', 'noto', 'sans', 'serif', 'kr', 'pretendard', 'hy', 'ctrl', 'alt', 'shift', 'enter', 'tab', 'esc', 'png', 'svg',
+const KO_ALLOWED = new Set(['mm', 'pt', 'px', 'https', 'http', 'mailto', 'hwp', 'hwpx', 'redrob', 'noto', 'sans', 'serif', 'kr', 'pretendard', 'hy', 'ctrl', 'alt', 'shift', 'enter', 'tab', 'esc', 'png', 'svg', 'rhwp',
   // paper sizes 한글 itself names in English
   'letter', 'legal'])
 
