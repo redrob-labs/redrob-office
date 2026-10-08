@@ -18,6 +18,7 @@ import { copy, cut, fromDataTransfer, paste, toDataTransfer } from '../clipboard
 import { fromEngine, sameContainer, type Pos } from '../position'
 import { collapsed, ordered, type Change, type Session } from '../session'
 import { objectAt, objectBox } from '../object-commands'
+import { hyperlinkAt } from '../field-commands'
 import { resolveKey, type KeyLike } from './keymap'
 import { Overlay } from './overlay'
 import { PageView, type PageViewOptions } from './page-view'
@@ -33,6 +34,8 @@ export interface EditorViewOptions extends PageViewOptions {
   onRender?: () => void
   /** Called for commands the bus doesn't have (file:save, dialogs…), so the host can handle them. */
   onUnhandledCommand?: (id: string, params?: unknown) => boolean
+  /** Ctrl+click (⌘+click) on a hyperlink, as in 한글. The host opens it outside the editor. */
+  onOpenLink?: (uri: string) => void
 }
 
 export class EditorView {
@@ -362,6 +365,13 @@ export class EditorView {
       return
     }
     e.preventDefault()
+    if ((this.opts.mac ? e.metaKey : e.ctrlKey) && this.opts.onOpenLink) {
+      const link = hyperlinkAt(this.session, p)
+      if (link) {
+        this.opts.onOpenLink(link.uri)
+        return
+      }
+    }
     const anchor = e.shiftKey ? this.session.selection.anchor : p
     this.session.select({ anchor: sameContainer(anchor, p) ? anchor : p, head: p })
     this.dragging = true
