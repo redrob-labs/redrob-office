@@ -81,8 +81,13 @@ Requirement references are in brackets, e.g. [R2.1].
   CommandBus state. Simple toolbar. [R5.1, R5.3]
 - [x] 2.3 Dialogs on `@genoffice/ui`. Done: character shape (per-script font, 자간, 장평, relative size, position, attributes), paragraph shape (alignment, margins, indent, spacing, line spacing, pagination), find and replace, page setup, table and cell properties (표/셀 속성: margins, page breaks, header repeat, placement, caption; cell size, inside margins, alignment, header, protection; borders and fill over the selected cells), object properties (개체 속성 for pictures and drawing objects: size, position, wrapping, margins, line, fill, picture effect; click to select, Delete, arrange), style editor (스타일, F6: create, rename, next style, character and paragraph settings, delete to 바탕글; editing a style restyles its paragraphs). [R5.3]
 - [x] 2.4 Insert flows. Done: table, picture, equation, footnote and endnote, header/footer, bookmark. shape (rectangle, ellipse, line, text box at the caret at a default size; 한글's drag-to-draw is not done). hyperlink (insert over the selection or as new text, edit, remove; web and mail addresses only; Ctrl+click opens through the main process), field (누름틀 with guide, help text and name; remove). chart (engine E7: clustered column, clustered bar, line with markers, pie; data sheet to insert and to edit rows and series; both formats). Open: fields and links inside table cells; 한글 2024 opening a new chart (runner). [R5.3]
-- [ ] 2.5 i18n strings in both locales; visual baselines in `tests/visual`; accessibility pass.
-  [R5.4, R5.5]
+- [ ] 2.5 Done: i18n and accessibility pass (`apps/hangul/tests/a11y-i18n.test.tsx`: en and ko keys,
+  placeholders and authored Korean; every ribbon tab and dialog in both locales checked for named
+  controls, dangling ARIA references, duplicate ids, named modal dialogs, selected tabs and English
+  left in Korean chrome; fixes: `TabbedPanels`, the document body's localized name, the equation
+  hint); visual specs `tests/visual/specs/hangul-next.spec.ts` (editor and 표/셀 속성, both themes).
+  Open: committing their four Linux baselines from the CI `visual-baselines` artifact, which
+  AGENTS.md reserves for a person. [R5.4, R5.5]
 - [x] 2.7 Hancom attribution (Settings > About in every locale, the Hangul editor status line, NOTICE and source; a printed manual, if one ships, must carry it too) in the Hangul About and help surfaces, in both locales: 「본 제품은
   한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.」 Required by the HWP
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]

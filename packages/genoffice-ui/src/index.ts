@@ -1,4 +1,5 @@
 export * from './kit'
+export { TabbedPanels, type TabbedPanelsItem, type TabbedPanelsProps } from './TabbedPanels'
 export { applyUiTheme, type UiThemeMode } from './theme'
 export { Icon, type GlyphProps } from './Icon'
 export { Dialog, type DialogProps } from './Dialog'

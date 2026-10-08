@@ -10,7 +10,7 @@
  */
 import { useMemo, useState } from 'react'
 import { HWPUNIT_PER_MM, cellProperties, selectedCells, tableProperties, type EditorView } from '@genoffice/hwp-editor'
-import { Button, Checkbox, Dialog, Input, Select, Tabs } from '@genoffice/ui'
+import { Button, Checkbox, Dialog, Input, Select, TabbedPanels } from '@genoffice/ui'
 import { useI18n, type StringKey } from '../i18n/locale'
 
 type Props = { view: EditorView; onClose: () => void; onApplied: () => void }
@@ -177,17 +177,17 @@ export function TableCellDialog({ view, onClose, onApplied }: Props): React.JSX.
         </>
       }
     >
-      <Tabs
+      <TabbedPanels
+        idPrefix="hangul-table-props"
         label={t('nextTableCellTitle')}
-        variant="line"
         value={tab}
         items={[
           { id: 'table', label: t('nextTabTableProps') },
           { id: 'cell', label: t('nextTabCellProps') },
           { id: 'border', label: t('nextTabBorderFill') },
         ]}
-        onChange={(id) => setTab(id as Tab)}
-      />
+        onChange={setTab}
+      >
       {tab === 'table' ? (
         <div className="hangul-dialog-stack">
           {margins((sd) => tLen(`outer${sd}`, t(SIDE_KEYS[sd])), 'nextOuterMargins')}
@@ -258,6 +258,7 @@ export function TableCellDialog({ view, onClose, onApplied }: Props): React.JSX.
           </fieldset>
         </div>
       ) : null}
+      </TabbedPanels>
     </Dialog>
   )
 }

@@ -9,7 +9,7 @@
  */
 import { useMemo, useState } from 'react'
 import { HWPUNIT_PER_MM, colorRefToCss, cssToColorRef, objectProperties, type EditorView } from '@genoffice/hwp-editor'
-import { Button, Checkbox, Dialog, Input, Select, Tabs } from '@genoffice/ui'
+import { Button, Checkbox, Dialog, Input, Select, TabbedPanels } from '@genoffice/ui'
 import { useI18n, type StringKey } from '../i18n/locale'
 
 type Props = { view: EditorView; onClose: () => void; onApplied: () => void }
@@ -153,7 +153,7 @@ export function ObjectPropertiesDialog({ view, onClose, onApplied }: Props): Rea
         </>
       }
     >
-      <Tabs label={t('nextObjectTitle')} variant="line" value={tab} items={tabs} onChange={(id) => setTab(id as Tab)} />
+      <TabbedPanels idPrefix="hangul-object-props" label={t('nextObjectTitle')} value={tab} items={tabs} onChange={setTab}>
       {tab === 'basic' ? (
         <div className="hangul-dialog-stack">
           <div className="hangul-dialog-grid">
@@ -206,6 +206,7 @@ export function ObjectPropertiesDialog({ view, onClose, onApplied }: Props): Rea
           {percent('contrast', 'nextContrast', -100, 100)}
         </div>
       ) : null}
+      </TabbedPanels>
     </Dialog>
   )
 }
