@@ -10,5 +10,5 @@
       "@genoffice/ui": ["../../packages/genoffice-ui/src/index.ts"]
     }
   },
-  "include": ["src", "electron.vite.config.ts", "vite.renderer.config.ts"]
+  "include": ["src", "eval", "electron.vite.config.ts", "vite.renderer.config.ts"]
 }

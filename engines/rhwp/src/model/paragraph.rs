@@ -1762,9 +1762,17 @@ impl Paragraph {
             new_raw_header_extra[6..10].fill(0);
         }
 
+        // [Redrob E1] The tail gets a fresh session id on the next query, unless the
+        // split is at the very start: then the tail is the original content (Enter
+        // before a paragraph), so it keeps the id and the new empty head gets one.
+        let tail_node_id = if split_pos == 0 && (!new_text.is_empty() || !new_controls.is_empty()) {
+            std::mem::take(&mut self.node_id)
+        } else {
+            0
+        };
+
         Paragraph {
-            // [Redrob E1] the new tail paragraph gets a fresh session id on the next query.
-            node_id: 0,
+            node_id: tail_node_id,
             text: new_text,
             char_offsets: new_char_offsets,
             char_shapes: new_char_shapes,
