@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
-import { CommandBus, Session, cellProperties, colorRefToCss, cssToColorRef, objectAt, objectBox, objectProperties, objectsOnPage, selectedCells, tableCells, tableProperties, type Pos } from '../src'
+import { CommandBus, HU_PER_PX, Session, cellProperties, colorRefToCss, cssToColorRef, draggedBox, objectAt, objectBox, objectProperties, objectsOnPage, selectedCells, tableCells, tableProperties, type Pos } from '../src'
 
 beforeAll(() => initHwpCoreNode())
 
@@ -163,5 +163,50 @@ describe('pictures and drawing objects (tasks 2.3, 2.4)', () => {
     expect(bus.isEnabled('insert:picture-delete')).toBe(true)
     s.select(s.selection)
     expect(s.object).toBeNull()
+  })
+})
+
+describe('moving and resizing objects (task 1.7)', () => {
+  it('draggedBox moves, and resizes from each handle without going below the minimum', () => {
+    const b = { x: 10, y: 20, width: 100, height: 50 }
+    expect(draggedBox(b, 'move', 5, -5)).toEqual({ x: 15, y: 15, width: 100, height: 50 })
+    expect(draggedBox(b, 'se', 10, 10)).toEqual({ x: 10, y: 20, width: 110, height: 60 })
+    expect(draggedBox(b, 'nw', 10, 10)).toEqual({ x: 20, y: 30, width: 90, height: 40 })
+    expect(draggedBox(b, 'e', -500, 0).width).toBe(4)
+  })
+
+  it('a drag moves a floating shape and resizes it, each one undo step, and survives both formats', () => {
+    for (const f of ['hwpx', 'hwp'] as const) {
+      const s = new Session(HwpCoreDocument.blank(), f)
+      const bus = new CommandBus(s)
+      bus.run('insert:shape', { shapeType: 'rectangle' })
+      const p0 = objectProperties(s)!
+      bus.run('object:drag', { handle: 'move', dx: 40, dy: 20 })
+      const p1 = objectProperties(s)!
+      expect(Number(p1.horzOffset) - Number(p0.horzOffset)).toBe(40 * HU_PER_PX)
+      expect(Number(p1.vertOffset) - Number(p0.vertOffset)).toBe(20 * HU_PER_PX)
+      bus.run('object:drag', { handle: 'se', dx: 30, dy: 10 })
+      const p2 = objectProperties(s)!
+      expect([Number(p2.width), Number(p2.height)]).toEqual([Number(p0.width) + 30 * HU_PER_PX, Number(p0.height) + 10 * HU_PER_PX])
+      const ref = s.object!
+      const back = new Session(HwpCoreDocument.open(s.export(f)), f)
+      expect(Number(objectProperties(back, ref)!.width), f).toBe(Number(p2.width))
+      s.selectObject(ref)
+      bus.run('edit:undo')
+      expect(Number(objectProperties(s, ref)!.width)).toBe(Number(p0.width))
+    }
+  })
+
+  it('a picture placed as a character resizes but does not move', () => {
+    const PNG = Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'))
+    const s = new Session(HwpCoreDocument.blank(), 'hwpx')
+    const bus = new CommandBus(s)
+    bus.run('insert:image', { bytes: PNG, extension: 'png', widthPx: 100, heightPx: 100 })
+    s.selectObject(objectsOnPage(s, 0).find((o) => o.kind === 'picture')!)
+    bus.run('object:set-properties', { props: { treatAsChar: true } })
+    const p0 = objectProperties(s)!
+    expect(bus.run('object:drag', { handle: 'move', dx: 50, dy: 50 })).toBeNull()
+    bus.run('object:drag', { handle: 'e', dx: 20, dy: 0 })
+    expect(Number(objectProperties(s)!.width)).toBe(Number(p0.width) + 20 * HU_PER_PX)
   })
 })

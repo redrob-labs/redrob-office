@@ -17,7 +17,7 @@ import { CommandBus } from '../commands'
 import { copy, cut, fromDataTransfer, paste, toDataTransfer } from '../clipboard'
 import { fromEngine, sameContainer, type Pos } from '../position'
 import { collapsed, ordered, type Change, type Session } from '../session'
-import { objectAt, objectBox } from '../object-commands'
+import { HANDLES, draggedBox, objectAt, objectBox, type Handle } from '../object-commands'
 import { hyperlinkAt } from '../field-commands'
 import { resolveKey, type KeyLike } from './keymap'
 import { Overlay } from './overlay'
@@ -95,7 +95,7 @@ export class EditorView {
     root.addEventListener('mousedown', (e) => this.onMouseDown(e))
     root.addEventListener('dblclick', (e) => this.onDoubleClick(e))
     d.addEventListener('mousemove', (e) => this.onMouseMove(e))
-    d.addEventListener('mouseup', () => (this.dragging = false))
+    d.addEventListener('mouseup', (e) => this.onMouseUp(e))
 
     this.registerViewCommands()
     this.unsubscribe = session.onChange((c) => this.onChange(c))
@@ -427,15 +427,75 @@ export class EditorView {
     }
   }
 
+  /** Handle squares around a selected object, in page px (constant on-screen size). */
+  private handleRects(box: { page: number; x: number; y: number; width: number; height: number }): Array<{ handle: Handle; pageIndex: number; x: number; y: number; width: number; height: number }> {
+    const size = 7 / this.pages.zoom
+    const cx = box.x + box.width / 2
+    const cy = box.y + box.height / 2
+    const at: Record<Handle, [number, number]> = {
+      nw: [box.x, box.y],
+      n: [cx, box.y],
+      ne: [box.x + box.width, box.y],
+      e: [box.x + box.width, cy],
+      se: [box.x + box.width, box.y + box.height],
+      s: [cx, box.y + box.height],
+      sw: [box.x, box.y + box.height],
+      w: [box.x, cy],
+    }
+    return HANDLES.map((h) => ({ handle: h, pageIndex: box.page, x: at[h][0] - size / 2, y: at[h][1] - size / 2, width: size, height: size }))
+  }
+
   private drawObjectSelection(): void {
     const o = this.session.object
     const box = o ? objectBox(this.session, o) : null
     if (!o || !box) {
       if (o) this.session.selectObject(null)
       this.overlay.clearDecoration('object:selected')
+      this.overlay.clearDecoration('object:handles')
       return
     }
     this.overlay.setDecoration({ key: 'object:selected', kind: 'object-selection', rects: [{ pageIndex: box.page, x: box.x, y: box.y, width: box.width, height: box.height }] })
+    if (o.kind === 'equation' || this.readOnly) this.overlay.clearDecoration('object:handles')
+    else this.overlay.setDecoration({ key: 'object:handles', kind: 'object-handle', rects: this.handleRects(box) })
+  }
+
+  /** A drag of the selected object or one of its handles, in page px from where it began. */
+  private objectDrag: { handle: Handle | 'move'; page: number; x: number; y: number; box: { page: number; x: number; y: number; width: number; height: number } } | null = null
+
+  /** Which handle (or the body) of the selected object a page point is on. */
+  private objectGrip(page: number, x: number, y: number): Handle | 'move' | null {
+    const o = this.session.object
+    const box = o ? objectBox(this.session, o) : null
+    if (!o || !box || box.page !== page || o.kind === 'equation' || this.readOnly) return null
+    const slop = 3 / this.pages.zoom
+    for (const r of this.handleRects(box)) if (x >= r.x - slop && x <= r.x + r.width + slop && y >= r.y - slop && y <= r.y + r.height + slop) return r.handle
+    return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height ? 'move' : null
+  }
+
+  onMouseUp(e: MouseEvent): void {
+    this.dragging = false
+    const drag = this.objectDrag
+    if (!drag) return
+    this.objectDrag = null
+    this.overlay.clearDecoration('object:ghost')
+    const pt = this.pages.pageAt(e.clientX, e.clientY)
+    if (!pt) return this.render()
+    const dx = pt.x - drag.x
+    const dy = pt.y - drag.y
+    // A click without movement: inside a text box it places the caret in the text; otherwise it only selects.
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+      const o = this.session.object
+      if (drag.handle === 'move' && o?.kind === 'shape') {
+        const q = fromEngine(this.session.doc.hitTest(pt.page, pt.x, pt.y))
+        if (q.cell?.textBox && q.cell.control === o.control && q.para === o.para) this.session.select({ anchor: q, head: q })
+      }
+      return this.render()
+    }
+    const o = this.session.object
+    this.run('object:drag', { handle: drag.handle, dx, dy })
+    // The control index can change when an object moves to another paragraph; keep it selected.
+    if (o && !this.session.object) this.session.selectObject(o)
+    this.render()
   }
 
   onDoubleClick(e: MouseEvent): void {
@@ -471,6 +531,18 @@ export class EditorView {
   onMouseDown(e: MouseEvent): void {
     if (e.button !== 0) return
     if (e.detail <= 1) this.beforeClick = this.session.selection
+    // A press on the selected object's body or a handle starts a move or resize.
+    const ptDown = this.pages.pageAt(e.clientX, e.clientY)
+    const grip = ptDown && !e.shiftKey ? this.objectGrip(ptDown.page, ptDown.x, ptDown.y) : null
+    if (grip && ptDown && this.session.object) {
+      const box = objectBox(this.session, this.session.object)!
+      if (grip !== 'move' || e.detail <= 1) {
+        e.preventDefault()
+        this.objectDrag = { handle: grip, page: ptDown.page, x: ptDown.x, y: ptDown.y, box }
+        this.focus()
+        return
+      }
+    }
     let hit = e.shiftKey ? null : this.objectUnder(e.clientX, e.clientY)
     // Inside a text box, a click places the caret in its text; its edge selects the box, as in 한글.
     if (hit && hit.kind === 'shape') {
@@ -513,6 +585,14 @@ export class EditorView {
   }
 
   onMouseMove(e: MouseEvent): void {
+    const drag = this.objectDrag
+    if (drag) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      if (!pt) return
+      const g = draggedBox(drag.box, drag.handle, pt.x - drag.x, pt.y - drag.y)
+      this.overlay.setDecoration({ key: 'object:ghost', kind: 'object-ghost', rects: [{ pageIndex: drag.page, ...g }] })
+      return
+    }
     if (!this.dragging) return
     const p = this.posAt(e.clientX, e.clientY)
     if (!p) return

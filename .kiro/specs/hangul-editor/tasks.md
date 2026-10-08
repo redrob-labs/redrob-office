@@ -57,9 +57,10 @@ Requirement references are in brackets, e.g. [R2.1].
 - [ ] 1.5 Input proxy and IME: preedit overlay, composition commit. Automated composition tests done (`view.test.ts`); still open: the manual matrix for Windows MS-IME, macOS 2-Set and Linux ibus/fcitx. [R4.1]
 - [x] 1.6 Hit testing, caret and selection (text, cell, object). Keyboard navigation and the
   shortcut map from 0.6. [R4.2]
-- [ ] 1.7 CommandBus and History (snapshot groups); editing in the body, tables, headers and
-  footers, notes and text boxes; object move and resize. Done: all but object move and resize
-  (story positions for headers, footers and notes; text boxes as cell paths). [R4.2, R4.3]
+- [x] 1.7 CommandBus and History (snapshot groups); editing in the body, tables, headers and
+  footers, notes and text boxes (story positions; text boxes as cell paths); object move and
+  resize (drag the body or one of eight handles; an object placed as a character resizes only).
+  [R4.2, R4.3]
 - [x] 1.8 Clipboard: E7 range export and import (extending upstream `paragraph_block/import`), HTML
   and Office paste. [R4.2]
 - [x] 1.9 Performance benchmark (decision: `docs/decisions/2026-10-hangul-typing-performance.md`; main thread, deferred pagination; no worker) on a 100-page Corpus document. Decide whether to move the Core into

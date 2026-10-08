@@ -359,7 +359,64 @@ export const editEquation: Command<{ script: string }> = {
   },
 }
 
+export type Handle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
+export const HANDLES: Handle[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
+/** HWPUNIT per CSS px at 96 dpi. */
+export const HU_PER_PX = 75
+
+/** The box an object takes after a drag of (dx, dy) page px: moved, or resized from a handle. */
+export function draggedBox(box: { x: number; y: number; width: number; height: number }, handle: Handle | 'move', dx: number, dy: number, minPx = 4): { x: number; y: number; width: number; height: number } {
+  if (handle === 'move') return { ...box, x: box.x + dx, y: box.y + dy }
+  let { x, y, width, height } = box
+  if (handle.includes('e')) width = Math.max(minPx, width + dx)
+  if (handle.includes('s')) height = Math.max(minPx, height + dy)
+  if (handle.includes('w')) {
+    const w = Math.max(minPx, width - dx)
+    x += width - w
+    width = w
+  }
+  if (handle.includes('n')) {
+    const h = Math.max(minPx, height - dy)
+    y += height - h
+    height = h
+  }
+  return { x, y, width, height }
+}
+
+/**
+ * Move or resize the selected object by a drag, as one undo step. Offsets and
+ * size change by the drag in HWPUNIT; an object placed as a character moves
+ * with its text and can only be resized.
+ */
+export const dragObject: Command<{ handle: Handle | 'move'; dx: number; dy: number }> = {
+  id: 'object:drag',
+  isEnabled: ({ session }) => !!session.object && session.object.kind !== 'equation',
+  run(ctx, { handle, dx, dy }) {
+    const p = objectProperties(ctx.session)
+    if (!p) return null
+    const inline = !!p.treatAsChar
+    if (handle === 'move' && inline) return null
+    const w0 = Number(p.width)
+    const h0 = Number(p.height)
+    const next = draggedBox({ x: 0, y: 0, width: w0 / HU_PER_PX, height: h0 / HU_PER_PX }, handle, dx, dy)
+    const props: Record<string, unknown> = {}
+    const width = Math.round(next.width * HU_PER_PX)
+    const height = Math.round(next.height * HU_PER_PX)
+    if (width !== w0) props.width = width
+    if (height !== h0) props.height = height
+    if (!inline) {
+      const mx = Math.round(next.x * HU_PER_PX)
+      const my = Math.round(next.y * HU_PER_PX)
+      if (mx) props.horzOffset = Number(p.horzOffset ?? 0) + mx
+      if (my) props.vertOffset = Number(p.vertOffset ?? 0) + my
+    }
+    if (!Object.keys(props).length) return null
+    return setObjectProperties.run(ctx, { props })
+  },
+}
+
 export const OBJECT_COMMANDS = [
+  dragObject,
   editEquation,
   insertChart,
   setChartDataCommand,
