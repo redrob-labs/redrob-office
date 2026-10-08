@@ -17,6 +17,7 @@ import { CommandBus } from '../commands'
 import { copy, cut, fromDataTransfer, paste, toDataTransfer } from '../clipboard'
 import { fromEngine, sameContainer, type Pos } from '../position'
 import { collapsed, ordered, type Change, type Session } from '../session'
+import { objectAt, objectBox } from '../object-commands'
 import { resolveKey, type KeyLike } from './keymap'
 import { Overlay } from './overlay'
 import { PageView, type PageViewOptions } from './page-view'
@@ -85,6 +86,7 @@ export class EditorView {
     this.input.addEventListener('cut', (e) => this.onCut(e as ClipboardEvent))
     this.input.addEventListener('paste', (e) => this.onPaste(e as ClipboardEvent))
     root.addEventListener('mousedown', (e) => this.onMouseDown(e))
+    root.addEventListener('dblclick', (e) => this.onDoubleClick(e))
     d.addEventListener('mousemove', (e) => this.onMouseMove(e))
     d.addEventListener('mouseup', () => (this.dragging = false))
 
@@ -144,9 +146,10 @@ export class EditorView {
     } catch {
       caret = null
     }
+    this.drawObjectSelection()
     if (collapsed(sel)) this.overlay.setSelection([])
     else this.overlay.setSelection(sameContainer(sel.anchor, sel.head) ? s.text.selectionRects(...ordered(sel)) : [])
-    this.overlay.setCaret(caret, collapsed(sel) && !this.composing)
+    this.overlay.setCaret(caret, collapsed(sel) && !this.composing && !s.object)
     if (caret) {
       const box = this.pages.pages[caret.pageIndex]
       if (box) {
@@ -207,6 +210,18 @@ export class EditorView {
   }
 
   private handleKey(e: KeyLike): boolean {
+    if (this.session.object && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (e.key === 'Escape') {
+        this.session.selectObject(null)
+        this.render()
+        return true
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (!this.readOnly) this.run('insert:picture-delete')
+        return true
+      }
+      if (e.key === 'Enter') return !!this.opts.onUnhandledCommand?.('format:object-properties')
+    }
     for (const r of resolveKey(e, this.opts.mac)) {
       if (this.bus.has(r.command)) {
         if (!this.bus.isEnabled(r.command, r.params)) continue
@@ -298,10 +313,54 @@ export class EditorView {
     return fromEngine(this.session.doc.hitTest(pt.page, pt.x, pt.y))
   }
 
+  /** The picture or drawing object under the pointer, if any. */
+  private objectUnder(clientX: number, clientY: number) {
+    const pt = this.pages.pageAt(clientX, clientY)
+    if (!pt) return null
+    try {
+      return objectAt(this.session, pt.page, pt.x, pt.y)
+    } catch {
+      return null
+    }
+  }
+
+  private drawObjectSelection(): void {
+    const o = this.session.object
+    const box = o ? objectBox(this.session, o) : null
+    if (!o || !box) {
+      if (o) this.session.selectObject(null)
+      this.overlay.clearDecoration('object:selected')
+      return
+    }
+    this.overlay.setDecoration({ key: 'object:selected', kind: 'object-selection', rects: [{ pageIndex: box.page, x: box.x, y: box.y, width: box.width, height: box.height }] })
+  }
+
+  onDoubleClick(e: MouseEvent): void {
+    if (e.button !== 0 || !this.session.object) return
+    e.preventDefault()
+    this.opts.onUnhandledCommand?.('format:object-properties')
+  }
+
   onMouseDown(e: MouseEvent): void {
     if (e.button !== 0) return
+    const hit = e.shiftKey ? null : this.objectUnder(e.clientX, e.clientY)
+    if (hit) {
+      e.preventDefault()
+      this.session.selectObject({ kind: hit.kind, section: hit.section, para: hit.para, control: hit.control })
+      this.dragging = false
+      this.render()
+      this.focus()
+      return
+    }
     const p = this.posAt(e.clientX, e.clientY)
-    if (!p) return
+    if (!p) {
+      // A click on empty paper still lets go of a selected object.
+      if (this.session.object && this.pages.pageAt(e.clientX, e.clientY)) {
+        this.session.selectObject(null)
+        this.render()
+      }
+      return
+    }
     e.preventDefault()
     const anchor = e.shiftKey ? this.session.selection.anchor : p
     this.session.select({ anchor: sameContainer(anchor, p) ? anchor : p, head: p })

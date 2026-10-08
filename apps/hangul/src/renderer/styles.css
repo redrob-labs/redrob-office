@@ -122,6 +122,11 @@ body {
 @keyframes hangul-caret-blink {
   50% { opacity: 0; }
 }
+.hangul-next-host .hwp-deco-object-selection {
+  outline: 1px solid var(--action-primary);
+  outline-offset: 1px;
+  pointer-events: none;
+}
 .hangul-next-host .hwp-deco-ai-pending {
   background: color-mix(in srgb, var(--action-primary) 18%, transparent);
   border-bottom: 2px dotted var(--action-primary);

@@ -7,7 +7,7 @@
 // `type` is the HWP line type 0–17 and `width` the HWP width index 0–15) and
 // `fillType` ('none' | 'solid') with `fillColor`.
 import type { Pos } from './position'
-import type { Session } from './session'
+import type { ObjectRef, Session } from './session'
 import type { Command } from './commands'
 
 function json(r: string, what: string): Record<string, unknown> {
@@ -111,4 +111,173 @@ export const setCellProperties: Command<{ props: Record<string, unknown>; cells?
   },
 }
 
-export const OBJECT_COMMANDS = [setTableProperties, setCellProperties] as Command<never>[]
+// ── Pictures and drawing objects ──────────────────────────────────────
+
+/** An object's box on a page, in page pixels (96 per inch). */
+export interface ObjectBox extends ObjectRef {
+  page: number
+  x: number
+  y: number
+  width: number
+  height: number
+  /** paint order on the page: higher is drawn later, on top */
+  zOrder: number
+}
+
+interface LayoutControl {
+  type: string
+  x: number
+  y: number
+  w: number
+  h: number
+  secIdx?: number
+  paraIdx?: number
+  controlIdx?: number
+}
+
+/** The pictures and drawing objects the engine laid out on a page. */
+export function objectsOnPage(s: Session, page: number): ObjectBox[] {
+  const r = JSON.parse(s.doc.raw.getPageControlLayout(page)) as { controls?: LayoutControl[] }
+  const out: ObjectBox[] = []
+  // The engine lists controls in paint order; its own `zOrder` field is not reliable here.
+  for (const [i, c] of (r.controls ?? []).entries()) {
+    const kind = c.type === 'image' ? 'picture' : c.type === 'shape' ? 'shape' : null
+    if (!kind || c.secIdx === undefined || c.paraIdx === undefined || c.controlIdx === undefined) continue
+    out.push({ kind, section: c.secIdx, para: c.paraIdx, control: c.controlIdx, page, x: c.x, y: c.y, width: c.w, height: c.h, zOrder: i })
+  }
+  return out
+}
+
+/** The topmost picture or drawing object under a page point, if any. */
+export function objectAt(s: Session, page: number, x: number, y: number): ObjectBox | null {
+  const hits = objectsOnPage(s, page).filter((o) => x >= o.x && x <= o.x + o.width && y >= o.y && y <= o.y + o.height)
+  return hits.sort((a, b) => b.zOrder - a.zOrder)[0] ?? null
+}
+
+/** Where an object is drawn now (it moves when the text before it reflows). */
+export function objectBox(s: Session, o: ObjectRef): ObjectBox | null {
+  for (let page = 0; page < s.doc.pageCount(); page++) {
+    const hit = objectsOnPage(s, page).find((b) => b.kind === o.kind && b.section === o.section && b.para === o.para && b.control === o.control)
+    if (hit) return hit
+  }
+  return null
+}
+
+export function objectProperties(s: Session, o: ObjectRef | null = s.object): Record<string, unknown> | null {
+  if (!o) return null
+  try {
+    const raw = s.doc.raw
+    const r = o.kind === 'picture' ? raw.getPictureProperties(o.section, o.para, o.control) : raw.getShapeProperties(o.section, o.para, o.control)
+    return json(r, 'objectProperties')
+  } catch {
+    return null
+  }
+}
+
+/** HWP colours are COLORREF integers (0x00BBGGRR); the dialogs speak CSS hex. */
+export function colorRefToCss(v: unknown): string {
+  const n = Number(v) >>> 0
+  const hex = (x: number) => x.toString(16).padStart(2, '0')
+  return `#${hex(n & 0xff)}${hex((n >> 8) & 0xff)}${hex((n >> 16) & 0xff)}`
+}
+
+export function cssToColorRef(css: string): number {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(css.trim())
+  if (!m) return 0
+  return parseInt(m[1]!, 16) | (parseInt(m[2]!, 16) << 8) | (parseInt(m[3]!, 16) << 16)
+}
+
+const hasObject = ({ session }: { session: Session }) => session.object !== null
+
+export const setObjectProperties: Command<{ props: Record<string, unknown> }> = {
+  id: 'object:set-properties',
+  isEnabled: hasObject,
+  run({ session }, { props }) {
+    const o = session.object!
+    if (!Object.keys(props).length) return null
+    const sel = session.selection
+    return session.edit('object:set-properties', () => {
+      const raw = session.doc.raw
+      const body = JSON.stringify(props)
+      json(o.kind === 'picture' ? raw.setPictureProperties(o.section, o.para, o.control, body) : raw.setShapeProperties(o.section, o.para, o.control, body), 'setObjectProperties')
+      return sel
+    })
+  },
+}
+
+export const deleteObject: Command = {
+  id: 'insert:picture-delete',
+  isEnabled: hasObject,
+  run({ session }) {
+    const o = session.object!
+    const change = session.edit('insert:picture-delete', () => {
+      const raw = session.doc.raw
+      json(o.kind === 'picture' ? raw.deletePictureControl(o.section, o.para, o.control) : raw.deleteShapeControl(o.section, o.para, o.control), 'deleteObject')
+      const q: Pos = { section: o.section, para: o.para, offset: 0 }
+      return { anchor: q, head: q }
+    })
+    session.selectObject(null)
+    return change
+  },
+}
+
+function zOrder(id: string, op: 'front' | 'back' | 'forward' | 'backward'): Command {
+  return {
+    id,
+    isEnabled: hasObject,
+    run({ session }) {
+      const o = session.object!
+      const sel = session.selection
+      return session.edit(id, () => {
+        json(session.doc.raw.changeShapeZOrder(o.section, o.para, o.control, op), 'changeShapeZOrder')
+        return sel
+      })
+    },
+  }
+}
+
+export type ShapeKind = 'rectangle' | 'ellipse' | 'line' | 'textbox'
+
+/**
+ * Insert a drawing object at the caret, anchored to its paragraph. 한글 draws
+ * a shape by dragging; this places one at a default size the person can then
+ * resize in the object properties.
+ */
+export const insertShape: Command<{ shapeType: ShapeKind; width?: number; height?: number }> = {
+  id: 'insert:shape',
+  isEnabled: ({ session }) => !session.selection.head.cell,
+  run({ session }, { shapeType, width = 14173, height = 7087 }) {
+    const p = session.selection.head
+    let created: ObjectRef | null = null
+    const change = session.edit('insert:shape', () => {
+      const raw = session.doc.raw
+      const r = json(
+        raw.createShapeControl(JSON.stringify({ sectionIdx: p.section, paraIdx: p.para, charOffset: p.offset, width, height: shapeType === 'line' ? 0 : height, shapeType })),
+        'createShapeControl',
+      )
+      const ref: ObjectRef = { kind: 'shape', section: p.section, para: Number(r.paraIdx), control: Number(r.controlIdx) }
+      if (shapeType !== 'textbox') {
+        // Anchor to the paragraph so it travels with the text, not pinned to the paper corner.
+        json(raw.setShapeProperties(ref.section, ref.para, ref.control, JSON.stringify({ vertRelTo: 'Para', horzRelTo: 'Para', vertOffset: 0, horzOffset: 0 })), 'setShapeProperties')
+      }
+      // A new object goes on top of the others, as in 한글 (the engine creates every shape at z 0).
+      json(raw.changeShapeZOrder(ref.section, ref.para, ref.control, 'front'), 'changeShapeZOrder')
+      created = ref
+      return session.selection
+    })
+    session.selectObject(created)
+    return change
+  },
+}
+
+export const OBJECT_COMMANDS = [
+  setTableProperties,
+  setCellProperties,
+  setObjectProperties,
+  deleteObject,
+  zOrder('insert:arrange-front', 'front'),
+  zOrder('insert:arrange-back', 'back'),
+  zOrder('insert:arrange-forward', 'forward'),
+  zOrder('insert:arrange-backward', 'backward'),
+  insertShape,
+] as Command<never>[]

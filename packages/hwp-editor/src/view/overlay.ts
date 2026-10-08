@@ -9,7 +9,7 @@ import type { PageView } from './page-view'
 export interface Decoration {
   /** Stable key so updates replace rather than duplicate. */
   key: string
-  kind: 'comment' | 'suggestion-insert' | 'suggestion-delete' | 'remote-selection' | 'remote-caret' | 'ai-pending' | 'find'
+  kind: 'comment' | 'suggestion-insert' | 'suggestion-delete' | 'remote-selection' | 'remote-caret' | 'ai-pending' | 'find' | 'object-selection'
   rects: SelectionRect[]
   /** Colour for remote people, from the presence seat. */
   color?: string
