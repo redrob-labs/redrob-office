@@ -2652,6 +2652,10 @@ function createShellWindow(): void {
     recentFiles: () => readRecentFiles(),
     openPath: (path) => openDocumentPath(path),
     removeRecent: (paths) => removeRecentFiles(paths),
+    openSettings: () => {
+      manager.openHomeTab()
+      shellWindow?.webContents.send('app:open-settings')
+    },
   })
   // hangul untitled first save / Save As lands on a new path
   setHangulFileSavedHook((wc, path) => {

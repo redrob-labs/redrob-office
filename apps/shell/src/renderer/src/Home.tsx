@@ -463,6 +463,8 @@ function AccountEntry({
   const [urlCopied, setUrlCopied] = useState(false)
   const loginDeadline = useRef(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  // An editor's own options command (한글's 환경 설정) brings Home forward and opens Settings here.
+  useEffect(() => window.aiOffice.onOpenSettings?.(() => setSettingsOpen(true)), [])
   const [loggingOut, setLoggingOut] = useState(false)
   // bumped on logout so an in-flight status refresh (which can still
   // report logged-in) is discarded instead of resurrecting the UI

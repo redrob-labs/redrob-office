@@ -62,6 +62,8 @@ export interface HostDeps {
   files(kind: 'new' | 'open' | 'clear-recent'): void
   /** 문서 비교: pick another document and list how this one differs. */
   compare(): void
+  /** 환경 설정: the suite's Settings, which the shell shows on Home. */
+  settings(): void
 }
 
 type Handler = (d: HostDeps, params?: unknown) => boolean
@@ -94,6 +96,7 @@ export const HOST_COMMANDS: Record<string, Handler> = {
   'edit:goto': dialog('edit:goto-page'),
   'edit:document-history': (d) => (d.versions(), true),
   'edit:compare-documents': (d) => (d.compare(), true),
+  'tool:options': (d) => (d.settings(), true),
   // Formatting
   'format:char-shape': dialog('char-shape'),
   'format:para-shape': dialog('para-shape'),
@@ -158,7 +161,6 @@ export const HOST_COMMANDS: Record<string, Handler> = {
  */
 export const NOT_YET: Record<string, string> = {
   'file:export-doc': 'needs a .doc export',
-  'tool:options': 'settings live in the shell',
 }
 
 /**

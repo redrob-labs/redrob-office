@@ -205,6 +205,7 @@ export function NextHangulEditor(): React.JSX.Element {
         }
       })
     },
+    settings: () => void window.hangulApi.openSettings?.(),
     files: (kind) => {
       const api = window.hangulApi
       if (kind === 'new') void api.newDocument?.()
