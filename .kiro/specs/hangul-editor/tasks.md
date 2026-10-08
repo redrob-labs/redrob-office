@@ -190,7 +190,7 @@ Requirement references are in brackets, e.g. [R2.1].
   `resources/rhwp-studio`, the loopback studio server, the theme injection and their tests, and
   updates `NOTICE`, `AGENTS.md`, `README` and `CHANGELOG`. The fast fidelity subset becomes a
   required check. [R11.3]
-  Prepared (branch `feat/hangul-57-cutover`): the switch is gone and every view runs the owned
+  Prepared (branch `feat/hangul-59-cutover`, #126): the switch is gone and every view runs the owned
   editor, loaded with `loadFile`; rhwp-studio, `@rhwp/editor`, the loopback server, the theme
   injection, `HangulEditor.tsx`, `editor-kind.ts` and their tests are removed; packaging checks for
   the engine's WASM instead of the studio; `fidelity (synthetic)` runs on every pull request so it
