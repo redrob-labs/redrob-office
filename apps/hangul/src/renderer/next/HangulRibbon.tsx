@@ -385,6 +385,7 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               <Group label={t('nextGroupShapes')}>
                 <ToolbarButton label={L('format:char-shape')} icon={g('가')} size="lg" shortcut={commandShortcut('format:char-shape', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('format:char-shape')} />
                 <ToolbarButton label={L('format:para-shape')} icon={g('¶')} size="lg" shortcut={commandShortcut('format:para-shape', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('format:para-shape')} />
+                <ToolbarButton label={L('format:style-dialog')} icon={g('스')} size="lg" shortcut={commandShortcut('format:style-dialog', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('format:style-dialog')} />
               </Group>
             ) : null}
           </>

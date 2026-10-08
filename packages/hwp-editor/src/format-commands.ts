@@ -195,6 +195,7 @@ export interface StyleInfo {
   name: string
   englishName: string
   type: number
+  nextStyleId: number
 }
 
 export function styleList(s: Session): StyleInfo[] {
