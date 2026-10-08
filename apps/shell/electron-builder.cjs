@@ -128,7 +128,10 @@ function assertUniversalRedrobCode() {
 // engine is bundled with the app (no separate cloud CLI sidecar), so no gsk
 // CLI tree is packaged here.
 const HB_SUBSET_WASM = join(__dirname, '../pdf/node_modules/harfbuzzjs/hb-subset.wasm')
-for (const abs of [CHROMIUM_LICENSE, PDFIUM_WASM, HB_SUBSET_WASM]) {
+// Our rhwp fork built to WASM (packages/hwp-core). The bundled main reads it from
+// Resources/wasm to extract text from .hwp/.hwpx attachments (packages/file-parse).
+const HWP_CORE_WASM = join(__dirname, '../../packages/hwp-core/wasm/rhwp_bg.wasm')
+for (const abs of [CHROMIUM_LICENSE, PDFIUM_WASM, HB_SUBSET_WASM, HWP_CORE_WASM]) {
   if (!existsSync(abs)) {
     throw new Error(
       `electron-builder extraResources source missing: ${abs} ` +
@@ -382,6 +385,12 @@ const config = {
     {
       from: '../pdf/node_modules/harfbuzzjs/hb-subset.wasm',
       to: 'wasm/hb-subset.wasm',
+    },
+    // Hangul attachment text: hwp-core's Node entry falls back to Resources/wasm
+    // when the package directory is absent (packages/hwp-core/src/node.ts)
+    {
+      from: HWP_CORE_WASM,
+      to: 'wasm/rhwp_bg.wasm',
     },
     // NOTE: the platform system-OCR helpers (macOS vision-ocr, Windows
     // win-ocr.exe) are NOT listed here. They are declared per-platform in

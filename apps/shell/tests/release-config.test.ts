@@ -66,6 +66,10 @@ describe('packaged product identity', () => {
     expect(pdfium?.from).toMatch(/^\//)
     expect(readFileSync(chromium!.from).length).toBeGreaterThan(0)
     expect(readFileSync(pdfium!.from).length).toBeGreaterThan(0)
+    // Hangul attachment text (packages/file-parse) needs the hwp-core engine under Resources/wasm
+    const hwpCore = c.extraResources.find((r) => r.to === 'wasm/rhwp_bg.wasm')
+    expect(hwpCore?.from).toMatch(/packages\/hwp-core\/wasm\/rhwp_bg\.wasm$/)
+    expect(readFileSync(hwpCore!.from).subarray(0, 4)).toEqual(Buffer.from([0, 0x61, 0x73, 0x6d]))
   })
 
   it('preserves the stable appId and executable name for upgrades', () => {

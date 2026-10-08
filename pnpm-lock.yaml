@@ -872,6 +872,9 @@ importers:
       '@genoffice/docx-engine':
         specifier: workspace:*
         version: link:../docx-engine
+      '@genoffice/hwp-core':
+        specifier: workspace:*
+        version: link:../hwp-core
       cfb:
         specifier: ^1.2.2
         version: 1.2.2
