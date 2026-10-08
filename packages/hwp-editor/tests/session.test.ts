@@ -219,3 +219,25 @@ describe('grouped edits', () => {
     expect(body(s)).toEqual(['하나!'])
   })
 })
+
+describe('rollback points', () => {
+  it('restores a snapshot as one undoable change', () => {
+    const { s, bus } = open('하나')
+    const point = s.doc.saveSnapshot()
+    bus.run('edit:insert-text', { text: ' 둘' })
+    bus.run('edit:insert-text', { text: ' 셋' })
+    s.restore(point)
+    expect(body(s)).toEqual(['하나'])
+    s.undo()
+    expect(body(s)).toEqual(['하나 둘 셋'])
+    s.doc.discardSnapshot(point)
+  })
+
+  it('caps history under the engine snapshot limit', () => {
+    const { s, bus } = open('')
+    for (let i = 0; i < 90; i++) bus.run('edit:insert-text', { text: 'x' })
+    let n = 0
+    while (s.undo()) n++
+    expect(n).toBe(70)
+  })
+})

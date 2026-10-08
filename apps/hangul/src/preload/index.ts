@@ -2,7 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { Lang } from '@genoffice/i18n'
 import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
 import { officePrefsBridge } from '@genoffice/electron-utils/office-prefs'
-import { HANGUL_CHANNELS } from '../shared/ipc'
+import type { AiStreamChunk } from '@genoffice/ai-provider'
+import { AI_CHANNELS, HANGUL_CHANNELS } from '../shared/ipc'
 import type { HangulApi, SaveMode, UiTheme } from '../shared/ipc'
 
 const api: HangulApi = {
@@ -47,6 +48,15 @@ const api: HangulApi = {
     ipcRenderer.on('app:chrome-pressed', listener)
     return () => ipcRenderer.removeListener('app:chrome-pressed', listener)
   },
+  getAiSettings: () => ipcRenderer.invoke(AI_CHANNELS.getSettings),
+  aiStream: (request) => ipcRenderer.invoke(AI_CHANNELS.stream, request),
+  aiStreamCancel: (requestId) => ipcRenderer.invoke(AI_CHANNELS.streamCancel, requestId),
+  onAiStream: (handler) => {
+    const listener = (_e: Electron.IpcRendererEvent, chunk: AiStreamChunk) => handler(chunk)
+    ipcRenderer.on(AI_CHANNELS.streamChunk, listener)
+    return () => ipcRenderer.removeListener(AI_CHANNELS.streamChunk, listener)
+  },
+  webSearch: (query, maxResults) => ipcRenderer.invoke(AI_CHANNELS.webSearch, query, maxResults),
 }
 
 contextBridge.exposeInMainWorld('hangulApi', api)

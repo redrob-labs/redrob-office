@@ -181,3 +181,110 @@ body {
 .hangul-find__status { min-height: 1.2em; color: var(--ink-secondary); font-size: 13px; margin: 0; }
 .hangul-paper-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .hangul-hint { font-size: 12px; color: var(--ink-muted); margin: 8px 0 0; }
+
+/* Redrob panel layout for the next editor (same rules as apps/markdown; chrome tokens only) */
+.copilot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  flex-shrink: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  font-family: var(--font-sans);
+  color: var(--ink-primary);
+}
+
+/* drag handle on the panel's right edge: resizes the panel horizontally */
+.ai-panel-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 20;
+  background: transparent;
+}
+
+.ai-panel-resizer:hover {
+  background: var(--border-subtle);
+}
+
+/* while dragging: keep the col-resize cursor everywhere, no text selection */
+.ai-panel-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.ai-chat {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+/* version snapshots above the composer: one row per AI run, each restorable */
+.ai-versions {
+  border-top: 1px solid var(--border-subtle);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.ai-versions-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.ai-version-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 calc(-1 * var(--space-2));
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.ai-version-row:hover {
+  background: var(--surface-sunken);
+}
+
+.ai-version-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--ink-primary);
+}
+
+.ai-version-label > :last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-version-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-composer {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  background: var(--surface-base);
+}

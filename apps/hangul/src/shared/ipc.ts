@@ -1,3 +1,4 @@
+import type { AiSettings, AiStreamChunk, AiStreamRequest } from '@genoffice/ai-provider'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { Lang } from '@genoffice/i18n'
 
@@ -37,6 +38,23 @@ export const HANGUL_CHANNELS = {
   getTheme: 'app:get-theme',
   themeChanged: 'app:theme-changed',
 } as const
+
+/** AI channels are app-wide ipcMain handlers the shell registers once (docs-main registerAiIpc); pass-through only. */
+export const AI_CHANNELS = {
+  getSettings: 'ai:get-settings',
+  stream: 'ai:stream',
+  streamChunk: 'ai:stream-chunk',
+  streamCancel: 'ai:stream-cancel',
+  webSearch: 'ai:web-search',
+} as const
+
+export interface WebSearchResult {
+  answer?: string
+  results: Array<{ title: string; url: string; snippet: string }>
+  /** 'error' = the search backend failed (not an empty result) */
+  method?: string
+  error?: string
+}
 
 export type UiTheme = 'light' | 'dark' | 'system'
 
@@ -109,4 +127,10 @@ export interface HangulApi extends Partial<OfficePrefsApi> {
   onThemeChanged(handler: (theme: UiTheme) => void): () => void
   /** the shell relays chrome presses (the tab strip is a sibling view) */
   onChromePressed(handler: () => void): () => void
+  getAiSettings(): Promise<AiSettings>
+  aiStream(request: AiStreamRequest): Promise<void>
+  aiStreamCancel(requestId: string): Promise<void>
+  onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
+  /** Main-process web search (the shared ai:web-search handler) */
+  webSearch(query: string, maxResults?: number): Promise<WebSearchResult>
 }
