@@ -65,7 +65,7 @@ async function loadEncoder(directory: string): Promise<SentenceEncoder> {
 
 /**
  * A labeller for `setRouteLabeller`. Lexical from the first call; the embedding pass joins once the
- * model is on disk, fetched in the background on the first turn when it is not.
+ * model is on disk, fetched in the background from launch when it is not.
  */
 const shared = new Map<string, RouteLabelFn>()
 
@@ -84,7 +84,6 @@ export function createRouteLabeller(options: {
   if (existing) return existing
   const log = options.log ?? ((line: string) => console.warn(`[route-labeller] ${line}`))
   let labeller = new RouteLabeller(LEXICON, null, null)
-  let upgrading: Promise<void> | null = null
 
   const upgrade = async (): Promise<void> => {
     if (!(await routeModelPresent(options.modelDir))) {
@@ -94,14 +93,20 @@ export function createRouteLabeller(options: {
     labeller = new RouteLabeller(LEXICON, PROTOTYPES, await loadEncoder(options.modelDir))
   }
 
+  /**
+   * Started now, at launch - the editors create this when their main process registers its handlers -
+   * rather than on the first turn. Until the model is here a turn is labelled by words alone, which
+   * Console routes on its legacy table rather than the ModelGuide, so the sooner it arrives the sooner
+   * Auto routes on the guide.
+   */
+  const upgrading = upgrade().catch((error: unknown) => {
+    log(`labelling by words alone: ${error instanceof Error ? error.message : String(error)}`)
+  })
+  const onDisk = existsSync(join(options.modelDir, 'manifest.json'))
+
   const label = async (text: string): Promise<RouteLabel | null> => {
-    if (!upgrading) {
-      upgrading = upgrade().catch((error: unknown) => {
-        log(`labelling by words alone: ${error instanceof Error ? error.message : String(error)}`)
-      })
-      // A model already on disk is worth waiting for on the first turn; a download is not.
-      if (existsSync(join(options.modelDir, 'manifest.json'))) await upgrading
-    }
+    // A model already on disk is worth waiting for; a download in flight is not.
+    if (onDisk) await upgrading
     try {
       return await labeller.label(text)
     } catch {
