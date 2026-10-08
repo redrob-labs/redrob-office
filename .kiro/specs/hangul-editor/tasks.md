@@ -140,11 +140,15 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 5.1 Saved hook for Hangul: versions, catch-up by outline diff, restore to a copy. [R9.1]
 - [x] 5.2 Share upload on first invite and on owner or editor save; open "Shared with you" Hangul
   files. [R9.2]
-- [ ] 5.3 E6 deterministic remote apply in the Core. [R9.4]
-- [ ] 5.4 Collaboration binding (the design chosen in 0.9) over `LiveHub` IPC; `meta.base`
-  patching; per-person undo. [R9.3, R9.4, R9.5]
-- [ ] 5.5 Presence faces, remote carets, read-only enforcement for view and comment roles; live
-  comment sync. [R9.3, R9.5, R7.3]
+- [x] 5.3 E6 deterministic remote apply in the Core (A2: a remote change is a text diff applied
+  through `Session.edit` with origin `remote`, so the engine needed no new entry; fuzzed in
+  `packages/hwp-editor/tests/live.test.ts`). [R9.4]
+- [x] 5.4 Collaboration binding (A2, one `Y.Text` per section) over `LiveHub` IPC; `meta.base`
+  patching; per-person undo (`Y.UndoManager` over the local origin). Limit: only body text and
+  paragraph breaks travel live; formatting, tables and memos arrive with the next save, when a clean
+  view reloads the new base. [R9.3, R9.4, R9.5]
+- [ ] 5.5 Done: presence faces, remote carets and selections in body text, read-only for view and
+  comment roles. Open: live comment sync (comments reach others with saves). [R9.3, R9.5, R7.3]
 - [ ] 5.6 Multi-client fuzz suite in CI against the Compose sync stack, plus a 한글 2024 open check
   on the converged files. [R9.4]
 

@@ -85,6 +85,11 @@ export class Session {
   /** True while the engine is in batch mode (pagination deferred). */
   private deferred = false
   private settleListeners = new Set<SettleListener>()
+  /**
+   * Off while a live room owns undo (each person undoes only their own typing,
+   * through Yjs): edits then keep no snapshots of their own.
+   */
+  historyEnabled = true
 
   constructor(
     readonly doc: HwpCoreDocument,
@@ -232,8 +237,10 @@ export class Session {
     } finally {
       this.editing = false
     }
-    this.undoStack.push({ snapshot, selection: before, seq: this.changeSeq, command })
-    this.trimHistory()
+    if (this.historyEnabled) {
+      this.undoStack.push({ snapshot, selection: before, seq: this.changeSeq, command })
+      this.trimHistory()
+    } else this.doc.discardSnapshot(snapshot)
     for (const r of this.redoStack.splice(0)) this.doc.discardSnapshot(r.snapshot)
     this.changeSeq += 1
     return this.emit(command, [...touched], origin)
@@ -298,6 +305,13 @@ export class Session {
   /** Record that the current state is on disk. */
   markSaved(seq = this.changeSeq): void {
     this.savedSeq = seq
+  }
+
+  /** Drop undo and redo (a live room took over history, or the document was replaced). */
+  clearHistory(): void {
+    for (const e of [...this.undoStack, ...this.redoStack]) this.doc.discardSnapshot(e.snapshot)
+    this.undoStack = []
+    this.redoStack = []
   }
 
   dispose(): void {
