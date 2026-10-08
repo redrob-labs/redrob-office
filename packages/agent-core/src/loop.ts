@@ -1,3 +1,9 @@
+import {
+  INSIGHT_SESSION_QUIET_MS,
+  type InsightFact,
+  type InsightRecord,
+  type InsightSurface,
+} from './insights'
 import type { AgentSkill, ExecutedToolCall } from './skill'
 import type {
   AgentErrorCode,
@@ -77,6 +83,12 @@ export interface AgentLoopOptions<TSnapshot = unknown> {
   formatUserMessage?(instruction: string, context: string): string
   /** appended to the system prompt each turn (e.g. reply-language directive following the UI language) */
   systemSuffix?(): string
+  /**
+   * Facts about the session for the Redrob Console's insights: counts and flags, never text
+   * (see insights.ts). Each request of the session also carries its id, so the console can join
+   * its own cost records to it.
+   */
+  insights?: { surface: InsightSurface; record(fact: InsightRecord): void }
 }
 
 const COMPACT_MAX_BYTES = 256 * 1024
@@ -221,8 +233,37 @@ export class AgentLoop<TSnapshot = unknown> {
   /** per-run abort: aborted on cancel(); long tools (e.g. generate_deck) use it to break internal loops */
   private abortController: AbortController | null = null
 
+  /** The id of the current stretch of conversation, for insights; see insightSession(). */
+  private sessionId: string | null = null
+  private lastInsightAt = 0
+
   constructor(options: AgentLoopOptions<TSnapshot>) {
     this.options = options
+  }
+
+  /**
+   * The insights session this moment belongs to. A new one starts after a quiet stretch, or after
+   * reset(), because a conversation picked up later is a new piece of work.
+   */
+  private insightSession(now: number): string {
+    if (!this.sessionId || now - this.lastInsightAt > INSIGHT_SESSION_QUIET_MS) {
+      const bytes = new Uint8Array(16)
+      crypto.getRandomValues(bytes)
+      this.sessionId = `of_${[...bytes].map((b) => b.toString(16).padStart(2, '0')).join('')}`
+    }
+    this.lastInsightAt = now
+    return this.sessionId
+  }
+
+  private insight(fact: InsightFact): void {
+    const sink = this.options.insights
+    if (!sink) return
+    const at = Date.now()
+    try {
+      sink.record({ ...fact, sessionId: this.insightSession(at), surface: sink.surface, at })
+    } catch {
+      // Insights never get in the way of the person's work.
+    }
   }
 
   get busy(): boolean {
@@ -300,6 +341,11 @@ export class AgentLoop<TSnapshot = unknown> {
       text: format(instruction, context),
       ...(images?.length ? { images } : {}),
     }
+    this.insight({
+      kind: 'message',
+      context: !!context || !!images?.length,
+      readOnly: this.readOnlyRun,
+    })
     void this.beginRun(userMsg)
   }
 
@@ -486,6 +532,7 @@ export class AgentLoop<TSnapshot = unknown> {
   cancel(): void {
     if (!this.running) return
     this.cancelled = true
+    this.insight({ kind: 'stopped' })
     // abort lets long tools mid-execution (internal LLM loops etc.) stop promptly
     this.abortController?.abort()
     // the transport emits onDone after aborting, which finalizes the run
@@ -502,6 +549,7 @@ export class AgentLoop<TSnapshot = unknown> {
     this.cancelled = false
     this.history = []
     this.runUserMsg = null
+    this.sessionId = null
   }
 
   /** Runs at run boundaries only (restore / before a new user message): a long run's tail is all assistant/tool messages, and cutting mid-run would empty the request. */
@@ -529,6 +577,7 @@ export class AgentLoop<TSnapshot = unknown> {
       {
         system: this.options.skill.systemPrompt + (this.options.systemSuffix?.() ?? ''),
         messages: [...this.history],
+        ...(this.options.insights && this.sessionId ? { sessionId: this.sessionId } : {}),
         // a read-only run (Plan mode) is offered no tools, so it cannot change the artifact
         tools: this.finalizing || this.readOnlyRun ? [] : this.options.skill.tools,
       },
@@ -646,6 +695,7 @@ export class AgentLoop<TSnapshot = unknown> {
       this.history.push({ role: 'assistant', text: this.turnText || COMPLETED_VIA_TOOLS_TEXT })
       this.running = false
       this.runUserMsg = null
+      if (!this.cancelled) this.insight({ kind: 'answer' })
       events?.onDone?.({
         text: this.turnText,
         cancelled: this.cancelled,
@@ -713,6 +763,7 @@ export class AgentLoop<TSnapshot = unknown> {
       }
       if (generation !== this.generation) return // reset while a tool was running
       this.executedCalls.push({ name: call.name, ok: !execution.isError })
+      this.insight({ kind: 'tool', changed: !!execution.mutated, failed: !!execution.isError })
       const firstMutation = !!execution.mutated && !this.mutationSeen
       if (execution.mutated) {
         this.mutationSeen = true

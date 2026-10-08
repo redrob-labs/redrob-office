@@ -32,7 +32,7 @@ import { aiLangDirective, t as tGlobal, useI18n } from '../i18n/locale'
 import { clearAiHighlights } from '../editor/aiHighlight'
 import { createMarkdownSkill } from './markdown-skill'
 import { createSearchSkill } from './search-skill'
-import { createElectronTransport } from './transport'
+import { createElectronTransport, insightsSink } from './transport'
 import { EditQueueCard } from './EditQueueCard'
 import {
   buildQueueInstruction,
@@ -247,6 +247,7 @@ export function AiPanel({
   if (!loopRef.current) {
     loopRef.current = new AgentLoop<DocSnapshot>({
       transport: createElectronTransport(() => settingsRef.current!),
+      insights: insightsSink,
       skill: composeSkills('markdown+search', '', [
         createMarkdownSkill(() => depsRef.current.getEditor(), {
           read: () => depsRef.current.getFrontmatter(),

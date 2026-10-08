@@ -26,7 +26,7 @@ import {
   type ResolveFailure,
 } from './edit-queue'
 import { createFilesSkill } from './files-skill'
-import { createElectronTransport } from './transport'
+import { createElectronTransport, insightsSink } from './transport'
 import { renderSlidesToPngBase64 } from '../export-render'
 import {
   isQcEnabled,
@@ -1285,6 +1285,7 @@ export function AiPanel({
     accessRef.current = access
     loopRef.current = new AgentLoop({
       transport: createElectronTransport(() => settingsRef.current),
+      insights: insightsSink,
       systemSuffix: aiLangDirective,
       skill: composeSkills('slides+files', '', [
         createSlidesSkill(access),

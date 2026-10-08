@@ -23,6 +23,15 @@ export async function streamForProvider(
   tools: AgentToolDef[],
   maxTokens: number,
   cb: StreamCallbacks,
+  /** The insights session the turn belongs to; see RedrobEngineAuth.sessionId. */
+  sessionId?: string,
 ): Promise<void> {
-  await redrobEngineStream({ apiKey: config.apiKey }, system, messages, tools, maxTokens, cb)
+  await redrobEngineStream(
+    { apiKey: config.apiKey, ...(sessionId ? { sessionId } : {}) },
+    system,
+    messages,
+    tools,
+    maxTokens,
+    cb,
+  )
 }

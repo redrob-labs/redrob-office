@@ -2720,7 +2720,7 @@ export function registerAiIpc(): void {
         onStopReason: (reason) => {
           stopReason = reason
         },
-      })
+      }, request.sessionId)
       send({ requestId, type: 'done', stopReason })
     } catch (err) {
       if (controller.signal.aborted) {

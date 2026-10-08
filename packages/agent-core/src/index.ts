@@ -30,3 +30,4 @@ export type {
 } from './loop'
 export { createIpcTransport, IPC_STREAM_SILENCE_TIMEOUT_MS } from './electron-transport'
 export type { IpcStreamChunk, IpcStreamStart, IpcTransportOptions } from './electron-transport'
+export * from './insights'

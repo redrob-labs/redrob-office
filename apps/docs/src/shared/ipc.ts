@@ -317,6 +317,8 @@ export interface DesktopApi {
   /** start a streaming AI call; deltas arrive via onAiStream with the same requestId */
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
+  /** One fact about an AI session for Redrob Console insights: counts and flags, never text. */
+  insightsFact(fact: unknown): void
   /** Genspark account status (gsk login state); withEmail also returns the email (needs a network request, slower) */
   aiGskStatus(withEmail?: boolean): Promise<GenSparkAccountStatus>
   /** Open the browser to log in to Genspark (fire-and-forget; aiGskStatus flips to logged-in when done) */
