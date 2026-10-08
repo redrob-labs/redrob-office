@@ -125,7 +125,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 3.8 AI evaluation set on Corpus documents: tasks for rewrite, restructure, tables and
   headers, checked by a fidelity diff after a 한글 2024 open. [R6.2, R3.2]
   Harness, tasks and CI checks done (`apps/hangul/eval`). The live run on the Corpus and the 한글 2024 open/diff of its saved files wait on P-3 and P-1.
-- [ ] (Tracked AI edits are task 4.4, because they depend on E5.)
+  (Tracked AI edits are task 4.4, done, because they depend on E5.)
 
 ## Phase 4: Comments and track changes
 
