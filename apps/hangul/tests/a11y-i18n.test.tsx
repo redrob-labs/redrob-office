@@ -80,6 +80,7 @@ const SURFACES: Array<[string, () => ReactElement]> = [
   ),
   ['ribbon table', () => createElement(RibbonAt, { tab: 'table', view: editor((s, bus) => bus.run('table:create', { rows: 2, cols: 2 })) })],
   ['ribbon object', () => createElement(RibbonAt, { tab: 'object', view: editor((s, bus) => bus.run('insert:shape', { shapeType: 'rectangle' })) })],
+  ['ribbon header/footer', () => createElement(RibbonAt, { tab: 'story', view: editor((s, bus) => bus.run('page:headerfooter-edit', { kind: 'header' })) })],
   ['simple toolbar', () => createElement(HangulSimpleToolbar, { view: editor(), mac: false, readOnly: false, onRan: noop, onCommand: noop })],
   ['char shape', () => createElement(CharShapeDialog, { view: editor(), onClose: noop, onApplied: noop })],
   ['para shape', () => createElement(ParaShapeDialog, { view: editor(), onClose: noop, onApplied: noop })],

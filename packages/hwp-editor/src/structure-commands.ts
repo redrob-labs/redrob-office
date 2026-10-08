@@ -7,7 +7,7 @@
 // The engine calls are those rhwp-studio makes for the same commands
 // (rhwp-studio/src/command/commands, MIT); each runs as one undo step.
 import { ordered, type Session } from './session'
-import { fromEngine, type Pos } from './position'
+import { inBody, fromEngine, type Pos } from './position'
 import { deleteForward, type Command } from './commands'
 import { applyCharShape, applyParaShape, styleAt, styleList } from './format-commands'
 import { insertShape, objectProperties, selectedCells, tableAt, tableCells, type TableTarget } from './object-commands'
@@ -18,7 +18,7 @@ function json(r: string, what: string): Record<string, unknown> {
   return v
 }
 
-const body = (s: Session): Pos | null => (s.selection.head.cell ? null : s.selection.head)
+const body = (s: Session): Pos | null => (inBody(s.selection.head) ? s.selection.head : null)
 
 function paraProps(s: Session, p: Pos = s.selection.head): Record<string, unknown> {
   if (p.cell) return JSON.parse(s.doc.raw.getCellParaPropertiesAt(p.section, p.para, p.cell.control, p.cell.cell, p.cell.para)) as Record<string, unknown>

@@ -167,7 +167,10 @@ export function NextHangulEditor(): React.JSX.Element {
     setToolbar: (choice) => frame.setToolbar(choice),
     toggleMarkup: () => setMarkupHidden((h) => !h),
     objectKind: () => viewRef.current?.session.object?.kind ?? null,
-    inTable: () => !!viewRef.current?.session.selection.head.cell,
+    inTable: () => {
+      const c = viewRef.current?.session.selection.head.cell
+      return !!c && !c.textBox
+    },
     inField: () => (viewRef.current ? fieldAt(viewRef.current.session) !== null : false),
     output: (kind) => {
       const opened = openedRef.current

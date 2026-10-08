@@ -17,7 +17,7 @@ import type { Lang } from '@genoffice/i18n'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { useI18n } from '../i18n/locale'
 
-export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'review' | 'view' | 'table' | 'object'
+export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'review' | 'view' | 'table' | 'object' | 'story'
 
 /** 한글's own fonts first (installed on government PCs), then the open fonts rhwp bundles. */
 export const HANGUL_FONTS = ['함초롬바탕', '함초롬돋움', '맑은 고딕', '바탕', '돋움', '굴림', '궁서', '휴먼명조', 'HY헤드라인M', '나눔고딕', '나눔명조', 'Noto Sans KR', 'Noto Serif KR', 'Pretendard']
@@ -242,7 +242,9 @@ export async function clipboardPaste(view: EditorView): Promise<void> {
 export function tabsFor(view: EditorView | null): RibbonTab[] {
   const base: RibbonTab[] = ['edit', 'insert', 'format', 'page', 'review', 'view']
   if (view?.session.object) return [...base, 'object']
-  return view?.session.selection.head.cell ? [...base, 'table'] : base
+  if (view?.session.selection.head.story) return [...base, 'story']
+  const c = view?.session.selection.head.cell
+  return c && !c.textBox ? [...base, 'table'] : base
 }
 
 export function HangulRibbon(props: RibbonProps): React.JSX.Element {
@@ -266,6 +268,7 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
     view: t('nextTabView'),
     table: t('nextTabTable'),
     object: t('nextTabObject'),
+    story: view?.session.selection.head.story?.kind === 'note' ? t('nextTabNote') : t('nextTabHeaderFooter'),
   }
   return (
     <div className="hangul-ribbon">
@@ -423,6 +426,19 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
             {button('view:zoom-100', g('100%'), { label: t('nextZoom100') })}
             {button('view:zoom-fit-width', g('↔'))}
             {button('view:zoom-fit-page', g('▢'))}
+          </Group>
+        ) : null}
+        {active === 'story' ? (
+          <Group label={tabLabel.story}>
+            {view?.session.selection.head.story?.kind === 'note' ? (
+              button('insert:note-close', <Icon name="close" size={16} />, { size: 'lg' })
+            ) : (
+              <>
+                {button('page:headerfooter-prev', <Icon name="chevronLeft" size={16} />)}
+                {button('page:headerfooter-next', <Icon name="chevronRight" size={16} />)}
+                {button('page:headerfooter-close', <Icon name="close" size={16} />, { size: 'lg' })}
+              </>
+            )}
           </Group>
         ) : null}
         {active === 'object' ? (

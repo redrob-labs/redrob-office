@@ -13,6 +13,7 @@ import { FIELD_COMMANDS } from './field-commands'
 import { STYLE_COMMANDS } from './style-commands'
 import { STRUCTURE_COMMANDS } from './structure-commands'
 import { DIALOG_COMMANDS } from './dialog-commands'
+import { STORY_COMMANDS } from './story-commands'
 
 export interface CommandContext {
   session: Session
@@ -197,7 +198,7 @@ export const CORE_COMMANDS = [
 export class CommandBus {
   private readonly commands = new Map<string, Command<never>>()
 
-  constructor(readonly session: Session, commands: Command<never>[] = [...CORE_COMMANDS, ...FORMAT_COMMANDS, ...FIND_COMMANDS, ...INSERT_COMMANDS, ...OBJECT_COMMANDS, ...FIELD_COMMANDS, ...STYLE_COMMANDS, ...STRUCTURE_COMMANDS, ...DIALOG_COMMANDS]) {
+  constructor(readonly session: Session, commands: Command<never>[] = [...CORE_COMMANDS, ...FORMAT_COMMANDS, ...FIND_COMMANDS, ...INSERT_COMMANDS, ...OBJECT_COMMANDS, ...FIELD_COMMANDS, ...STYLE_COMMANDS, ...STRUCTURE_COMMANDS, ...DIALOG_COMMANDS, ...STORY_COMMANDS]) {
     for (const c of commands) this.register(c)
   }
 

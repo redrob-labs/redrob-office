@@ -207,7 +207,7 @@ export class LiveBinding {
     const sel = s.selection
     // Keep the caret on its text through the change: map its flow index through each diff.
     const mapPos = (p: Pos): Pos => {
-      if (p.cell) return p
+      if (p.cell || p.story) return p
       const c = changes.find((x) => x.section === p.section)
       if (!c) return p
       let i = flowIndex(s, p)
@@ -248,7 +248,7 @@ export class LiveBinding {
 
   /** A body position as a Yjs relative position, which survives others' edits. */
   relative(p: Pos): { section: number; rel: Y.RelativePosition } | null {
-    if (p.cell) return null
+    if (p.cell || p.story) return null
     const t = this.texts[p.section]
     if (!t) return null
     const flow = t.toString()

@@ -152,6 +152,7 @@ export class Session {
 
   /** Node id of the paragraph at a position (body or cell). */
   nodeAt(p: Pos): NodeId | null {
+    if (p.story) return null
     return p.cell ? this.doc.nodeIdInCell(p.section, p.para, p.cell.control, p.cell.cell, p.cell.para) : this.doc.nodeIdAt(p.section, p.para)
   }
 

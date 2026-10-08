@@ -7,7 +7,7 @@
 // `type` is the HWP line type 0–17 and `width` the HWP width index 0–15) and
 // `fillType` ('none' | 'solid') with `fillColor`.
 import type { ChartData, NewChart } from '@genoffice/hwp-core'
-import type { Pos } from './position'
+import { inBody, type Pos } from './position'
 import type { ObjectRef, Session } from './session'
 import type { Command } from './commands'
 
@@ -34,7 +34,7 @@ export interface CellGeometry {
 }
 
 export function tableAt(s: Session, p: Pos = s.selection.head): TableTarget | null {
-  return p.cell ? { section: p.section, host: p.para, control: p.cell.control } : null
+  return p.cell && !p.cell.textBox ? { section: p.section, host: p.para, control: p.cell.control } : null
 }
 
 export function tableCells(s: Session, t: TableTarget): CellGeometry[] {
@@ -271,7 +271,7 @@ export type ShapeKind = 'rectangle' | 'ellipse' | 'line' | 'textbox'
  */
 export const insertShape: Command<{ shapeType: ShapeKind; width?: number; height?: number }> = {
   id: 'insert:shape',
-  isEnabled: ({ session }) => !session.selection.head.cell,
+  isEnabled: ({ session }) => inBody(session.selection.head),
   run({ session }, { shapeType, width = 14173, height = 7087 }) {
     const p = session.selection.head
     let created: ObjectRef | null = null
@@ -315,7 +315,7 @@ export function chartData(s: Session, o: ObjectRef | null = selectedChart(s)): C
 /** Insert a chart at the caret (body text) and select it. */
 export const insertChart: Command<{ chart: NewChart }> = {
   id: 'insert:chart',
-  isEnabled: ({ session }) => !session.selection.head.cell,
+  isEnabled: ({ session }) => inBody(session.selection.head),
   run({ session }, { chart }) {
     const p = session.selection.head
     let created: ObjectRef | null = null

@@ -255,7 +255,7 @@ export const createTable: Command<{ rows: number; cols: number }> = {
 
 function inTable(s: Session): { section: number; host: number; control: number; row: number; col: number } | null {
   const h = s.selection.head
-  if (!h.cell) return null
+  if (!h.cell || h.cell.textBox) return null
   const info = JSON.parse(s.doc.raw.getCellInfo(h.section, h.para, h.cell.control, h.cell.cell)) as { row: number; col: number }
   return { section: h.section, host: h.para, control: h.cell.control, row: info.row, col: info.col }
 }
@@ -304,7 +304,7 @@ export const mergeCells: Command = {
   id: 'table:cell-merge',
   isEnabled: ({ session }) => {
     const { anchor, head } = session.selection
-    return !!anchor.cell && !!head.cell && anchor.para === head.para && anchor.cell.control === head.cell.control && anchor.cell.cell !== head.cell.cell
+    return !!anchor.cell && !!head.cell && !head.cell.textBox && anchor.para === head.para && anchor.cell.control === head.cell.control && anchor.cell.cell !== head.cell.cell
   },
   run({ session }) {
     const { anchor, head } = session.selection
