@@ -219,17 +219,30 @@ export class CommandBus {
     return !!c?.isActive?.({ session: this.session })
   }
 
+  private intercepts: Array<(id: string, params: unknown, origin: ChangeOrigin) => Change | null | undefined> = []
+
   /**
-   * Takes a command before it runs (suggesting mode records edits as tracked
-   * changes). Return undefined to let the command run normally.
+   * Take commands before they run (suggesting mode records edits as tracked
+   * changes; a live room takes undo). The newest runs first; returning
+   * undefined passes the command on. Returns the function that removes it.
    */
-  intercept: ((id: string, params: unknown, origin: ChangeOrigin) => Change | null | undefined) | null = null
+  addIntercept(fn: (id: string, params: unknown, origin: ChangeOrigin) => Change | null | undefined): () => void {
+    this.intercepts.unshift(fn)
+    return () => {
+      this.intercepts = this.intercepts.filter((f) => f !== fn)
+    }
+  }
+
+  /** Whether something (suggesting mode) is taking edit commands. */
+  intercepting(): boolean {
+    return this.intercepts.length > 0
+  }
 
   run(id: string, params?: unknown, origin: ChangeOrigin = 'user'): Change | null {
     const c = this.commands.get(id)
     if (!c) throw new Error(`unknown command ${id}`)
-    if (this.intercept) {
-      const r = this.intercept(id, params, origin)
+    for (const fn of this.intercepts) {
+      const r = fn(id, params, origin)
       if (r !== undefined) return r
     }
     if (!c.isEnabled({ session: this.session, origin }, params as never)) return null

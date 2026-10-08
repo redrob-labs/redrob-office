@@ -22,6 +22,7 @@ import {
   Badge,
   Button,
   CatchUp,
+  PresenceFaces,
   SHARE_STRINGS,
   ShareDialog,
   VersionHistory,
@@ -36,6 +37,7 @@ import {
 import { useI18n } from '../i18n/locale'
 import { HangulAiPanel, type AiPreset } from '../ai/AiPanel'
 import { CommentsRail } from './CommentsRail'
+import { useHangulLive } from './useHangulLive'
 import type { SaveMode } from '../../shared/ipc'
 import { CharShapeDialog, ParaShapeDialog } from './ShapeDialogs'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
@@ -83,6 +85,8 @@ export function NextHangulEditor(): React.JSX.Element {
   const [shareOpen, setShareOpen] = useState(false)
   const [catchUp, setCatchUp] = useState<{ since: string; items: CatchUpItem[] } | null>(null)
   const visitedRef = useRef<string | null>(null)
+  /** bumped when the document is replaced in memory (a live room's newer shared version) */
+  const [docGen, setDocGen] = useState(0)
   const commentsRef = useRef<Comments | null>(null)
   useEffect(() => {
     void window.hangulApi.authorName?.().then((n) => n && (setAuthor(n), (authorRef.current = n))).catch(() => {})
@@ -190,28 +194,31 @@ export function NextHangulEditor(): React.JSX.Element {
     })
     const offSettle = opened.session.onSettle(refresh)
     view.focus()
+    refresh()
     return () => {
       offChange()
       offSettle()
       view.dispose()
       viewRef.current = null
       commentsRef.current = null
+      opened.session.dispose()
       stopRecordingRef.current?.()
       stopRecordingRef.current = null
       revisionsRef.current = null
     }
-  }, [phase.kind, doSave])
+  }, [phase.kind, doSave, docGen])
 
   useEffect(() => {
     const view = viewRef.current
     if (!view) return
     view.readOnly = mode === 'viewing'
+    view.recording = mode === 'suggesting'
     // Suggesting records typing and deleting as tracked changes, signed with this computer's user.
     stopRecordingRef.current?.()
     stopRecordingRef.current = null
     if (mode === 'suggesting' && revisionsRef.current) stopRecordingRef.current = revisionsRef.current.record(view.bus, authorRef.current)
     refresh()
-  }, [mode, phase.kind])
+  }, [mode, phase.kind, docGen])
 
   // Tracked changes are marked on the page: insertions underlined, deletions struck through.
   useEffect(() => {
@@ -248,6 +255,22 @@ export function NextHangulEditor(): React.JSX.Element {
       offRename()
     }
   }, [doSave])
+
+  // Live typing in a shared file (the shell holds the room).
+  const live = useHangulLive({
+    api: window.hangulApi,
+    path: phase.kind === 'ready' ? pathRef.current || null : null,
+    view: viewRef.current,
+    reload: (bytes) => {
+      const old = openedRef.current
+      if (!old) return
+      void openDocument(bytes, old.fileName, old.password).then((next) => {
+        openedRef.current = next
+        setDocGen((g) => g + 1)
+      })
+    },
+    onChange: refresh,
+  })
 
   // Catch-up on open: what others did since this person last had the file open.
   useEffect(() => {
@@ -399,6 +422,11 @@ export function NextHangulEditor(): React.JSX.Element {
             ) : null}
           </span>
         }
+        faces={
+          live.faces.length ? (
+            <PresenceFaces people={live.faces} strings={{ label: t('liveFaces'), person: t('livePerson'), personHere: t('livePersonHere'), more: t('liveMore'), joined: t('liveJoined'), left: t('liveLeft') }} />
+          ) : undefined
+        }
         share={
           window.hangulApi.shareStatus ? (
             <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>
@@ -488,6 +516,7 @@ export function NextHangulEditor(): React.JSX.Element {
             label={frameT(lang, 'status')}
             items={[
               mode === 'viewing' ? frameText.mode.viewing : mode === 'suggesting' ? frameText.mode.suggesting : frameText.mode.editing,
+              ...(live.state.kind === 'live' ? [live.state.readOnly ? t('liveReadOnly') : t('liveOn')] : []),
               ...(revisionsRef.current && revisionsRef.current.list().length ? [t('reviewPending', { count: revisionsRef.current.list().length })] : []),
               `${s.doc.pageCount()} pp`,
               ...(s.layoutPending ? [t('nextPagesPending')] : []),

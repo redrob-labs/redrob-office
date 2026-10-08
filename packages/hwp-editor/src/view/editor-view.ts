@@ -39,6 +39,8 @@ export class EditorView {
   readonly overlay: Overlay
   readonly input: HTMLTextAreaElement
   composing = false
+  /** Suggesting mode: cut marks text deleted and paste goes in as tracked plain text. */
+  recording = false
   readOnly: boolean
   private pendingKey: { e: KeyLike; timer: ReturnType<typeof setTimeout> | null } | null = null
   private dragging = false
@@ -266,7 +268,7 @@ export class EditorView {
   onCut(e: { clipboardData: DataTransfer | null; preventDefault(): void }): void {
     e.preventDefault()
     if (this.readOnly) return this.onCopy(e)
-    if (this.bus.intercept) {
+    if (this.recording) {
       // Suggesting: the cut text is marked deleted, not removed.
       const data = copy(this.session)
       if (data && e.clipboardData) toDataTransfer(e.clipboardData, data)
@@ -283,7 +285,7 @@ export class EditorView {
     if (this.readOnly) return
     const data = fromDataTransfer(e.clipboardData)
     // Suggesting: paste as text through the bus, so it is recorded as an insertion.
-    if (data && this.bus.intercept) this.bus.run('edit:insert-text', { text: data.text })
+    if (data && this.recording) this.bus.run('edit:insert-text', { text: data.text })
     else if (data) paste(this.session, data)
     this.render()
   }

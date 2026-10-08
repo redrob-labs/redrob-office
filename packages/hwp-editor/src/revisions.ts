@@ -193,8 +193,7 @@ export class Revisions {
    */
   record(bus: CommandBus, author: string): () => void {
     const s = this.session
-    const before = bus.intercept
-    bus.intercept = (id, params, origin) => {
+    return bus.addIntercept((id, params, origin) => {
       if (origin !== 'user' && origin !== 'ai') return undefined
       if (id === 'edit:insert-text') {
         const text = String((params as { text?: string } | undefined)?.text ?? '')
@@ -242,11 +241,8 @@ export class Revisions {
           return { anchor: o, head: o }
         }, origin)
       }
-      return before ? before(id, params, origin) : undefined
-    }
-    return () => {
-      bus.intercept = before
-    }
+      return undefined
+    })
   }
 }
 

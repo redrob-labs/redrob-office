@@ -133,6 +133,22 @@ body {
 .hangul-next-host .hwp-deco-suggestion-delete {
   background: linear-gradient(transparent calc(50% - 1px), var(--status-danger) calc(50% - 1px), var(--status-danger) calc(50% + 1px), transparent calc(50% + 1px));
 }
+/* Other people's carets and selections on the paper, one colour per seat (the
+ * same seats as the title-bar faces). Paper colours, not chrome tokens. */
+.hangul-next-host {
+  --hangul-peer-1: #0f766e;
+  --hangul-peer-2: #6d28d9;
+  --hangul-peer-3: #c2410c;
+  --hangul-peer-4: #be185d;
+  --hangul-peer-5: #0369a1;
+  --hangul-peer-6: #4d7c0f;
+}
+.hangul-next-host .hwp-deco-remote-caret {
+  border-left: 2px solid var(--hwp-deco-color);
+}
+.hangul-next-host .hwp-deco-remote-selection {
+  background: color-mix(in srgb, var(--hwp-deco-color) 18%, transparent);
+}
 .hangul-next-host .hwp-deco-comment {
   background: color-mix(in srgb, var(--status-warning) 28%, transparent);
 }

@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@genoffice/hwp-core": "workspace:*",
-    "@genoffice/versions": "workspace:*"
+    "@genoffice/versions": "workspace:*",
+    "yjs": "13.6.33"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

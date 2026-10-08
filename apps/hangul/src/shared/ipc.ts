@@ -1,7 +1,7 @@
 import type { AiSettings, AiStreamChunk, AiStreamRequest } from '@genoffice/ai-provider'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { VersionsApi } from '@genoffice/versions'
-import type { ShareApi } from '@genoffice/sync-client'
+import type { LiveApi, ShareApi } from '@genoffice/sync-client'
 import type { Lang } from '@genoffice/i18n'
 
 /**
@@ -152,7 +152,7 @@ export interface HangulDocumentBytes {
 }
 
 /** API exposed by preload to the renderer (window.hangulApi). */
-export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi> {
+export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi>, Partial<LiveApi> {
   /**
    * The local, offline rhwp-studio origin the SDK embeds (http://127.0.0.1:<port>),
    * or null when the bundled studio is unavailable. Never a public CDN.

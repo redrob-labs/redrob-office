@@ -234,6 +234,9 @@ importers:
       vitest:
         specifier: ^4.1.10
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
 
   apps/markdown:
     dependencies:
@@ -994,6 +997,9 @@ importers:
       '@genoffice/versions':
         specifier: workspace:*
         version: link:../versions
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
     devDependencies:
       '@types/node':
         specifier: ^24.10.1
