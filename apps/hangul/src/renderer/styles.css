@@ -465,3 +465,30 @@ body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.hangul-panel-stack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.hangul-panel-stack > .copilot {
+  flex: 1;
+  min-height: 0;
+}
+.hangul-save-status {
+  padding: 2px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.hangul-save-status:hover {
+  background: var(--surface-hover);
+}
+.hangul-save-status:focus-visible {
+  outline: 2px solid var(--action-primary);
+}

@@ -137,8 +137,8 @@ Requirement references are in brackets, e.g. [R2.1].
 
 ## Phase 5: Versions, sharing, live typing
 
-- [ ] 5.1 Saved hook for Hangul: versions, catch-up by outline diff, restore to a copy. [R9.1]
-- [ ] 5.2 Share upload on first invite and on owner or editor save; open "Shared with you" Hangul
+- [x] 5.1 Saved hook for Hangul: versions, catch-up by outline diff, restore to a copy. [R9.1]
+- [x] 5.2 Share upload on first invite and on owner or editor save; open "Shared with you" Hangul
   files. [R9.2]
 - [ ] 5.3 E6 deterministic remote apply in the Core. [R9.4]
 - [ ] 5.4 Collaboration binding (the design chosen in 0.9) over `LiveHub` IPC; `meta.base`

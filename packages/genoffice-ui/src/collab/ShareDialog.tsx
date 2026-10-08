@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, type FormEvent, type ReactElement } from 'react'
-import { Alert, Button, Dialog } from '@genoffice/ui'
+import { Alert, Button } from '../kit'
+import { Dialog } from '../Dialog'
 import type { Role, ShareApi, ShareStatus } from '@genoffice/sync-client'
 
 /** Share copy; English is the master and the only selectable language. */

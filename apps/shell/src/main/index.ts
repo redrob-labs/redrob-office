@@ -223,6 +223,7 @@ import {
   requestHangulClose,
   requestHangulSave,
   setHangulFileSavedHook,
+  setHangulDocSavedHook,
   teardownHangul,
 } from '../../../hangul/src/main/hangul-main'
 import { resolveEditorKind } from '../../../hangul/src/main/editor-kind'
@@ -4586,6 +4587,19 @@ new LiveService({
   pull: (p) => shareService.pull(p),
   log: (m) => console.warn(m),
 }).register(ipcMain)
+
+// Hangul: every save is a version, and a shared file uploads a new version (as Docs does).
+setHangulDocSavedHook((path, bytes) => {
+  void shareService.saved(path, bytes)
+  if (!isHistoryPath(path)) return
+  let by = 'This computer'
+  try {
+    by = userInfo().username || by
+  } catch {
+    // keep the generic name
+  }
+  void versionStore.record(path, bytes, { by }).catch(() => undefined)
+})
 
 setDocSavedHook((path, bytes, auto) => {
   void shareService.saved(path, bytes)

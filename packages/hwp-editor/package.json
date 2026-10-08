@@ -13,7 +13,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@genoffice/hwp-core": "workspace:*"
+    "@genoffice/hwp-core": "workspace:*",
+    "@genoffice/versions": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

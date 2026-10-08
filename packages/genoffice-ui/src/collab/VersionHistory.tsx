@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useState, type FormEvent, type ReactElement } from 'react'
-import { Alert, Badge, Button, Drawer } from '@genoffice/ui'
+import { Alert, Badge, Button, Drawer } from '../kit'
 import type { VersionInfo, VersionsApi } from '@genoffice/versions'
 import { verT } from './strings'
 

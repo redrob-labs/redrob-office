@@ -7,7 +7,7 @@ import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ShareApi, ShareStatus } from '@genoffice/sync-client'
-import { SHARE_STRINGS, ShareDialog } from '../src/renderer/share/ShareDialog'
+import { SHARE_STRINGS, ShareDialog } from '@genoffice/ui'
 
 const actEnv = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 actEnv.IS_REACT_ACT_ENVIRONMENT = true
