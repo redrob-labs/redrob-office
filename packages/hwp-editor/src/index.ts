@@ -7,6 +7,7 @@ export { INSERT_COMMANDS, insertFootnote, insertEndnote, insertEquation, insertP
 export * from './object-commands'
 export * from './field-commands'
 export * from './style-commands'
+export * from './structure-commands'
 export * from './navigation'
 export * from './clipboard'
 export * from './view/page-view'

@@ -13,7 +13,7 @@ import { HWPUNIT_PER_MM, cellProperties, selectedCells, tableProperties, type Ed
 import { Button, Checkbox, Dialog, Input, Select, TabbedPanels } from '@genoffice/ui'
 import { useI18n, type StringKey } from '../i18n/locale'
 
-type Props = { view: EditorView; onClose: () => void; onApplied: () => void }
+type Props = { view: EditorView; onClose: () => void; onApplied: () => void; initialTab?: 'table' | 'cell' | 'border' }
 type Tab = 'table' | 'cell' | 'border'
 
 const mm = (hu: unknown) => Math.round((Number(hu) / HWPUNIT_PER_MM) * 10) / 10
@@ -63,13 +63,13 @@ function changed<T extends Record<string, unknown>>(before: T, after: T): Partia
   return out
 }
 
-export function TableCellDialog({ view, onClose, onApplied }: Props): React.JSX.Element {
+export function TableCellDialog({ view, onClose, onApplied, initialTab = 'table' }: Props): React.JSX.Element {
   const { t } = useI18n()
   const s = view.session
   const cells = useMemo(() => selectedCells(s), [s])
   const table = useMemo(() => tableProperties(s) ?? {}, [s])
   const cell = useMemo(() => cellProperties(s) ?? {}, [s])
-  const [tab, setTab] = useState<Tab>('table')
+  const [tab, setTab] = useState<Tab>(initialTab)
 
   const tableInit = {
     outerLeft: mm(table.outerLeft),

@@ -45,9 +45,11 @@ import { ObjectPropertiesDialog } from './ObjectDialogs'
 import { ClickHereDialog, HyperlinkDialog } from './FieldDialogs'
 import { StyleDialog } from './StyleDialog'
 import { ChartDialog } from './ChartDialog'
+import { AboutDialog, PageHideDialog } from './InfoDialogs'
+import { DIALOG_FIRST, runHostCommand, type HostDeps, type HostDialog } from './host-commands'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
 import { InsertPromptDialog, usePicturePicker, type InsertKind } from './InsertDialogs'
-import { HangulRibbon, HangulSimpleToolbar, commandLabel } from './HangulRibbon'
+import { HangulRibbon, HangulSimpleToolbar, clipboardCopy, clipboardPaste, commandLabel } from './HangulRibbon'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { HwpPasswordError, base64ToBytes, newDocument, openDocument, saveDocument, type OpenedDocument } from './document'
 
@@ -80,7 +82,7 @@ export function NextHangulEditor(): React.JSX.Element {
   const revisionsRef = useRef<Revisions | null>(null)
   const stopRecordingRef = useRef<(() => void) | null>(null)
   const authorRef = useRef('User')
-  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | 'table-props' | 'object-props' | 'hyperlink' | 'click-here' | 'styles' | 'chart' | InsertKind | null>(null)
+  const [dialog, setDialog] = useState<HostDialog | null>(null)
   const [revision, refresh] = useReducer((n: number) => n + 1, 0)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [commentComposing, setCommentComposing] = useState(false)
@@ -102,12 +104,12 @@ export function NextHangulEditor(): React.JSX.Element {
   const pathRef = useRef<string>('')
   const picture = usePicturePicker(() => viewRef.current, refresh)
 
-  const doSave = useCallback(async (saveMode: SaveMode): Promise<boolean> => {
+  const doSave = useCallback(async (saveMode: SaveMode, format?: 'hwp' | 'hwpx'): Promise<boolean> => {
     const opened = openedRef.current
     if (!opened) return false
     setSaveState({ kind: 'saving' })
     try {
-      const out = await saveDocument(opened, window.hangulApi, saveMode)
+      const out = await saveDocument(opened, window.hangulApi, saveMode, format ?? opened.format)
       if (!out.saved) {
         setSaveState({ kind: 'idle' })
         // 'tracked-changes' refuses only a conversion to .hwp, which this editor never asks for.
@@ -123,6 +125,34 @@ export function NextHangulEditor(): React.JSX.Element {
       return false
     }
   }, [])
+
+  const [markupHidden, setMarkupHidden] = useState(false)
+  // What host commands reach; refreshed every render so it sees the latest state setters.
+  const hostDepsRef = useRef<HostDeps>(null as unknown as HostDeps)
+  hostDepsRef.current = {
+    openDialog: setDialog,
+    save: (m, format) => void doSave(m, format),
+    clipboard: (kind) => {
+      const v = viewRef.current
+      if (v) void (kind === 'paste' ? clipboardPaste(v) : clipboardCopy(v, kind === 'cut')).then(refresh)
+    },
+    run: (id, params) => {
+      const v = viewRef.current
+      if (!v || !v.bus.has(id) || !v.bus.isEnabled(id, params)) return false
+      v.run(id, params)
+      return true
+    },
+    pickPicture: () => picture.open(),
+    comments: (compose) => {
+      setCommentsOpen(compose ? true : (o) => !o)
+      if (compose) setCommentComposing(true)
+    },
+    versions: () => setVersionsOpen(true),
+    setToolbar: (choice) => frame.setToolbar(choice),
+    toggleMarkup: () => setMarkupHidden((h) => !h),
+    objectKind: () => viewRef.current?.session.object?.kind ?? null,
+    inTable: () => !!viewRef.current?.session.selection.head.cell,
+  }
 
   const mount = useCallback((opened: OpenedDocument) => {
     openedRef.current = opened
@@ -179,23 +209,8 @@ export function NextHangulEditor(): React.JSX.Element {
       // The main process opens http(s) and mailto links in the browser and refuses anything else.
       onOpenLink: (uri) => void window.open(uri, '_blank', 'noopener'),
       onRender: refresh,
-      onUnhandledCommand: (id) => {
-        if (id === 'file:save') return void doSave('save'), true
-        if (id === 'file:save-as') return void doSave('saveAs'), true
-        if (id === 'format:char-shape') return setDialog('char-shape'), true
-        if (id === 'format:para-shape') return setDialog('para-shape'), true
-        if (id === 'edit:find') return setDialog('find'), true
-        if (id === 'edit:find-replace') return setDialog('replace'), true
-        if (id === 'file:page-setup' || id === 'page:setup') return setDialog('page-setup'), true
-        if (id === 'table:cell-props') return setDialog('table-props'), true
-        if (id === 'insert:hyperlink-dialog' || id === 'hyperlink:edit-dialog') return setDialog('hyperlink'), true
-        if (id === 'insert:field-dialog') return setDialog('click-here'), true
-        if (id === 'format:style-dialog') return setDialog('styles'), true
-        if (id === 'insert:chart-dialog') return setDialog('chart'), true
-        if (id === 'insert:chart-data-edit') return opened.session.object?.kind === 'chart' ? (setDialog('chart'), true) : false
-        if (id === 'format:object-properties' || id === 'insert:picture-props') return opened.session.object ? (setDialog(opened.session.object.kind === 'chart' ? 'chart' : 'object-props'), true) : false
-        return false
-      },
+      dialogFirst: DIALOG_FIRST,
+      onUnhandledCommand: (id, params) => runHostCommand(hostDepsRef.current, id, params),
     })
     viewRef.current = view
     commentsRef.current = new Comments(opened.session)
@@ -398,13 +413,7 @@ export function NextHangulEditor(): React.JSX.Element {
       ) : null}
     </div>
   )
-  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => {
-      if (id === 'insert:image') return picture.open()
-      if (id === 'review:memo-insert') return void (setCommentsOpen(true), setCommentComposing(true))
-      if (id === 'review:memo-show') return void setCommentsOpen((v) => !v)
-      const map: Record<string, NonNullable<typeof dialog>> = { 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup', 'table:cell-props': 'table-props', 'format:object-properties': 'object-props', 'insert:hyperlink-dialog': 'hyperlink', 'insert:field-dialog': 'click-here', 'format:style-dialog': 'styles', 'insert:chart-dialog': 'chart', 'insert:chart-data-edit': 'chart', 'insert:equation': 'insert:equation', 'insert:footnote': 'insert:footnote', 'insert:bookmark': 'insert:bookmark', 'page:header-create': 'page:header-create', 'page:footer-create': 'page:footer-create' }
-      setDialog(map[id] ?? null)
-    } }
+  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => void runHostCommand(hostDepsRef.current, id) }
   const tools = (classic: boolean) => (
     <div className="hangul-toolbar">
       {classic ? <HangulRibbon {...ribbonProps} /> : <HangulSimpleToolbar {...ribbonProps} />}
@@ -549,7 +558,7 @@ export function NextHangulEditor(): React.JSX.Element {
         }
       >
         {/* the document is Korean whatever the interface language */}
-        <div ref={hostRef} className="hangul-next-host" lang="ko" />
+        <div ref={hostRef} className={markupHidden ? 'hangul-next-host hangul-hide-markup' : 'hangul-next-host'} lang="ko" />
         <VersionHistory open={versionsOpen} onClose={() => setVersionsOpen(false)} path={pathRef.current || null} fileName={opened.fileName} api={window.hangulApi} />
         {window.hangulApi.shareStatus ? <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} path={pathRef.current || null} fileName={opened.fileName || t('untitled')} api={window.hangulApi as ShareApi} /> : null}
         {view && dialog === 'char-shape' ? <CharShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
@@ -563,6 +572,9 @@ export function NextHangulEditor(): React.JSX.Element {
         {view && dialog === 'styles' ? <StyleDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'chart' ? <ChartDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'table-props' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'table-borders' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} initialTab="border" onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'page-hide' ? <PageHideDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {dialog === 'about' ? <AboutDialog engine={`rhwp ${String(info.version ?? '')}`.trim()} onClose={() => (setDialog(null), viewRef.current?.focus())} /> : null}
         {view && dialog === 'para-shape' ? <ParaShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
       </EditorFrame>
     </div>

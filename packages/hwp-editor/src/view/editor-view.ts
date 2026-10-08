@@ -36,6 +36,8 @@ export interface EditorViewOptions extends PageViewOptions {
   onUnhandledCommand?: (id: string, params?: unknown) => boolean
   /** Ctrl+click (⌘+click) on a hyperlink, as in 한글. The host opens it outside the editor. */
   onOpenLink?: (uri: string) => void
+  /** Commands whose shortcut goes to the host first (they open a dialog that asks for input). */
+  dialogFirst?: ReadonlySet<string>
   /** Accessible name of the text input (the document body), in the host's language. */
   inputLabel?: string
 }
@@ -186,10 +188,72 @@ export class EditorView {
         },
       })
     }
+    // Display toggles: they change what the engine paints, not the document, so they
+    // keep no history and never mark the file unsaved.
+    const toggle = (id: string, get: () => boolean, set: (on: boolean) => void) => {
+      if (this.bus.has(id)) return
+      this.bus.register({
+        id,
+        isEnabled: () => true,
+        isActive: () => get(),
+        run: () => {
+          set(!get())
+          this.pages.invalidate()
+          this.overlay.redrawDecorations()
+          return null
+        },
+      })
+    }
+    const raw = this.session.doc.raw
+    toggle('view:para-mark', () => raw.getShowParagraphMarks(), (on) => raw.setShowParagraphMarks(on))
+    toggle('view:ctrl-mark', () => raw.getShowControlCodes(), (on) => raw.setShowControlCodes(on))
+    toggle('view:border-transparent', () => raw.getShowTransparentBorders(), (on) => raw.setShowTransparentBorders(on))
+    let clip = true
+    toggle('view:toggle-clip', () => !clip, (show) => {
+      clip = !show
+      raw.setClipEnabled(clip)
+    })
+    toggle('view:toggle-grid', () => this.pages.content.classList.contains('hwp-show-grid'), (on) => this.pages.content.classList.toggle('hwp-show-grid', on))
+    // 현재 쪽만 감추기 (header and footer) and 머리말/꼬리말 감추기 (header) on the caret's page.
+    const page = () => {
+      try {
+        return this.session.text.cursorRect(this.session.selection.head).pageIndex
+      } catch {
+        return 0
+      }
+    }
+    const hide = (id: string, header: boolean, footer: boolean) => {
+      if (this.bus.has(id)) return
+      this.bus.register({
+        id,
+        isEnabled: () => true,
+        run: () => {
+          const p = page()
+          if (header) raw.toggleHideHeaderFooter(p, true)
+          if (footer) raw.toggleHideHeaderFooter(p, false)
+          this.pages.invalidate()
+          return null
+        },
+      })
+    }
+    hide('page:hide-current', true, true)
+    hide('page:hide-headerfooter', true, false)
     const steps = [0.25, 0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2, 3, 4, 5]
     zoom('view:zoom-in', (z) => steps.find((s) => s > z + 1e-6) ?? 5)
     zoom('view:zoom-out', (z) => [...steps].reverse().find((s) => s < z - 1e-6) ?? 0.25)
     zoom('view:zoom-100', () => 1)
+    if (!this.bus.has('view:zoom-set')) {
+      this.bus.register({
+        id: 'view:zoom-set',
+        isEnabled: () => true,
+        run: (_ctx, params: { percent: number }) => {
+          const percent = Number(params?.percent ?? 100)
+          this.pages.setZoom(Math.min(500, Math.max(10, percent)) / 100)
+          this.overlay.redrawDecorations()
+          return null
+        },
+      })
+    }
     zoom('view:zoom-fit-width', () => {
       const page = this.pages.pages[0]
       const width = this.root.clientWidth - 48
@@ -233,6 +297,7 @@ export class EditorView {
       if (e.key === 'Enter') return !!this.opts.onUnhandledCommand?.('format:object-properties')
     }
     for (const r of resolveKey(e, this.opts.mac)) {
+      if (this.opts.dialogFirst?.has(r.command) && this.opts.onUnhandledCommand?.(r.command, r.params)) return true
       if (this.bus.has(r.command)) {
         if (!this.bus.isEnabled(r.command, r.params)) continue
         this.run(r.command, r.params)

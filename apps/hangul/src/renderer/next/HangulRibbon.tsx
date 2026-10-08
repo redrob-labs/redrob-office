@@ -212,7 +212,7 @@ function TableGrid(props: RibbonProps): React.JSX.Element {
   )
 }
 
-async function clipboardCopy(view: EditorView, cut: boolean): Promise<void> {
+export async function clipboardCopy(view: EditorView, cut: boolean): Promise<void> {
   const data = copy(view.session)
   if (!data) return
   try {
@@ -225,7 +225,7 @@ async function clipboardCopy(view: EditorView, cut: boolean): Promise<void> {
   if (cut) view.run('edit:delete-backward')
 }
 
-async function clipboardPaste(view: EditorView): Promise<void> {
+export async function clipboardPaste(view: EditorView): Promise<void> {
   try {
     const [item] = await navigator.clipboard.read()
     if (!item) return

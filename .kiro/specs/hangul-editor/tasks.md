@@ -92,7 +92,11 @@ Requirement references are in brackets, e.g. [R2.1].
   한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.」 Required by the HWP
   specification's terms (research finding 4) and part of the cutover checklist. [R10.7]
 - [ ] 2.6 Coverage check: every item from 0.6 is reachable, verified by an automated test over
-  CommandBus. [R5.3]
+  CommandBus. Done: `apps/hangul/tests/command-coverage.test.ts` checks every listed command and
+  shortcut against the bus and the host command table (`host-commands.ts`); 146 of 176 reachable
+  (from 66), floor raised to 146. Open: the 30 in `NOT_YET`, each with its reason (Home owns
+  opening files; print and exports; header/footer and note editing modes; multi-object selection;
+  several dialogs). [R5.3]
 
 ## Phase 3: AI
 

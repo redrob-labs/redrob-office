@@ -9,14 +9,18 @@ import type { EditorView } from '@genoffice/hwp-editor'
 import { Button, Dialog, Input } from '@genoffice/ui'
 import { useI18n, type StringKey } from '../i18n/locale'
 
-export type InsertKind = 'insert:equation' | 'insert:footnote' | 'insert:bookmark' | 'page:header-create' | 'page:footer-create'
+export type InsertKind = 'insert:equation' | 'insert:footnote' | 'insert:bookmark' | 'page:header-create' | 'page:footer-create' | 'edit:goto-page' | 'view:zoom-set' | 'page:new-page-num' | 'table:formula'
 
-const PROMPTS: Record<InsertKind, { title: StringKey; label: StringKey; param: string; required: boolean }> = {
+const PROMPTS: Record<InsertKind, { title: StringKey; label: StringKey; param: string; required: boolean; number?: boolean; apply?: boolean }> = {
   'insert:equation': { title: 'nextInsertEquation', label: 'nextEquationScript', param: 'script', required: true },
   'insert:footnote': { title: 'nextInsertFootnote', label: 'nextFootnoteText', param: 'text', required: false },
   'insert:bookmark': { title: 'nextInsertBookmark', label: 'nextBookmarkName', param: 'name', required: true },
   'page:header-create': { title: 'nextInsertHeader', label: 'nextHeaderText', param: 'text', required: true },
   'page:footer-create': { title: 'nextInsertFooter', label: 'nextFooterText', param: 'text', required: true },
+  'edit:goto-page': { title: 'nextGotoTitle', label: 'nextGotoPage', param: 'page', required: true, number: true, apply: true },
+  'view:zoom-set': { title: 'nextZoomTitle', label: 'nextZoomPercent', param: 'percent', required: true, number: true, apply: true },
+  'page:new-page-num': { title: 'nextNewPageNumTitle', label: 'nextNewPageNumStart', param: 'start', required: true, number: true, apply: true },
+  'table:formula': { title: 'nextFormulaTitle', label: 'nextFormulaLabel', param: 'formula', required: true, apply: true },
 }
 
 /** 한글 equation script is the same in every language, so the examples are not translated. */
@@ -26,9 +30,10 @@ export function InsertPromptDialog({ view, kind, onClose, onApplied }: { view: E
   const { t } = useI18n()
   const [value, setValue] = useState('')
   const spec = PROMPTS[kind]
+  const bad = spec.number ? !/^\s*\d+\s*$/.test(value) : spec.required && !value.trim()
   const submit = () => {
-    if (spec.required && !value.trim()) return
-    view.run(kind, { [spec.param]: value })
+    if (bad) return
+    view.run(kind, { [spec.param]: spec.number ? Number(value) : value })
     onApplied()
     onClose()
   }
@@ -43,8 +48,8 @@ export function InsertPromptDialog({ view, kind, onClose, onApplied }: { view: E
           <Button variant="secondary" onClick={onClose}>
             {t('nextDialogCancel')}
           </Button>
-          <Button disabled={spec.required && !value.trim()} onClick={submit}>
-            {t('nextDialogInsert')}
+          <Button disabled={bad} onClick={submit}>
+            {t(spec.apply ? 'nextDialogApply' : 'nextDialogInsert')}
           </Button>
         </>
       }
@@ -55,10 +60,15 @@ export function InsertPromptDialog({ view, kind, onClose, onApplied }: { view: E
           submit()
         }}
       >
-        <Input label={t(spec.label)} value={value} autoFocus onChange={(e) => setValue(e.target.value)} />
+        <Input label={t(spec.label)} value={value} inputMode={spec.number ? 'numeric' : undefined} autoFocus onChange={(e) => setValue(e.target.value)} />
         {kind === 'insert:equation' ? (
           <p className="hangul-hint">
             {t('nextEquationHint')} <code lang="zxx">{EQUATION_EXAMPLES}</code>
+          </p>
+        ) : null}
+        {kind === 'table:formula' ? (
+          <p className="hangul-hint">
+            {t('nextFormulaHint')} <code lang="zxx">=SUM(A1:A3), =A1*B2, =AVG(B1:B4)</code>
           </p>
         ) : null}
       </form>
