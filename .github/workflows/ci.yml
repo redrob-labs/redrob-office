@@ -69,6 +69,9 @@ jobs:
 
       - name: Test
         run: pnpm test
+        env:
+          # The weekly run fuzzes live Hangul typing 25x deeper than a pull request does.
+          HWP_LIVE_FUZZ_ROUNDS: ${{ github.event_name == 'schedule' && '400' || '' }}
 
   # The Hangul core (engines/rhwp → packages/hwp-core/wasm). The fast check
   # compares the committed wasm and engine source with provenance.json; the
