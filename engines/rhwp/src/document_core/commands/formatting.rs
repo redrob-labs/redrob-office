@@ -1083,7 +1083,8 @@ impl DocumentCore {
         }
 
         self.document.sections[sec_idx].raw_stream = None;
-        self.rebuild_section(sec_idx);
+        // [Redrob] batch 중에는 paginate 를 end_batch 로 미룬다 (REDROB.md).
+        self.rebuild_paragraph_deferred_in_batch(sec_idx, para_idx);
         self.event_log.push(DocumentEvent::CharFormatChanged {
             section: sec_idx,
             para: para_idx,
@@ -1598,7 +1599,8 @@ impl DocumentCore {
         }
 
         self.document.sections[sec_idx].raw_stream = None;
-        self.rebuild_section(sec_idx);
+        // [Redrob] batch 중에는 paginate 를 end_batch 로 미룬다 (REDROB.md).
+        self.rebuild_paragraph_deferred_in_batch(sec_idx, para_idx);
         self.event_log.push(DocumentEvent::ParaFormatChanged {
             section: sec_idx,
             para: para_idx,
@@ -1660,7 +1662,8 @@ impl DocumentCore {
         }
 
         self.document.sections[sec_idx].raw_stream = None;
-        self.rebuild_section(sec_idx);
+        // [Redrob] batch 중에는 paginate 를 end_batch 로 미룬다 (REDROB.md).
+        self.rebuild_paragraph_deferred_in_batch(sec_idx, para_idx);
         self.event_log.push(DocumentEvent::ParaFormatChanged {
             section: sec_idx,
             para: para_idx,
@@ -2125,7 +2128,8 @@ impl DocumentCore {
 
             self.reflow_body_paragraph(sec_idx, para_idx);
             self.document.sections[sec_idx].raw_stream = None;
-            self.rebuild_section(sec_idx);
+            // [Redrob] batch 중에는 paginate 를 end_batch 로 미룬다 (REDROB.md).
+            self.rebuild_paragraph_deferred_in_batch(sec_idx, para_idx);
             self.event_log.push(DocumentEvent::CharFormatChanged {
                 section: sec_idx,
                 para: para_idx,
@@ -2162,7 +2166,8 @@ impl DocumentCore {
 
         self.reflow_body_paragraph(sec_idx, para_idx);
         self.document.sections[sec_idx].raw_stream = None;
-        self.rebuild_section(sec_idx);
+        // [Redrob] batch 중에는 paginate 를 end_batch 로 미룬다 (REDROB.md).
+        self.rebuild_paragraph_deferred_in_batch(sec_idx, para_idx);
         self.event_log.push(DocumentEvent::ParaFormatChanged {
             section: sec_idx,
             para: para_idx,

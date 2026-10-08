@@ -162,6 +162,9 @@ importers:
 
   apps/hangul:
     devDependencies:
+      '@genoffice/agent-core':
+        specifier: workspace:*
+        version: link:../../packages/agent-core
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils

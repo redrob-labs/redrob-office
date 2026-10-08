@@ -182,3 +182,40 @@ describe('caret movement', () => {
     expect(s.text.textBetween(s.selection.anchor, s.selection.head)).toBe('하나\n둘')
   })
 })
+
+describe('grouped edits', () => {
+  it('commands run inside a group are one undo step and one change', () => {
+    const { s, bus } = open('하나')
+    const changes: Change[] = []
+    s.onChange((c) => changes.push(c))
+    const seq = s.changeSeq
+    s.group('ai:replace', () => {
+      bus.run('edit:insert-text', { text: '\n둘' }, 'ai')
+      bus.run('edit:insert-text', { text: '\n셋' }, 'ai')
+      return s.selection
+    }, 'ai')
+    expect(body(s)).toEqual(['하나', '둘', '셋'])
+    expect(changes).toHaveLength(1)
+    expect(changes[0]!.origin).toBe('ai')
+    expect(changes[0]!.nodes.length).toBeGreaterThanOrEqual(2)
+    expect(s.changeSeq).toBe(seq + 1)
+    s.undo()
+    expect(body(s)).toEqual(['하나'])
+    expect(s.dirty).toBe(false)
+  })
+
+  it('a failure inside a group rolls the whole group back', () => {
+    const { s, bus } = open('하나')
+    expect(() =>
+      s.group('ai:bad', () => {
+        bus.run('edit:insert-text', { text: '\n둘' }, 'ai')
+        throw new Error('boom')
+      }, 'ai'),
+    ).toThrow('boom')
+    expect(body(s)).toEqual(['하나'])
+    expect(s.canUndo).toBe(false)
+    // The session is usable afterwards.
+    bus.run('edit:insert-text', { text: '!' })
+    expect(body(s)).toEqual(['하나!'])
+  })
+})
