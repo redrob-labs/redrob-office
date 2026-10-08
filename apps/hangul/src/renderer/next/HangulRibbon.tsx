@@ -331,6 +331,11 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
                 {button('field:remove', g('⌷×'))}
               </Group>
             ) : null}
+            {props.onCommand ? (
+              <Group label={t('nextChartData')}>
+                <ToolbarButton label={t('nextChartTitle')} icon={<Icon name="chart" size={24} />} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled('insert:chart', { chart: { kind: 'column', categories: [], series: [] } })} onClick={() => props.onCommand!('insert:chart-dialog')} />
+              </Group>
+            ) : null}
             <Group label={L('insert:shape')}>
               {button('insert:shape', g('□'), { params: { shapeType: 'rectangle' }, label: t('nextShapeRectangle') })}
               {button('insert:shape', g('◯'), { params: { shapeType: 'ellipse' }, label: t('nextShapeEllipse') })}
@@ -423,6 +428,7 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
             <Group label={t('nextGroupObject')}>
               {props.onCommand ? <ToolbarButton label={L('format:object-properties')} icon={g('⚙')} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled('object:set-properties', { props: {} })} onClick={() => props.onCommand!('format:object-properties')} /> : null}
               {button('insert:picture-delete', <Icon name="trash" size={16} />)}
+              {props.onCommand && view?.session.object?.kind === 'chart' ? <ToolbarButton label={t('nextChartEditData')} icon={g('▤')} disabled={props.readOnly} onClick={() => props.onCommand!('insert:chart-data-edit')} /> : null}
             </Group>
             <Group label={t('nextGroupArrange')}>
               {button('insert:arrange-front', g('⇈'))}

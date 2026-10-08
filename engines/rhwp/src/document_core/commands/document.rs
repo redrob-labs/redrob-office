@@ -2034,6 +2034,15 @@ impl DocumentCore {
         let mut snapshot = self.document.clone();
         self.writeback_reflowed_table_frames(&mut snapshot);
         let _report = convert_if_hwpx_source(&mut snapshot, self.source_format);
+        // [Redrob E7] A chart inserted into an HWP-source document is modelled the HWPX
+        // way (zip part + OLE fallback); fold it to the OLE as HWPX sources are.
+        if !matches!(
+            self.source_format,
+            crate::parser::FileFormat::Hwpx | crate::parser::FileFormat::Hwp3
+        ) {
+            let mut report = crate::document_core::converters::hwpx_to_hwp::AdapterReport::new();
+            crate::document_core::converters::hwpx_to_hwp::fold_hwpx_chart_ole_for_hwp(&mut snapshot, &mut report);
+        }
         super::header_footer_ops::lower_header_footer_field_markers(
             &mut snapshot,
             &self.file_name,

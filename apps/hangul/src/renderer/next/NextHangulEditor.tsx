@@ -44,6 +44,7 @@ import { TableCellDialog } from './TableDialogs'
 import { ObjectPropertiesDialog } from './ObjectDialogs'
 import { ClickHereDialog, HyperlinkDialog } from './FieldDialogs'
 import { StyleDialog } from './StyleDialog'
+import { ChartDialog } from './ChartDialog'
 import { FindDialog, PageSetupDialog } from './FindPageDialogs'
 import { InsertPromptDialog, usePicturePicker, type InsertKind } from './InsertDialogs'
 import { HangulRibbon, HangulSimpleToolbar, commandLabel } from './HangulRibbon'
@@ -79,7 +80,7 @@ export function NextHangulEditor(): React.JSX.Element {
   const revisionsRef = useRef<Revisions | null>(null)
   const stopRecordingRef = useRef<(() => void) | null>(null)
   const authorRef = useRef('User')
-  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | 'table-props' | 'object-props' | 'hyperlink' | 'click-here' | 'styles' | InsertKind | null>(null)
+  const [dialog, setDialog] = useState<'char-shape' | 'para-shape' | 'find' | 'replace' | 'page-setup' | 'table-props' | 'object-props' | 'hyperlink' | 'click-here' | 'styles' | 'chart' | InsertKind | null>(null)
   const [revision, refresh] = useReducer((n: number) => n + 1, 0)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [commentComposing, setCommentComposing] = useState(false)
@@ -184,7 +185,9 @@ export function NextHangulEditor(): React.JSX.Element {
         if (id === 'insert:hyperlink-dialog' || id === 'hyperlink:edit-dialog') return setDialog('hyperlink'), true
         if (id === 'insert:field-dialog') return setDialog('click-here'), true
         if (id === 'format:style-dialog') return setDialog('styles'), true
-        if (id === 'format:object-properties' || id === 'insert:picture-props') return opened.session.object ? (setDialog('object-props'), true) : false
+        if (id === 'insert:chart-dialog') return setDialog('chart'), true
+        if (id === 'insert:chart-data-edit') return opened.session.object?.kind === 'chart' ? (setDialog('chart'), true) : false
+        if (id === 'format:object-properties' || id === 'insert:picture-props') return opened.session.object ? (setDialog(opened.session.object.kind === 'chart' ? 'chart' : 'object-props'), true) : false
         return false
       },
     })
@@ -393,7 +396,7 @@ export function NextHangulEditor(): React.JSX.Element {
       if (id === 'insert:image') return picture.open()
       if (id === 'review:memo-insert') return void (setCommentsOpen(true), setCommentComposing(true))
       if (id === 'review:memo-show') return void setCommentsOpen((v) => !v)
-      const map: Record<string, NonNullable<typeof dialog>> = { 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup', 'table:cell-props': 'table-props', 'format:object-properties': 'object-props', 'insert:hyperlink-dialog': 'hyperlink', 'insert:field-dialog': 'click-here', 'format:style-dialog': 'styles', 'insert:equation': 'insert:equation', 'insert:footnote': 'insert:footnote', 'insert:bookmark': 'insert:bookmark', 'page:header-create': 'page:header-create', 'page:footer-create': 'page:footer-create' }
+      const map: Record<string, NonNullable<typeof dialog>> = { 'format:char-shape': 'char-shape', 'format:para-shape': 'para-shape', 'edit:find': 'find', 'edit:find-replace': 'replace', 'page:setup': 'page-setup', 'table:cell-props': 'table-props', 'format:object-properties': 'object-props', 'insert:hyperlink-dialog': 'hyperlink', 'insert:field-dialog': 'click-here', 'format:style-dialog': 'styles', 'insert:chart-dialog': 'chart', 'insert:chart-data-edit': 'chart', 'insert:equation': 'insert:equation', 'insert:footnote': 'insert:footnote', 'insert:bookmark': 'insert:bookmark', 'page:header-create': 'page:header-create', 'page:footer-create': 'page:footer-create' }
       setDialog(map[id] ?? null)
     } }
   const tools = (classic: boolean) => (
@@ -552,6 +555,7 @@ export function NextHangulEditor(): React.JSX.Element {
         {view && dialog === 'hyperlink' ? <HyperlinkDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'click-here' ? <ClickHereDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'styles' ? <StyleDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
+        {view && dialog === 'chart' ? <ChartDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'table-props' && view.bus.isEnabled('table:set-properties', { props: {} }) ? <TableCellDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
         {view && dialog === 'para-shape' ? <ParaShapeDialog view={view} onClose={() => (setDialog(null), view.focus())} onApplied={refresh} /> : null}
       </EditorFrame>

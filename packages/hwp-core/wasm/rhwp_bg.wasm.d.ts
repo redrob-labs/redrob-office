@@ -293,6 +293,7 @@ export const hwpdocument_importParagraphBlock: (a: number, b: number, c: number,
 export const hwpdocument_injectExternalImage: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
 export const hwpdocument_injectExternalImageByKey: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
 export const hwpdocument_insertAutoNumberAtCursor: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+export const hwpdocument_insertChart: (a: number, b: number, c: number) => [number, number, number, number];
 export const hwpdocument_insertClickHereField: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number, number, number];
 export const hwpdocument_insertClickHereFieldAtCursor: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => [number, number, number, number];
 export const hwpdocument_insertClickHereFieldByPath: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => [number, number, number, number];

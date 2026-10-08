@@ -47,6 +47,8 @@ export class PageView {
   private readonly buffer: number
   private readonly dpr: () => number
   private readonly painter: Painter
+  /** Pages waiting for a repaint after their pictures decode. */
+  private readonly retries = new Map<number, ReturnType<typeof setTimeout>>()
 
   constructor(
     readonly scroller: HTMLElement,
@@ -155,6 +157,40 @@ export class PageView {
       box.canvas.style.width = `${box.info.width * this.zoom}px`
       box.canvas.style.height = `${box.info.height * this.zoom}px`
       box.painted = { scale, generation: this.generation }
+      this.repaintAfterDecode(box, scale, this.generation)
+    }
+  }
+
+  /**
+   * The engine draws pictures and charts (raw SVG) through browser images,
+   * which decode asynchronously: the first paint of a page leaves them blank
+   * and a later paint finds them decoded. Repaint such a page a little later,
+   * twice at most, unless it changed meanwhile.
+   */
+  private repaintAfterDecode(box: PageBox, scale: number, generation: number, attempt = 0): void {
+    if (attempt >= 2 || typeof setTimeout === 'undefined') return
+    if (attempt === 0 && !this.hasImages(box.index)) return
+    const prev = this.retries.get(box.index)
+    if (prev) clearTimeout(prev)
+    this.retries.set(
+      box.index,
+      setTimeout(() => {
+        this.retries.delete(box.index)
+        if (!this.pages.includes(box) || !box.painted || box.painted.scale !== scale || box.painted.generation !== generation) return
+        this.painter(box.index, box.canvas, scale)
+        box.canvas.style.width = `${box.info.width * this.zoom}px`
+        box.canvas.style.height = `${box.info.height * this.zoom}px`
+        this.repaintAfterDecode(box, scale, generation, attempt + 1)
+      }, attempt === 0 ? 60 : 400),
+    )
+  }
+
+  private hasImages(page: number): boolean {
+    try {
+      const tree = this.doc.raw.getPageRenderTree(page)
+      return tree.includes('"type":"Image"') || tree.includes('"type":"RawSvg"')
+    } catch {
+      return false
     }
   }
 
@@ -181,6 +217,8 @@ export class PageView {
   }
 
   dispose(): void {
+    for (const t of this.retries.values()) clearTimeout(t)
+    this.retries.clear()
     this.content.remove()
     this.pages = []
   }
