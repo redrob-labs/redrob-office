@@ -330,6 +330,7 @@ export function NextHangulEditor(): React.JSX.Element {
     api: window.hangulApi,
     path: phase.kind === 'ready' ? pathRef.current || null : null,
     view: viewRef.current,
+    comments: commentsRef.current,
     reload: (bytes) => {
       const old = openedRef.current
       if (!old) return
@@ -338,7 +339,12 @@ export function NextHangulEditor(): React.JSX.Element {
         setDocGen((g) => g + 1)
       })
     },
-    onChange: refresh,
+    // Remote text and comments may leave the view clean again (they never mark it unsaved).
+    onChange: () => {
+      const v = viewRef.current
+      if (v) window.hangulApi.setDirty(v.session.dirty)
+      refresh()
+    },
   })
 
   // Catch-up on open: what others did since this person last had the file open.

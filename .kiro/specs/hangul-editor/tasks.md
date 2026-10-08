@@ -159,8 +159,14 @@ Requirement references are in brackets, e.g. [R2.1].
   patching; per-person undo (`Y.UndoManager` over the local origin). Limit: only body text and
   paragraph breaks travel live; formatting, tables and memos arrive with the next save, when a clean
   view reloads the new base. [R9.3, R9.4, R9.5]
-- [ ] 5.5 Done: presence faces, remote carets and selections in body text, read-only for view and
-  comment roles. Open: live comment sync (comments reach others with saves). [R9.3, R9.5, R7.3]
+- [x] 5.5 Presence faces, remote carets and selections in body text, read-only for view and
+  comment roles. Live comment sync: the shared `hwp:comments` map (`LiveComments`), keyed by a
+  random live id per comment (`n<memo number>` for memos in the opened file), root anchors as Yjs
+  relative positions so a memo stays on its words while others type, tombstones for deleted
+  comments, and remote comments applied with origin `remote` so they never mark a view unsaved
+  (`packages/hwp-editor/tests/live-comments.test.ts`, `apps/hangul/tests/live-room.test.tsx`).
+  Limit: as AGENTS.md sets for live rooms, the comment role is read-only live, so it receives
+  comments but does not write them into the room. [R9.3, R9.5, R7.3]
 - [ ] 5.6 Done: multi-client fuzz in CI (`packages/hwp-editor/tests/live-fuzz.test.ts`: 2 to 5
   views, late, reordered, duplicated and held-offline updates, a late joiner, undo and redo, and a
   save-and-reopen check; 16 rounds per pull request, 400 in the weekly run). Open: the same run
