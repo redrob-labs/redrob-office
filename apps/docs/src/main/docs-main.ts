@@ -60,7 +60,9 @@ import {
   cloudToolsEnabled,
   resolveAiSettings,
   maxOutputTokensOf,
+  REDROB_CONSOLE_API_BASE,
   setRescueFetch,
+  setRouteLabeller,
   streamForProvider,
   type AiChatRequest,
   type AiSettings,
@@ -69,6 +71,7 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import { createRouteLabeller, loadModelGuide } from '@genoffice/electron-utils/route-labeller'
 import {
   ensureGenofficeLogin,
   gskApiKey,
@@ -2631,6 +2634,12 @@ const activeAiStreams = new Map<string, AbortController>()
  * sheets' standalone AI handlers use the same channel names.
  */
 export function registerAiIpc(): void {
+  // The ModelGuide edition Redrob Auto routes on, for the settings' "How Redrob Auto chooses"
+  ipcMain.handle('ai:get-model-guide', (_event, locale: unknown) =>
+    loadModelGuide(REDROB_CONSOLE_API_BASE, locale === 'ko' ? 'ko' : 'en', (url, init) =>
+      net.fetch(String(url instanceof Request ? url.url : url), init),
+    ),
+  )
   ipcMain.handle('ai:get-settings', (): AiSettings => {
     const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(SETTINGS_PATH(), {})
     // pre-lock legacy file: genspark selected with cloud tools opted out. The
@@ -3055,6 +3064,9 @@ export function registerProjectIpc(): void {
 export function registerDocsIpc(): void {
   // Node fetch (undici) direct connections get reset under VPN/tun setups; retry over Chromium's stack
   setRescueFetch((url, init) => net.fetch(url, init))
+  // Labels each turn to Redrob Auto with its ModelGuide profession and task on this computer;
+  // one labeller per process, shared by every editor (@genoffice/electron-utils/route-labeller)
+  setRouteLabeller(createRouteLabeller({ modelDir: join(app.getPath('userData'), 'route-model') }))
 
   // shared with the other editor modules — last (identical) registration wins
   ipcMain.removeHandler('app:get-language')

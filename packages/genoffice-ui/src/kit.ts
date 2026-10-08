@@ -48,6 +48,7 @@ export {
   Composer,
   ComposerStatus,
   ModelPicker,
+  ModelGuide,
   Streaming,
   PromptSuggestions,
   AgentAction,
@@ -76,6 +77,8 @@ export {
 } from '@redrob-labs/ui'
 
 export type {
+  GuideProfession,
+  ModelGuideProps,
   IconName,
   IconProps as KitIconProps,
   IconComponent,

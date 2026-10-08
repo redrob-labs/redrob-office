@@ -143,6 +143,7 @@ describe('Settings', () => {
       'Fact check',
       'Challenge',
       'Plan or Run',
+      'How Redrob Auto chooses',
     ])
     const privacy = host.querySelectorAll('.set-row')[1]!
     expect(privacy.querySelector('button, input')).toBeNull()
