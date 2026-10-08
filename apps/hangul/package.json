@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "license": "Apache-2.0",
   "private": true,
-  "description": "Hangul (.hwp/.hwpx) editor module: embeds the rhwp-studio editor (MIT) via the @rhwp/editor iframe SDK, hosted by shell tabs and served from a local offline origin",
+  "description": "Hangul (.hwp/.hwpx) editor module: the owned editor (packages/hwp-editor) over the hwp-core engine (our fork of rhwp, MIT), hosted by shell tabs",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -25,7 +25,6 @@
     "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
     "@genoffice/versions": "workspace:*",
-    "@rhwp/editor": "workspace:*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",

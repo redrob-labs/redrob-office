@@ -170,10 +170,6 @@ const homeApi: HomeApi = {
     const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.getAppVersion)
     return typeof result === 'string' ? result : ''
   },
-  async hangulAi() {
-    const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.hangulAi)
-    return result === true
-  },
   async onboardingSeen() {
     const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.onboardingSeen)
     return result === true
