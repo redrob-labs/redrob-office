@@ -33,6 +33,7 @@ import { ClickHereDialog, HyperlinkDialog } from '../src/renderer/next/FieldDial
 import { StyleDialog } from '../src/renderer/next/StyleDialog'
 import { ChartDialog } from '../src/renderer/next/ChartDialog'
 import { AboutDialog, PageHideDialog } from '../src/renderer/next/InfoDialogs'
+import * as More from '../src/renderer/next/MoreDialogs'
 
 const env = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 env.IS_REACT_ACT_ENVIRONMENT = true
@@ -85,6 +86,22 @@ const SURFACES: Array<[string, () => ReactElement]> = [
   ['find', () => createElement(FindDialog, { view: editor(), replace: false, onClose: noop, onApplied: noop })],
   ['replace', () => createElement(FindDialog, { view: editor(), replace: true, onClose: noop, onApplied: noop })],
   ['page setup', () => createElement(PageSetupDialog, { view: editor(), onClose: noop, onApplied: noop })],
+  ...(
+    [
+      ['insert rows/cols', More.InsertRowsColsDialog, true],
+      ['delete rows/cols', More.DeleteRowsColsDialog, true],
+      ['columns', More.ColumnSettingsDialog, false],
+      ['section', More.SectionSettingsDialog, false],
+      ['page border', More.PageBorderDialog, false],
+      ['endnote shape', More.EndnoteShapeDialog, false],
+      ['hf template', More.HeaderFooterTemplateDialog, false],
+      ['numbering shape', More.NumberingShapeDialog, false],
+      ['bullet shape', More.BulletShapeDialog, false],
+      ['symbols', More.SymbolsDialog, false],
+      ['field edit', More.FieldEditDialog, false],
+    ] as Array<[string, (p: { view: EditorView; onClose: () => void; onApplied: () => void }) => ReactElement, boolean]>
+  ).map(([name, C, table]) => [name, () => createElement(C, { view: editor(table ? (s, bus) => bus.run('table:create', { rows: 2, cols: 2 }) : undefined), onClose: noop, onApplied: noop })] as [string, () => ReactElement]),
+  ['grid', () => createElement(More.GridSettingsDialog, { size: 20, onSize: noop, onClose: noop })],
   ['about', () => createElement(AboutDialog, { engine: 'rhwp 0.8.7', onClose: noop })],
   ['page hide', () => createElement(PageHideDialog, { view: editor(), onClose: noop, onApplied: noop })],
   ['table borders tab', () => createElement(TableCellDialog, { view: editor((s, bus) => bus.run('table:create', { rows: 2, cols: 2 })), initialTab: 'border', onClose: noop, onApplied: noop })],
@@ -210,7 +227,8 @@ describe('string tables (task 2.5)', () => {
   it('Korean strings are authored, not copies of the English', () => {
     // The product name and the Hancom attribution are the same in both by design.
     const same = Object.keys(en).filter((k) => ko[k] === en[k] && /[A-Za-z]{3}/.test(en[k]!))
-    expect(same.filter((k) => !['panelTitle', 'nextAttribution'].includes(k))).toEqual([])
+    // Number-format samples (I, II, III; A, B, C) read the same in every language.
+    expect(same.filter((k) => !['panelTitle', 'nextAttribution'].includes(k) && !/^next(Fmt|Num)/.test(k))).toEqual([])
   })
 })
 

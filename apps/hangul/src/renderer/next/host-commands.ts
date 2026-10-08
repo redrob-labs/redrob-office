@@ -24,6 +24,18 @@ export type HostDialog =
   | 'chart'
   | 'about'
   | 'page-hide'
+  | 'insert-rows-cols'
+  | 'delete-rows-cols'
+  | 'columns'
+  | 'section'
+  | 'page-border'
+  | 'endnote-shape'
+  | 'hf-template'
+  | 'numbering-shape'
+  | 'bullet-shape'
+  | 'symbols'
+  | 'field-edit'
+  | 'grid'
   | InsertKind
 
 export interface HostDeps {
@@ -41,6 +53,8 @@ export interface HostDeps {
   objectKind(): 'picture' | 'shape' | 'chart' | null
   /** Whether the caret is in a table. */
   inTable(): boolean
+  /** Whether the caret is in a click-here field. */
+  inField(): boolean
 }
 
 type Handler = (d: HostDeps, params?: unknown) => boolean
@@ -99,6 +113,18 @@ export const HOST_COMMANDS: Record<string, Handler> = {
   'table:border-each': (d) => (d.inTable() ? (d.openDialog('table-borders'), true) : false),
   'table:border-one': (d) => (d.inTable() ? (d.openDialog('table-borders'), true) : false),
   'table:formula': (d) => (d.inTable() ? (d.openDialog('table:formula'), true) : false),
+  'table:insert-row-col': (d) => (d.inTable() ? (d.openDialog('insert-rows-cols'), true) : false),
+  'table:delete-row-col': (d) => (d.inTable() ? (d.openDialog('delete-rows-cols'), true) : false),
+  'page:col-settings': dialog('columns'),
+  'page:section-settings': dialog('section'),
+  'page:page-border': dialog('page-border'),
+  'page:apply-hf-template': dialog('hf-template'),
+  'insert:endnote-shape': dialog('endnote-shape'),
+  'insert:symbols': dialog('symbols'),
+  'format:para-num-shape': dialog('numbering-shape'),
+  'format:bullet-shape': dialog('bullet-shape'),
+  'field:edit': (d) => (d.inField() ? (d.openDialog('field-edit'), true) : false),
+  'view:grid-settings': dialog('grid'),
   // View
   'view:zoom-dialog': dialog('view:zoom-set'),
   'view:toolbox-basic': (d) => (d.setToolbar('simple'), true),
@@ -124,27 +150,17 @@ export const NOT_YET: Record<string, string> = {
   'file:export-html': 'needs an HTML export',
   'file:export-doc': 'needs a .doc export',
   'edit:compare-documents': 'needs a document diff view',
-  'field:edit': 'needs an engine call to rewrite a click-here guide',
-  'format:para-num-shape': 'needs the numbering shape dialog',
-  'format:bullet-shape': 'needs the bullet picker',
   'insert:note-close': 'the editor has no note editing mode yet',
-  'insert:endnote-shape': 'needs the note shape dialog',
-  'insert:symbols': 'needs the symbol picker',
   'insert:equation-edit': 'equations are not selectable objects yet',
   'insert:group-shapes': 'needs selecting several objects',
-  'page:page-border': 'needs the page border dialog',
   'page:headerfooter-close': 'the editor has no header and footer editing mode yet',
   'page:headerfooter-prev': 'the editor has no header and footer editing mode yet',
   'page:headerfooter-next': 'the editor has no header and footer editing mode yet',
   'page:insert-field-filename': 'a file name field exists only inside headers and footers',
-  'page:apply-hf-template': 'needs header and footer templates',
-  'page:col-settings': 'needs the column settings dialog',
-  'page:section-settings': 'needs the section settings dialog',
-  'table:insert-row-col': 'needs the insert rows and columns dialog',
-  'table:delete-row-col': 'needs the delete rows and columns dialog',
   'tool:options': 'settings live in the shell',
+  'page:col-left': 'columns of different widths lose their widths in an HWP 5.0 save (engine)',
+  'page:col-right': 'columns of different widths lose their widths in an HWP 5.0 save (engine)',
   'view:form-mode': 'needs form mode',
-  'view:grid-settings': 'needs the grid settings dialog',
 }
 
 /**
