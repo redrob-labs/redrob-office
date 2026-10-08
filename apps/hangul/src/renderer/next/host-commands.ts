@@ -36,6 +36,7 @@ export type HostDialog =
   | 'symbols'
   | 'field-edit'
   | 'grid'
+  | 'recent'
   | InsertKind
 
 export interface HostDeps {
@@ -57,6 +58,8 @@ export interface HostDeps {
   inField(): boolean
   /** Print, or save as PDF, the engine's pages; export the document as HTML. */
   output(kind: 'print' | 'pdf' | 'html'): void
+  /** 새 문서, 불러오기, 최근 목록 지우기: the shell opens files and keeps the recent list. */
+  files(kind: 'new' | 'open' | 'clear-recent'): void
 }
 
 type Handler = (d: HostDeps, params?: unknown) => boolean
@@ -64,7 +67,11 @@ type Handler = (d: HostDeps, params?: unknown) => boolean
 const dialog = (k: HostDialog): Handler => (d) => (d.openDialog(k), true)
 
 export const HOST_COMMANDS: Record<string, Handler> = {
-  // Files. Opening and new documents belong to the shell's Home, not to an editor tab.
+  // Files. The shell opens files (in their own tab) and keeps the recent list; these ask it.
+  'file:new-doc': (d) => (d.files('new'), true),
+  'file:open': (d) => (d.files('open'), true),
+  'file:open-recent': dialog('recent'),
+  'file:clear-recent': (d) => (d.files('clear-recent'), true),
   'file:save': (d) => (d.save('save'), true),
   'file:save-as': (d) => (d.save('saveAs'), true),
   'file:save-as-hwp': (d) => (d.save('saveAs', 'hwp'), true),
@@ -147,10 +154,6 @@ export const HOST_COMMANDS: Record<string, Handler> = {
  * so this list only shrinks.
  */
 export const NOT_YET: Record<string, string> = {
-  'file:new-doc': 'opened from Home in the shell',
-  'file:open': 'opened from Home in the shell',
-  'file:open-recent': 'recent files are listed on Home in the shell',
-  'file:clear-recent': 'recent files are listed on Home in the shell',
   'file:export-doc': 'needs a .doc export',
   'edit:compare-documents': 'needs a document diff view',
   'tool:options': 'settings live in the shell',

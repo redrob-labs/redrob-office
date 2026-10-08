@@ -288,6 +288,32 @@ export function setHangulDocSavedHook(hook: (path: string, bytes: Uint8Array) =>
   docSavedHook = hook
 }
 
+/**
+ * What the shell does for 새 문서, 불러오기 and 최근 문서: it owns tabs and the
+ * recent list, so the editor asks it rather than opening files itself.
+ */
+export interface HangulShellHooks {
+  newDocument(): void
+  openViaDialog(): Promise<void>
+  recentFiles(): string[]
+  openPath(path: string): boolean
+  removeRecent(paths: string[]): void
+}
+
+let shellHooks: HangulShellHooks | null = null
+
+export function setHangulShellHooks(hooks: HangulShellHooks): void {
+  shellHooks = hooks
+}
+
+const HANGUL_FILE = /\.(hwp|hwpx)$/i
+const MAX_RECENT = 20
+
+/** Hangul files in the shell's recent list, newest first. */
+export function hangulRecentFiles(all: readonly string[]): string[] {
+  return all.filter((p) => HANGUL_FILE.test(p)).slice(0, MAX_RECENT)
+}
+
 export function setHangulFileSavedHook(hook: (wc: WebContents, path: string) => void): void {
   fileSavedHook = hook
 }
@@ -523,6 +549,18 @@ function registerHangulIpc(): void {
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : String(err) }
     }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.newDocument, () => shellHooks?.newDocument())
+  ipcMain.handle(HANGUL_CHANNELS.openDialog, () => shellHooks?.openViaDialog())
+  ipcMain.handle(HANGUL_CHANNELS.recentFiles, () => (shellHooks ? hangulRecentFiles(shellHooks.recentFiles()) : []))
+  // Only a path that is in the recent list opens, so the renderer cannot name an arbitrary file.
+  ipcMain.handle(HANGUL_CHANNELS.openRecent, (_e, path: unknown) => {
+    if (!shellHooks || typeof path !== 'string' || !hangulRecentFiles(shellHooks.recentFiles()).includes(path)) return false
+    return shellHooks.openPath(path)
+  })
+  ipcMain.handle(HANGUL_CHANNELS.clearRecent, () => {
+    if (shellHooks) shellHooks.removeRecent(shellHooks.recentFiles().filter((p) => HANGUL_FILE.test(p)))
   })
 
   const fontSource = hancomFontSource(() => hancomFontRoots(process.platform, process.env))
