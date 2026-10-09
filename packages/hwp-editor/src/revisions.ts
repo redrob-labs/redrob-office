@@ -13,8 +13,13 @@
 //     the caret over it); inside your own insertion they really delete;
 //   - a selection replaced by typing is marked deleted;
 //   - adjacent deletions by the same person merge into one.
-// Enter still splits the paragraph untracked; 한글 tracks paragraph marks in a
-// way that needs files 한글 2024 writes to learn (P-1).
+// Everything else (formatting, Enter, tables, objects…) is applied untracked:
+// 한글's own fields for tracked formatting and paragraph breaks (trackChange
+// types CharShape and ParaShape, charTcId, paraTcId, paraend) are in Hancom's
+// model but their meaning is not documented, and no surveyed file uses them,
+// so writing them waits for files 한글 2024 writes (P-1). Until then `record`
+// reports each untracked edit, so the host can say so instead of letting it
+// pass silently.
 import type { ParagraphTarget, Revision } from '@genoffice/hwp-core'
 import type { Command, CommandBus } from './commands'
 import { posOfTarget, targetOf } from './comments'
@@ -191,21 +196,33 @@ export class Revisions {
    * Record edits as tracked changes by `author` until the returned function is
    * called. Covers typing, Backspace, Delete, and typing over a selection.
    */
-  record(bus: CommandBus, author: string): () => void {
+  record(bus: CommandBus, author: string, onUntracked?: (change: Change) => void): () => void {
     const s = this.session
-    return bus.addIntercept((id, params, origin) => {
+    const offChange = onUntracked
+      ? s.onChange((c) => {
+          if ((c.origin === 'user' || c.origin === 'ai') && !TRACKED.test(c.command)) onUntracked(c)
+        })
+      : () => {}
+    const offIntercept = bus.addIntercept((id, params, origin) => {
       if (origin !== 'user' && origin !== 'ai') return undefined
       if (id === 'edit:insert-text') {
         const text = String((params as { text?: string } | undefined)?.text ?? '')
         if (!text) return null
-        return s.edit('edit:insert-text', () => {
+        // Bold (or any format) held at a bare caret goes onto the typed text, as outside suggesting;
+        // the text is tracked, its formatting is not, so that is reported.
+        const held = s.pendingChar && collapsed(s.selection) && Object.keys(s.pendingChar.props).length ? s.pendingChar.props : null
+        const change = s.edit('edit:insert-text', () => {
           let p = collapsed(s.selection) ? s.selection.head : this.deleteSelectionTracked(s.selection, author)
+          const start = p
           text.replace(/\r\n?/g, '\n').split('\n').forEach((part, i) => {
             if (i > 0) p = s.text.split(p)
             p = this.insertTracked(p, part, author)
           })
+          if (held) s.text.applyCharFormat(start, p, held)
           return { anchor: p, head: p }
         }, origin)
+        if (held || text.includes('\n')) onUntracked?.(change)
+        return change
       }
       if (id === 'edit:delete-backward' || id === 'edit:delete-forward') {
         if (!collapsed(s.selection)) {
@@ -243,8 +260,15 @@ export class Revisions {
       }
       return undefined
     })
+    return () => {
+      offIntercept()
+      offChange()
+    }
   }
 }
+
+/** Edits recording turns into tracked changes, and the review commands that resolve them. */
+const TRACKED = /^(edit:insert-text|edit:delete|edit:delete-backward|edit:delete-forward|review:revision-)/
 
 /** Ordered position of a revision's start, for next/previous. */
 function startKey(r: Revision): number[] {

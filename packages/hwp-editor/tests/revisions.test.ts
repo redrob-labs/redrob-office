@@ -54,6 +54,52 @@ describe('review', () => {
   })
 })
 
+describe('recording: edits that cannot be tracked yet', () => {
+  it('reports formatting and Enter, not typing, deleting, review or undo, and stops when recording stops', () => {
+    const { s, bus, r } = blank('제1조 권리')
+    const untracked: string[] = []
+    const stop = r.record(bus, '홍길동', (c) => untracked.push(c.command))
+    s.select({ anchor: P(0, 4), head: P(0, 4) })
+    bus.run('edit:insert-text', { text: '국민의 ' })
+    bus.run('edit:delete-backward')
+    expect(untracked).toEqual([])
+    s.select({ anchor: P(0, 0), head: P(0, 3) })
+    bus.run('format:bold')
+    s.select({ anchor: P(0, 2), head: P(0, 2) })
+    bus.run('edit:split-paragraph')
+    expect(untracked).toEqual(['format:bold', 'edit:split-paragraph'])
+    s.undo()
+    r.acceptAll()
+    expect(untracked).toHaveLength(2)
+    // The AI's edits count too; a collaborator's do not (theirs are reported in their own editor).
+    s.select({ anchor: P(0, 0), head: P(0, 1) })
+    bus.run('format:italic', undefined, 'ai')
+    bus.run('format:underline', undefined, 'remote')
+    expect(untracked).toEqual(['format:bold', 'edit:split-paragraph', 'format:italic'])
+    stop()
+    bus.run('format:bold')
+    expect(untracked).toHaveLength(3)
+  })
+
+  it('Bold at a bare caret applies to tracked typing, and the formatting is reported', () => {
+    const { s, bus, r } = blank('제1조 권리')
+    const untracked: string[] = []
+    r.record(bus, '홍길동', (c) => untracked.push(c.command))
+    s.select({ anchor: P(0, 6), head: P(0, 6) })
+    bus.run('format:bold')
+    expect(untracked).toEqual([])
+    bus.run('edit:insert-text', { text: '와 의무' })
+    expect(s.doc.text(0, 0)).toBe('제1조 권리와 의무')
+    expect(r.list()).toMatchObject([{ kind: 'insert', text: '와 의무' }])
+    expect(s.text.charPropertiesAt(P(0, 8)).bold).toBe(true)
+    expect(s.text.charPropertiesAt(P(0, 4)).bold).not.toBe(true)
+    expect(untracked).toEqual(['edit:insert-text'])
+    // Plain typing after that is not reported again.
+    bus.run('edit:insert-text', { text: '.' })
+    expect(untracked).toHaveLength(1)
+  })
+})
+
 describe('recording (suggesting)', () => {
   it('records typing as one insertion that grows as you type, and survives a save', () => {
     const { s, bus, r } = blank('제1조 권리')

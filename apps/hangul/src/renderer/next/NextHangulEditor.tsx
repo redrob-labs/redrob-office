@@ -109,6 +109,8 @@ export function NextHangulEditor(): React.JSX.Element {
     }
   }, [panelOpen])
   const [mode, setMode] = useState<'editing' | 'suggesting' | 'viewing'>('editing')
+  /** Suggesting applied an edit it cannot track (formatting, Enter…); said once per suggesting session. */
+  const [untracked, setUntracked] = useState(false)
   const modeRef = useRef(mode)
   modeRef.current = mode
   const revisionsRef = useRef<Revisions | null>(null)
@@ -336,6 +338,9 @@ export function NextHangulEditor(): React.JSX.Element {
     }
   }, [phase.kind, doSave, docGen])
 
+  // A new suggesting session starts without the notice; saving or reopening the view does not reset it.
+  useEffect(() => setUntracked(false), [mode])
+
   useEffect(() => {
     const view = viewRef.current
     if (!view) return
@@ -344,7 +349,7 @@ export function NextHangulEditor(): React.JSX.Element {
     // Suggesting records typing and deleting as tracked changes, signed with this computer's user.
     stopRecordingRef.current?.()
     stopRecordingRef.current = null
-    if (mode === 'suggesting' && revisionsRef.current) stopRecordingRef.current = revisionsRef.current.record(view.bus, authorRef.current)
+    if (mode === 'suggesting' && revisionsRef.current) stopRecordingRef.current = revisionsRef.current.record(view.bus, authorRef.current, () => setUntracked(true))
     refresh()
   }, [mode, phase.kind, docGen])
 
@@ -599,7 +604,11 @@ export function NextHangulEditor(): React.JSX.Element {
         onToolbarChange={frame.setToolbar}
         toolbarStrings={frameText.toolbar}
         banner={
-          opened.trackedChanges === true ? (
+          untracked && mode === 'suggesting' ? (
+            <Alert tone="warning" title={t('nextUntrackedTitle')} className="hangul-tracked-banner">
+              {t('nextUntrackedBody')}
+            </Alert>
+          ) : opened.trackedChanges === true ? (
             <Alert tone="info" title={t('nextTrackedTitle')} className="hangul-tracked-banner">
               {t('nextTrackedBody')}
             </Alert>
