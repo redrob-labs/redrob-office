@@ -115,6 +115,17 @@ touching product behavior.
 
 ## Unreleased
 
+### Korean interface
+
+- **Korean can be chosen in Settings**, and a Korean system opens in Korean.
+  Every string table in the suite now has every English key in Korean,
+  including the shared editor frame, the Redrob panel, version history,
+  catch-up and Share, which had no translation.
+- **Korean chrome draws on every OS.** The Korean UI font stack ends with the
+  kit's Hangul face, so Linux (no Malgun Gothic) no longer shows boxes, for
+  example in the Slides notes placeholder.
+- **Settings rows keep their height** when a description wraps.
+
 ### Naming and cloud-account honesty
 
 - The suite product name is **Redrob Office** (not bare "Redrob"): window title,
