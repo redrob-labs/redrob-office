@@ -101,6 +101,10 @@ export class EditorView {
     d.addEventListener('mouseup', (e) => this.onMouseUp(e))
 
     this.registerViewCommands()
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.followWidth())
+      this.resizeObserver.observe(this.root)
+    }
     this.unsubscribe = session.onChange((c) => this.onChange(c))
     this.unsubscribeSettle = session.onSettle(() => this.onSettled())
     this.render()
@@ -263,17 +267,55 @@ export class EditorView {
         },
       })
     }
-    zoom('view:zoom-fit-width', () => {
-      const page = this.pages.pages[0]
-      const width = this.root.clientWidth - 48
-      return page && width > 0 ? width / page.info.width : 1
-    })
-    zoom('view:zoom-fit-page', () => {
-      const page = this.pages.pages[0]
-      const w = this.root.clientWidth - 48
-      const h = this.root.clientHeight - 32
-      return page && w > 0 && h > 0 ? Math.min(w / page.info.width, h / page.info.height) : 1
-    })
+    zoom('view:zoom-fit-width', () => this.fitZoom('width') ?? this.pages.zoom)
+    zoom('view:zoom-fit-page', () => this.fitZoom('page') ?? this.pages.zoom)
+  }
+
+  /** The last fit applied: while the zoom still equals it, the view follows the window in that mode. */
+  private fitted: { mode: 'width' | 'page'; value: number; cap?: number } | null = null
+  private resizeObserver: ResizeObserver | null = null
+
+  /** The zoom that fits the first page's width (or the whole page) in the view, or null before layout. */
+  private fitZoom(mode: 'width' | 'page'): number | null {
+    const page = this.pages.pages[0]
+    const w = this.root.clientWidth - 48
+    const h = this.root.clientHeight - 32
+    if (!page || w <= 0 || (mode === 'page' && h <= 0)) return null
+    const z = mode === 'width' ? w / page.info.width : Math.min(w / page.info.width, h / page.info.height)
+    this.fitted = { mode, value: z }
+    return z
+  }
+
+  /**
+   * As in Docs: a view in a fit mode follows the window; otherwise, when the
+   * page no longer fits (a narrower window, the Redrob panel opening), it
+   * shrinks to page width, so there is no sideways scrolling. A zoom the person
+   * chose that still fits is kept.
+   */
+  private followWidth(): void {
+    const page = this.pages.pages[0]
+    const w = this.root.clientWidth - 48
+    if (!page || w <= 0) return
+    const z = this.pages.zoom
+    const f = this.fitted
+    let next: number | null = null
+    // An automatic shrink remembers the zoom the person had, and never grows past it.
+    let cap: number | undefined = f?.cap
+    if (f && Math.abs(z - f.value) < 0.005) next = this.fitZoom(f.mode)
+    else if (z > w / page.info.width + 0.005) {
+      cap = z
+      next = this.fitZoom('width')
+    }
+    if (next === null) return
+    if (cap !== undefined) next = Math.min(next, cap)
+    if (Math.abs(next - z) < 0.005) {
+      if (this.fitted) this.fitted = { ...this.fitted, value: z, ...(cap !== undefined ? { cap } : {}) }
+      return
+    }
+    this.pages.setZoom(Math.max(0.5, next))
+    this.fitted = this.fitted && { ...this.fitted, value: this.pages.zoom, ...(cap !== undefined ? { cap } : {}) }
+    this.overlay.redrawDecorations()
+    this.render()
   }
 
   // ── Keyboard and IME ──────────────────────────────────────────────────
@@ -338,7 +380,7 @@ export class EditorView {
   onCompositionUpdate(data: string): void {
     const s = this.session
     const at = s.text.cursorRect(collapsed(s.selection) ? s.selection.head : ordered(s.selection)[0])
-    const props = s.text.charPropertiesAt(s.selection.head)
+    const props = s.charProps(s.selection.head)
     const sizePx = typeof props.fontSize === 'number' ? (props.fontSize / 100) * (96 / 72) : at.height * 0.8
     this.overlay.setPreedit(data, at, { family: String(props.fontFamily ?? ''), sizePx })
   }
@@ -641,6 +683,7 @@ export class EditorView {
   }
 
   dispose(): void {
+    this.resizeObserver?.disconnect()
     if (this.settleTimer) clearTimeout(this.settleTimer)
     this.unsubscribe()
     this.unsubscribeSettle()

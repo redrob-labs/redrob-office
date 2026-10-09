@@ -215,7 +215,7 @@ function CharacterPickers(props: RibbonProps): React.JSX.Element {
   const { run } = useCommands(props)
   const s = view?.session
   const head = s?.selection.head
-  const props0 = s && head ? s.text.charPropertiesAt(head) : null
+  const props0 = s && head ? s.charProps(head) : null
   const family = String(props0?.fontFamily ?? HANGUL_FONTS[0])
   const size = props0 ? Math.round(Number(props0.fontSize) / 10) / 10 : 10
   const fonts = HANGUL_FONTS.includes(family) ? HANGUL_FONTS : [family, ...HANGUL_FONTS]
