@@ -26,6 +26,11 @@ export interface WindowApi {
    * and per language in the main process.
    */
   showAppMenu(x: number, y: number): Promise<void>
+  /**
+   * focus the active editor's own tool search (EditorFrame's CommandSearch),
+   * as its Alt+Q shortcut does. Does nothing on Home.
+   */
+  focusSearch(): Promise<void>
 }
 
 export const WINDOW_CHANNELS = {
@@ -35,4 +40,5 @@ export const WINDOW_CHANNELS = {
   state: 'window:state',
   stateChanged: 'window:state-changed',
   showAppMenu: 'window:show-app-menu',
+  focusSearch: 'window:focus-search',
 } as const

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { DocTabs, Icon, IconButton, WindowControls } from '@genoffice/ui'
+import { DocTabs, Icon, IconButton, WindowControls, frameCopy } from '@genoffice/ui'
 import type { TabsApi, TabSummary } from '../../shared/tabs-api'
 import type { WindowApi } from '../../shared/window-api'
-import productIcon from './assets/redrob-office-icon.svg'
+import productIcon from './assets/redrob-office-icon-small.svg'
 import { useI18n } from './locale'
 
 declare global {
@@ -118,7 +118,7 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
  * WebContentsViews that would cover any DOM popover the shell drew.
  */
 export function TabBar() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [tabs, setTabs] = useState<TabSummary[]>([])
 
   useEffect(() => {
@@ -134,6 +134,8 @@ export function TabBar() {
     return () => document.removeEventListener('pointerdown', notify, true)
   }, [])
 
+  const search = frameCopy(lang).search
+  const editorActive = tabs.some((tab) => tab.active && tab.kind !== 'home')
   const platform = window.aiOfficeWindow.platform
   const [maximized, setMaximized] = useState(false)
   useEffect(() => {
@@ -184,14 +186,17 @@ export function TabBar() {
         ) : (
           // Windows and Linux have no menu bar: the product icon opens the
           // active tab's File/Edit/View menus, natively (see showAppMenu)
-          <IconButton
+          <button
+            type="button"
             className="tab-app-menu-btn"
-            label={t('appMenu')}
-            size="sm"
+            aria-label={t('appMenu')}
+            title={t('appMenu')}
+            aria-haspopup="menu"
             onClick={(event) => void window.aiOfficeWindow.showAppMenu(...anchorOf(event.currentTarget))}
           >
-            <img src={productIcon} alt="" width={18} height={18} aria-hidden="true" />
-          </IconButton>
+            <img src={productIcon} alt="" width={20} height={20} aria-hidden="true" />
+            <Icon name="chevronDown" size={12} />
+          </button>
         )
       }
       trailing={
@@ -208,6 +213,14 @@ export function TabBar() {
       }
       end={
         <>
+          {/* The editor in front owns the search (EditorFrame, Alt+Q); this box hands focus to it. */}
+          {platform !== 'darwin' && editorActive ? (
+            <button type="button" className="tab-search-btn" onClick={() => void window.aiOfficeWindow.focusSearch()}>
+              <Icon name="search" size={14} />
+              <span className="tab-search-btn__label">{search.placeholder}</span>
+              <kbd className="tab-search-btn__kbd">{search.shortcut}</kbd>
+            </button>
+          ) : null}
           <IconButton
             className="tab-overflow-btn"
             label={t('tabList')}

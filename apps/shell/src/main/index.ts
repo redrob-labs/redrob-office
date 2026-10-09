@@ -3579,6 +3579,18 @@ function registerWindowIpc(): void {
       ...(typeof x === 'number' && typeof y === 'number' ? { x: Math.round(x), y: Math.round(y) } : {}),
     })
   })
+  // The strip's search box: hand the key press EditorFrame already answers
+  // (Alt+Q, focus the tool search) to the editor in front, so there is one
+  // search per editor and no second one in the shell.
+  ipcMain.handle(WINDOW_CHANNELS.focusSearch, () => {
+    const active = tabManager?.list().find((tab) => tab.active)
+    if (!active || active.kind === 'home') return
+    const wc = tabManager?.webContentsOf(active.id)
+    if (!wc || wc.isDestroyed()) return
+    wc.focus()
+    wc.sendInputEvent({ type: 'keyDown', keyCode: 'Q', modifiers: ['alt'] })
+    wc.sendInputEvent({ type: 'keyUp', keyCode: 'Q', modifiers: ['alt'] })
+  })
   // the OS theme changing while the app follows "system"
   nativeTheme.on('updated', syncWindowsCaptionOverlay)
 }

@@ -418,6 +418,7 @@ const windowApi: WindowApi = {
     return () => ipcRenderer.removeListener(WINDOW_CHANNELS.stateChanged, listener)
   },
   showAppMenu: (x, y) => ipcRenderer.invoke(WINDOW_CHANNELS.showAppMenu, x, y),
+  focusSearch: () => ipcRenderer.invoke(WINDOW_CHANNELS.focusSearch),
 }
 
 contextBridge.exposeInMainWorld('aiOfficeWindow', windowApi)

@@ -23,12 +23,67 @@ html.genoffice-popover-open .tab-bar {
   margin: 0 var(--space-2) 0 var(--space-1);
 }
 
-/* Windows and Linux: the product icon that opens the application menu,
- * centred in the strip's 40px band like the traffic lights on macOS */
+/* Windows and Linux: the product icon that opens the application menu, with a
+ * chevron so it reads as a menu, centred in the strip's 40px band */
 .tab-app-menu-btn {
   align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
   margin-left: var(--space-2);
+  padding: 0 var(--space-1) 0 6px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-secondary);
+  cursor: pointer;
   -webkit-app-region: no-drag;
+}
+.tab-app-menu-btn:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+.tab-app-menu-btn:focus-visible,
+.tab-search-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* Windows and Linux, with an editor in front: a search box that focuses that
+ * editor's own tool search */
+.tab-search-btn {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 240px;
+  height: 28px;
+  margin-right: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+  color: var(--ink-muted);
+  font: var(--text-body-sm);
+  text-align: left;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.tab-search-btn:hover {
+  border-color: var(--border-strong);
+}
+.tab-search-btn__label {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tab-search-btn__kbd {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  font: var(--text-caption);
 }
 
 /* Windows: the three caption buttons Windows draws over the strip, 46px each */
