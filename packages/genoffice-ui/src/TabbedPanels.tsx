@@ -50,12 +50,13 @@ export function TabbedPanels<T extends string>({
       <Tabs
         label={label}
         variant={variant}
-        className={className}
+        {...(className !== undefined ? { className } : {})}
         value={full(value)}
         items={items.map((it) => ({
           id: full(it.id),
           label: it.label,
-          disabled: it.disabled,
+          // under exactOptionalPropertyTypes (Sheets) an absent flag must stay absent, not undefined
+          ...(it.disabled !== undefined ? { disabled: it.disabled } : {}),
         }))}
         onChange={(id) => {
           const next = byFull.get(id);

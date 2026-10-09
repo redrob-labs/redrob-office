@@ -6,6 +6,9 @@ out/
 .DS_Store
 Thumbs.db
 coverage/
+# The Hangul command coverage list is source, not a test-coverage report: the
+# hwp-editor and hangul tests read it.
+!.kiro/specs/hangul-editor/coverage/
 *.tsbuildinfo
 .env
 .env.*
@@ -30,6 +33,8 @@ bench-results/
 # Model weights. Downloaded to the user's app data at runtime, never committed.
 *.gguf
 *.bin
+# the rhwp engine embeds these with include_bytes!, so they are source
+!engines/rhwp/src/parser/hwpx/blank2010_assets/*.bin
 *.onnx
 
 # Runtime binaries. llama.cpp backends are fetched per host at onboarding.

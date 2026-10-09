@@ -34,7 +34,7 @@ import { catchUpItems, type CatchUpItem } from '@genoffice/versions'
 import { collectRevisions as catchUpRevisions } from './versions/revisions'
 import '@genoffice/ui/collab/versions.css'
 import type { ShareApi } from '@genoffice/sync-client'
-import { CatchUp, SHARE_STRINGS, ShareDialog, VersionHistory, verT } from '@genoffice/ui'
+import { CatchUp, ShareDialog, VersionHistory, shareText, verT } from '@genoffice/ui'
 import '@genoffice/ui/collab/share.css'
 import { LIVE_STRINGS, useLive } from './live/useLive'
 import { useLiveText } from './live/useLiveText'
@@ -4706,7 +4706,7 @@ export function App() {
         share={
           hasDoc && shareApi ? (
             <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>
-              {SHARE_STRINGS.button}
+              {shareText('button')}
             </Button>
           ) : undefined
         }

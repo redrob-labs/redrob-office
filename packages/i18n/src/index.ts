@@ -46,12 +46,13 @@ export function isLang(value: unknown): value is Lang {
 }
 
 /**
- * Languages a person can choose today. English is the master key set and the
- * only complete one; every other table stays in the repo, listed as "Not yet"
- * in the language pickers, until it is brought back up to the English keys.
- * Turning a language back on is adding it here.
+ * Languages a person can choose today. English is the master key set; a
+ * language is offered only once every string table has all of English's keys
+ * in it (tests/selectable-complete.test.ts checks this for every table in the
+ * suite). The rest stay in the repo, listed as "Not yet" in the language
+ * pickers. Turning a language on is adding it here, once that test passes.
  */
-export const SELECTABLE_LANGS: readonly Lang[] = ['en']
+export const SELECTABLE_LANGS: readonly Lang[] = ['en', 'ko']
 
 /** the language every missing string falls back to */
 export const MASTER_LANG = 'en' satisfies Lang
