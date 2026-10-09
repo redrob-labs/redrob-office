@@ -30,6 +30,8 @@ bench-results/
 # Model weights. Downloaded to the user's app data at runtime, never committed.
 *.gguf
 *.bin
+# the rhwp engine embeds these with include_bytes!, so they are source
+!engines/rhwp/src/parser/hwpx/blank2010_assets/*.bin
 *.onnx
 
 # Runtime binaries. llama.cpp backends are fetched per host at onboarding.
