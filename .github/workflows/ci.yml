@@ -136,8 +136,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Xvfb for a display, and a CJK system font: rhwp-studio's chrome (Hangul)
-      # relies on the OS for Korean glyphs and renders boxes without one.
+      # Xvfb for a display, and a CJK system font: the Hangul engine paints Korean
+      # text with the OS's fonts and renders boxes without one.
       - name: Xvfb and fonts
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb fonts-noto-cjk
 

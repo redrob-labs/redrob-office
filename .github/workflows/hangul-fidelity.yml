@@ -2,24 +2,21 @@ name: hangul fidelity
 
 # Fidelity harness for the Hangul core (tests/hangul-fidelity, spec R1-R3).
 #
-# - `fidelity (synthetic)` runs on every pull request that touches the core or
-#   the harness: the engine save round trip and an Electron render of the
-#   synthetic corpus. No Hancom needed.
+# - `fidelity (synthetic)` runs on every pull request: the engine save round
+#   trip and an Electron render of the synthetic corpus, compared against cached
+#   한글 2024 references where they exist. No Hancom needed. Since the cutover
+#   (spec task 6.3) it is a required check, so it runs on every pull request
+#   rather than only on ones that touch the core: a required check that does not
+#   report blocks the merge.
 # - `fidelity (한글 2024)` runs nightly and on demand on the self-hosted Windows
 #   runner labelled `hancom-2024`. It generates 한글 2024 references for the real
 #   Corpus (HANGUL_CORPUS_DIR on that machine, never in this repository),
 #   renders ours, compares and uploads the report.
 #
-# Neither job is a required check until the cutover (spec task 6.3).
+# `fidelity (한글 2024)` is not a required check.
 
 on:
   pull_request:
-    paths:
-      - engines/rhwp/**
-      - packages/hwp-core/**
-      - packages/hwp-editor/**
-      - tests/hangul-fidelity/**
-      - .github/workflows/hangul-fidelity.yml
   schedule:
     - cron: '0 18 * * *' # 03:00 KST
   workflow_dispatch:

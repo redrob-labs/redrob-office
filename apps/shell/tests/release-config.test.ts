@@ -99,8 +99,7 @@ describe('packaged product identity', () => {
 
 describe('every editor module ships (no white Hangul / missing-editor regression)', () => {
   // The shell main (apps/shell/src/main/index.ts) resolves each editor when
-  // packaged at resources/modules/<name> and the Hangul studio at
-  // resources/rhwp-studio. If any is not staged the tab opens white — this is
+  // packaged at resources/modules/<name>. If any is not staged the tab opens white — this is
   // the exact packaged-Hangul regression these tests exist to prevent.
   const EXPECTED_MODULES: Array<{ from: string; to: string }> = [
     { from: '../docs/out', to: 'modules/docs' },
@@ -121,27 +120,25 @@ describe('every editor module ships (no white Hangul / missing-editor regression
     }
   })
 
-  it('ships the offline rhwp-studio build the Hangul editor embeds', () => {
+  it('no longer ships rhwp-studio: the Hangul editor is the owned editor (task 6.3)', () => {
     const c = loadBuilderConfig()
     const top = c.extraResources as Array<{ from: string; to: string }>
-    const studio = top.find((r) => r.to === 'rhwp-studio')
-    expect(studio, 'missing extraResources entry for rhwp-studio').toBeDefined()
-    expect(studio!.from).toBe('../hangul/resources/rhwp-studio')
+    expect(top.find((r) => r.to === 'rhwp-studio' || r.from.includes('rhwp-studio'))).toBeUndefined()
   })
 
   it('the staged module layout matches what the shell main resolves when packaged', () => {
     // Keep the extraResources `to:` in lockstep with index.ts's
-    // resources/modules/<name> + resources/rhwp-studio resolution. If the
+    // resources/modules/<name> resolution. If the
     // shell main is retargeted these must move together.
     const index = readFileSync(resolve(SHELL_ROOT, 'src/main/index.ts'), 'utf8')
     for (const name of ['docs', 'sheets', 'slides', 'pdf', 'markdown', 'hangul']) {
       expect(index).toContain(`'modules', '${name}'`)
     }
-    expect(index).toContain("'rhwp-studio'")
+    expect(index).not.toContain('rhwp-studio')
   })
 
-  it('the beforePack preflight enumerates all six module trees + the rhwp-studio entry point', () => {
-    // A build must FAIL (not warn) when any editor tree or the studio is
+  it('the beforePack preflight enumerates all six module trees + the Hangul engine', () => {
+    // A build must FAIL (not warn) when any editor tree or the engine is
     // absent. electron-builder exits 0 on a missing extraResources source, so
     // assertModuleTreesPresent is the only real gate.
     const src = readFileSync(resolve(SHELL_ROOT, 'electron-builder.cjs'), 'utf8')
@@ -155,7 +152,8 @@ describe('every editor module ships (no white Hangul / missing-editor regression
     ]) {
       expect(src).toContain(rel)
     }
-    expect(src).toContain('../hangul/resources/rhwp-studio/index.html')
+    expect(src).toContain('../hangul/out/renderer/assets')
+    expect(src).toContain(".endsWith('.wasm')")
     // and the guard is invoked from beforePack, not merely defined
     const beforePack = src.slice(src.indexOf('beforePack:'))
     expect(beforePack).toContain('assertModuleTreesPresent()')

@@ -4,7 +4,6 @@ import { join } from 'node:path'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
 import { CommandBus } from '@genoffice/hwp-editor'
-import { resolveEditorKind } from '../src/main/editor-kind'
 import { HwpPasswordError, base64ToBytes, newDocument, openDocument, saveDocument, trackedChanges, type HostWriter } from '../src/renderer/next/document'
 
 beforeAll(() => initHwpCoreNode())
@@ -23,15 +22,6 @@ function host(result: Awaited<ReturnType<HostWriter['save']>> = { ok: true, path
   }
   return { h, writes }
 }
-
-describe('editor kind (R11.1)', () => {
-  it('is next only when asked, and never in a packaged build', () => {
-    expect(resolveEditorKind({}, false)).toBe('studio')
-    expect(resolveEditorKind({ REDROB_HANGUL_EDITOR: 'next' }, false)).toBe('next')
-    expect(resolveEditorKind({ REDROB_HANGUL_EDITOR: ' NEXT ' }, false)).toBe('next')
-    expect(resolveEditorKind({ REDROB_HANGUL_EDITOR: 'next' }, true)).toBe('studio')
-  })
-})
 
 describe('open and save', () => {
   it('opens HWPX, edits, saves in place and the bytes reopen with the edit', async () => {
