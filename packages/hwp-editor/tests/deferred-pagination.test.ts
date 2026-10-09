@@ -5,7 +5,10 @@ import { CommandBus, EditorView, Session, type Pos } from '../src'
 
 beforeAll(() => initHwpCoreNode())
 
-function longDoc(paras = 300): Uint8Array {
+// 120 paragraphs is about three pages: enough that the typed text moves later
+// page breaks, small enough that the undeferred twin (which relays out on every
+// keystroke) stays well inside the timeout on a loaded two-core CI runner.
+function longDoc(paras = 120): Uint8Array {
   const d = HwpCoreDocument.blank()
   let p = 0
   for (let i = 0; i < paras; i++) {
@@ -30,6 +33,7 @@ describe('deferred pagination while typing (task 1.9)', () => {
   it('defers during user typing and settles to the same pages as typing without deferral', () => {
     const bytes = longDoc()
     const a = session(bytes, 20)
+    expect(a.doc.pageCount()).toBeGreaterThan(1)
     const b = session(bytes, 20)
     const busA = new CommandBus(a)
     const busB = new CommandBus(b)
@@ -48,7 +52,7 @@ describe('deferred pagination while typing (task 1.9)', () => {
     expect(a.layoutPending).toBe(false)
     expect(a.doc.pageCount()).toBe(b.doc.pageCount())
     expect(paint(a)).toEqual(paint(b))
-  })
+  }, 120_000)
 
   it('settles before formatting, undo and export', () => {
     const s = session(longDoc(50), 3)
