@@ -18,6 +18,7 @@
     "check:licenses": "node tools/check-licenses.mjs",
     "check:ui-tokens": "node scripts/check-ui-tokens.mjs",
     "check:copy": "node scripts/check-copy.mjs",
+    "check:preload": "node scripts/check-preload-bundles.mjs",
     "upstream:report": "node scripts/upstream-sync.mjs report",
     "dist": "pnpm build && pnpm --filter @genoffice/shell dist:linux",
     "check:hwp-core": "node scripts/hwp-core-provenance.mjs --check"

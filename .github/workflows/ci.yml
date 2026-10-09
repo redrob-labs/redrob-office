@@ -75,6 +75,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # A sandboxed preload that requires a workspace package throws at load and
+      # the editor opens blank; nothing else in this job notices.
+      - name: Preload bundles
+        run: pnpm check:preload
+
       - name: Test
         run: pnpm test
 
@@ -206,6 +211,11 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # A sandboxed preload that requires a workspace package throws at load and
+      # the editor opens blank; nothing else in this job notices.
+      - name: Preload bundles
+        run: pnpm check:preload
 
       - name: Test
         run: pnpm test
