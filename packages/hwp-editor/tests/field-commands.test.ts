@@ -78,4 +78,89 @@ describe('누름틀 fields (task 2.4)', () => {
       expect(fieldAt(s, P(4))).toBeNull()
     }
   })
+
+  it('removing a filled field keeps what was typed as plain text, in one undo step', () => {
+    const { s, bus } = doc('성명: ')
+    s.select({ anchor: P(4), head: P(4) })
+    bus.run('insert:field', { guide: '이름', name: 'who' })
+    bus.run('field:edit-apply', { value: '홍길동' })
+    s.select({ anchor: P(5), head: P(5) })
+    bus.run('field:remove')
+    expect(s.doc.text(0, 0)).toBe('성명: 홍길동')
+    expect(fieldAt(s, P(5))).toBeNull()
+    bus.run('edit:undo')
+    expect(fieldAt(s, P(5))).toMatchObject({ name: 'who', value: '홍길동' })
+  })
+})
+
+describe('fields and links in table cells', () => {
+  /** A 2×2 table after the body text, with '성명: ' typed in the first cell; the caret ends there. */
+  function table(format: 'hwpx' | 'hwp' = 'hwpx') {
+    const d = doc('신청서', format)
+    d.s.select({ anchor: P(3), head: P(3) })
+    d.bus.run('table:create', { rows: 2, cols: 2 })
+    const h = d.s.selection.head
+    const cell = (c: number, offset: number): Pos => ({ section: 0, para: h.para, offset, cell: { control: h.cell!.control, cell: c, para: 0 } })
+    d.s.text.insert(cell(0, 0), '성명: ')
+    return { ...d, cell }
+  }
+  const cellText = (s: Session, c: Pos) => s.text.text({ ...c, offset: 0 })
+
+  it('inserts a 누름틀 in a cell, finds it, fills it and removes it, in both formats', () => {
+    for (const format of ['hwpx', 'hwp'] as const) {
+      const { s, bus, cell } = table(format)
+      s.select({ anchor: cell(0, 4), head: cell(0, 4) })
+      expect(bus.isEnabled('insert:field', { guide: '이름' })).toBe(true)
+      bus.run('insert:field', { guide: '이름', name: 'who' })
+      const f = fieldAt(s, cell(0, 4))
+      expect(f, format).toMatchObject({ name: 'who', guide: '이름', cell: { cell: 0, para: 0 } })
+      // Not reported for the same offset in the body or in another cell.
+      expect(fieldAt(s, P(3))).toBeNull()
+      expect(fieldAt(s, cell(1, 0))).toBeNull()
+
+      s.select({ anchor: cell(0, 4), head: cell(0, 4) })
+      bus.run('field:edit-apply', { value: '홍길동' })
+      expect(cellText(s, cell(0, 0)), format).toContain('홍길동')
+
+      const back = new Session(HwpCoreDocument.open(s.export(format)), format)
+      expect(fieldAt(back, cell(0, 5)), `${format} reopened`).toMatchObject({ name: 'who' })
+
+      s.select({ anchor: cell(0, 5), head: cell(0, 5) })
+      expect(bus.isEnabled('field:remove')).toBe(true)
+      bus.run('field:remove')
+      expect(fieldAt(s, cell(0, 5))).toBeNull()
+      expect(cellText(s, cell(0, 0)), 'typed text stays').toBe('성명: 홍길동')
+      bus.run('edit:undo')
+      expect(fieldAt(s, cell(0, 5)), 'undo brings the field back').toMatchObject({ name: 'who' })
+    }
+  })
+
+  it('links text in a cell, edits and removes the link, and keeps it through save', () => {
+    for (const format of ['hwpx', 'hwp'] as const) {
+      const { s, bus, cell } = table(format)
+      s.select({ anchor: cell(0, 0), head: cell(0, 2) })
+      expect(bus.isEnabled('insert:hyperlink', { uri: 'x' })).toBe(true)
+      bus.run('insert:hyperlink', { uri: 'redrob.ai' })
+      expect(hyperlinkAt(s, cell(0, 1)), format).toMatchObject({ start: 0, end: 2, text: '성명', uri: 'https://redrob.ai/' })
+      expect(hyperlinksIn(s, P(0)), 'not in the body').toEqual([])
+
+      const back = new Session(HwpCoreDocument.open(s.export(format)), format)
+      expect(hyperlinksIn(back, cell(0, 0)).map((l) => l.uri), `${format} reopened`).toEqual(['https://redrob.ai/'])
+
+      s.select({ anchor: cell(0, 1), head: cell(0, 1) })
+      bus.run('hyperlink:edit', { uri: 'https://example.com/' })
+      expect(hyperlinkAt(s, cell(0, 1))?.uri).toBe('https://example.com/')
+      bus.run('hyperlink:remove')
+      expect(hyperlinkAt(s, cell(0, 1))).toBeNull()
+      expect(cellText(s, cell(0, 0)).startsWith('성명: ')).toBe(true)
+    }
+  })
+
+  it('does not link across two cells or two paragraphs of a cell', () => {
+    const { s, bus, cell } = table()
+    s.select({ anchor: cell(0, 0), head: cell(1, 0) })
+    expect(bus.isEnabled('insert:hyperlink', { uri: 'x' })).toBe(false)
+    s.select({ anchor: cell(0, 0), head: { ...cell(0, 0), cell: { ...cell(0, 0).cell!, para: 1 } } })
+    expect(bus.isEnabled('insert:hyperlink', { uri: 'x' })).toBe(false)
+  })
 })

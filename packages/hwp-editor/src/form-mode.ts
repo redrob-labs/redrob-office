@@ -5,7 +5,8 @@
 //
 // The editor view asks `formAllows` before each command while form mode is on.
 import { ordered, type Session } from './session'
-import { inBody, type Pos } from './position'
+import { clickHereFields, sameParagraph } from './field-commands'
+import type { CellRef, Pos } from './position'
 
 export interface FormField {
   fieldId: number
@@ -15,33 +16,24 @@ export interface FormField {
   para: number
   start: number
   end: number
+  /** Set for a field in a table cell, where most 한글 forms keep them. */
+  cell?: CellRef
 }
 
 /** Commands that never change the document: moving, selecting, finding, the view. */
 const READING = /^(move:|view:|edit:select-all$|edit:find-next$|edit:find-prev$|edit:copy$)/
 
-/** The click-here fields in the body, in reading order. */
+/** The click-here fields in the body and in table cells, in reading order. */
 export function formFields(s: Session): FormField[] {
-  const list = JSON.parse(s.doc.raw.getFieldList()) as Array<{
-    fieldId: number
-    fieldType: string
-    name: string
-    guide: string
-    cellField: boolean
-    location: { sectionIndex: number; paraIndex: number }
-    startCharIdx: number
-    endCharIdx: number
-  }>
-  return list
-    .filter((f) => f.fieldType === 'clickhere' && !f.cellField)
-    .map((f) => ({ fieldId: f.fieldId, name: f.name, guide: f.guide, section: f.location.sectionIndex, para: f.location.paraIndex, start: f.startCharIdx, end: f.endCharIdx }))
-    .sort((a, b) => a.section - b.section || a.para - b.para || a.start - b.start)
+  return clickHereFields(s).map((f) => ({ fieldId: f.fieldId, name: f.name, guide: f.guide, section: f.at.section, para: f.at.para, start: f.start, end: f.end, ...(f.at.cell ? { cell: f.at.cell } : {}) }))
 }
+
+const fieldPos = (f: FormField, offset: number): Pos => ({ section: f.section, para: f.para, offset, ...(f.cell ? { cell: f.cell } : {}) })
 
 /** The field a position is in (its ends included). */
 export function formFieldAt(s: Session, p: Pos): FormField | null {
-  if (!inBody(p)) return null
-  return formFields(s).find((f) => f.section === p.section && f.para === p.para && p.offset >= f.start && p.offset <= f.end) ?? null
+  if (p.story) return null
+  return formFields(s).find((f) => sameParagraph(fieldPos(f, f.start), p) && p.offset >= f.start && p.offset <= f.end) ?? null
 }
 
 /**
@@ -53,7 +45,7 @@ export function formAllows(s: Session, id: string): boolean {
   if (id !== 'edit:insert-text' && id !== 'edit:delete-backward' && id !== 'edit:delete-forward') return false
   const [a, b] = ordered(s.selection)
   const f = formFieldAt(s, a)
-  if (!f || b.section !== a.section || b.para !== a.para || b.offset > f.end || (b.cell ?? null) !== (a.cell ?? null)) return false
+  if (!f || !sameParagraph(a, b) || b.offset > f.end) return false
   const empty = a.offset === b.offset
   if (empty && id === 'edit:delete-backward') return a.offset > f.start
   if (empty && id === 'edit:delete-forward') return a.offset < f.end
@@ -65,14 +57,18 @@ export function gotoFormField(s: Session, dir: 1 | -1): boolean {
   const fields = formFields(s)
   if (!fields.length) return false
   const h = s.selection.head
-  const key = (f: { section: number; para: number; start: number }) => [f.section, f.para, f.start] as const
-  const cmp = (x: readonly number[], y: readonly number[]) => x[0]! - y[0]! || x[1]! - y[1]! || x[2]! - y[2]!
   const here = formFieldAt(s, h)
-  const at = here ? key(here) : ([h.section, h.para, h.offset] as const)
+  // Reading order as formFields sorts: section, host paragraph, then cell, cell paragraph, offset.
+  const key = (p: Pos) => [p.section, p.para, p.cell ? p.cell.control : -1, p.cell ? p.cell.cell : -1, p.cell ? p.cell.para : -1, p.offset]
+  const cmp = (x: number[], y: number[]) => {
+    for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return x[i]! - y[i]!
+    return 0
+  }
+  const at = key(here ? fieldPos(here, here.start) : h)
   const next =
     dir === 1
-      ? (fields.find((f) => cmp(key(f), at) > 0) ?? fields[0]!)
-      : ([...fields].reverse().find((f) => cmp(key(f), at) < 0) ?? fields[fields.length - 1]!)
-  s.select({ anchor: { section: next.section, para: next.para, offset: next.start }, head: { section: next.section, para: next.para, offset: next.end } })
+      ? (fields.find((f) => cmp(key(fieldPos(f, f.start)), at) > 0) ?? fields[0]!)
+      : ([...fields].reverse().find((f) => cmp(key(fieldPos(f, f.start)), at) < 0) ?? fields[fields.length - 1]!)
+  s.select({ anchor: fieldPos(next, next.start), head: fieldPos(next, next.end) })
   return true
 }
