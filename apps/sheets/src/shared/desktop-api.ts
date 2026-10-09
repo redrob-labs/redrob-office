@@ -2389,6 +2389,8 @@ export const aiSettingsInputSchema = z
     // rejects nonsense (this object is .strict(), so an omitted key here would
     // make the whole settings save fail)
     maxOutputTokens: z.number().int().positive().optional(),
+    // set by the main process from the engine (never stored); a renderer may hand settings back with it
+    engineConnected: z.boolean().optional(),
   })
   .strict()
 
