@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { DocTabs, Icon, IconButton } from '@genoffice/ui'
+import { DocTabs, Icon, IconButton, WindowControls } from '@genoffice/ui'
 import type { TabsApi, TabSummary } from '../../shared/tabs-api'
+import type { WindowApi } from '../../shared/window-api'
+import productIcon from './assets/redrob-office-icon.svg'
 import { useI18n } from './locale'
 
 declare global {
   interface Window {
     aiOfficeTabs: TabsApi
+    aiOfficeWindow: WindowApi
   }
 }
 
@@ -131,6 +134,14 @@ export function TabBar() {
     return () => document.removeEventListener('pointerdown', notify, true)
   }, [])
 
+  const platform = window.aiOfficeWindow.platform
+  const [maximized, setMaximized] = useState(false)
+  useEffect(() => {
+    if (platform === 'darwin') return
+    void window.aiOfficeWindow.state().then((state) => setMaximized(state.maximized))
+    return window.aiOfficeWindow.onStateChanged((state) => setMaximized(state.maximized))
+  }, [platform])
+
   const reorder = (id: string, toIndex: number): void => {
     // optimistic local reorder so clearing the drag transforms causes no
     // flash; the main-process broadcast arrives with the identical order.
@@ -166,8 +177,23 @@ export function TabBar() {
       onActivate={(id) => void window.aiOfficeTabs.activate(id)}
       onClose={(id) => void window.aiOfficeTabs.close(id)}
       onReorder={reorder}
-      // room for the macOS traffic lights (titleBarStyle: hiddenInset)
-      start={<div className="tab-bar-drag-spacer" />}
+      start={
+        platform === 'darwin' ? (
+          // room for the macOS traffic lights (titleBarStyle: hiddenInset)
+          <div className="tab-bar-drag-spacer" />
+        ) : (
+          // Windows and Linux have no menu bar: the product icon opens the
+          // active tab's File/Edit/View menus, natively (see showAppMenu)
+          <IconButton
+            className="tab-app-menu-btn"
+            label={t('appMenu')}
+            size="sm"
+            onClick={(event) => void window.aiOfficeWindow.showAppMenu(...anchorOf(event.currentTarget))}
+          >
+            <img src={productIcon} alt="" width={18} height={18} aria-hidden="true" />
+          </IconButton>
+        )
+      }
       trailing={
         <IconButton
           className="tab-new-btn"
@@ -181,14 +207,32 @@ export function TabBar() {
         </IconButton>
       }
       end={
-        <IconButton
-          className="tab-overflow-btn"
-          label={t('tabList')}
-          size="sm"
-          onClick={(event) => void window.aiOfficeTabs.showMenu(...anchorOf(event.currentTarget))}
-        >
-          <Icon name="stack" size={16} />
-        </IconButton>
+        <>
+          <IconButton
+            className="tab-overflow-btn"
+            label={t('tabList')}
+            size="sm"
+            onClick={(event) => void window.aiOfficeTabs.showMenu(...anchorOf(event.currentTarget))}
+          >
+            <Icon name="stack" size={16} />
+          </IconButton>
+          {platform === 'linux' ? (
+            <WindowControls
+              maximized={maximized}
+              strings={{
+                minimize: t('minimizeWindow'),
+                maximize: t('maximizeWindow'),
+                restore: t('restoreWindow'),
+                close: t('closeWindow'),
+              }}
+              onMinimize={() => void window.aiOfficeWindow.minimize()}
+              onToggleMaximize={() => void window.aiOfficeWindow.toggleMaximize()}
+              onClose={() => void window.aiOfficeWindow.close()}
+            />
+          ) : null}
+          {/* Windows draws its caption buttons here (titleBarOverlay) */}
+          {platform === 'win32' ? <div className="tab-bar-caption-space" /> : null}
+        </>
       }
     />
   )

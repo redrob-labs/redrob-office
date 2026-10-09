@@ -221,3 +221,18 @@
   flex-shrink: 0;
   -webkit-app-region: no-drag;
 }
+
+/* WindowControls: minimise, maximise/restore and close at the end of the strip
+ * on a frameless window (Linux). Out of the drag region like every control. */
+.go-window-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-right: var(--space-1);
+  -webkit-app-region: no-drag;
+}
+
+.go-window-controls__close:hover {
+  background: var(--status-danger);
+  color: var(--ink-on-brand);
+}

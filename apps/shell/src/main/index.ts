@@ -29,7 +29,13 @@ import {
   shell,
   webContents,
 } from 'electron'
-import type { MenuItemConstructorOptions, NativeImage, WebContents } from 'electron'
+import type {
+  BrowserWindowConstructorOptions,
+  MenuItemConstructorOptions,
+  NativeImage,
+  TitleBarOverlayOptions,
+  WebContents,
+} from 'electron'
 import menuDocxIcon1x from './assets/menu-docx.png?asset'
 import menuDocxIcon2x from './assets/menu-docx@2x.png?asset'
 import menuXlsxIcon1x from './assets/menu-xlsx.png?asset'
@@ -243,7 +249,8 @@ import {
   pageRecentPaths,
   statPathEntries,
 } from './recent-files'
-import { TabManager } from './tab-manager'
+import { TAB_STRIP_HEIGHT, TabManager } from './tab-manager'
+import { WINDOW_CHANNELS, type WindowState } from '../shared/window-api'
 import { applyUpdateChannel, initAutoUpdater } from './updater'
 import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
 
@@ -2534,6 +2541,45 @@ function applyMenuFor(kind: TabKind): void {
   }
 }
 
+/*
+ * Windows draws its own caption buttons (minimise, maximise, close) over the
+ * right end of the 40px tab strip, which keeps Snap Layouts on maximise. It
+ * cannot read the renderer's tokens, so the design system's values are written
+ * out: a transparent strip so the tab bar's ground shows through, and glyphs in
+ * --ink-secondary for the active theme (Gray 7 light, Gray 5 dark).
+ */
+const WINDOWS_CAPTION_COLORS = {
+  light: { color: '#00000000', symbolColor: '#576071' },
+  dark: { color: '#00000000', symbolColor: '#aab0bb' },
+} as const
+
+function windowsCaptionOverlay(): TitleBarOverlayOptions {
+  const colors = nativeTheme.shouldUseDarkColors ? WINDOWS_CAPTION_COLORS.dark : WINDOWS_CAPTION_COLORS.light
+  return { ...colors, height: TAB_STRIP_HEIGHT }
+}
+
+/*
+ * The OS frame per platform. macOS keeps its traffic lights inset in the strip.
+ * Windows and Linux lose the OS title bar and menu bar: the tab strip is the
+ * title bar. Windows keeps real caption buttons through titleBarOverlay; Linux
+ * has no overlay, so it is frameless and the strip draws its own buttons.
+ */
+function shellWindowFrame(): BrowserWindowConstructorOptions {
+  if (process.platform === 'darwin') {
+    // vibrancy: editor modules punch translucent regions (e.g. the slides
+    // thumbnail pane) through to the desktop
+    return { titleBarStyle: 'hiddenInset', vibrancy: 'sidebar' }
+  }
+  return {
+    ...(process.platform === 'win32'
+      ? { titleBarStyle: 'hidden', titleBarOverlay: windowsCaptionOverlay() }
+      : { frame: false }),
+    // packaged builds embed icon.ico / the Linux icon set; an unpackaged run
+    // would otherwise show Electron's own icon in the taskbar
+    ...(app.isPackaged ? {} : { icon: join(app.getAppPath(), 'build/icon.png') }),
+  }
+}
+
 function createShellWindow(): void {
   const win = new BrowserWindow({
     width: 1360,
@@ -2541,11 +2587,7 @@ function createShellWindow(): void {
     minWidth: 980,
     minHeight: 600,
     title: 'Redrob Office',
-    // vibrancy: editor modules punch translucent regions (e.g. the slides
-    // thumbnail pane) through to the desktop
-    ...(process.platform === 'darwin'
-      ? { titleBarStyle: 'hiddenInset' as const, vibrancy: 'sidebar' as const }
-      : {}),
+    ...shellWindowFrame(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -2554,6 +2596,20 @@ function createShellWindow(): void {
     },
   })
   shellWindow = win
+  if (process.platform !== 'darwin') {
+    // The application menu stays installed (applyMenuFor swaps it per tab) so
+    // its accelerators keep working, but it is never shown as a bar: the strip's
+    // menu button pops it up instead. Auto-hide off so Alt cannot reveal it.
+    win.setAutoHideMenuBar(false)
+    win.setMenuBarVisibility(false)
+  }
+  // the strip shows Maximise or Restore, so it hears every change (its own
+  // button, Win+Up, a double-click on the strip, a drag to the screen edge)
+  const sendWindowState = (): void => {
+    if (!win.isDestroyed()) win.webContents.send(WINDOW_CHANNELS.stateChanged, { maximized: win.isMaximized() })
+  }
+  win.on('maximize', sendWindowState)
+  win.on('unmaximize', sendWindowState)
   // dragging the window by the tab strip's blank (draggable) area produces no
   // DOM event anywhere — will-move is the only signal to dismiss popovers
   win.on('will-move', () => broadcastChromePressed())
@@ -3323,6 +3379,7 @@ function registerHomeIpc(): void {
     cachedTheme = theme
     writeAppSetting(APP_SETTINGS_PATH(), 'theme', theme)
     nativeTheme.themeSource = theme
+    syncWindowsCaptionOverlay()
     for (const wc of webContents.getAllWebContents()) wc.send('app:theme-changed', theme)
   })
 
@@ -3497,6 +3554,33 @@ function broadcastChromePressed(exclude?: WebContents): void {
   for (const wc of webContents.getAllWebContents()) {
     if (wc !== exclude) wc.send('app:chrome-pressed')
   }
+}
+
+function syncWindowsCaptionOverlay(): void {
+  if (process.platform !== 'win32' || !shellWindow || shellWindow.isDestroyed()) return
+  shellWindow.setTitleBarOverlay(windowsCaptionOverlay())
+}
+
+/** The strip's window controls. Each acts on the shell window only, never on a detached editor. */
+function registerWindowIpc(): void {
+  ipcMain.handle(WINDOW_CHANNELS.minimize, () => shellWindow?.minimize())
+  ipcMain.handle(WINDOW_CHANNELS.toggleMaximize, () => {
+    if (!shellWindow) return
+    if (shellWindow.isMaximized()) shellWindow.unmaximize()
+    else shellWindow.maximize()
+  })
+  ipcMain.handle(WINDOW_CHANNELS.close, () => shellWindow?.close())
+  ipcMain.handle(WINDOW_CHANNELS.state, (): WindowState => ({ maximized: shellWindow?.isMaximized() ?? false }))
+  // the active tab's own menu (applyMenuFor), so File/Edit/View match the editor in front
+  ipcMain.handle(WINDOW_CHANNELS.showAppMenu, (_event, x: unknown, y: unknown) => {
+    if (!shellWindow) return
+    Menu.getApplicationMenu()?.popup({
+      window: shellWindow,
+      ...(typeof x === 'number' && typeof y === 'number' ? { x: Math.round(x), y: Math.round(y) } : {}),
+    })
+  })
+  // the OS theme changing while the app follows "system"
+  nativeTheme.on('updated', syncWindowsCaptionOverlay)
 }
 
 function registerTabsIpc(): void {
@@ -4491,6 +4575,7 @@ registerRedrobConnectIpc()
 registerAskPromptIpc()
 registerEngineIpc()
 registerTabsIpc()
+registerWindowIpc()
 registerDroppedFilesIpc()
 
 // Who is signed in: Redrob Console (or, in a development build, the local sync
