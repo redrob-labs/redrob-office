@@ -22,9 +22,15 @@ export default defineConfig({
     resolve: { alias: localAlias },
   },
   preload: {
-    // Sandboxed preload scripts cannot require arbitrary npm packages at
-    // runtime, so the drop-open bridge must be bundled, not externalized.
-    plugins: [externalizeDepsPlugin({ exclude: ['@genoffice/electron-utils'] })],
+    // A sandboxed preload can require only electron and a few Node builtins,
+    // so every workspace package it imports must be bundled, not externalized.
+    // Leaving one out makes the preload throw and the editor opens blank.
+    // scripts/check-preload-bundles.mjs checks the built output in CI.
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ['@genoffice/electron-utils', '@genoffice/facts', '@genoffice/versions', '@genoffice/sync-client'],
+      }),
+    ],
   },
   renderer: {
     plugins: [react()],
