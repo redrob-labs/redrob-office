@@ -7,7 +7,7 @@
 // `type` is the HWP line type 0–17 and `width` the HWP width index 0–15) and
 // `fillType` ('none' | 'solid') with `fillColor`.
 import type { ChartData, NewChart } from '@genoffice/hwp-core'
-import { inBody, type Pos } from './position'
+import { fromEngine, inBody, type Pos } from './position'
 import type { ObjectRef, Session } from './session'
 import type { Command } from './commands'
 
@@ -150,7 +150,7 @@ export function objectsOnPage(s: Session, page: number): ObjectBox[] {
   // The engine lists controls in paint order; its own `zOrder` field is not reliable here.
   for (const [i, c] of (r.controls ?? []).entries()) {
     if (c.secIdx === undefined || c.paraIdx === undefined || c.controlIdx === undefined) continue
-    const kind = c.type === 'image' ? 'picture' : c.type === 'equation' ? 'equation' : isChart(c.secIdx, c.paraIdx, c.controlIdx) ? 'chart' : c.type === 'shape' || c.type === 'group' ? 'shape' : null
+    const kind = c.type === 'image' ? 'picture' : c.type === 'equation' ? 'equation' : isChart(c.secIdx, c.paraIdx, c.controlIdx) ? 'chart' : c.type === 'shape' || c.type === 'line' || c.type === 'group' ? 'shape' : null
     if (!kind) continue
     out.push({ kind, section: c.secIdx, para: c.paraIdx, control: c.controlIdx, page, x: c.x, y: c.y, width: c.w, height: c.h, zOrder: i, ...(c.type === 'group' ? { group: true as const } : {}) })
   }
@@ -159,7 +159,9 @@ export function objectsOnPage(s: Session, page: number): ObjectBox[] {
 
 /** The topmost picture or drawing object under a page point, if any. */
 export function objectAt(s: Session, page: number, x: number, y: number): ObjectBox | null {
-  const hits = objectsOnPage(s, page).filter((o) => x >= o.x && x <= o.x + o.width && y >= o.y && y <= o.y + o.height)
+  // A straight line can be 0 px tall or wide; give thin objects a few pixels to hit.
+  const pad = (d: number) => Math.max(0, (6 - d) / 2)
+  const hits = objectsOnPage(s, page).filter((o) => x >= o.x - pad(o.width) && x <= o.x + o.width + pad(o.width) && y >= o.y - pad(o.height) && y <= o.y + o.height + pad(o.height))
   return hits.sort((a, b) => b.zOrder - a.zOrder)[0] ?? null
 }
 
@@ -267,9 +269,9 @@ function zOrder(id: string, op: 'front' | 'back' | 'forward' | 'backward'): Comm
 export type ShapeKind = 'rectangle' | 'ellipse' | 'line' | 'textbox'
 
 /**
- * Insert a drawing object at the caret, anchored to its paragraph. 한글 draws
- * a shape by dragging; this places one at a default size the person can then
- * resize in the object properties.
+ * Insert a drawing object at the caret, anchored to its paragraph, at a default
+ * size. The ribbon draws by dragging instead (`insert:shape-draw`, armed by
+ * `view:draw-shape`); this is for command search, shortcuts and the AI tools.
  */
 export const insertShape: Command<{ shapeType: ShapeKind; width?: number; height?: number }> = {
   id: 'insert:shape',
@@ -417,7 +419,97 @@ export const dragObject: Command<{ handle: Handle | 'move'; dx: number; dy: numb
   },
 }
 
+/** A shape drawn by dragging on a page: from where the press was to where it was let go, in page pixels. */
+export interface DrawnShape {
+  shapeType: ShapeKind
+  page: number
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+}
+
+/** Below this drag distance (page pixels) a press is a click, and the shape gets its default size there. */
+export const DRAW_CLICK_PX = 4
+
+/**
+ * 한글's way to make a drawing object: drag out its box on the page. The shape
+ * lands exactly where it was drawn, in front of the text (글 앞으로) as 한글 draws
+ * them, and is anchored to the paragraph it was drawn over so it moves down
+ * with that paragraph. A line runs from the press to the release, in either
+ * direction. A click without a drag places the default size there.
+ */
+export const drawShape: Command<DrawnShape> = {
+  id: 'insert:shape-draw',
+  isEnabled: () => true,
+  run({ session }, d) {
+    let x = Math.min(d.x0, d.x1)
+    let y = Math.min(d.y0, d.y1)
+    let w = Math.abs(d.x1 - d.x0)
+    let h = Math.abs(d.y1 - d.y0)
+    const line = d.shapeType === 'line'
+    if (Math.max(w, h) < DRAW_CLICK_PX) {
+      // A click: 한글's default size, starting at the click.
+      x = d.x0
+      y = d.y0
+      w = 14173 / HU_PER_PX
+      h = line ? 0 : 7087 / HU_PER_PX
+    }
+    // The paragraph under the top-left corner holds the shape; in a table, the table's paragraph.
+    let anchor: Pos
+    try {
+      anchor = fromEngine(session.doc.hitTest(d.page, x, y))
+    } catch {
+      return null
+    }
+    const section = anchor.section
+    const para = anchor.para
+    const offset = anchor.cell || anchor.story ? 0 : anchor.offset
+    if (anchor.story) return null
+    const hu = (px: number) => Math.max(0, Math.round(px * HU_PER_PX))
+    let created: ObjectRef | null = null
+    const change = session.edit('insert:shape-draw', () => {
+      const raw = session.doc.raw
+      const r = json(
+        raw.createShapeControl(
+          JSON.stringify({
+            sectionIdx: section,
+            paraIdx: para,
+            charOffset: offset,
+            width: line ? hu(w) : Math.max(1, hu(w)),
+            height: line ? hu(h) : Math.max(1, hu(h)),
+            shapeType: d.shapeType,
+            treatAsChar: false,
+            textWrap: 'InFrontOfText',
+            // Relative to the paper: page pixels are paper pixels.
+            horzOffset: hu(x),
+            vertOffset: hu(y),
+            lineFlipX: line && d.x1 < d.x0,
+            lineFlipY: line && d.y1 < d.y0,
+          }),
+        ),
+        'createShapeControl',
+      )
+      const ref: ObjectRef = { kind: 'shape', section, para: Number(r.paraIdx), control: Number(r.controlIdx) }
+      // Follow the paragraph vertically: measure where the paragraph puts the shape at offset 0,
+      // then move it down by the difference. Drawn above the paragraph's top (in the top
+      // margin), it stays relative to the paper, since an offset from the paragraph cannot be negative.
+      json(raw.setShapeProperties(ref.section, ref.para, ref.control, JSON.stringify({ vertRelTo: 'Para', vertOffset: 0 })), 'setShapeProperties')
+      const top = objectBox(session, ref)
+      const dy = top && top.page === d.page ? y - top.y : -1
+      const vert = dy >= 0 ? { vertRelTo: 'Para', vertOffset: hu(dy) } : { vertRelTo: 'Paper', vertOffset: hu(y) }
+      json(raw.setShapeProperties(ref.section, ref.para, ref.control, JSON.stringify(vert)), 'setShapeProperties')
+      json(raw.changeShapeZOrder(ref.section, ref.para, ref.control, 'front'), 'changeShapeZOrder')
+      created = ref
+      return session.selection
+    })
+    session.selectObject(created)
+    return change
+  },
+}
+
 export const OBJECT_COMMANDS = [
+  drawShape,
   dragObject,
   editEquation,
   insertChart,

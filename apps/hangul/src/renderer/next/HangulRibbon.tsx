@@ -72,7 +72,7 @@ function useCommands(props: RibbonProps) {
     view.focus()
     onRan()
   }
-  const button = (id: string, icon: ReactNode, opts: { toggle?: boolean; size?: 'sm' | 'lg'; params?: unknown; label?: string } = {}) => {
+  const button = (id: string, icon: ReactNode, opts: { toggle?: boolean; pressed?: boolean; size?: 'sm' | 'lg'; params?: unknown; label?: string } = {}) => {
     const enabled = !!view && view.bus.has(id) && view.bus.isEnabled(id, opts.params) && (!readOnly || id.startsWith('view:') || id.startsWith('move:'))
     return (
       <ToolbarButton
@@ -81,7 +81,7 @@ function useCommands(props: RibbonProps) {
         icon={icon}
         size={opts.size ?? 'sm'}
         shortcut={commandShortcut(id, mac)}
-        pressed={opts.toggle ? (view?.bus.isActive(id) ?? false) : undefined}
+        pressed={opts.pressed ?? (opts.toggle ? (view?.bus.isActive(id) ?? false) : undefined)}
         disabled={!enabled}
         onClick={() => run(id, opts.params)}
       />
@@ -482,10 +482,10 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               </Group>
             ) : null}
             <Group label={L('insert:shape')}>
-              {button('insert:shape', RibbonIcon.rectangle(), { params: { shapeType: 'rectangle' }, label: t('nextShapeRectangle') })}
-              {button('insert:shape', RibbonIcon.ellipse(), { params: { shapeType: 'ellipse' }, label: t('nextShapeEllipse') })}
-              {button('insert:shape', RibbonIcon.line(), { params: { shapeType: 'line' }, label: t('nextShapeLine') })}
-              {button('insert:shape', RibbonIcon.textBox(), { params: { shapeType: 'textbox' }, label: t('nextShapeTextbox') })}
+              {button('view:draw-shape', RibbonIcon.rectangle(), { params: { shapeType: 'rectangle' }, pressed: view?.drawTool === 'rectangle', label: t('nextShapeRectangle') })}
+              {button('view:draw-shape', RibbonIcon.ellipse(), { params: { shapeType: 'ellipse' }, pressed: view?.drawTool === 'ellipse', label: t('nextShapeEllipse') })}
+              {button('view:draw-shape', RibbonIcon.line(), { params: { shapeType: 'line' }, pressed: view?.drawTool === 'line', label: t('nextShapeLine') })}
+              {button('view:draw-shape', RibbonIcon.textBox(), { params: { shapeType: 'textbox' }, pressed: view?.drawTool === 'textbox', label: t('nextShapeTextbox') })}
             </Group>
             {props.onCommand ? (
               <Group label={t('nextGroupNotes')}>

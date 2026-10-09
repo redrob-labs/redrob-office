@@ -286,6 +286,8 @@ export function NextHangulEditor(): React.JSX.Element {
       // The main process opens http(s) and mailto links in the browser and refuses anything else.
       onOpenLink: (uri) => void window.open(uri, '_blank', 'noopener'),
       onRender: refresh,
+      // The ribbon shows the armed shape pressed, and lets go of it after one shape.
+      onDrawToolChange: refresh,
       dialogFirst: DIALOG_FIRST,
       onUnhandledCommand: (id, params) => runHostCommand(hostDepsRef.current, id, params),
     })

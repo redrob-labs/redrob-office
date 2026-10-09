@@ -13,11 +13,11 @@
 // key again: Chromium on Windows does not, macOS does. So such a key is kept
 // and replayed after the commit unless the browser delivers it again itself.
 import type { CursorRect } from '@genoffice/hwp-core'
-import { CommandBus } from '../commands'
+import { CommandBus, type Command } from '../commands'
 import { copy, cut, fromDataTransfer, paste, toDataTransfer } from '../clipboard'
 import { fromEngine, sameContainer, type Pos } from '../position'
 import { collapsed, ordered, type Change, type Session } from '../session'
-import { HANDLES, draggedBox, objectAt, objectBox, type Handle } from '../object-commands'
+import { HANDLES, draggedBox, objectAt, objectBox, type Handle, type ShapeKind } from '../object-commands'
 import { hyperlinkAt } from '../field-commands'
 import { formAllows, gotoFormField } from '../form-mode'
 import { resolveKey, type KeyLike } from './keymap'
@@ -41,6 +41,24 @@ export interface EditorViewOptions extends PageViewOptions {
   dialogFirst?: ReadonlySet<string>
   /** Accessible name of the text input (the document body), in the host's language. */
   inputLabel?: string
+  /** Told when a drawing tool is armed or let go, so the host can show it pressed. */
+  onDrawToolChange?: (tool: ShapeKind | null) => void
+}
+
+/** Shift while drawing: a square box, or a line snapped to the nearest 45°. */
+export function constrainDraw(d: { x0: number; y0: number; x1: number; y1: number }, line: boolean): void {
+  const dx = d.x1 - d.x0
+  const dy = d.y1 - d.y0
+  if (line) {
+    const len = Math.hypot(dx, dy)
+    const a = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4)
+    d.x1 = d.x0 + Math.round(Math.cos(a) * len * 100) / 100
+    d.y1 = d.y0 + Math.round(Math.sin(a) * len * 100) / 100
+    return
+  }
+  const side = Math.max(Math.abs(dx), Math.abs(dy))
+  d.x1 = d.x0 + Math.sign(dx || 1) * side
+  d.y1 = d.y0 + Math.sign(dy || 1) * side
 }
 
 export class EditorView {
@@ -53,6 +71,9 @@ export class EditorView {
   readOnly: boolean
   /** 양식 모드: only click-here fields take typing; Tab goes from field to field. */
   formMode = false
+  /** The shape the next drag on a page draws (한글's 그리기 개체), or null for ordinary clicks. */
+  drawTool: ShapeKind | null = null
+  private drawing: { page: number; x0: number; y0: number; x1: number; y1: number } | null = null
   private pendingKey: { e: KeyLike; timer: ReturnType<typeof setTimeout> | null } | null = null
   private dragging = false
   private unsubscribe: () => void
@@ -226,6 +247,17 @@ export class EditorView {
       this.session.selectObject(null)
       this.render()
     })
+    // Arm (or disarm) drawing: the next drag on a page draws this shape, then the tool lets go.
+    const drawCommand: Command<{ shapeType: ShapeKind }> = {
+      id: 'view:draw-shape',
+      isEnabled: () => !this.readOnly && !this.formMode,
+      isActive: () => this.drawTool !== null,
+      run: (_ctx, { shapeType }) => {
+        this.setDrawTool(this.drawTool === shapeType ? null : shapeType)
+        return null
+      },
+    }
+    if (!this.bus.has(drawCommand.id)) this.bus.register(drawCommand as Command<never>)
     toggle('view:toggle-grid', () => this.pages.content.classList.contains('hwp-show-grid'), (on) => this.pages.content.classList.toggle('hwp-show-grid', on))
     // 현재 쪽만 감추기 (header and footer) and 머리말/꼬리말 감추기 (header) on the caret's page.
     const page = () => {
@@ -335,6 +367,10 @@ export class EditorView {
   }
 
   private handleKey(e: KeyLike): boolean {
+    if (this.drawTool && e.key === 'Escape') {
+      this.setDrawTool(null)
+      return true
+    }
     if (this.formMode && e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       if (gotoFormField(this.session, e.shiftKey ? -1 : 1)) this.render()
       return true
@@ -542,6 +578,17 @@ export class EditorView {
 
   onMouseUp(e: MouseEvent): void {
     this.dragging = false
+    const drawn = this.drawing
+    if (drawn && this.drawTool) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      // Let go off the page: the box ends where the pointer last was on it.
+      if (pt && pt.page === drawn.page) Object.assign(drawn, { x1: pt.x, y1: pt.y })
+      if (e.shiftKey) constrainDraw(drawn, this.drawTool === 'line')
+      const shapeType = this.drawTool
+      this.setDrawTool(null)
+      this.run('insert:shape-draw', { shapeType, ...drawn })
+      return
+    }
     const drag = this.objectDrag
     if (!drag) return
     this.objectDrag = null
@@ -593,11 +640,37 @@ export class EditorView {
     this.focus()
   }
 
+  /** Arm a drawing tool, or pass null to go back to ordinary clicks. */
+  setDrawTool(tool: ShapeKind | null): void {
+    this.drawTool = tool
+    this.drawing = null
+    this.overlay.clearDecoration('object:ghost')
+    this.root.classList.toggle('hwp-drawing', tool !== null)
+    this.opts.onDrawToolChange?.(tool)
+  }
+
+  /** The outline shown while a shape is being drawn: its box, at least a pixel each way so a line shows. */
+  private drawGhost(d: { page: number; x0: number; y0: number; x1: number; y1: number }): void {
+    const x = Math.min(d.x0, d.x1)
+    const y = Math.min(d.y0, d.y1)
+    this.overlay.setDecoration({ key: 'object:ghost', kind: 'object-ghost', rects: [{ pageIndex: d.page, x, y, width: Math.max(1, Math.abs(d.x1 - d.x0)), height: Math.max(1, Math.abs(d.y1 - d.y0)) }] })
+  }
+
   /** The selection before the latest click, so a double-click into a header can return there. */
   private beforeClick: { anchor: Pos; head: Pos } | null = null
 
   onMouseDown(e: MouseEvent): void {
     if (e.button !== 0) return
+    if (this.drawTool) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      if (pt && !this.readOnly && !this.formMode) {
+        e.preventDefault()
+        this.drawing = { page: pt.page, x0: pt.x, y0: pt.y, x1: pt.x, y1: pt.y }
+        this.drawGhost(this.drawing)
+        this.focus()
+      }
+      return
+    }
     if (e.detail <= 1) this.beforeClick = this.session.selection
     // A press on the selected object's body or a handle starts a move or resize.
     const ptDown = this.pages.pageAt(e.clientX, e.clientY)
@@ -665,6 +738,16 @@ export class EditorView {
   }
 
   onMouseMove(e: MouseEvent): void {
+    if (this.drawing) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      if (!pt || pt.page !== this.drawing.page) return
+      this.drawing.x1 = pt.x
+      this.drawing.y1 = pt.y
+      // Shift keeps the box square (a circle for an ellipse) and a line at a multiple of 45°, as in 한글.
+      if (e.shiftKey) constrainDraw(this.drawing, this.drawTool === 'line')
+      this.drawGhost(this.drawing)
+      return
+    }
     const drag = this.objectDrag
     if (drag) {
       const pt = this.pages.pageAt(e.clientX, e.clientY)
