@@ -150,7 +150,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 4.4 Suggesting and viewing modes; revision marks in the overlay; review actions; tracked AI
   edits and the AI `read_revisions`, `accept_revision` and `reject_revision` tools. [R8.1, R8.3, R6.4]
   HWPX documents. Suggesting on `.hwp` waits for HWP 5.0 revisions (P-1); formatting changes and paragraph
-  breaks are not tracked yet.
+  breaks are not tracked yet. Until then suggesting says so: an edit it cannot track (formatting, Enter, tables, objects) shows a notice for that suggesting session. 한글's fields for these (trackChange `CharShape`/`ParaShape`, `charTcId`, `paraTcId`, `paraend`) are in Hancom's model without documented meaning and absent from 476 surveyed files, so writing them waits for P-1.
 
 ## Phase 5: Versions, sharing, live typing
 
