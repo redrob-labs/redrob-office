@@ -5130,6 +5130,53 @@ impl HwpDocument {
         .map_err(|e| e.into())
     }
 
+    /// 각주/미주 캐럿 위치의 글자 속성 조회 (Redrob E9)
+    #[wasm_bindgen(js_name = getCharPropertiesInFootnote)]
+    pub fn get_char_properties_in_footnote(
+        &self,
+        section_idx: u32,
+        para_idx: u32,
+        control_idx: u32,
+        fn_para_idx: u32,
+        char_offset: u32,
+    ) -> Result<String, JsValue> {
+        self.get_char_properties_in_footnote_native(
+            section_idx as usize,
+            para_idx as usize,
+            control_idx as usize,
+            fn_para_idx as usize,
+            char_offset as usize,
+        )
+        .map_err(|e| e.into())
+    }
+
+    /// 각주/미주 선택 범위에 글자 서식 적용 (Redrob E9)
+    #[wasm_bindgen(js_name = applyCharFormatInFootnote)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn apply_char_format_in_footnote(
+        &mut self,
+        section_idx: u32,
+        para_idx: u32,
+        control_idx: u32,
+        start_fn_para_idx: u32,
+        start_char_offset: u32,
+        end_fn_para_idx: u32,
+        end_char_offset: u32,
+        props_json: &str,
+    ) -> Result<String, JsValue> {
+        self.apply_char_format_in_footnote_native(
+            section_idx as usize,
+            para_idx as usize,
+            control_idx as usize,
+            start_fn_para_idx as usize,
+            start_char_offset as usize,
+            end_fn_para_idx as usize,
+            end_char_offset as usize,
+            props_json,
+        )
+        .map_err(|e| e.into())
+    }
+
     /// 본문 인라인 각주 마커 히트테스트
     #[wasm_bindgen(js_name = hitTestBodyFootnoteMarker)]
     pub fn hit_test_body_footnote_marker(

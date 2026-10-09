@@ -337,9 +337,9 @@ export class Session {
     this.others = []
   }
 
-  /** Whether character formatting can be held at the caret for the next typing (not in a note, which the engine cannot format yet). */
+  /** Whether character formatting can be held at the caret for the next typing. */
   canHoldCharFormat(): boolean {
-    return collapsed(this.selection) && this.selection.head.story?.kind !== 'note'
+    return collapsed(this.selection)
   }
 
   /** Hold character formatting at the caret for the next text typed there; merges with what is already held. */

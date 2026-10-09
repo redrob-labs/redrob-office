@@ -100,6 +100,52 @@ describe('notes (task 1.7)', () => {
       expect(info.texts.join(''), f).toContain('설명')
     }
   })
+
+  /** A document whose footnote reads '각주 설명', with the caret in the note. */
+  function inNote(f: 'hwpx' | 'hwp') {
+    const d = doc(f)
+    d.s.select({ anchor: B(0, 2), head: B(0, 2) })
+    d.bus.run('insert:footnote', { text: '각주 설명' })
+    d.s.select({ anchor: B(0, 3), head: B(0, 3) })
+    d.bus.run('insert:note-edit')
+    const at = d.s.selection.head
+    // 한글 writes the note text followed by spaces after its number; the text starts here.
+    expect(d.s.text.text({ ...at, offset: 0 }).startsWith('각주 설명')).toBe(true)
+    const st = at.story!
+    return { ...d, at: { ...at, offset: 0 }, control: st.kind === 'note' ? st.control : -1 }
+  }
+  const noteBold = (s: Session, control: number, offset: number) =>
+    (JSON.parse(s.doc.raw.getCharPropertiesInFootnote(0, 0, control, 0, offset)) as { bold?: boolean }).bold === true
+
+  it("formats selected text in a note, reports the note's own formatting, and keeps it through save", () => {
+    for (const f of ['hwpx', 'hwp'] as const) {
+      const { s, bus, at, control } = inNote(f)
+      const body = s.text.charPropertiesAt(B(0, 0))
+      s.select({ anchor: at, head: { ...at, offset: 2 } })
+      expect(bus.isEnabled('format:bold')).toBe(true)
+      bus.run('format:bold')
+      expect(s.text.charPropertiesAt({ ...at, offset: 1 }).bold, f).toBe(true)
+      expect(s.text.charPropertiesAt({ ...at, offset: 4 }).bold, f).not.toBe(true)
+      expect(s.text.charPropertiesAt(B(0, 0)), 'body untouched').toEqual(body)
+      bus.run('edit:undo')
+      expect(s.text.charPropertiesAt({ ...at, offset: 1 }).bold, `${f} undo`).not.toBe(true)
+      bus.run('edit:redo')
+      const back = new Session(HwpCoreDocument.open(s.export(f)), f)
+      expect([noteBold(back, control, 0), noteBold(back, control, 1), noteBold(back, control, 4)], f).toEqual([true, true, false])
+    }
+  })
+
+  it('Bold at a bare caret in a note goes onto what is typed next', () => {
+    const { s, bus, at } = inNote('hwpx')
+    const end = { ...at, offset: 5 }
+    s.select({ anchor: end, head: end })
+    expect(bus.isEnabled('format:bold')).toBe(true)
+    bus.run('format:bold')
+    bus.run('edit:insert-text', { text: '굵게' })
+    expect(s.text.text(at).startsWith('각주 설명굵게')).toBe(true)
+    expect(s.text.charPropertiesAt({ ...at, offset: 6 }).bold).toBe(true)
+    expect(s.text.charPropertiesAt({ ...at, offset: 3 }).bold).not.toBe(true)
+  })
 })
 
 describe('header and footer fields', () => {

@@ -208,7 +208,10 @@ export class Text {
     const [a, b] = compare(from, to) <= 0 ? [from, to] : [to, from]
     const json = JSON.stringify(props)
     if (a.story) {
-      if (a.story.kind === 'note') throw new Error('character format in a note is not supported yet')
+      if (a.story.kind === 'note') {
+        ok(this.raw.applyCharFormatInFootnote(a.section, a.story.host, a.story.control, a.para, a.offset, b.para, b.offset, json), 'applyCharFormatInFootnote')
+        return
+      }
       ok(this.raw.applyCharFormatInHeaderFooter(a.section, a.story.kind === 'header', a.story.applyTo, a.para, a.offset, b.para, b.offset, json), 'applyCharFormatInHeaderFooter')
       return
     }
@@ -223,10 +226,12 @@ export class Text {
   }
 
   charPropertiesAt(p: Pos): Record<string, unknown> {
-    if (p.story && p.story.kind !== 'note') {
+    if (p.story?.kind === 'note') {
+      return JSON.parse(this.raw.getCharPropertiesInFootnote(p.section, p.story.host, p.story.control, p.para, p.offset)) as Record<string, unknown>
+    }
+    if (p.story) {
       return JSON.parse(this.raw.getCharPropertiesInHeaderFooter(p.section, p.story.kind === 'header', p.story.applyTo, p.para, p.offset)) as Record<string, unknown>
     }
-    if (p.story) return JSON.parse(this.raw.getCharPropertiesAt(p.section, p.story.host, 0)) as Record<string, unknown>
     const json = p.cell
       ? this.raw.getCellCharPropertiesAt(p.section, p.para, p.cell.control, p.cell.cell, p.cell.para, p.offset)
       : this.raw.getCharPropertiesAt(p.section, p.para, p.offset)
