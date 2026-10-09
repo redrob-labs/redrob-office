@@ -18,6 +18,7 @@ export const hwpdocument_applyCharFormatAtCursor: (a: number, b: number, c: numb
 export const hwpdocument_applyCharFormatInCell: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
 export const hwpdocument_applyCharFormatInCellByPath: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number, number];
 export const hwpdocument_applyCharFormatInCellEx: (a: number, b: number, c: number) => [number, number, number, number];
+export const hwpdocument_applyCharFormatInFootnote: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
 export const hwpdocument_applyCharFormatInHeaderFooter: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
 export const hwpdocument_applyEndnoteShape: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_applyHfTemplate: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
@@ -148,6 +149,7 @@ export const hwpdocument_getCellStyleAt: (a: number, b: number, c: number, d: nu
 export const hwpdocument_getCellTextDirection: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
 export const hwpdocument_getCharIndexAtStreamPos: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const hwpdocument_getCharPropertiesAt: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const hwpdocument_getCharPropertiesInFootnote: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_getCharPropertiesInHeaderFooter: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const hwpdocument_getCharShapeRuns: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
 export const hwpdocument_getCharShapeRunsInCellByPath: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];

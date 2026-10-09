@@ -84,6 +84,10 @@ export class HwpDocument {
      */
     applyCharFormatInCellEx(options_json: string): string;
     /**
+     * 각주/미주 선택 범위에 글자 서식 적용 (Redrob E9)
+     */
+    applyCharFormatInFootnote(section_idx: number, para_idx: number, control_idx: number, start_fn_para_idx: number, start_char_offset: number, end_fn_para_idx: number, end_char_offset: number, props_json: string): string;
+    /**
      * 머리말/꼬리말 선택 범위에 글자 서식을 적용한다.
      */
     applyCharFormatInHeaderFooter(section_idx: number, is_header: boolean, apply_to: number, start_hf_para_idx: number, start_char_offset: number, end_hf_para_idx: number, end_char_offset: number, props_json: string): string;
@@ -736,6 +740,10 @@ export class HwpDocument {
      * 반환값: JSON 객체 (fontFamily, fontSize, bold, italic, underline, strikethrough, textColor 등)
      */
     getCharPropertiesAt(sec_idx: number, para_idx: number, char_offset: number): string;
+    /**
+     * 각주/미주 캐럿 위치의 글자 속성 조회 (Redrob E9)
+     */
+    getCharPropertiesInFootnote(section_idx: number, para_idx: number, control_idx: number, fn_para_idx: number, char_offset: number): string;
     /**
      * 머리말/꼬리말 캐럿 위치의 글자 속성을 조회한다.
      */
@@ -2625,6 +2633,7 @@ export interface InitOutput {
     readonly hwpdocument_applyCharFormatInCell: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
     readonly hwpdocument_applyCharFormatInCellByPath: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number, number];
     readonly hwpdocument_applyCharFormatInCellEx: (a: number, b: number, c: number) => [number, number, number, number];
+    readonly hwpdocument_applyCharFormatInFootnote: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
     readonly hwpdocument_applyCharFormatInHeaderFooter: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
     readonly hwpdocument_applyEndnoteShape: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_applyHfTemplate: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
@@ -2755,6 +2764,7 @@ export interface InitOutput {
     readonly hwpdocument_getCellTextDirection: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly hwpdocument_getCharIndexAtStreamPos: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly hwpdocument_getCharPropertiesAt: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+    readonly hwpdocument_getCharPropertiesInFootnote: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_getCharPropertiesInHeaderFooter: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly hwpdocument_getCharShapeRuns: (a: number, b: number, c: number, d: number, e: number) => [number, number, number, number];
     readonly hwpdocument_getCharShapeRunsInCellByPath: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];

@@ -357,6 +357,38 @@ export class HwpDocument {
         }
     }
     /**
+     * 각주/미주 선택 범위에 글자 서식 적용 (Redrob E9)
+     * @param {number} section_idx
+     * @param {number} para_idx
+     * @param {number} control_idx
+     * @param {number} start_fn_para_idx
+     * @param {number} start_char_offset
+     * @param {number} end_fn_para_idx
+     * @param {number} end_char_offset
+     * @param {string} props_json
+     * @returns {string}
+     */
+    applyCharFormatInFootnote(section_idx, para_idx, control_idx, start_fn_para_idx, start_char_offset, end_fn_para_idx, end_char_offset, props_json) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const ptr0 = passStringToWasm0(props_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.hwpdocument_applyCharFormatInFootnote(this.__wbg_ptr, section_idx, para_idx, control_idx, start_fn_para_idx, start_char_offset, end_fn_para_idx, end_char_offset, ptr0, len0);
+            var ptr2 = ret[0];
+            var len2 = ret[1];
+            if (ret[3]) {
+                ptr2 = 0; len2 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
      * 머리말/꼬리말 선택 범위에 글자 서식을 적용한다.
      * @param {number} section_idx
      * @param {boolean} is_header
@@ -3359,6 +3391,33 @@ export class HwpDocument {
         let deferred2_1;
         try {
             const ret = wasm.hwpdocument_getCharPropertiesAt(this.__wbg_ptr, sec_idx, para_idx, char_offset);
+            var ptr1 = ret[0];
+            var len1 = ret[1];
+            if (ret[3]) {
+                ptr1 = 0; len1 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred2_0 = ptr1;
+            deferred2_1 = len1;
+            return getStringFromWasm0(ptr1, len1);
+        } finally {
+            wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+        }
+    }
+    /**
+     * 각주/미주 캐럿 위치의 글자 속성 조회 (Redrob E9)
+     * @param {number} section_idx
+     * @param {number} para_idx
+     * @param {number} control_idx
+     * @param {number} fn_para_idx
+     * @param {number} char_offset
+     * @returns {string}
+     */
+    getCharPropertiesInFootnote(section_idx, para_idx, control_idx, fn_para_idx, char_offset) {
+        let deferred2_0;
+        let deferred2_1;
+        try {
+            const ret = wasm.hwpdocument_getCharPropertiesInFootnote(this.__wbg_ptr, section_idx, para_idx, control_idx, fn_para_idx, char_offset);
             var ptr1 = ret[0];
             var len1 = ret[1];
             if (ret[3]) {
