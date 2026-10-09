@@ -4,7 +4,7 @@
 // whose guide text 한글 shows until someone types into it.
 import { targetOf } from './comments'
 import { collapsed, ordered, type Session } from './session'
-import { inBody, sameContainer, type Pos } from './position'
+import { paraIndex, sameContainer, type CellRef, type Pos } from './position'
 import type { Command } from './commands'
 
 export interface HyperlinkInfo {
@@ -25,6 +25,8 @@ export interface FieldInfo {
   para: number
   start: number
   end: number
+  /** Set when the field is in a table cell. */
+  cell?: CellRef
 }
 
 /** Web addresses only: a link never runs a program or opens a local file. */
@@ -48,7 +50,7 @@ export function hyperlinksIn(s: Session, p: Pos): HyperlinkInfo[] {
 
 /** The link the caret (or the selection's start) sits in. */
 export function hyperlinkAt(s: Session, p: Pos = ordered(s.selection)[0]): HyperlinkInfo | null {
-  if (p.story) return null
+  if (p.story || p.cell?.textBox) return null
   try {
     return hyperlinksIn(s, p).find((l) => p.offset >= l.start && p.offset <= l.end) ?? null
   } catch {
@@ -56,9 +58,38 @@ export function hyperlinkAt(s: Session, p: Pos = ordered(s.selection)[0]): Hyper
   }
 }
 
-/** Fields in the body paragraph at the caret (cell fields are not addressed yet). */
-export function fieldAt(s: Session, p: Pos = s.selection.head): FieldInfo | null {
-  if (!inBody(p)) return null
+export interface ClickHereField {
+  fieldId: number
+  name: string
+  guide: string
+  value: string
+  /** The field's paragraph, as an editor position at its start (body or one table cell). */
+  at: Pos
+  start: number
+  end: number
+}
+
+/** The engine's location of a field: a body paragraph, or a path into cells and text boxes. */
+interface FieldLocation {
+  sectionIndex: number
+  paraIndex: number
+  path?: Array<{ type: 'cell' | 'textbox'; controlIndex: number; cellIndex?: number; paraIndex: number }>
+}
+
+/** Where a field sits as an editor position, or null where the editor has no position (nested tables, text boxes). */
+function fieldPos(loc: FieldLocation, offset: number): Pos | null {
+  const path = loc.path ?? []
+  if (!path.length) return { section: loc.sectionIndex, para: loc.paraIndex, offset }
+  const c = path[0]!
+  if (path.length > 1 || c.type !== 'cell') return null
+  return { section: loc.sectionIndex, para: loc.paraIndex, offset, cell: { control: c.controlIndex, cell: c.cellIndex ?? 0, para: c.paraIndex } }
+}
+
+/**
+ * Every 누름틀 the editor can reach, in the body and in table cells, in reading
+ * order. A cell's own name (한글's 셀 필드, `cellField`) is not a 누름틀 and is left out.
+ */
+export function clickHereFields(s: Session): ClickHereField[] {
   const list = JSON.parse(s.doc.raw.getFieldList()) as Array<{
     fieldId: number
     fieldType: string
@@ -66,12 +97,35 @@ export function fieldAt(s: Session, p: Pos = s.selection.head): FieldInfo | null
     guide: string
     value: string
     cellField: boolean
-    location: { sectionIndex: number; paraIndex: number }
+    location: FieldLocation
     startCharIdx: number
     endCharIdx: number
   }>
-  const f = list.find((x) => !x.cellField && x.fieldType !== 'hyperlink' && x.location.sectionIndex === p.section && x.location.paraIndex === p.para && p.offset >= x.startCharIdx && p.offset <= x.endCharIdx)
-  return f ? { fieldId: f.fieldId, fieldType: f.fieldType, name: f.name, guide: f.guide, value: f.value, section: p.section, para: p.para, start: f.startCharIdx, end: f.endCharIdx } : null
+  const out: ClickHereField[] = []
+  for (const f of list) {
+    if (f.cellField || f.fieldType !== 'clickhere') continue
+    const at = fieldPos(f.location, f.startCharIdx)
+    if (at) out.push({ fieldId: f.fieldId, name: f.name, guide: f.guide, value: f.value, at, start: f.startCharIdx, end: f.endCharIdx })
+  }
+  const key = (p: Pos) => [p.section, p.para, p.cell ? p.cell.control : -1, p.cell ? p.cell.cell : -1, p.cell ? p.cell.para : -1, p.offset]
+  return out.sort((a, b) => {
+    const x = key(a.at)
+    const y = key(b.at)
+    for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return x[i]! - y[i]!
+    return 0
+  })
+}
+
+/** Whether two positions are in the same paragraph (the same body paragraph, or the same paragraph of one cell). */
+export function sameParagraph(a: Pos, b: Pos): boolean {
+  return sameContainer(a, b) && paraIndex(a) === paraIndex(b)
+}
+
+/** The 누름틀 a position is in (its ends included), in the body or a table cell. */
+export function fieldAt(s: Session, p: Pos = s.selection.head): FieldInfo | null {
+  if (p.story || p.cell?.textBox) return null
+  const f = clickHereFields(s).find((x) => sameParagraph(x.at, p) && p.offset >= x.start && p.offset <= x.end)
+  return f ? { fieldId: f.fieldId, fieldType: 'clickhere', name: f.name, guide: f.guide, value: f.value, section: p.section, para: p.para, start: f.start, end: f.end, cell: p.cell } : null
 }
 
 function check(r: string, what: string): Record<string, unknown> {
@@ -88,7 +142,8 @@ export const insertHyperlink: Command<{ uri: string; text?: string }> = {
   id: 'insert:hyperlink',
   isEnabled: ({ session }) => {
     const [a, b] = ordered(session.selection)
-    return !a.story && sameContainer(a, b) && a.para === b.para
+    // One paragraph of the body or of a table cell; the engine has no link target in text boxes.
+    return !a.story && !a.cell?.textBox && sameParagraph(a, b)
   },
   run({ session }, { uri, text }) {
     const address = normalizeUri(uri)
@@ -148,14 +203,20 @@ export const removeHyperlink: Command = {
   },
 }
 
-/** Insert a 누름틀 at the caret (body text). */
+/** Insert a 누름틀 at the caret, in body text or a table cell. */
 export const insertField: Command<{ guide: string; memo?: string; name?: string }> = {
   id: 'insert:field',
-  isEnabled: ({ session }) => collapsed(session.selection) && inBody(session.selection.head),
+  isEnabled: ({ session }) => {
+    const p = session.selection.head
+    return collapsed(session.selection) && !p.story && !p.cell?.textBox
+  },
   run({ session }, { guide, memo = '', name = '' }) {
     const p = session.selection.head
     return session.edit('insert:field', () => {
-      const r = check(session.doc.raw.insertClickHereField(p.section, p.para, p.offset, guide, memo, name, true), 'insertClickHereField')
+      const raw = session.doc.raw
+      const r = p.cell
+        ? check(raw.insertClickHereFieldInCell(p.section, p.para, p.cell.control, p.cell.cell, p.cell.para, p.offset, false, guide, memo, name, true), 'insertClickHereFieldInCell')
+        : check(raw.insertClickHereField(p.section, p.para, p.offset, guide, memo, name, true), 'insertClickHereField')
       const q: Pos = { ...p, offset: Number(r.charOffset ?? p.offset) }
       return { anchor: q, head: q }
     })
@@ -170,7 +231,15 @@ export const removeField: Command = {
     const f = fieldAt(session)!
     const sel = session.selection
     return session.edit('field:remove', () => {
-      check(session.doc.raw.removeFieldAt(f.section, f.para, f.start), 'removeFieldAt')
+      const raw = session.doc.raw
+      // The engine removes the field together with what it holds; put the typed text back as plain text.
+      if (f.cell) check(raw.removeFieldAtInCell(f.section, f.para, f.cell.control, f.cell.cell, f.cell.para, f.start, false), 'removeFieldAtInCell')
+      else check(raw.removeFieldAt(f.section, f.para, f.start), 'removeFieldAt')
+      if (f.value) {
+        const at: Pos = { section: f.section, para: f.para, offset: f.start, ...(f.cell ? { cell: f.cell } : {}) }
+        const end = session.text.insert(at, f.value)
+        return { anchor: end, head: end }
+      }
       return sel
     })
   },

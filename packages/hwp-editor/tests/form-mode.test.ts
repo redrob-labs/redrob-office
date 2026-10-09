@@ -3,7 +3,7 @@
  */
 import { beforeAll, describe, expect, it } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
-import { CommandBus, EditorView, Session, formFields, type Pos } from '../src'
+import { CommandBus, EditorView, Session, formFieldAt, formFields, type Pos } from '../src'
 
 beforeAll(() => initHwpCoreNode())
 const P = (offset: number): Pos => ({ section: 0, para: 0, offset })
@@ -63,5 +63,45 @@ describe('양식 모드 (form mode, task 2.6)', () => {
     s.select({ anchor: P(0), head: P(0) })
     view.run('edit:insert-text', { text: '1. ' })
     expect(text(s).startsWith('1. 성명')).toBe(true)
+  })
+
+  it('a form laid out in a table: Tab goes through body and cell fields in reading order, and typing stays in the field', () => {
+    const { s, view } = form()
+    // A 2×2 table after the body paragraph, with a field in cells 0 and 3.
+    // End the paragraph with text, so the table goes after the last body field.
+    s.text.insert(P(text(s).length), ' 끝')
+    const end = text(s).length
+    s.select({ anchor: P(end), head: P(end) })
+    view.run('table:create', { rows: 2, cols: 2 })
+    const h = s.selection.head
+    const cell = (c: number, offset = 0): Pos => ({ section: 0, para: h.para, offset, cell: { control: h.cell!.control, cell: c, para: 0 } })
+    for (const c of [3, 0]) {
+      s.select({ anchor: cell(c), head: cell(c) })
+      view.run('insert:field', { guide: `칸${c}`, name: `cell${c}` })
+    }
+    expect(formFields(s).map((f) => f.name)).toEqual(['who', 'where', 'cell0', 'cell3'])
+
+    view.run('view:form-mode')
+    s.select({ anchor: P(0), head: P(0) })
+    const names: string[] = []
+    for (let i = 0; i < 5; i++) {
+      key(view, 'Tab')
+      names.push(formFieldAt(s, s.selection.anchor)!.name)
+    }
+    expect(names).toEqual(['who', 'where', 'cell0', 'cell3', 'who'])
+
+    // In the cell field typing goes in; outside it in the same cell nothing changes.
+    key(view, 'Tab')
+    key(view, 'Tab')
+    expect(s.selection.head.cell?.cell).toBe(0)
+    view.run('edit:insert-text', { text: '김철수' })
+    const inCell = () => s.text.text(cell(0))
+    expect(inCell()).toContain('김철수')
+    const c1 = cell(1)
+    s.select({ anchor: c1, head: c1 })
+    view.run('edit:insert-text', { text: 'X' })
+    expect(s.text.text(cell(1))).not.toContain('X')
+    key(view, 'Tab', true)
+    expect(s.selection.head.cell?.cell).toBe(0)
   })
 })
