@@ -6,6 +6,9 @@ out/
 .DS_Store
 Thumbs.db
 coverage/
+# The Hangul command coverage list is source, not a test-coverage report: the
+# hwp-editor and hangul tests read it.
+!.kiro/specs/hangul-editor/coverage/
 *.tsbuildinfo
 .env
 .env.*

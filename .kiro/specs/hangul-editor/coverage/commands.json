@@ -1,0 +1,1767 @@
+{
+  "generatedFrom": "https://github.com/edwardkim/rhwp v0.8.7 (1a76570e833917d15817415a53c09ad61ab3203f) rhwp-studio/src/command",
+  "note": "Baseline from rhwp-studio. Reconcile with 한글 2024 menus on the runner: set hancom2024 per row; add missing 한글 2024 items with source \"hancom2024\".",
+  "count": 176,
+  "commands": [
+    {
+      "id": "edit:undo",
+      "group": "edit",
+      "ko": "되돌리기",
+      "en": "Undo",
+      "shortcut": "Ctrl+Z",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:redo",
+      "group": "edit",
+      "ko": "다시 실행",
+      "en": "Redo",
+      "shortcut": "Ctrl+Shift+Z",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:cut",
+      "group": "edit",
+      "ko": "오려 두기",
+      "en": "Cut",
+      "shortcut": "Ctrl+X",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:copy",
+      "group": "edit",
+      "ko": "복사하기",
+      "en": "Copy",
+      "shortcut": "Ctrl+C",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:paste",
+      "group": "edit",
+      "ko": "붙이기",
+      "en": "Paste",
+      "shortcut": "Ctrl+V",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:format-copy",
+      "group": "edit",
+      "ko": "모양 복사",
+      "en": "Format Painter",
+      "shortcut": "Alt+C",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:format-paste",
+      "group": "edit",
+      "ko": "모양 붙여넣기",
+      "en": "Paste Format",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:delete",
+      "group": "edit",
+      "ko": "지우기",
+      "en": "Delete",
+      "shortcut": "Ctrl+E",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:select-all",
+      "group": "edit",
+      "ko": "모두 선택",
+      "en": "Select All",
+      "shortcut": "Ctrl+A",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:find",
+      "group": "edit",
+      "ko": "찾기(F)",
+      "en": "Find(F)",
+      "shortcut": "Ctrl+F",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:find-replace",
+      "group": "edit",
+      "ko": "찾아 바꾸기(E)",
+      "en": "Replace(E)",
+      "shortcut": "Ctrl+F2",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:find-again",
+      "group": "edit",
+      "ko": "다시 찾기(X)",
+      "en": "Find Again(X)",
+      "shortcut": "Ctrl+L",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:compare-documents",
+      "group": "edit",
+      "ko": "문서 비교",
+      "en": "Compare Documents",
+      "shortcut": "Alt+Shift+V",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:document-history",
+      "group": "edit",
+      "ko": "문서 이력 관리",
+      "en": "Document History",
+      "shortcut": "Ctrl+Shift+H",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "edit:goto",
+      "group": "edit",
+      "ko": "찾아가기(G)",
+      "en": "Go To(G)",
+      "shortcut": "Alt+G",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "field:edit",
+      "group": "field",
+      "ko": "누름틀 고치기(E)...",
+      "en": "Edit Field(E)...",
+      "shortcut": "Ctrl+M,K",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "field:remove",
+      "group": "field",
+      "ko": "누름틀 지우기(J)",
+      "en": "Delete Field(J)",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:new-doc",
+      "group": "file",
+      "ko": "새로 만들기",
+      "en": "New",
+      "shortcut": "Alt+N",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:open",
+      "group": "file",
+      "ko": "열기",
+      "en": "Open",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:open-recent",
+      "group": "file",
+      "ko": "최근 문서 열기",
+      "en": "Open Recent Document",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:clear-recent",
+      "group": "file",
+      "ko": "최근 문서 목록 지우기",
+      "en": "Clear Recent Documents",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:save",
+      "group": "file",
+      "ko": "저장",
+      "en": "Save",
+      "shortcut": "Ctrl+S",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:save-as",
+      "group": "file",
+      "ko": "다른 이름으로 저장",
+      "en": "Save As",
+      "shortcut": "Ctrl+Shift+S",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:save-as-hwp",
+      "group": "file",
+      "ko": "HWP 형식으로 저장",
+      "en": "Save as HWP",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:save-as-hwpx",
+      "group": "file",
+      "ko": "HWPX 형식으로 저장",
+      "en": "Save as HWPX",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:page-setup",
+      "group": "file",
+      "ko": "편집 용지",
+      "en": "Page Setup",
+      "shortcut": "F7",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:print-to-pdf",
+      "group": "file",
+      "ko": "PDF로 저장…",
+      "en": "Save as PDF…",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:export-html",
+      "group": "file",
+      "ko": "HTML로 내보내기",
+      "en": "Export as HTML",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:export-doc",
+      "group": "file",
+      "ko": "Word 문서(.doc)로 내보내기",
+      "en": "Export as Word document (.doc)",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:print",
+      "group": "file",
+      "ko": "인쇄",
+      "en": "Print",
+      "shortcut": "Ctrl+P",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "file:about",
+      "group": "file",
+      "ko": "제품 정보",
+      "en": "About",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:bold",
+      "group": "format",
+      "ko": "굵게",
+      "en": "Bold",
+      "shortcut": "Ctrl+B",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:italic",
+      "group": "format",
+      "ko": "기울임",
+      "en": "Italic",
+      "shortcut": "Ctrl+I",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:underline",
+      "group": "format",
+      "ko": "밑줄",
+      "en": "Underline",
+      "shortcut": "Ctrl+U",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:strikethrough",
+      "group": "format",
+      "ko": "취소선",
+      "en": "Strikethrough",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:emboss",
+      "group": "format",
+      "ko": "양각",
+      "en": "Emboss",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:engrave",
+      "group": "format",
+      "ko": "음각",
+      "en": "Engrave",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:outline",
+      "group": "format",
+      "ko": "외곽선",
+      "en": "Outline",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:superscript",
+      "group": "format",
+      "ko": "위 첨자",
+      "en": "Superscript",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:subscript",
+      "group": "format",
+      "ko": "아래 첨자",
+      "en": "Subscript",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:line-spacing",
+      "group": "format",
+      "ko": "줄 간격",
+      "en": "Line spacing",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:line-spacing-decrease",
+      "group": "format",
+      "ko": "줄 간격 줄이기",
+      "en": "Decrease Line Spacing",
+      "shortcut": "Alt+Shift+A",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:line-spacing-increase",
+      "group": "format",
+      "ko": "줄 간격 늘리기",
+      "en": "Increase Line Spacing",
+      "shortcut": "Alt+Shift+Z",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:font-size-increase",
+      "group": "format",
+      "ko": "글꼴 크기 크게",
+      "en": "Increase Font Size",
+      "shortcut": "Alt+Shift+E",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:font-size-decrease",
+      "group": "format",
+      "ko": "글꼴 크기 작게",
+      "en": "Decrease Font Size",
+      "shortcut": "Alt+Shift+R",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:char-ratio-decrease",
+      "group": "format",
+      "ko": "장평 줄이기",
+      "en": "Narrow Characters",
+      "shortcut": "Shift+Alt+J",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:char-ratio-increase",
+      "group": "format",
+      "ko": "장평 늘리기",
+      "en": "Widen Characters",
+      "shortcut": "Shift+Alt+K",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:char-spacing-decrease",
+      "group": "format",
+      "ko": "자간 줄이기",
+      "en": "Condense Character Spacing",
+      "shortcut": "Shift+Alt+N",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:char-spacing-increase",
+      "group": "format",
+      "ko": "자간 늘리기",
+      "en": "Expand Character Spacing",
+      "shortcut": "Shift+Alt+W",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:align-left",
+      "group": "format",
+      "ko": "왼쪽 정렬",
+      "en": "Align Left",
+      "shortcut": "Ctrl+Shift+L",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:align-center",
+      "group": "format",
+      "ko": "가운데 정렬",
+      "en": "Center",
+      "shortcut": "Alt+Shift+C",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:align-right",
+      "group": "format",
+      "ko": "오른쪽 정렬",
+      "en": "Align Right",
+      "shortcut": "Alt+Shift+H",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:align-justify",
+      "group": "format",
+      "ko": "양쪽 정렬",
+      "en": "Justify",
+      "shortcut": "Ctrl+Shift+M",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:align-distribute",
+      "group": "format",
+      "ko": "배분 정렬",
+      "en": "Distribute",
+      "shortcut": "Alt+Shift+D",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:align-split",
+      "group": "format",
+      "ko": "나눔 정렬",
+      "en": "Justify Spaces",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:char-shape",
+      "group": "format",
+      "ko": "글자 모양",
+      "en": "Character Formatting",
+      "shortcut": "Alt+L",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:para-shape",
+      "group": "format",
+      "ko": "문단 모양",
+      "en": "Paragraph Formatting",
+      "shortcut": "Alt+T",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:apply-style",
+      "group": "format",
+      "ko": "스타일 적용",
+      "en": "Apply Style",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:toggle-numbering",
+      "group": "format",
+      "ko": "문단 번호 토글",
+      "en": "Toggle Numbering",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:toggle-bullet",
+      "group": "format",
+      "ko": "글머리표 토글",
+      "en": "Toggle Bullets",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:apply-bullet",
+      "group": "format",
+      "ko": "글머리표 적용",
+      "en": "Apply Bullets",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:para-num-shape",
+      "group": "format",
+      "ko": "문단 번호 모양",
+      "en": "Numbering Style",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:bullet-shape",
+      "group": "format",
+      "ko": "글머리표 모양",
+      "en": "Bullet Style",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:level-increase",
+      "group": "format",
+      "ko": "한 수준 증가",
+      "en": "Promote One Level",
+      "shortcut": "Ctrl+Num -",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:level-decrease",
+      "group": "format",
+      "ko": "한 수준 감소",
+      "en": "Demote One Level",
+      "shortcut": "Ctrl+Num +",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:style-dialog",
+      "group": "format",
+      "ko": "스타일",
+      "en": "Style",
+      "shortcut": "F6",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "format:object-properties",
+      "group": "format",
+      "ko": "개체 속성",
+      "en": "Object Properties",
+      "shortcut": "P",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:hyperlink",
+      "group": "insert",
+      "ko": "하이퍼링크",
+      "en": "Hyperlink",
+      "shortcut": "Ctrl+K+H",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "hyperlink:edit",
+      "group": "hyperlink",
+      "ko": "하이퍼링크 고치기",
+      "en": "Edit Hyperlink",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "hyperlink:remove",
+      "group": "hyperlink",
+      "ko": "하이퍼링크 지우기",
+      "en": "Delete Hyperlink",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:shape",
+      "group": "insert",
+      "ko": "도형",
+      "en": "Shape",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:image",
+      "group": "insert",
+      "ko": "그림",
+      "en": "Picture",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:textbox",
+      "group": "insert",
+      "ko": "글상자",
+      "en": "Text Box",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:equation",
+      "group": "insert",
+      "ko": "수식",
+      "en": "Equation",
+      "shortcut": "Ctrl+M,M",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:field",
+      "group": "insert",
+      "ko": "필드 입력",
+      "en": "Insert Field",
+      "shortcut": "Ctrl+K+E",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:footnote",
+      "group": "insert",
+      "ko": "각주",
+      "en": "Footnote",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:endnote",
+      "group": "insert",
+      "ko": "미주",
+      "en": "Endnote",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:note-close",
+      "group": "insert",
+      "ko": "닫기",
+      "en": "Close",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:endnote-shape",
+      "group": "insert",
+      "ko": "미주 모양",
+      "en": "Endnote Styles",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:symbols",
+      "group": "insert",
+      "ko": "문자표",
+      "en": "Symbol",
+      "shortcut": "Alt+F10",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:bookmark",
+      "group": "insert",
+      "ko": "책갈피",
+      "en": "Bookmark",
+      "shortcut": "Ctrl+K,B",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:picture-props",
+      "group": "insert",
+      "ko": "개체 속성",
+      "en": "Object Properties",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:chart-data-edit",
+      "group": "insert",
+      "ko": "차트 데이터 편집",
+      "en": "Edit chart data",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:equation-edit",
+      "group": "insert",
+      "ko": "수식 편집",
+      "en": "Edit equation",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:caption-toggle",
+      "group": "insert",
+      "ko": "캡션 넣기",
+      "en": "Insert Caption",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:arrange-front",
+      "group": "insert",
+      "ko": "맨 앞으로",
+      "en": "Bring to Front",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:arrange-forward",
+      "group": "insert",
+      "ko": "앞으로",
+      "en": "Bring Forward",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:arrange-backward",
+      "group": "insert",
+      "ko": "뒤로",
+      "en": "Send Backward",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:arrange-back",
+      "group": "insert",
+      "ko": "맨 뒤로",
+      "en": "Send to Back",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:picture-delete",
+      "group": "insert",
+      "ko": "개체 지우기",
+      "en": "Delete Object",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:group-shapes",
+      "group": "insert",
+      "ko": "개체 묶기",
+      "en": "Group Objects",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:ungroup-shapes",
+      "group": "insert",
+      "ko": "개체 풀기",
+      "en": "Ungroup Objects",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:rotate-cw",
+      "group": "insert",
+      "ko": "오른쪽 90° 회전",
+      "en": "Rotate Right 90°",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:rotate-ccw",
+      "group": "insert",
+      "ko": "왼쪽 90° 회전",
+      "en": "Rotate Left 90°",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:flip-horz",
+      "group": "insert",
+      "ko": "좌우 대칭",
+      "en": "Flip Horizontal",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "insert:flip-vert",
+      "group": "insert",
+      "ko": "상하 대칭",
+      "en": "Flip Vertical",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:setup",
+      "group": "page",
+      "ko": "편집 용지",
+      "en": "Page Setup",
+      "shortcut": "F7",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:page-border",
+      "group": "page",
+      "ko": "쪽 테두리/배경",
+      "en": "Page Borders/Background",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:header-create",
+      "group": "page",
+      "ko": "머리말",
+      "en": "Header",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:footer-create",
+      "group": "page",
+      "ko": "꼬리말",
+      "en": "Footer",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:headerfooter-close",
+      "group": "page",
+      "ko": "머리말/꼬리말 닫기",
+      "en": "Close Header/Footer",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:headerfooter-delete",
+      "group": "page",
+      "ko": "머리말/꼬리말 지우기",
+      "en": "Delete Header/Footer",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:headerfooter-prev",
+      "group": "page",
+      "ko": "이전 머리말/꼬리말",
+      "en": "Previous Header/Footer",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:headerfooter-next",
+      "group": "page",
+      "ko": "다음 머리말/꼬리말",
+      "en": "Next Header/Footer",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:new-page-num",
+      "group": "page",
+      "ko": "새 번호로 시작",
+      "en": "Restart Numbering",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:hide-headerfooter",
+      "group": "page",
+      "ko": "머리말/꼬리말 현재 쪽 감추기",
+      "en": "Hide Header/Footer on This Page",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:hide-current",
+      "group": "page",
+      "ko": "현재 쪽만 감추기",
+      "en": "Hide on Current Page Only",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:insert-field-pagenum",
+      "group": "page",
+      "ko": "쪽 번호 삽입",
+      "en": "Insert Page Number",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:insert-field-totalpage",
+      "group": "page",
+      "ko": "총 쪽수 삽입",
+      "en": "Insert Total Pages",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:insert-field-filename",
+      "group": "page",
+      "ko": "파일 이름 삽입",
+      "en": "Insert File Name",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:apply-hf-template",
+      "group": "page",
+      "ko": "머리말/꼬리말 마당",
+      "en": "Header/Footer Template",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:break",
+      "group": "page",
+      "ko": "쪽 나누기",
+      "en": "Page Break",
+      "shortcut": "Ctrl+Enter",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:hide",
+      "group": "page",
+      "ko": "감추기",
+      "en": "Hide",
+      "shortcut": "Ctrl+M,S",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:column-break",
+      "group": "page",
+      "ko": "단 나누기",
+      "en": "Column Break",
+      "shortcut": "Ctrl+Shift+Enter",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:col-1",
+      "group": "page",
+      "ko": "단 - 하나",
+      "en": "Columns - One",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:col-2",
+      "group": "page",
+      "ko": "단 - 둘",
+      "en": "Columns - Two",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:col-3",
+      "group": "page",
+      "ko": "단 - 셋",
+      "en": "Columns - Three",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:col-left",
+      "group": "page",
+      "ko": "단 - 왼쪽",
+      "en": "Columns - Left",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:col-right",
+      "group": "page",
+      "ko": "단 - 오른쪽",
+      "en": "Columns - Right",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:col-settings",
+      "group": "page",
+      "ko": "다단 설정",
+      "en": "Column Settings",
+      "shortcut": "Ctrl+Alt+Enter",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "page:section-settings",
+      "group": "page",
+      "ko": "구역 설정",
+      "en": "Section Settings",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:create",
+      "group": "table",
+      "ko": "표 만들기",
+      "en": "Insert Table",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:cell-props",
+      "group": "table",
+      "ko": "표/셀 속성",
+      "en": "Table/Cell Properties",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:border-each",
+      "group": "table",
+      "ko": "각 셀마다 적용(E)...",
+      "en": "Apply to Each Cell(E)...",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:border-one",
+      "group": "table",
+      "ko": "하나의 셀처럼 적용(Z)...",
+      "en": "Apply as One Cell(Z)...",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:insert-row-col",
+      "group": "table",
+      "ko": "줄/칸 추가하기(I)...",
+      "en": "Insert Rows/Columns(I)...",
+      "shortcut": "Alt+Enter",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:delete-row-col",
+      "group": "table",
+      "ko": "줄/칸 지우기(E)...",
+      "en": "Delete Rows/Columns(E)...",
+      "shortcut": "Alt+Delete",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:insert-row-above",
+      "group": "table",
+      "ko": "위쪽에 줄 추가하기",
+      "en": "Insert Row Above",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:insert-row-below",
+      "group": "table",
+      "ko": "아래쪽에 줄 추가하기",
+      "en": "Insert Row Below",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:insert-col-left",
+      "group": "table",
+      "ko": "왼쪽에 칸 추가하기",
+      "en": "Insert Column Left",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:insert-col-right",
+      "group": "table",
+      "ko": "오른쪽에 칸 추가하기",
+      "en": "Insert Column Right",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:delete-row",
+      "group": "table",
+      "ko": "줄 지우기",
+      "en": "Delete Row",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:delete-col",
+      "group": "table",
+      "ko": "칸 지우기",
+      "en": "Delete Column",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:cell-split",
+      "group": "table",
+      "ko": "셀 나누기",
+      "en": "Split Cells",
+      "shortcut": "S",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:cell-merge",
+      "group": "table",
+      "ko": "셀 합치기",
+      "en": "Merge Cells",
+      "shortcut": "M",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:transpose-copy",
+      "group": "table",
+      "ko": "행/열 바꿈 복사",
+      "en": "Copy Transposed",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:transpose-paste",
+      "group": "table",
+      "ko": "행/열 바꿈 붙여넣기",
+      "en": "Paste Transposed",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:split",
+      "group": "table",
+      "ko": "표 나누기",
+      "en": "Split Table",
+      "shortcut": "Ctrl+M,A",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:attach",
+      "group": "table",
+      "ko": "표 붙이기",
+      "en": "Attach Tables",
+      "shortcut": "Ctrl+M,Z",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:delete",
+      "group": "table",
+      "ko": "표 지우기",
+      "en": "Delete Table",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:caption-toggle",
+      "group": "table",
+      "ko": "캡션 넣기",
+      "en": "Insert Caption",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:cell-height-equal",
+      "group": "table",
+      "ko": "셀 높이를 같게",
+      "en": "Distribute Rows Evenly",
+      "shortcut": "H",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:cell-width-equal",
+      "group": "table",
+      "ko": "셀 너비를 같게",
+      "en": "Distribute Columns Evenly",
+      "shortcut": "W",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:formula",
+      "group": "table",
+      "ko": "계산식(F)...",
+      "en": "Formula(F)...",
+      "shortcut": "Ctrl+M,F",
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:block-formula",
+      "group": "table",
+      "ko": "블록 계산식",
+      "en": "Block Formula",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:thousand-sep",
+      "group": "table",
+      "ko": "1,000 단위 구분 쉼표",
+      "en": "Thousands separator",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:decimal-add",
+      "group": "table",
+      "ko": "자릿점 넣기",
+      "en": "Add Thousands Separators",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "table:decimal-remove",
+      "group": "table",
+      "ko": "자릿점 빼기",
+      "en": "Remove Thousands Separators",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "tool:options",
+      "group": "tool",
+      "ko": "환경 설정",
+      "en": "Preferences",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:zoom-in",
+      "group": "view",
+      "ko": "확대",
+      "en": "Zoom In",
+      "shortcut": "Ctrl++",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:zoom-out",
+      "group": "view",
+      "ko": "축소",
+      "en": "Zoom Out",
+      "shortcut": "Ctrl+-",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:zoom-dialog",
+      "group": "view",
+      "ko": "화면 확대/축소...",
+      "en": "Zoom...",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:zoom-fit-page",
+      "group": "view",
+      "ko": "쪽 맞춤",
+      "en": "Fit Page",
+      "shortcut": "Ctrl+G,P",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:zoom-fit-width",
+      "group": "view",
+      "ko": "폭 맞춤",
+      "en": "Fit Width",
+      "shortcut": "Ctrl+G,W",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:form-mode",
+      "group": "view",
+      "ko": "양식 모드",
+      "en": "Form Mode",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:ctrl-mark",
+      "group": "view",
+      "ko": "조판 부호",
+      "en": "Formatting Marks",
+      "shortcut": "Ctrl+G,C",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:para-mark",
+      "group": "view",
+      "ko": "문단 부호",
+      "en": "Paragraph Marks",
+      "shortcut": "Ctrl+G,T",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:border-transparent",
+      "group": "view",
+      "ko": "투명 선",
+      "en": "Transparent Line",
+      "shortcut": "Alt+V,T",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:toggle-clip",
+      "group": "view",
+      "ko": "잘림 보기",
+      "en": "Show Overflow",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:toggle-grid",
+      "group": "view",
+      "ko": "격자 보기",
+      "en": "Show Grid",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:grid-settings",
+      "group": "view",
+      "ko": "격자 설정",
+      "en": "Grid Settings",
+      "shortcut": null,
+      "dialog": true,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:toolbox-basic",
+      "group": "view",
+      "ko": "기본",
+      "en": "Basic",
+      "shortcut": "Ctrl+F1",
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "view:toolbox-format",
+      "group": "view",
+      "ko": "서식",
+      "en": "Format",
+      "shortcut": null,
+      "dialog": null,
+      "source": "rhwp-studio",
+      "hancom2024": null
+    },
+    {
+      "id": "review:memo-insert",
+      "group": "review",
+      "ko": "메모 넣기",
+      "en": "Insert Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-delete",
+      "group": "review",
+      "ko": "메모 지우기",
+      "en": "Delete Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-next",
+      "group": "review",
+      "ko": "다음 메모",
+      "en": "Next Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-previous",
+      "group": "review",
+      "ko": "이전 메모",
+      "en": "Previous Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-show",
+      "group": "review",
+      "ko": "메모 보이기/숨기기",
+      "en": "Show/Hide Memos",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:track-changes",
+      "group": "review",
+      "ko": "변경 내용 추적",
+      "en": "Track Changes",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-accept",
+      "group": "review",
+      "ko": "변경 내용 적용",
+      "en": "Accept Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-reject",
+      "group": "review",
+      "ko": "변경 내용 취소",
+      "en": "Reject Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-accept-all",
+      "group": "review",
+      "ko": "모든 변경 내용 적용",
+      "en": "Accept All Changes",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-reject-all",
+      "group": "review",
+      "ko": "모든 변경 내용 취소",
+      "en": "Reject All Changes",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-next",
+      "group": "review",
+      "ko": "다음 변경 내용",
+      "en": "Next Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-previous",
+      "group": "review",
+      "ko": "이전 변경 내용",
+      "en": "Previous Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:show-markup",
+      "group": "review",
+      "ko": "변경 내용 표시",
+      "en": "Show Markup",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    }
+  ]
+}
