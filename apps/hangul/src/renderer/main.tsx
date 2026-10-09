@@ -6,8 +6,13 @@ import type { UiTheme } from '../shared/ipc'
 import '@genoffice/ui/theme.css'
 import '@genoffice/ui/preflight.css'
 import '@genoffice/ui/tokens.css'
+import '@genoffice/ui/screentip.css'
+import '@genoffice/ui/color-picker.css'
+import '@genoffice/ui/dropdown.css'
 import './styles.css'
-import { applyUiTheme } from '@genoffice/ui'
+import { applyUiTheme, installScreenTips } from '@genoffice/ui'
+
+installScreenTips()
 
 const applyTheme = (theme: UiTheme): void => applyUiTheme(theme)
 
