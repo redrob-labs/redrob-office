@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 import {
   AgentLoop,
+  WorkSessionTracker,
   composeSkills,
   IPC_STREAM_SILENCE_TIMEOUT_MS,
   type AgentImage,
@@ -1285,6 +1286,8 @@ export function AiPanel({
     accessRef.current = access
     loopRef.current = new AgentLoop({
       transport: createElectronTransport(() => settingsRef.current),
+      // the console's insights: facts about this chat, never its text (see agent-core work-session.ts)
+      session: new WorkSessionTracker((message) => window.slidesApi.insightsEvent?.(message)),
       systemSuffix: aiLangDirective,
       skill: composeSkills('slides+files', '', [
         createSlidesSkill(access),

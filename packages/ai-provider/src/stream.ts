@@ -1,6 +1,7 @@
 import type { AgentMessage, AgentToolDef } from '@genoffice/agent-core'
 import type { StreamCallbacks } from './protocols/shared'
-import { redrobEngineStream } from './redrob-engine'
+import { engineCustody } from './engine-custody'
+import { redrobEngineStream, type RedrobEngineAuth } from './redrob-engine'
 import type { AiProviderConfig, AiProviderId } from './types'
 
 export { AiCreditsError, sseLines } from './protocols/shared'
@@ -23,6 +24,11 @@ export async function streamForProvider(
   tools: AgentToolDef[],
   maxTokens: number,
   cb: StreamCallbacks,
+  session?: string,
 ): Promise<void> {
-  await redrobEngineStream({ apiKey: config.apiKey }, system, messages, tools, maxTokens, cb)
+  const held = engineCustody()
+  // With custody the engine holds the key and makes the call; a failure to start it propagates, so the
+  // turn fails visibly instead of falling back to a key Office should not have.
+  const auth: RedrobEngineAuth = held ? { engine: await held.target(), session } : { apiKey: config.apiKey }
+  await redrobEngineStream(auth, system, messages, tools, maxTokens, cb)
 }

@@ -1,4 +1,5 @@
-import { redrobEngineChat } from './redrob-engine'
+import { engineCustody } from './engine-custody'
+import { redrobEngineChat, redrobEngineUnavailableMessage, type RedrobEngineAuth } from './redrob-engine'
 import type { AiChatResponse, AiProviderConfig, AiProviderId } from './types'
 
 /**
@@ -17,6 +18,18 @@ export async function chatForProvider(
   system: string,
   user: string,
   signal?: AbortSignal,
+  session?: string,
 ): Promise<AiChatResponse> {
-  return redrobEngineChat({ apiKey: config.apiKey }, system, user, signal)
+  const held = engineCustody()
+  let auth: RedrobEngineAuth = { apiKey: config.apiKey }
+  // A key in the request is one the person just typed and is testing in Settings before saving it; it
+  // is tried as typed. Every other turn carries none, and goes through the engine.
+  if (held && !config.apiKey.trim()) {
+    try {
+      auth = { engine: await held.target(), session }
+    } catch (error) {
+      return { ok: false, error: redrobEngineUnavailableMessage(error instanceof Error ? error.message : String(error)) }
+    }
+  }
+  return redrobEngineChat(auth, system, user, signal)
 }

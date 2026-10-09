@@ -129,6 +129,7 @@ import { createUniver } from './create-univer'
 
 import {
   AgentLoop,
+  WorkSessionTracker,
   COMPLETED_VIA_TOOLS_TEXT,
   composeSkills,
   type AgentImage,
@@ -1064,6 +1065,8 @@ export function App(): React.JSX.Element {
   if (!agentLoopRef.current) {
     agentLoopRef.current = new AgentLoop({
       transport: createElectronTransport(() => aiSettingsRef.current!),
+      // the console's insights: facts about this chat, never its text (see agent-core work-session.ts)
+      session: new WorkSessionTracker((message) => window.desktopApi.insightsEvent?.(message)),
       systemSuffix: aiLangDirective,
       skill: composeSkills('sheets+files', '', [
         createWorkbookSkill(sheetsSkillDeps()),
@@ -1244,7 +1247,7 @@ export function App(): React.JSX.Element {
     // Genspark's key never lands in the settings file; the main process injects
     // it from the gsk login state. When logged out, requests return an error
     // guiding sign-in — not intercepted here.
-    return settings.provider === 'genspark' || !!config?.apiKey
+    return settings.provider === 'genspark' || !!config?.apiKey || settings.engineConnected === true
   }
 
   /** Image attachments read as base64 and sent multimodal with this user message

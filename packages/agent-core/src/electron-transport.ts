@@ -37,6 +37,8 @@ export interface IpcStreamStart<S> {
   system: string
   messages: AgentMessage[]
   tools: AgentToolDef[]
+  /** The work session's key (AgentStreamRequest.session); the main process turns it into the console's id. */
+  sessionKey?: string
 }
 
 /**
@@ -141,6 +143,7 @@ export function createIpcTransport<S>(options: IpcTransportOptions<S>): AgentTra
             system: request.system,
             messages: request.messages,
             tools: request.tools,
+            ...(request.session ? { sessionKey: request.session } : {}),
           }),
         ).catch((err: unknown) => {
           fail(err instanceof Error ? err.message : options.unknownErrorText())

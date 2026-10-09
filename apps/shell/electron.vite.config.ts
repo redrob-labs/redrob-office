@@ -6,7 +6,22 @@ export default defineConfig({
   // Bundle everything into the shell main (same policy as apps/docs): the
   // imported docs/sheets main modules are TS source with no build artifacts,
   // so externalizing them would break Node ESM resolution at runtime.
-  main: {},
+  main: {
+    build: {
+      // packaging ships out/** and no node_modules, so the work labeller is bundled like the editors are;
+      // only the native onnxruntime-node stays external (it ships under resources/node_modules)
+      externalizeDeps: { exclude: ['@redrob-labs/work-labeller'] },
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/main/index.ts'),
+          // the work classifier's utility process (src/main/insights/worker.ts)
+          'insights-worker': resolve(__dirname, 'src/main/insights/worker.ts'),
+        },
+        // a native addon: loaded from node_modules at runtime, never bundled
+        external: ['onnxruntime-node'],
+      },
+    },
+  },
   preload: {
     build: {
       rollupOptions: {

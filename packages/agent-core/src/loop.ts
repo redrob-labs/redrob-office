@@ -9,6 +9,7 @@ import type {
   AgentTransport,
   ToolExecution,
 } from './types'
+import type { AgentSessionObserver } from './work-session'
 
 export interface ToolExecutedEvent<TSnapshot> {
   call: AgentToolCall
@@ -63,6 +64,8 @@ export interface AgentRunOptions {
 
 export interface AgentLoopOptions<TSnapshot = unknown> {
   transport: AgentTransport
+  /** Insights: told of every run and reset, sees every event, and names the session on requests. */
+  session?: AgentSessionObserver
   skill: AgentSkill
   events?: AgentLoopEvents<TSnapshot>
   /** hard cap on model round-trips per run (default DEFAULT_MAX_TURNS) */
@@ -222,7 +225,35 @@ export class AgentLoop<TSnapshot = unknown> {
   private abortController: AbortController | null = null
 
   constructor(options: AgentLoopOptions<TSnapshot>) {
-    this.options = options
+    const observer = options.session?.events
+    if (!observer) {
+      this.options = options
+      return
+    }
+    // The observer sees each event after the app's own handler, so it can never change what the app sees.
+    const own = options.events ?? {}
+    this.options = {
+      ...options,
+      events: {
+        ...own,
+        onToolStart: (call) => {
+          own.onToolStart?.(call)
+          observer.onToolStart?.(call)
+        },
+        onToolExecuted: (event) => {
+          own.onToolExecuted?.(event)
+          observer.onToolExecuted?.(event)
+        },
+        onDone: (result) => {
+          own.onDone?.(result)
+          observer.onDone?.(result)
+        },
+        onError: (error, code) => {
+          own.onError?.(error, code)
+          observer.onError?.(error, code)
+        },
+      },
+    }
   }
 
   get busy(): boolean {
@@ -295,6 +326,7 @@ export class AgentLoop<TSnapshot = unknown> {
     const format =
       this.options.formatUserMessage ??
       ((instr: string, ctx: string) => (ctx ? `${instr}\n\n${ctx}` : instr))
+    this.options.session?.run(instruction, !!images?.length)
     const userMsg: AgentMessage = {
       role: 'user',
       text: format(instruction, context),
@@ -439,6 +471,7 @@ export class AgentLoop<TSnapshot = unknown> {
               { role: 'user', text: 'Compress the conversation above as instructed.' },
             ],
             tools: [],
+            ...this.sessionField(),
           },
           {
             onDelta: (t) => {
@@ -492,8 +525,14 @@ export class AgentLoop<TSnapshot = unknown> {
     this.handle?.cancel()
   }
 
+  private sessionField(): { session?: string } {
+    const key = this.options.session?.key()
+    return key ? { session: key } : {}
+  }
+
   /** drop the conversation (e.g. when a different document is opened) */
   reset(): void {
+    this.options.session?.reset()
     this.generation++
     this.abortController?.abort()
     this.handle?.cancel()
@@ -531,6 +570,7 @@ export class AgentLoop<TSnapshot = unknown> {
         messages: [...this.history],
         // a read-only run (Plan mode) is offered no tools, so it cannot change the artifact
         tools: this.finalizing || this.readOnlyRun ? [] : this.options.skill.tools,
+        ...this.sessionField(),
       },
       {
         onDelta: (text) => {

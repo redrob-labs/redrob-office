@@ -171,6 +171,8 @@ export interface HomeApi {
   openCloudProject(projectUrl: string): Promise<void>
   /** AI settings (userData/ai-settings.json, shared by every editor); the genspark key never appears here */
   getAiSettings(): Promise<AiSettings>
+  /** the work-label model's download state (main/insights): absent, downloading, ready or failed */
+  getInsightsStatus?(): Promise<InsightsStatus>
   /** persist AI settings; open editors pick the change up on their next settings read */
   setAiSettings(settings: AiSettings): Promise<void>
   /** provider catalog with each fixed endpoint's default base URL (empty for genspark/custom) */
@@ -372,3 +374,10 @@ export const PROJECT_CHANNELS = {
   moveFile: 'project:moveFile',
   timeline: 'project:timeline',
 } as const
+
+/** What Settings shows of the work-label model (main/insights/index.ts toStatus). */
+export type InsightsStatus =
+  | { state: 'absent' }
+  | { state: 'downloading'; percent: number | null }
+  | { state: 'ready' }
+  | { state: 'failed'; reason: string }

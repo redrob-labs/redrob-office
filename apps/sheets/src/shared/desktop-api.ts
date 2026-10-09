@@ -1,3 +1,4 @@
+import type { WorkSessionMessage } from '@genoffice/agent-core'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
 import type { FactsBridgeApi } from '@genoffice/facts'
 import { z } from 'zod'
@@ -2389,6 +2390,8 @@ export const aiSettingsInputSchema = z
     // rejects nonsense (this object is .strict(), so an omitted key here would
     // make the whole settings save fail)
     maxOutputTokens: z.number().int().positive().optional(),
+    // set by the main process from the engine (never stored); a renderer may hand settings back with it
+    engineConnected: z.boolean().optional(),
   })
   .strict()
 
@@ -2464,6 +2467,8 @@ export const aiStreamRequestSchema = z
     messages: z.array(agentMessageSchema).max(MAX_AI_MESSAGES),
     tools: z.array(agentToolDefSchema).max(MAX_AI_TOOLS).optional(),
     maxTokens: z.number().int().positive().optional(),
+    // the work session's key (agent-core WorkSessionTracker); an id, never text
+    sessionKey: z.string().regex(/^[A-Za-z0-9._:-]{1,128}$/).optional(),
   })
   .strict()
 
@@ -2746,6 +2751,8 @@ export interface DesktopApi extends Partial<OfficePrefsApi>, Partial<FactsBridge
   /// start a streaming AI call; deltas arrive via onAiStream with the same requestId
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
+  /** Work-label facts for the console's insights (agent-core WorkSessionTracker); fire and forget. */
+  insightsEvent(message: WorkSessionMessage): void
   /// Genspark account status (gsk login state); withEmail also returns the email
   /// (needs a network request, slower)
   aiGskStatus(withEmail?: boolean): Promise<GenSparkAccountStatus>
