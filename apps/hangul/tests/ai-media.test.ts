@@ -190,4 +190,36 @@ describe('attachments and context', () => {
     const bad = await run('edit_chart', { index: list[0]!.index, series: [] })
     expect(bad.isError).toBe(true)
   })
+
+  it('insert_chart adds a native chart after a paragraph, which read_chart reads back and both formats keep', async () => {
+    const s = session(['제1조 매출', '제2조 결론'])
+    const run = skill(s)
+    const afterId = s.doc.nodeIdAt(0, 0)!
+    const r = await run('insert_chart', { kind: 'column', title: '분기별 매출', categories: ['1분기', '2분기', '3분기'], series: [{ name: '2026', values: [12, 18, 15] }], afterId })
+    expect(r.isError, r.output).toBeFalsy()
+    const list = JSON.parse(s.doc.raw.listCharts()) as Array<{ index: number; section: number; paragraph: number }>
+    expect(list).toHaveLength(1)
+    expect(list[0]!.paragraph).toBe(1)
+    expect(r.output).toContain(`chart ${list[0]!.index}`)
+    expect(s.doc.text(0, 2)).toBe('제2조 결론')
+    const data = JSON.parse((await run('read_chart', { index: list[0]!.index })).output) as { labels: string[]; series: Array<{ name: string; values: string[] }> }
+    expect(data.labels).toEqual(['1분기', '2분기', '3분기'])
+    expect(data.series[0]!.values.map(Number)).toEqual([12, 18, 15])
+    for (const f of ['hwpx', 'hwp'] as const) {
+      const back = HwpCoreDocument.open(s.export(f))
+      expect((JSON.parse(back.raw.listCharts()) as unknown[]).length, f).toBe(1)
+    }
+    // one undo step takes it all away
+    s.undo()
+    expect((JSON.parse(s.doc.raw.listCharts()) as unknown[]).length).toBe(0)
+    expect(s.doc.text(0, 1)).toBe('제2조 결론')
+  })
+
+  it('insert_chart refuses made-up shapes: missing values, mismatched lengths, no categories', async () => {
+    const run = skill(session(['본문']))
+    expect((await run('insert_chart', { categories: ['a', 'b'], series: [{ values: [1] }] })).isError).toBe(true)
+    expect((await run('insert_chart', { categories: ['a', 'b'], series: [{ values: [1, null] }] })).isError).toBe(true)
+    expect((await run('insert_chart', { categories: [], series: [{ values: [] }] })).isError).toBe(true)
+    expect((await run('insert_chart', { categories: ['a'], series: [] })).isError).toBe(true)
+  })
 })

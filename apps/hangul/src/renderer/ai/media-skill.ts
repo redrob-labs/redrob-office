@@ -86,6 +86,44 @@ export function insertImageBytes(s: Session, bytes: Uint8Array, opts: { afterId?
   return { node }
 }
 
+const CHART_KINDS = ['column', 'bar', 'line', 'pie'] as const
+
+/**
+ * Insert a native 한글 chart as its own centred paragraph after a paragraph
+ * (the engine's chart creation, which both formats save). One undo step.
+ */
+export function insertChartAt(
+  s: Session,
+  spec: { kind?: unknown; title?: unknown; categories?: unknown; series?: unknown },
+  opts: { afterId?: number } = {},
+): { node: number | null; section: number; para: number } {
+  const kind = CHART_KINDS.includes(spec.kind as (typeof CHART_KINDS)[number]) ? (spec.kind as (typeof CHART_KINDS)[number]) : 'column'
+  const categories = Array.isArray(spec.categories) ? spec.categories.map((c) => String(c)) : []
+  const rawSeries = Array.isArray(spec.series) ? (spec.series as Array<{ name?: unknown; values?: unknown }>) : []
+  if (!categories.length) throw new NodeError('categories must not be empty')
+  if (!rawSeries.length) throw new NodeError('give at least one series')
+  const series = rawSeries.slice(0, kind === 'pie' ? 1 : rawSeries.length).map((x, i) => {
+    const values = Array.isArray(x.values) ? x.values.map((v) => (v === null || v === '' ? Number.NaN : Number(v))) : []
+    if (values.length !== categories.length) throw new NodeError(`series ${i + 1} needs one value per category (${categories.length})`)
+    if (values.some((v) => !Number.isFinite(v))) throw new NodeError(`series ${i + 1} has a value that is not a number; charts in 한글 need every value`)
+    return { name: String(x.name ?? `Series ${i + 1}`), values }
+  })
+  let node: number | null = null
+  let at = { section: 0, para: 0 }
+  s.group('ai:insert-chart', () => {
+    const anchor: Pos = opts.afterId !== undefined ? requirePos(s, opts.afterId) : { ...s.selection.head, offset: 0 }
+    if (anchor.cell) throw new NodeError('charts can be inserted after body paragraphs only')
+    const p = s.text.split({ ...anchor, offset: s.text.length(anchor) })
+    const r = s.doc.insertChart(p.section, p.para, 0, { kind, categories, series, ...(spec.title ? { title: String(spec.title) } : {}) })
+    s.doc.raw.applyParaFormat(p.section, r.paraIdx, JSON.stringify({ alignment: 'center' }))
+    node = s.doc.nodeIdAt(p.section, r.paraIdx)
+    at = { section: p.section, para: r.paraIdx }
+    const q = { section: p.section, para: r.paraIdx, offset: 1 }
+    return { anchor: q, head: q }
+  }, 'ai')
+  return { node, ...at }
+}
+
 /** Build a new .hwpx from restricted HTML with the engine's blank 한글 template. */
 export function buildHwpx(html: string): Uint8Array {
   const blocks = parseBlocks(html)
@@ -135,6 +173,25 @@ export const MEDIA_TOOLS = [
     inputSchema: { type: 'object', properties: { prompt: { type: 'string' }, aspectRatio: { type: 'string', enum: ['1:1', '4:3', '3:4', '16:9', '9:16'] } }, required: ['prompt'] },
   },
   {
+    name: 'insert_chart',
+    description:
+      'Insert a new native 한글 chart as its own centred paragraph after a paragraph (Node id). Data must be real: from the document, the user, or web_search results. Never make up numbers. Pie charts use only the first series.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        kind: { type: 'string', enum: ['column', 'bar', 'line', 'pie'], description: 'column (default), bar (horizontal), line, pie' },
+        title: { type: 'string' },
+        categories: { type: 'array', items: { type: 'string' }, description: 'labels on the category axis, or pie slices' },
+        series: {
+          type: 'array',
+          items: { type: 'object', properties: { name: { type: 'string' }, values: { type: 'array', items: { type: 'number' }, description: 'one per category' } }, required: ['values'] },
+        },
+        afterId: { type: 'integer', description: 'Node id; default the paragraph at the caret' },
+      },
+      required: ['categories', 'series'],
+    },
+  },
+  {
     name: 'read_chart',
     description: 'Read the data of a chart in the document: labels and series with their values. index comes from the chart list in the context.',
     inputSchema: { type: 'object', properties: { index: { type: 'integer' } }, required: ['index'] },
@@ -169,7 +226,7 @@ export const MEDIA_TOOLS = [
 const MEDIA_PROMPT = [
   '# Images, charts, attachments and new documents',
   '- Photos: image_search (English keywords), pick the best result, then insert_image with its imageUrl. Illustrations search cannot find: generate_image, then insert_image.',
-  '- Charts listed in the context can be read with read_chart and changed with edit_chart; data must come from the document or sources the user gave. New charts cannot be created yet: say so, and offer a table instead.',
+  '- Charts listed in the context can be read with read_chart and changed with edit_chart; insert_chart adds a new one. Data must come from the document, the user, or web_search results.',
   '- Attachments listed in the context: read text ones with read_attachment before using them; image attachments are already in the message, and insert_image can place one with attachmentIndex.',
   '- When the user wants the result as a NEW document (a summary, a report, a translation into a separate file), use create_document; default type hwpx.',
 ].join('\n')
@@ -225,6 +282,16 @@ export function createMediaSkill(deps: { getSession(): Session | null; api: Medi
           return { output: `Inserted the image as paragraph ${node}.`, mutated: true, summary: 'Inserted an image' }
         } catch (e) {
           return err(e instanceof Error ? e.message : String(e), 'insert image')
+        }
+      }
+      case 'insert_chart': {
+        if (!s) return err('The document is not open yet.', 'insert chart')
+        try {
+          const made = insertChartAt(s, input, Number.isInteger(input.afterId) ? { afterId: input.afterId as number } : {})
+          const index = charts(s).find((c) => c.section === made.section && c.paragraph === made.para)?.index
+          return { output: `Inserted the chart as paragraph ${made.node}${index === undefined ? '' : `; it is chart ${index}, for read_chart and edit_chart`}.`, mutated: true, summary: 'Inserted a chart' }
+        } catch (e) {
+          return err(e instanceof Error ? e.message : String(e), 'insert chart')
         }
       }
       case 'read_chart': {

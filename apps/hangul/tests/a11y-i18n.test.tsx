@@ -231,7 +231,7 @@ describe('string tables (task 2.5)', () => {
     // The product name and the Hancom attribution are the same in both by design.
     const same = Object.keys(en).filter((k) => ko[k] === en[k] && /[A-Za-z]{3}/.test(en[k]!))
     // Number-format samples (I, II, III; A, B, C) read the same in every language.
-    expect(same.filter((k) => !['panelTitle', 'nextAttribution'].includes(k) && !/^next(Fmt|Num)/.test(k))).toEqual([])
+    expect(same.filter((k) => !['panelTitle', 'nextAttribution', 'nextRedrobPanel', 'nextGroupRedrob'].includes(k) && !/^next(Fmt|Num)/.test(k))).toEqual([])
   })
 })
 
