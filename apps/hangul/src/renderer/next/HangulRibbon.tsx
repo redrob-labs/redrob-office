@@ -12,7 +12,7 @@ import { Children, Fragment, isValidElement, useEffect, useLayoutEffect, useRef,
 import type { ReactElement, ReactNode } from 'react'
 import type { EditorView } from '@genoffice/hwp-editor'
 import { FONT_SIZE_STEPS, copy, paste, styleAt, styleList } from '@genoffice/hwp-editor'
-import { ColorPicker, Dropdown, Icon, TabbedPanels, Toolbar, ToolbarButton, useDismissablePopover } from '@genoffice/ui'
+import { ColorPicker, Dropdown, Icon, RedrobMark, TabbedPanels, Toolbar, ToolbarButton, useDismissablePopover } from '@genoffice/ui'
 import type { Lang } from '@genoffice/i18n'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { useI18n } from '../i18n/locale'
@@ -44,6 +44,14 @@ interface RibbonProps {
   onCommand?: (id: string) => void
   /** Tab shown first (tests, and reopening the ribbon where it was). */
   initialTab?: RibbonTab
+  /** The Redrob panel's open state and its toggle, as in Docs' ribbon. */
+  panel?: { open: boolean; toggle(): void }
+}
+
+/** Redrob AI: opens and closes the Redrob panel (Ctrl+J). */
+function RedrobButton({ panel, size }: { panel: NonNullable<RibbonProps['panel']>; size: 'sm' | 'lg' }): React.JSX.Element {
+  const { t } = useI18n()
+  return <ToolbarButton label={t('nextRedrobPanel')} icon={<RedrobMark size={size === 'lg' ? 22 : 16} />} size={size} pressed={panel.open} shortcut="Ctrl+J" keepFocus={false} onClick={() => panel.toggle()} />
 }
 
 /** A glyph for commands the icon set has no picture for (자간, 장평 …), e.g. "자+". */
@@ -560,6 +568,11 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
             {button('view:zoom-fit-page', RibbonIcon.fitPage())}
           </Group>
         ) : null}
+        {active === 'view' && props.panel ? (
+          <Group label={t('nextGroupRedrob')}>
+            <RedrobButton panel={props.panel} size="lg" />
+          </Group>
+        ) : null}
         {active === 'view' ? (
           <Group label={t('nextGroupForm')}>{button('view:form-mode', <Icon name="checklist" size={16} />, { toggle: true, size: 'lg' })}</Group>
         ) : null}
@@ -629,6 +642,7 @@ export function HangulSimpleToolbar(props: RibbonProps): React.JSX.Element {
       {button('format:align-left', <Icon name="alignLeft" size={16} />, { toggle: true })}
       {button('format:align-center', <Icon name="alignCenter" size={16} />, { toggle: true })}
       {button('format:align-right', <Icon name="alignRight" size={16} />, { toggle: true })}
+      {props.panel ? <RedrobButton panel={props.panel} size="sm" /> : null}
     </Toolbar>
   )
 }

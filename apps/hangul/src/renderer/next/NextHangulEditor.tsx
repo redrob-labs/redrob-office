@@ -84,13 +84,30 @@ export function redrobCommentPrompt(threadId: number, text: string): string {
   return `A comment in this document mentions @Redrob (comment thread ${threadId}): "${body}". Answer it in its thread with reply_comment, threadId ${threadId}. Do not change the document and do not resolve the comment.`
 }
 
+/** localStorage key for the Redrob panel's open state. */
+const PANEL_KEY = 'hangul.showAi'
+
 export function NextHangulEditor(): React.JSX.Element {
   const { t, lang } = useI18n()
   const frame = useFrameState(window.hangulApi, 'hangul-frame-panel-width')
   const frameText = frameCopy(lang)
   const [phase, setPhase] = useState<Phase>({ kind: 'loading' })
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
-  const [panelOpen, setPanelOpen] = useState(false)
+  // The Redrob panel opens by default and remembers whether it was closed, as in Docs.
+  const [panelOpen, setPanelOpen] = useState(() => {
+    try {
+      return localStorage.getItem(PANEL_KEY) !== '0'
+    } catch {
+      return true
+    }
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem(PANEL_KEY, panelOpen ? '1' : '0')
+    } catch {
+      /* storage unavailable: the choice lasts for this session */
+    }
+  }, [panelOpen])
   const [mode, setMode] = useState<'editing' | 'suggesting' | 'viewing'>('editing')
   const modeRef = useRef(mode)
   modeRef.current = mode
@@ -493,7 +510,7 @@ export function NextHangulEditor(): React.JSX.Element {
       ) : null}
     </div>
   )
-  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => void runHostCommand(hostDepsRef.current, id) }
+  const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => void runHostCommand(hostDepsRef.current, id), panel: { open: panelOpen, toggle: () => setPanelOpen((o) => !o) } }
   const tools = (classic: boolean) => (
     <div className={classic ? 'hangul-toolbar hangul-toolbar--classic' : 'hangul-toolbar'}>
       {classic ? <HangulRibbon {...ribbonProps} /> : <HangulSimpleToolbar {...ribbonProps} />}
