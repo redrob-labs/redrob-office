@@ -247,7 +247,8 @@ The suite's chrome is the Redrob design system, `@redrob-labs/ui` (pinned exactl
   Document content (paper, cells, exports, chart palettes) never reads chrome tokens. There is one
   brand palette and no per-app accent. `pnpm check:ui-tokens` (`scripts/check-ui-tokens.mjs`,
   run in the build job) fails on a retired legacy token, a colour-scheme media query in renderer
-  CSS, or a direct kit import outside `@genoffice/ui`.
+  CSS, a direct kit import outside `@genoffice/ui`, or an editor renderer that uses `Dropdown`,
+  `ColorPicker` or ScreenTips without importing their stylesheet (and calling `installScreenTips()`).
 - Third-party canvases get scoped override layers rather than forks. Univer uses
   `redrobUniverTheme()` (`apps/sheets/src/renderer/univer-theme.ts`). Hangul's built rhwp-studio is
   served under `/host/` on the studio's own loopback server, so the host page and the studio iframe

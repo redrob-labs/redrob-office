@@ -129,6 +129,46 @@ export function scan(files, read) {
   return violations
 }
 
+/**
+ * Kit parts whose styles are a separate stylesheet. An editor renderer that uses
+ * one must import it, or the part renders with browser defaults: the Hangul
+ * font box fell back to Arial and drew Korean names as boxes this way.
+ */
+export const KIT_STYLESHEETS = [
+  { use: /\b(?:Dropdown)\b/, css: '@genoffice/ui/dropdown.css', what: 'Dropdown' },
+  { use: /\b(?:ColorPicker)\b/, css: '@genoffice/ui/color-picker.css', what: 'ColorPicker' },
+]
+const UI_IMPORT = /import\s*\{([^}]*)\}\s*from\s*['"]@genoffice\/ui['"]/g
+const RENDERER_SOURCE = /^apps\/([^/]+)\/src\/renderer\/.+\.(?:ts|tsx)$/
+const USES_TIPS = /data-tip=|<ToolbarButton\b/
+
+/** Each editor renderer imports the stylesheets of the kit parts it uses, and installs ScreenTips if it shows them. */
+export function scanKitStyles(files, read) {
+  const apps = new Map()
+  for (const file of files) {
+    const m = RENDERER_SOURCE.exec(file)
+    if (!m || /\.test\.tsx?$/.test(file)) continue
+    const app = apps.get(m[1]) ?? { uses: new Map(), text: '' }
+    const text = read(file)
+    app.text += `\n${text}`
+    for (const im of text.matchAll(UI_IMPORT)) {
+      for (const k of KIT_STYLESHEETS) if (k.use.test(im[1]) && !app.uses.has(k.css)) app.uses.set(k.css, `${file} imports ${k.what}`)
+    }
+    if (USES_TIPS.test(text) && !app.uses.has('tips')) app.uses.set('tips', file)
+    apps.set(m[1], app)
+  }
+  const violations = []
+  for (const [name, app] of apps) {
+    for (const [css, why] of app.uses) {
+      if (css === 'tips') {
+        if (!app.text.includes("'@genoffice/ui/screentip.css'")) violations.push(`apps/${name}  shows ScreenTips (${why}) but never imports @genoffice/ui/screentip.css`)
+        if (!/\binstallScreenTips\(\)/.test(app.text)) violations.push(`apps/${name}  shows ScreenTips (${why}) but never calls installScreenTips()`)
+      } else if (!app.text.includes(`'${css}'`)) violations.push(`apps/${name}  ${why} but never imports ${css}`)
+    }
+  }
+  return violations
+}
+
 function main() {
   const root = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' })
   if (root.status !== 0) process.exit(root.status ?? 1)
@@ -140,15 +180,16 @@ function main() {
   )
   if (listed.status !== 0) process.exit(listed.status ?? 1)
   const files = listed.stdout.split('\n').filter(Boolean)
-  const violations = scan(files, (f) => {
+  const read = (f) => {
     try {
       return readFileSync(join(repo, f), 'utf8')
     } catch {
       return '' // listed but deleted in the working tree
     }
-  })
+  }
+  const violations = [...scan(files, read), ...scanKitStyles(files, read)]
   if (violations.length === 0) {
-    console.log('UI tokens: no retired tokens, colour-scheme media queries or direct kit imports.')
+    console.log('UI tokens: no retired tokens, colour-scheme media queries, direct kit imports or missing kit stylesheets.')
     return
   }
   console.error(
