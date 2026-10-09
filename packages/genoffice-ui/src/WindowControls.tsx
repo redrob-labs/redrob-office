@@ -32,14 +32,14 @@ export function WindowControls(props: WindowControlsProps): ReactElement {
   return (
     <div className="go-window-controls">
       <IconButton label={strings.minimize} size="sm" onClick={props.onMinimize}>
-        {glyph(icons.minimize)}
+        {glyph(icons.minus)}
       </IconButton>
       <IconButton
         label={props.maximized ? strings.restore : strings.maximize}
         size="sm"
         onClick={props.onToggleMaximize}
       >
-        {glyph(props.maximized ? icons.restore : icons.maximize)}
+        {glyph(props.maximized ? icons.copy : icons.maximize)}
       </IconButton>
       <IconButton label={strings.close} size="sm" className="go-window-controls__close" onClick={props.onClose}>
         {glyph(icons.close)}
