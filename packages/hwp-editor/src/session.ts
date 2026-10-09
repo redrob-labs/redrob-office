@@ -80,6 +80,10 @@ export interface ObjectRef {
   control: number
 }
 
+function samePos(a: Pos, b: Pos): boolean {
+  return sameContainer(a, b) && compare(a, b) === 0
+}
+
 export class Session {
   readonly text: Text
   selection: Selection
@@ -103,6 +107,14 @@ export class Session {
    * selection is text. Moving the text selection clears it.
    */
   object: ObjectRef | null = null
+  /**
+   * Character formatting chosen at a bare caret (Bold, a font, a size with
+   * nothing selected). It applies to the next text typed there, as in 한글
+   * and Word, and is dropped when the caret moves or anything else changes the
+   * document. `props` go to the engine; `display` only changes what the
+   * ribbon shows (the font name for a pending font id).
+   */
+  pendingChar: { at: Pos; props: Record<string, unknown>; display: Record<string, unknown> } | null = null
   /** More objects Shift+clicked into the selection with `object` (for grouping). */
   others: ObjectRef[] = []
 
@@ -222,6 +234,7 @@ export class Session {
     for (const id of this.nodesIn(this.selection)) touched.add(id)
     const selection = fn()
     this.selection = selection
+    this.pendingChar = null
     for (const id of this.nodesIn(selection)) touched.add(id)
     return { seq: this.changeSeq, command, nodes: [], origin: this.groupOrigin, selection }
   }
@@ -245,6 +258,8 @@ export class Session {
       this.selection = selection
       for (const id of this.nodesIn(selection)) touched.add(id)
       for (const id of extra ?? []) touched.add(id)
+      // Typing took it (edit:insert-text applies it inside fn); any other change drops it.
+      this.pendingChar = null
     } catch (e) {
       this.doc.restoreSnapshot(snapshot)
       this.doc.discardSnapshot(snapshot)
@@ -272,6 +287,7 @@ export class Session {
     this.doc.restoreSnapshot(entry.snapshot)
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
+    this.pendingChar = null
     this.object = null
     this.others = []
     this.changeSeq = entry.seq
@@ -287,6 +303,7 @@ export class Session {
     this.doc.restoreSnapshot(entry.snapshot)
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
+    this.pendingChar = null
     this.object = null
     this.others = []
     this.changeSeq = entry.seq
@@ -313,9 +330,30 @@ export class Session {
 
   /** Move the selection without changing the document (no history entry, no change). */
   select(selection: Selection): void {
+    const p = this.pendingChar
+    if (p && !(collapsed(selection) && samePos(selection.head, p.at))) this.pendingChar = null
     this.selection = selection
     this.object = null
     this.others = []
+  }
+
+  /** Whether character formatting can be held at the caret for the next typing (not in a note, which the engine cannot format yet). */
+  canHoldCharFormat(): boolean {
+    return collapsed(this.selection) && this.selection.head.story?.kind !== 'note'
+  }
+
+  /** Hold character formatting at the caret for the next text typed there; merges with what is already held. */
+  holdCharFormat(props: Record<string, unknown>, display: Record<string, unknown> = {}): void {
+    const at = this.selection.head
+    const prev = this.pendingChar && samePos(this.pendingChar.at, at) ? this.pendingChar : null
+    this.pendingChar = { at, props: { ...prev?.props, ...props }, display: { ...prev?.display, ...display } }
+  }
+
+  /** Character properties at a position, with what is held at the caret on top. */
+  charProps(p: Pos = this.selection.head): Record<string, unknown> {
+    const base = this.text.charPropertiesAt(p)
+    const held = this.pendingChar
+    return held && samePos(held.at, p) ? { ...base, ...held.props, ...held.display } : base
   }
 
   /** Select a picture or drawing object (the text selection stays where it was). */

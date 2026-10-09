@@ -67,9 +67,52 @@ describe('character commands', () => {
     expect((c.fontFamilies as string[])[1]).toBe('함초롬바탕')
   })
 
-  it('needs a selection', () => {
-    const { bus } = open()
-    expect(bus.isEnabled('format:char-spacing-increase')).toBe(false)
+  it('at a bare caret, holds the format for the next typing instead of needing a selection', () => {
+    const { s, bus } = open()
+    const end = p(0, s.doc.paragraphLength(0, 0))
+    select(s, end, end)
+    expect(bus.isEnabled('format:char-spacing-increase')).toBe(true)
+    bus.run('format:font-size', { pt: 20 })
+    bus.run('format:text-color', { color: '#FF0000' })
+    // nothing in the document changed yet, and there is no undo step
+    expect(s.dirty).toBe(false)
+    expect(s.charProps().fontSize).toBe(2000)
+    bus.run('edit:insert-text', { text: '제1조' })
+    const typed = s.text.charPropertiesAt(p(0, s.doc.paragraphLength(0, 0) - 1))
+    expect([typed.fontSize, String(typed.textColor).toLowerCase()]).toEqual([2000, '#ff0000'])
+    // the text before keeps its own size
+    expect(s.text.charPropertiesAt(p(0, 1)).fontSize).not.toBe(2000)
+    // one undo step takes the typed text and its format together
+    bus.run('edit:undo')
+    expect(s.doc.text(0, 0)).toBe('대한민국 헌법')
+  })
+
+  it('a font chosen at the caret shows in the picker and goes onto what is typed', () => {
+    const { s, bus } = open()
+    const end = p(0, s.doc.paragraphLength(0, 0))
+    select(s, end, end)
+    bus.run('format:font-family', { name: '함초롬돋움' })
+    expect(s.charProps().fontFamily).toBe('함초롬돋움')
+    bus.run('edit:insert-text', { text: '가' })
+    const fams = s.text.charPropertiesAt(p(0, s.doc.paragraphLength(0, 0) - 1)).fontFamilies as string[]
+    expect(fams).toContain('함초롬돋움')
+  })
+
+  it('what is held is dropped when the caret moves, and is not given to someone else’s typing', () => {
+    const { s, bus } = open()
+    const end = p(0, s.doc.paragraphLength(0, 0))
+    select(s, end, end)
+    bus.run('format:font-size', { pt: 30 })
+    select(s, p(0, 1), p(0, 1))
+    expect(s.pendingChar).toBeNull()
+    bus.run('edit:insert-text', { text: 'x' })
+    expect(s.text.charPropertiesAt(p(0, 1)).fontSize).not.toBe(3000)
+    const e2 = p(0, s.doc.paragraphLength(0, 0))
+    select(s, e2, e2)
+    bus.run('format:font-size', { pt: 30 })
+    bus.run('edit:insert-text', { text: 'y' }, 'remote')
+    expect(s.text.charPropertiesAt(p(0, s.doc.paragraphLength(0, 0) - 1)).fontSize).not.toBe(3000)
+    expect(s.pendingChar).toBeNull()
   })
 })
 

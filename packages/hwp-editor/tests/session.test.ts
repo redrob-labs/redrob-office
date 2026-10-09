@@ -125,10 +125,25 @@ describe('formatting', () => {
     expect(bus.isActive('format:bold')).toBe(false)
   })
 
-  it('is disabled with a collapsed selection', () => {
-    const { bus } = open('글')
-    expect(bus.isEnabled('format:bold')).toBe(false)
+  it('at a bare caret, Bold is held for the next typing and shows as on', () => {
+    const { s, bus } = open('글')
+    const end = { section: 0, para: 0, offset: 1 }
+    s.select({ anchor: end, head: end })
+    expect(bus.isEnabled('format:bold')).toBe(true)
     expect(bus.run('format:bold')).toBeNull()
+    expect(bus.isActive('format:bold')).toBe(true)
+    expect(s.dirty).toBe(false)
+    bus.run('edit:insert-text', { text: '자' })
+    expect(s.text.charPropertiesAt({ section: 0, para: 0, offset: 1 }).bold).toBe(true)
+    expect(s.text.charPropertiesAt({ section: 0, para: 0, offset: 0 }).bold).toBe(false)
+    // pressing Bold twice before typing cancels it
+    const e2 = { section: 0, para: 0, offset: 2 }
+    s.select({ anchor: e2, head: e2 })
+    bus.run('format:bold')
+    bus.run('format:bold')
+    expect(bus.isActive('format:bold')).toBe(true)
+    bus.run('format:bold')
+    expect(bus.isActive('format:bold')).toBe(false)
   })
 })
 

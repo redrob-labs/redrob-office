@@ -421,9 +421,9 @@ function memoAt(s: Session): number | null {
 export const toggleOutline: Command = {
   id: 'format:outline',
   isEnabled: () => true,
-  isActive: ({ session }) => Number(session.text.charPropertiesAt(ordered(session.selection)[0]).outlineType ?? 0) !== 0,
+  isActive: ({ session }) => Number(session.charProps(ordered(session.selection)[0]).outlineType ?? 0) !== 0,
   run(ctx) {
-    const on = Number(ctx.session.text.charPropertiesAt(ordered(ctx.session.selection)[0]).outlineType ?? 0) !== 0
+    const on = Number(ctx.session.charProps(ordered(ctx.session.selection)[0]).outlineType ?? 0) !== 0
     return applyCharShape.run(ctx, { props: { outlineType: on ? 0 : 1 } })
   },
 }

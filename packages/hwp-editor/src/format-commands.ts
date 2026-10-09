@@ -44,13 +44,31 @@ function hasRange(s: Session): boolean {
   return !collapsed(s.selection) && sameContainer(s.selection.anchor, s.selection.head)
 }
 
-/** Apply char props to the selection; one undo step. */
-export function applyCharProps(s: Session, id: string, props: Record<string, unknown> | ((current: Record<string, unknown>) => Record<string, unknown>)): ReturnType<Session['edit']> | null {
+/** A selection to format, or a bare caret that holds the format for the next typing. */
+function canFormat(s: Session): boolean {
+  return hasRange(s) || s.canHoldCharFormat()
+}
+
+/**
+ * Apply char props to the selection, as one undo step. With nothing selected
+ * they are held at the caret for the next text typed there (no undo step: the
+ * document has not changed yet). `display` is what the ribbon shows meanwhile.
+ */
+export function applyCharProps(
+  s: Session,
+  id: string,
+  props: Record<string, unknown> | ((current: Record<string, unknown>) => Record<string, unknown>),
+  display?: Record<string, unknown>,
+): ReturnType<Session['edit']> | null {
+  if (s.canHoldCharFormat()) {
+    s.holdCharFormat(typeof props === 'function' ? props(s.charProps()) : props, display)
+    return null
+  }
   if (!hasRange(s)) return null
   const sel = s.selection
   return s.edit(id, () => {
     const [a, b] = ordered(sel)
-    const value = typeof props === 'function' ? props(s.text.charPropertiesAt(a)) : props
+    const value = typeof props === 'function' ? props(s.charProps(a)) : props
     s.text.applyCharFormat(a, b, value)
     return sel
   })
@@ -59,8 +77,8 @@ export function applyCharProps(s: Session, id: string, props: Record<string, unk
 function charToggle(id: string, prop: 'emboss' | 'engrave' | 'superscript' | 'subscript'): Command {
   return {
     id,
-    isEnabled: ({ session }) => hasRange(session),
-    isActive: ({ session }) => Boolean(session.text.charPropertiesAt(ordered(session.selection)[0])[prop]),
+    isEnabled: ({ session }) => canFormat(session),
+    isActive: ({ session }) => Boolean(session.charProps(ordered(session.selection)[0])[prop]),
     run({ session }) {
       return applyCharProps(session, id, (cur) => {
         const on = !cur[prop]
@@ -79,7 +97,7 @@ function clampAll(values: unknown, delta: number, min: number, max: number): num
 }
 
 function charStep(id: string, apply: (cur: Record<string, unknown>) => Record<string, unknown>): Command {
-  return { id, isEnabled: ({ session }) => hasRange(session), run: ({ session }) => applyCharProps(session, id, apply) }
+  return { id, isEnabled: ({ session }) => canFormat(session), run: ({ session }) => applyCharProps(session, id, apply) }
 }
 
 /** 한글's own font size steps (pt), used by Alt+Shift+E/R and Ctrl+] / Ctrl+[. */
@@ -124,13 +142,13 @@ function paraStep(id: string, apply: (cur: Record<string, unknown>) => Record<st
 /** Parameterised commands the ribbon and dialogs use. */
 export const setFontSize: Command<{ pt: number }> = {
   id: 'format:font-size',
-  isEnabled: ({ session }) => hasRange(session),
+  isEnabled: ({ session }) => canFormat(session),
   run: ({ session }, { pt }) => applyCharProps(session, 'format:font-size', { fontSize: Math.round(pt * 100) }),
 }
 
 export const setFontFamily: Command<{ name: string; scripts?: number[] }> = {
   id: 'format:font-family',
-  isEnabled: ({ session }) => hasRange(session),
+  isEnabled: ({ session }) => canFormat(session),
   run({ session }, { name, scripts }) {
     return applyCharProps(session, 'format:font-family', (cur) => {
       // HWP keeps one font list per script, so a font id is looked up per script.
@@ -138,26 +156,26 @@ export const setFontFamily: Command<{ name: string; scripts?: number[] }> = {
       const want = new Set(scripts ?? [0, 1, 2, 3, 4, 5, 6])
       const fontIds = Array.from({ length: SCRIPTS }, (_, k) => session.doc.raw.findOrCreateFontIdForLang(k, want.has(k) ? name : (current[k] ?? name)))
       return { fontIds }
-    })
+    }, { fontFamily: name })
   },
 }
 
 export const setTextColor: Command<{ color: string }> = {
   id: 'format:text-color',
-  isEnabled: ({ session }) => hasRange(session),
+  isEnabled: ({ session }) => canFormat(session),
   run: ({ session }, { color }) => applyCharProps(session, 'format:text-color', { textColor: color.toLowerCase() }),
 }
 
 export const setShadeColor: Command<{ color: string }> = {
   id: 'format:shade-color',
-  isEnabled: ({ session }) => hasRange(session),
+  isEnabled: ({ session }) => canFormat(session),
   run: ({ session }, { color }) => applyCharProps(session, 'format:shade-color', { shadeColor: color.toLowerCase() }),
 }
 
 /** Any character property set from the 글자 모양 dialog, as one undo step. */
 export const applyCharShape: Command<{ props: Record<string, unknown> }> = {
   id: 'format:char-shape-apply',
-  isEnabled: ({ session }) => hasRange(session),
+  isEnabled: ({ session }) => canFormat(session),
   run: ({ session }, { props }) => applyCharProps(session, 'format:char-shape-apply', props),
 }
 

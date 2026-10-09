@@ -47,12 +47,16 @@ export const insertText: Command<{ text: string }> = {
     return session.edit(
       'edit:insert-text',
       () => {
+        // Formatting held at the caret (Bold with nothing selected) goes onto what is typed; others' typing never takes it.
+        const held = origin !== 'remote' && session.pendingChar && collapsed(session.selection) ? session.pendingChar.props : null
         let p = collapsed(session.selection) ? session.selection.head : deleteSelection(session)
+        const start = p
         const parts = text.replace(/\r\n?/g, '\n').split('\n')
         parts.forEach((part, i) => {
           if (i > 0) p = session.text.split(p)
           p = session.text.insert(p, part)
         })
+        if (held && Object.keys(held).length) session.text.applyCharFormat(start, p, held)
         return { anchor: p, head: p }
       },
       origin,
@@ -120,15 +124,20 @@ type Toggle = 'bold' | 'italic' | 'underline' | 'strikethrough'
 function toggleFormat(id: string, prop: Toggle): Command {
   return {
     id,
-    isEnabled: ({ session }) => !collapsed(session.selection) && sameContainer(session.selection.anchor, session.selection.head),
+    // With nothing selected it is held for the next typing, as in 한글 and Word.
+    isEnabled: ({ session }) => session.canHoldCharFormat() || (!collapsed(session.selection) && sameContainer(session.selection.anchor, session.selection.head)),
     isActive: ({ session }) => {
       const [a] = ordered(session.selection)
-      return Boolean(session.text.charPropertiesAt(a)[prop])
+      return Boolean(session.charProps(a)[prop])
     },
     run(ctx) {
       const { session, origin } = ctx
       if (!this.isEnabled(ctx)) return null
       const on = !this.isActive!(ctx)
+      if (collapsed(session.selection)) {
+        session.holdCharFormat({ [prop]: on })
+        return null
+      }
       const sel = session.selection
       return session.edit(id, () => {
         const [a, b] = ordered(sel)
