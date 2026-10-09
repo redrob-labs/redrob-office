@@ -94,3 +94,28 @@
 li::marker {
   color: inherit;
 }
+
+/*
+ * --ui-cjk: the CJK UI faces for the interface language, set from
+ * <html lang> (every renderer sets it at bootstrap and on a switch). Chrome
+ * stacks name it after their Latin face. Office extension token: the kit has
+ * no per-language UI stack. Korean ends with Wanted Sans, the kit's Hangul
+ * face (the kit's Pretendard draws no Hangul), then Noto Sans CJK KR, so
+ * Korean chrome never draws boxes on a machine without Apple SD Gothic Neo
+ * or Malgun Gothic (Linux, for one).
+ */
+:root {
+  --ui-cjk: 'PingFang SC', 'Microsoft YaHei';
+}
+
+:root:lang(ja) {
+  --ui-cjk: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', 'Meiryo';
+}
+
+:root:lang(ko) {
+  --ui-cjk: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Wanted Sans', 'Noto Sans CJK KR';
+}
+
+:root:lang(zh-TW) {
+  --ui-cjk: 'PingFang TC', 'Microsoft JhengHei';
+}

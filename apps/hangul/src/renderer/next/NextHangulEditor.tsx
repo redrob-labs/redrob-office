@@ -23,7 +23,7 @@ import {
   Button,
   CatchUp,
   PresenceFaces,
-  SHARE_STRINGS,
+  shareText,
   ShareDialog,
   VersionHistory,
   verT,
@@ -566,7 +566,7 @@ export function NextHangulEditor(): React.JSX.Element {
         share={
           window.hangulApi.shareStatus ? (
             <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>
-              {SHARE_STRINGS.button}
+              {shareText('button')}
             </Button>
           ) : undefined
         }
@@ -658,7 +658,7 @@ export function NextHangulEditor(): React.JSX.Element {
               mode === 'viewing' ? frameText.mode.viewing : mode === 'suggesting' ? frameText.mode.suggesting : frameText.mode.editing,
               ...(live.state.kind === 'live' ? [live.state.readOnly ? t('liveReadOnly') : t('liveOn')] : []),
               ...(revisionsRef.current && revisionsRef.current.list().length ? [t('reviewPending', { count: revisionsRef.current.list().length })] : []),
-              `${s.doc.pageCount()} pp`,
+              t('nextPageCount', { n: s.doc.pageCount() }),
               ...(s.layoutPending ? [t('nextPagesPending')] : []),
               ...(substituted ? [t('nextFontsSubstituted', { fonts: substituted })] : []),
               ...(pageUnfaithful ? [t('nextPageNotFaithful', { page: caretPage + 1 })] : []),

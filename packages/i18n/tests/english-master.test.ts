@@ -17,25 +17,25 @@ type Hit = { file: string; line: number; col: number; name: string }
 const check = checkSource as (file: string, src: string) => Hit[]
 
 describe('English is the master language', () => {
-  it('offers English only, and every other language is "Not yet"', () => {
+  it('offers English and Korean, and every other language is "Not yet"', () => {
     expect(MASTER_LANG).toBe('en')
-    expect(SELECTABLE_LANGS).toEqual(['en'])
+    expect(SELECTABLE_LANGS).toEqual(['en', 'ko'])
     const options = languageOptions()
     expect(options).toHaveLength(LANGS.length)
-    expect(options[0]).toEqual({ value: 'en', label: 'English', selectable: true })
-    expect(options.slice(1).every((o) => !o.selectable)).toBe(true)
-    expect(options.find((o) => o.value === 'ko')).toEqual({
-      value: 'ko',
-      label: '한국어',
-      selectable: false,
-    })
+    expect(options.slice(0, 2)).toEqual([
+      { value: 'en', label: 'English', selectable: true },
+      { value: 'ko', label: '한국어', selectable: true },
+    ])
+    expect(options.slice(2).every((o) => !o.selectable)).toBe(true)
   })
 
   it('maps a stored language that is no longer offered to English', () => {
-    expect(isSelectableLang('ko')).toBe(false)
+    expect(isSelectableLang('ko')).toBe(true)
+    expect(isSelectableLang('ja')).toBe(false)
     expect(isSelectableLang('en')).toBe(true)
     expect(isSelectableLang('xx')).toBe(false)
-    expect(toSelectableLang('ko')).toBe('en')
+    expect(toSelectableLang('ko')).toBe('ko')
+    expect(toSelectableLang('ja')).toBe('en')
     expect(toSelectableLang('zh')).toBe('en')
     expect(toSelectableLang('en')).toBe('en')
     expect(toSelectableLang(undefined)).toBe('en')

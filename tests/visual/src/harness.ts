@@ -240,7 +240,8 @@ export async function launchShell(
   }
   Object.assign(env, extraEnv)
   env.GENOFFICE_USER_DATA = profileDir
-  env.GENOFFICE_LANG = 'en'
+  // English unless a spec asks for another interface language
+  env.GENOFFICE_LANG = extraEnv.GENOFFICE_LANG ?? 'en'
   // the launch screen plays once a session; every capture but its own skips it
   if (launchScreen) delete env.GENOFFICE_LAUNCH
   else env.GENOFFICE_LAUNCH = 'skip'

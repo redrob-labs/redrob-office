@@ -1269,6 +1269,11 @@ export const strings = {
     propProducer: '생성 프로그램',
     propCreated: '만든 날짜',
     propModified: '수정한 날짜',
+    pdfSimpleToolbar: '자주 쓰는 도구',
+    pdfSimpleAsk: 'Redrob에게 묻기',
+    pdfSimpleKeyPoints: '요점',
+    pdfSimplePlay: '발표',
+    pdfUntitled: '제목 없음.pdf',
   },
   fr: {
     ...fillFormStringsFor('fr'),
