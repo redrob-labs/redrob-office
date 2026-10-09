@@ -57,6 +57,7 @@ import {
   REDROB_ENGINE_ID,
   chatForProvider,
   engineCustody,
+  officeSessionId,
   redrobConnected,
   storeRedrobKey,
   defaultAiSettings,
@@ -2732,7 +2733,7 @@ export function registerAiIpc(): void {
         onStopReason: (reason) => {
           stopReason = reason
         },
-      }, request.sessionId)
+      }, request.sessionKey ? await officeSessionId(request.sessionKey) : undefined)
       send({ requestId, type: 'done', stopReason })
     } catch (err) {
       if (controller.signal.aborted) {
@@ -2842,7 +2843,7 @@ export function registerAiIpc(): void {
   )
 
   ipcMain.handle('ai:chat', async (_event, request: AiChatRequest) => {
-    const { settings, system, user, sessionId } = request
+    const { settings, system, user } = request
     const provider = settings.provider
     let config = settings.providers?.[provider]
     // Not under engine custody: there the engine holds the key, and a legacy login key must not route around it.
@@ -2858,7 +2859,7 @@ export function registerAiIpc(): void {
     // The Redrob engine ignores settings.model and always wires `auto`; fresh
     // defaults leave model empty, so an empty model must not fail preflight.
     try {
-      const result = await chatForProvider(provider, config, system, user, undefined, sessionId)
+      const result = await chatForProvider(provider, config, system, user)
       // the one-shot path reports HTTP failures as ok:false with the raw body —
       // replace capacity/rate-limit dumps with the localized "busy" message
       if (!result.ok && isAiOverloadedError(result.error)) {

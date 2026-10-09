@@ -8,6 +8,7 @@ import type {
   AccountStatus,
   CloudProjectsSnapshot,
   HomeApi,
+  InsightsStatus,
   RecentEntry,
   RecentPage,
   RenameResult,
@@ -272,6 +273,9 @@ const homeApi: HomeApi = {
   // AI settings channels are registered once by the shell's aggregated docs handlers
   async getAiSettings() {
     return (await ipcRenderer.invoke('ai:get-settings')) as AiSettings
+  },
+  async getInsightsStatus() {
+    return (await ipcRenderer.invoke('insights:status')) as InsightsStatus
   },
   async setAiSettings(settings) {
     await ipcRenderer.invoke('ai:set-settings', settings)

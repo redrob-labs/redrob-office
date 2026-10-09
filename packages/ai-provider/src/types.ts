@@ -75,8 +75,6 @@ export interface AiChatRequest {
   settings: AiSettings
   system: string
   user: string
-  /** The console's id for the AI session (`x-redrob-session`); see RedrobEngineAuth. */
-  sessionId?: string
 }
 
 export interface AiChatResponse {
@@ -92,8 +90,11 @@ export interface AiStreamRequest {
   messages: AgentMessage[]
   tools?: AgentToolDef[]
   maxTokens?: number
-  /** The console's id for the AI session (`x-redrob-session`); see RedrobEngineAuth. */
-  sessionId?: string
+  /**
+   * The work session's key (agent-core WorkSessionTracker). The main process sends the console's id for it,
+   * `officeSessionId(key)`, as `x-redrob-session`, so the console can join the session's labels to its cost.
+   */
+  sessionKey?: string
 }
 
 export interface AiStreamChunk {

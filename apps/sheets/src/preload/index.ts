@@ -463,6 +463,9 @@ const desktopApi: DesktopApi = {
     if (!requestId) throw new Error('Invalid AI stream request id.')
     await ipcRenderer.invoke(IPC_CHANNELS.aiStreamCancel, requestId)
   },
+  insightsEvent(message) {
+    ipcRenderer.send('insights:event', message)
+  },
   async aiGskStatus(withEmail) {
     const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiGskStatus, withEmail)
     if (!isRecord(result) || typeof result.loggedIn !== 'boolean') {

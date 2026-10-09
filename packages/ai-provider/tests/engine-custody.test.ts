@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   REDROB_ENGINE_ID,
   chatForProvider,
+  officeSessionId,
   redrobConnected,
   setEngineCustody,
   storeRedrobKey,
@@ -84,6 +85,13 @@ it('a key typed into Settings is tested as typed, before it is saved', async () 
   await chatForProvider(REDROB_ENGINE_ID, { apiKey: 'rrk_draft', model: '' }, 'sys', 'ping')
   expect(fetchMock.mock.calls[0]![0]).toBe('https://console.redrob.ai/api/backend/v1/chat/completions')
   expect(headersOf(fetchMock.mock.calls[0]!).Authorization).toBe('Bearer rrk_draft')
+})
+
+it("officeSessionId is `of_` and the SHA-256 of the key, in the console's id format", async () => {
+  const { createHash } = await import('node:crypto')
+  const id = await officeSessionId('5f0c-key')
+  expect(id).toBe(`of_${createHash('sha256').update('5f0c-key').digest('hex').slice(0, 32)}`)
+  expect(id).toMatch(/^[A-Za-z0-9._:-]{1,128}$/)
 })
 
 describe('the key goes to the engine', () => {

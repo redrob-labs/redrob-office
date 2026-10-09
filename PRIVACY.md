@@ -6,6 +6,15 @@ Redrob opens, edits, and saves documents locally. Document editing does not
 upload files to Redrob. AI features require a network connection and send
 requests only when you use them.
 
+## AI work labels
+
+When you use Redrob AI, Office labels each AI session on this computer and sends only the labels to your Redrob workspace, so your workspace's insights can count AI work:
+
+- **What is sent:** what kind of work a session was (for example a support reply or a bug fix), whether something was produced, how many turns and tool steps it took, whether it was stopped, and when it started. These go to the Redrob Console through the Redrob engine, with your workspace's key.
+- **What is never sent:** what you wrote, what the AI wrote, file names, file contents or anything from your documents. The first instruction of a session is read on this computer to name the kind of work, then dropped.
+- **The model:** labeling uses an open model (multilingual-e5-base, about 300 MB). It is downloaded once, from Redrob's GitHub release, after your first AI chat, and checked against a fixed fingerprint before it is used.
+- **Where it waits:** labeled sessions wait in `insights-outbox.json` in Office's data folder until they are sent, so you can read exactly what will leave this computer.
+
 ## Usage analytics
 
 Usage analytics is enabled by default in packaged official builds, including

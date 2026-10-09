@@ -54,6 +54,8 @@
   },
   "dependencies": {
     "@embedpdf/pdfium": "^2.15.0",
+    "@redrob-labs/work-labeller": "1.0.0",
+    "onnxruntime-node": "1.23.0",
     "undici": "^6.28.0"
   },
   "author": "Redrob"

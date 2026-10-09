@@ -29,4 +29,6 @@ export type {
   ToolExecutedEvent,
 } from './loop'
 export { createIpcTransport, IPC_STREAM_SILENCE_TIMEOUT_MS } from './electron-transport'
+export { WorkSessionTracker } from './work-session'
+export type { AgentSessionObserver, WorkFact, WorkSessionMessage } from './work-session'
 export type { IpcStreamChunk, IpcStreamStart, IpcTransportOptions } from './electron-transport'

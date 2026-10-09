@@ -136,6 +136,7 @@ const api: DesktopApi = {
   aiChat: (request: AiChatRequest) => ipcRenderer.invoke('ai:chat', request),
   aiStream: (request: AiStreamRequest) => ipcRenderer.invoke('ai:stream', request),
   aiStreamCancel: (requestId: string) => ipcRenderer.invoke('ai:stream-cancel', requestId),
+  insightsEvent: (message: unknown) => ipcRenderer.send('insights:event', message),
   aiGskStatus: (withEmail?: boolean) => ipcRenderer.invoke('ai:gsk-status', withEmail),
   aiGskLogin: () => ipcRenderer.invoke('ai:gsk-login'),
   webSearch: (query: string, maxResults?: number) =>

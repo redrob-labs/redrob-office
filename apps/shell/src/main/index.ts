@@ -74,6 +74,7 @@ import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settin
 import { registerRedrobConnectIpc } from './redrob-connect'
 import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
 import { installEngineCustody } from './engine-custody'
+import { registerInsights } from './insights'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -4486,6 +4487,8 @@ installNavigationGuard(app)
 installContextMenu(app, () => contextMenuLabels(currentLang()))
 // Before the AI handlers: from here the engine holds the Redrob key and every Redrob turn goes through it.
 installEngineCustody()
+// Work labels for the console's insights: facts from the editors' agent loops, labeled on this machine.
+registerInsights()
 registerAiIpc()
 registerProjectIpc()
 registerDocsIpc()

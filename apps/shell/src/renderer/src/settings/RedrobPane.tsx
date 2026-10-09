@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
 import { Accordion, Alert, Badge, Select, Switch } from '@genoffice/ui'
 import type { CrossCheckLevel, OfficePrefs } from '@genoffice/electron-utils/office-prefs'
+import type { InsightsStatus } from '../../../shared/home-api'
 import type { StringKey, TFunc } from '../locale'
 
 /** a setting row: what it is, what it does, then its control */
@@ -63,6 +64,23 @@ export interface RedrobPaneProps {
  */
 export function RedrobPane({ t, prefs, onChange, developer }: RedrobPaneProps): ReactElement {
   const [connected, setConnected] = useState<boolean | null>(null)
+  const [insights, setInsights] = useState<InsightsStatus | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    const read = () =>
+      void window.aiOffice
+        .getInsightsStatus?.()
+        .then((s) => alive && setInsights(s))
+        .catch(() => undefined)
+    read()
+    // a download in progress is worth watching; otherwise one read is enough
+    const timer = setInterval(read, 3000)
+    return () => {
+      alive = false
+      clearInterval(timer)
+    }
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -122,6 +140,27 @@ export function RedrobPane({ t, prefs, onChange, developer }: RedrobPaneProps): 
           </Badge>
         }
       />
+
+      {insights && (
+        <Row
+          id="set-insights"
+          title={t('setInsightsTitle')}
+          desc={insights.state === 'failed' ? `${t('setInsightsDesc')} (${insights.reason})` : t('setInsightsDesc')}
+          control={
+            <Badge tone={insights.state === 'ready' ? 'success' : insights.state === 'failed' ? 'warning' : 'neutral'} dot>
+              {insights.state === 'ready'
+                ? t('setInsightsReady')
+                : insights.state === 'failed'
+                  ? t('setInsightsFailed')
+                  : insights.state === 'downloading'
+                    ? insights.percent === null
+                      ? t('setInsightsDownloadingNoSize')
+                      : t('setInsightsDownloading', { percent: String(insights.percent) })
+                    : t('setInsightsAbsent')}
+            </Badge>
+          }
+        />
+      )}
 
       <Row
         id="set-memory"

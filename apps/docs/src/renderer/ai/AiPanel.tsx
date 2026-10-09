@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
 import type { Block } from '@genoffice/docx-engine'
-import { AgentLoop, composeSkills, type AgentImage } from '@genoffice/agent-core'
+import { AgentLoop, WorkSessionTracker, composeSkills, type AgentImage } from '@genoffice/agent-core'
 import type { AiSettings, AttachmentAddResult, AttachmentMeta } from '../../shared/ipc'
 import { ATTACHMENT_IMAGE_EXTS } from '../../shared/ipc'
 import type { PmNode } from '../editor/convert'
@@ -633,6 +633,8 @@ export function AiPanel({
     })
     loopRef.current = new AgentLoop<PmNode>({
       transport: createElectronTransport(() => settingsRef.current),
+      // the console's insights: facts about this chat, never its text (see agent-core work-session.ts)
+      session: new WorkSessionTracker((message) => window.desktop.insightsEvent?.(message)),
       systemSuffix: aiLangDirective,
       skill: composeSkills('docs+files', '', [
         createDocsSkill(

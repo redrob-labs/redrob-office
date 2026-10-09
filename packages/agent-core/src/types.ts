@@ -94,6 +94,8 @@ export interface AgentStreamRequest {
   system: string
   messages: AgentMessage[]
   tools: AgentToolDef[]
+  /** The work session this request belongs to (WorkSessionTracker.key), when one is tracked. */
+  session?: string
 }
 
 export interface AgentStreamCallbacks {

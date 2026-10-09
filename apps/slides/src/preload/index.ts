@@ -354,6 +354,7 @@ const api: SlidesApi = {
   setAiSettings: (settings: AiSettings) => ipcRenderer.invoke('ai:set-settings', settings),
   aiStream: (request: AiStreamRequest) => ipcRenderer.invoke('ai:stream', request),
   aiStreamCancel: (requestId: string) => ipcRenderer.invoke('ai:stream-cancel', requestId),
+  insightsEvent: (message: unknown) => ipcRenderer.send('insights:event', message),
   aiGskStatus: (withEmail?: boolean) => ipcRenderer.invoke('ai:gsk-status', withEmail),
   aiGskLogin: () => ipcRenderer.invoke('ai:gsk-login'),
   aiLogRunFailure: (entry: AiRunFailure) => ipcRenderer.invoke('ai:log-run-failure', entry),

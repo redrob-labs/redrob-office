@@ -64,6 +64,7 @@ export {
 } from './redrob-engine'
 export type { RedrobEngineAuth } from './redrob-engine'
 export { setRescueFetch } from './fetch'
+export { officeSessionId } from './session-id'
 export {
   REDROB_INTEGRATION_ID,
   engineCustody,

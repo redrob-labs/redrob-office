@@ -129,6 +129,7 @@ import { createUniver } from './create-univer'
 
 import {
   AgentLoop,
+  WorkSessionTracker,
   COMPLETED_VIA_TOOLS_TEXT,
   composeSkills,
   type AgentImage,
@@ -1064,6 +1065,8 @@ export function App(): React.JSX.Element {
   if (!agentLoopRef.current) {
     agentLoopRef.current = new AgentLoop({
       transport: createElectronTransport(() => aiSettingsRef.current!),
+      // the console's insights: facts about this chat, never its text (see agent-core work-session.ts)
+      session: new WorkSessionTracker((message) => window.desktopApi.insightsEvent?.(message)),
       systemSuffix: aiLangDirective,
       skill: composeSkills('sheets+files', '', [
         createWorkbookSkill(sheetsSkillDeps()),

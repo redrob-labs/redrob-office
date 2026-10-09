@@ -302,6 +302,19 @@ function assertThirdPartyNoticesPresent() {
   }
 }
 
+/*
+ * onnxruntime-node, for the work classifier's utility process (src/main/insights/worker.ts). A native
+ * addon cannot load from inside the bundle or app.asar, so it ships beside the app under
+ * resources/node_modules, with its JS dependency, and only this platform's binaries.
+ */
+const ONNXRUNTIME_NODE = dirname(require.resolve('onnxruntime-node/package.json'))
+// onnxruntime-common's exports map does not expose package.json; resolve its entry and take the folder.
+const ONNXRUNTIME_COMMON_ENTRY = require.resolve('onnxruntime-common', { paths: [ONNXRUNTIME_NODE] })
+const ONNXRUNTIME_COMMON = ONNXRUNTIME_COMMON_ENTRY.slice(
+  0,
+  ONNXRUNTIME_COMMON_ENTRY.lastIndexOf('onnxruntime-common') + 'onnxruntime-common'.length,
+)
+
 /** @type {import('electron-builder').Configuration} */
 const config = {
   appId: 'com.redrob.app',
@@ -325,6 +338,12 @@ const config = {
   },
   files: ['out/**'],
   extraResources: [
+    {
+      from: ONNXRUNTIME_NODE,
+      to: 'node_modules/onnxruntime-node',
+      filter: ['**/*', '!bin/**', 'bin/napi-v6/${platform}/${arch}/**'],
+    },
+    { from: ONNXRUNTIME_COMMON, to: 'node_modules/onnxruntime-common' },
     {
       from: 'build/THIRD-PARTY-NOTICES.txt',
       to: 'THIRD-PARTY-NOTICES.txt',
