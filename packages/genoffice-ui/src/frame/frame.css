@@ -448,6 +448,19 @@
   gap: var(--space-4);
 }
 
+/* An item never breaks inside itself ("1 pp" on two lines); when the bar is
+ * too narrow, whole items move to a second line instead, so required text such
+ * as the Hangul attribution is never cut off. */
+.go-statusbar__items {
+  flex-wrap: wrap;
+  row-gap: 0;
+  min-width: 0;
+}
+.go-statusbar__item,
+.go-statusbar__end {
+  white-space: nowrap;
+}
+
 .go-statusbar__conn {
   display: inline-flex;
   align-items: center;

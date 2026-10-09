@@ -181,7 +181,26 @@ body {
 /* The 한글 ribbon (next/HangulRibbon.tsx). */
 .hangul-toolbar { display: flex; align-items: flex-start; gap: 12px; width: 100%; }
 .hangul-ribbon { flex: 1; min-width: 0; }
-.hangul-ribbon__band { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0; }
+/* One row: groups that do not fit go into the More menu (OverflowBand). */
+.hangul-ribbon__band { display: flex; flex-wrap: nowrap; align-items: stretch; gap: 4px; padding: 4px 0; min-width: 0; overflow: hidden; }
+.hangul-ribbon__slot { display: contents; }
+.hangul-ribbon__band .hangul-ribbon-group { flex: none; }
+.hangul-ribbon__more { position: relative; flex: none; display: flex; align-items: flex-start; padding-top: 2px; }
+.hangul-ribbon__more-pop {
+  position: absolute;
+  z-index: 30;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  padding: 6px 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.hangul-ribbon__more-band { display: flex; flex-wrap: wrap; gap: 4px; max-width: min(560px, 80vw); }
+/* the band clips overflow, so the More menu's popover must escape it */
+.hangul-ribbon__band:has(.hangul-ribbon__more-pop) { overflow: visible; }
 .hangul-ribbon-group {
   display: flex;
   flex-direction: column;
@@ -195,6 +214,7 @@ body {
 .hangul-picker--style, .hangul-picker--style * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hangul-picker--font { width: 130px; }
 .hangul-picker--size { width: 64px; }
+.hangul-picker--font, .hangul-picker--size, .hangul-picker--style { flex: none; margin-inline-end: 4px; }
 .hangul-file-buttons { display: flex; gap: 6px; align-items: center; padding-top: 4px; }
 .hangul-color, .hangul-table-grid { position: relative; }
 .hangul-color__popover, .hangul-table-grid__popover {
@@ -592,4 +612,36 @@ body {
 .hangul-compare-list ins {
   color: var(--status-success);
   text-decoration: none;
+}
+
+/*
+ * Classic layout: the tab row carries Save and Save as, and the frame's
+ * Toolbar / Simple / Classic switch sits at the end of that same row, so the
+ * band below gets the full width. HangulRibbon measures the switch and the
+ * tab row into --hangul-switch-w and --hangul-switch-top.
+ */
+.hangul-toolbar--classic {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--hangul-switch-w, 0px);
+  column-gap: 12px;
+  align-items: center;
+}
+.hangul-toolbar--classic > .hangul-ribbon { display: contents; }
+.hangul-toolbar--classic > .hangul-ribbon > :not([role='tabpanel']) { grid-column: 1; grid-row: 1; min-width: 0; }
+.hangul-toolbar--classic > .hangul-ribbon > [role='tabpanel'] { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
+.hangul-toolbar--classic > .hangul-file-buttons { grid-column: 2; grid-row: 1; padding-top: 0; }
+.go-frame__tools:has(.hangul-toolbar--classic) { position: relative; }
+.go-frame__tools:has(.hangul-toolbar--classic) > .go-tbswitch {
+  position: absolute;
+  top: var(--hangul-switch-top, 6px);
+  right: var(--space-3);
+}
+/* the tab row's rule runs the full width, under Save and the switch too */
+.hangul-toolbar--classic::before {
+  content: '';
+  grid-row: 1;
+  grid-column: 1 / -1;
+  align-self: end;
+  height: 1px;
+  background: var(--border-subtle);
 }
