@@ -495,7 +495,7 @@ export function NextHangulEditor(): React.JSX.Element {
   )
   const ribbonProps = { view, mac: isMac, readOnly: mode === 'viewing', onRan: refresh, onCommand: (id: string) => void runHostCommand(hostDepsRef.current, id) }
   const tools = (classic: boolean) => (
-    <div className="hangul-toolbar">
+    <div className={classic ? 'hangul-toolbar hangul-toolbar--classic' : 'hangul-toolbar'}>
       {classic ? <HangulRibbon {...ribbonProps} /> : <HangulSimpleToolbar {...ribbonProps} />}
       {fileButtons(classic)}
     </div>
