@@ -192,9 +192,6 @@ importers:
       '@genoffice/versions':
         specifier: workspace:*
         version: link:../../packages/versions
-      '@rhwp/editor':
-        specifier: workspace:*
-        version: link:../../packages/rhwp-editor
       '@types/react':
         specifier: 19.2.17
         version: 19.2.17
@@ -1142,12 +1139,6 @@ importers:
       vitest:
         specifier: ^4.1.0
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
-
-  packages/rhwp-editor:
-    devDependencies:
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
 
   packages/sync-client:
     dependencies:

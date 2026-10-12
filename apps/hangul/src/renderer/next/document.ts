@@ -2,7 +2,7 @@
  * Open and save for the owned Hangul editor (spec task 1.10). Pure: no React,
  * no window, so it is unit tested with the real engine in Node.
  *
- * Save order matches the old studio contract: serialize, write through the
+ * Save order: serialize, write through the
  * host (atomic in main), and only after a confirmed write mark the session
  * saved, at the change sequence that was exported. Typing that lands while the
  * write is in flight keeps the document dirty.

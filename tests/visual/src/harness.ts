@@ -37,8 +37,7 @@ export const VIEW = {
   slides: '/apps/slides/out/renderer/index.html',
   pdf: '/apps/pdf/out/renderer/index.html',
   markdown: '/apps/markdown/out/renderer/index.html',
-  // served over the rhwp-studio loopback origin (http://127.0.0.1:*/host/), not file://
-  hangul: '/host/index.html',
+  hangul: '/apps/hangul/out/renderer/index.html',
 } as const
 export type ViewName = keyof typeof VIEW
 
@@ -79,11 +78,8 @@ const MASKS: Partial<Record<ViewName, string>> = {
 
 /** Per-view selector that exists once the document has loaded, where first paint is not enough. */
 export const READY: Partial<Record<ViewName, string>> = {
-  // Hangul would wait for '.hangul-save-button:not([disabled])' (Save enables once
-  // the fixture is loaded), but in a built app the fixture never loads: the host
-  // page is file:// (origin "null") and rhwp-studio only accepts the embed
-  // handshake from an http(s) parent, so createEditor never resolves. Until that
-  // is fixed the baseline records the blank studio it shows instead.
+  // the engine has painted the fixture's first page
+  hangul: '.hwp-page canvas',
 }
 
 const cssFor = (view: ViewName): string => {
@@ -296,7 +292,7 @@ export async function freeze(app: ElectronApplication, view: ViewName): Promise<
     if (!wc) throw new Error(`no webContents for ${part}`)
     // insertCSS is not subject to the page's CSP; it covers the main frame
     await wc.insertCSS(rules, { cssOrigin: 'author' })
-    // subframes (rhwp-studio is an iframe) get the same rules through a style element
+    // subframes (an editor that embeds one) get the same rules through a style element
     const inject = `(() => { const s = document.createElement('style'); s.textContent = ${JSON.stringify(rules)}; document.documentElement.appendChild(s); return true })()`
     for (const frame of wc.mainFrame.framesInSubtree) {
       if (frame === wc.mainFrame) continue

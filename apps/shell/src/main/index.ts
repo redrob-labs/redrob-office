@@ -225,9 +225,7 @@ import {
   setHangulFileSavedHook,
   setHangulDocSavedHook,
   setHangulShellHooks,
-  teardownHangul,
 } from '../../../hangul/src/main/hangul-main'
-import { resolveEditorKind } from '../../../hangul/src/main/editor-kind'
 import type {
   AccountLoginEvent,
   RecentEntry,
@@ -341,12 +339,6 @@ const MARKDOWN_OUT = app.isPackaged
 const HANGUL_OUT = app.isPackaged
   ? join(process.resourcesPath, 'modules', 'hangul')
   : join(APPS_ROOT, 'hangul', 'out')
-// Bundled, offline rhwp-studio build (served over a loopback origin, never a CDN).
-// Packaged builds carry it as an extraResource (resources/rhwp-studio); dev/unpacked
-// resolves it from the hangul app's resources directory in the monorepo.
-const HANGUL_STUDIO_DIR = app.isPackaged
-  ? join(process.resourcesPath, 'rhwp-studio')
-  : join(APPS_ROOT, 'hangul', 'resources', 'rhwp-studio')
 const SIDECAR_BIN = app.isPackaged
   ? join(process.resourcesPath, 'native', SIDECAR_EXE)
   : join(APPS_ROOT, 'sheets', 'native', 'xlsx-engine', 'target', 'release', SIDECAR_EXE)
@@ -389,7 +381,6 @@ configureHangulRuntime({
   preloadPath: join(HANGUL_OUT, 'preload', 'index.js'),
   rendererUrl: process.env.HANGUL_RENDERER_URL,
   rendererFile: join(HANGUL_OUT, 'renderer', 'index.html'),
-  studioDir: HANGUL_STUDIO_DIR,
   openGeneratedPath: (path) => openGeneratedDocument(path),
   createDocument: createAiDocument,
 })
@@ -2980,7 +2971,7 @@ function newMarkdownTab(): void {
 }
 
 /**
- * "New Hangul" opens a blank Hangul editor tab. rhwp-studio starts empty and
+ * "New Hangul" opens a blank Hangul editor tab. The editor starts empty and
  * the first save prompts for a .hwp/.hwpx path, so unlike sheets/pdf there is
  * no need to pre-create a file on disk.
  */
@@ -3102,8 +3093,6 @@ function registerHomeIpc(): void {
   })
 
   ipcMain.handle(HOME_CHANNELS.getAppVersion, (): string => app.getVersion())
-  // Home's AI chip on the Hangul card follows the editor a new document opens in
-  ipcMain.handle(HOME_CHANNELS.hangulAi, (): boolean => resolveEditorKind(process.env, app.isPackaged) === 'next')
 
   ipcMain.handle(HOME_CHANNELS.recents, (_event, query: unknown): RecentPage =>
     pageRecentPaths(readRecentFiles(), query, new Set(readStarredFiles())),
@@ -4746,8 +4735,6 @@ app.on('before-quit', () => {
   // No close prompt may fall through to "Save" during shutdown
   markSheetsShuttingDown()
   stopSheetsSidecar()
-  // Stop the offline rhwp-studio loopback server
-  void teardownHangul()
   // Stop the managed engine. An engine left alive holds its port and outlives the app,
   // so the next launch hits EADDRINUSE and the user sees a broken install rather than a
   // stale process.

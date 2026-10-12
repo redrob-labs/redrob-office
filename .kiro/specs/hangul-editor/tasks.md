@@ -125,7 +125,7 @@ Requirement references are in brackets, e.g. [R2.1].
 - [x] 3.8 AI evaluation set on Corpus documents: tasks for rewrite, restructure, tables and
   headers, checked by a fidelity diff after a 한글 2024 open. [R6.2, R3.2]
   Harness, tasks and CI checks done (`apps/hangul/eval`). The live run on the Corpus and the 한글 2024 open/diff of its saved files wait on P-3 and P-1.
-- [ ] (Tracked AI edits are task 4.4, because they depend on E5.)
+  (Tracked AI edits are task 4.4, done, because they depend on E5.)
 
 ## Phase 4: Comments and track changes
 
@@ -190,6 +190,12 @@ Requirement references are in brackets, e.g. [R2.1].
   `resources/rhwp-studio`, the loopback studio server, the theme injection and their tests, and
   updates `NOTICE`, `AGENTS.md`, `README` and `CHANGELOG`. The fast fidelity subset becomes a
   required check. [R11.3]
+  Prepared (branch `feat/hangul-66-cutover`): the switch is gone and every view runs the owned
+  editor, loaded with `loadFile`; rhwp-studio, `@rhwp/editor`, the loopback server, the theme
+  injection, `HangulEditor.tsx`, `editor-kind.ts` and their tests are removed; packaging checks for
+  the engine's WASM instead of the studio; `fidelity (synthetic)` runs on every pull request so it
+  can be required. Merging waits for 6.1 and 6.2, and adding the required check is a branch
+  protection change an admin makes.
 - [x] 6.4 Upstream status report: which extensions were accepted upstream and which stay in the
   fork, and the rebase plan for the next upstream tag (`docs/hangul-upstream-status.md`: none
   offered yet, since the GitHub fork could not be created (P-2); seven changes ready to offer;

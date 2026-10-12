@@ -25,8 +25,6 @@ would close each gap. Upstream fixes belong in `redrob-labs/redrob-ui`.
   rather than replaced with a kit tabs component. Univer owns its DOM and events.
 - `@fluentui/react-icons` remains in Sheets. It is the catalogue behind Insert > Icons, which is
   document content, not chrome. Chrome icons come from the kit.
-- The Hangul studio gets kit token values injected (`studio-theme.ts`) but not the kit's fonts. The
-  studio's own font stack still renders its menus.
 
 ## Tokens
 

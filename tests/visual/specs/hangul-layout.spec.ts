@@ -97,7 +97,7 @@ async function shot(app: Parameters<typeof captureStable>[0], name: string) {
     test.setTimeout(240_000)
     const profile = createProfile({ name: `hangul-layout-${lang}`, theme: 'light' })
     const docs = createFixtures(`hangul-layout-${lang}`)
-    const app = await launchShell(profile, { env: { REDROB_HANGUL_EDITOR: 'next' } })
+    const app = await launchShell(profile)
     const tabNames = ['Edit', 'Insert', 'Format', 'Page', 'Review', 'View']
     const click = async (name: string) => expect(await runInView<boolean>(app, 'hangul', clickText(name)), `no control named ${name}`).toBe(true)
     const problems: string[] = []

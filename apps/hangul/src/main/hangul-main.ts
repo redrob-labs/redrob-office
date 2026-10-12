@@ -17,9 +17,7 @@ import { atomicWriteFile } from './atomic-write'
 import { checkPages, pdfOfPages, printPages, standaloneHtml, withPrintWindow, wordHtml, type PrintWindowLike } from './print-export'
 import { cloudToolsOn, createHangulDocument, type HangulAiHooks } from './ai-ipc'
 import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
-import { resolveEditorKind } from './editor-kind'
 import { hancomFontRoots, hancomFontSource } from './hancom-fonts'
-import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
 import type { CreateHangulDocumentRequest, PrintPagesRequest } from '../shared/ipc'
 import type {
@@ -258,18 +256,13 @@ interface RuntimePaths {
   preloadPath: string
   rendererUrl?: string
   rendererFile?: string
-  /**
-   * Absolute path to the bundled, offline rhwp-studio build directory
-   * (index.html + assets). Served over an app-local loopback origin; never a CDN.
-   */
-  studioDir: string
   /** open a generated file in a new tab (shell openGeneratedDocument) */
   openGeneratedPath?: HangulAiHooks['openGeneratedPath']
   /** Docs-owned create_document for docx/pdf/md */
   createDocument?: HangulAiHooks['createDocument']
 }
 
-let runtime: RuntimePaths = { preloadPath: '', studioDir: '' }
+let runtime: RuntimePaths = { preloadPath: '' }
 
 export function configureHangulRuntime(paths: RuntimePaths): void {
   runtime = paths
@@ -329,43 +322,10 @@ export function setHangulFileSavedHook(hook: (wc: WebContents, path: string) => 
   fileSavedHook = hook
 }
 
-/**
- * Start (idempotently) serving the bundled offline studio and return its
- * loopback origin, or null when the bundle is unavailable. Never a CDN.
- */
-async function ensureStudioOrigin(): Promise<string | null> {
-  if (!runtime.studioDir) return null
-  try {
-    // a built renderer is served from the same loopback origin (see loadRenderer)
-    const hostDir =
-      !runtime.rendererUrl && runtime.rendererFile ? dirname(runtime.rendererFile) : undefined
-    return await serveHangulStudio(runtime.studioDir, hostDir)
-  } catch (err) {
-    console.warn('[hangul] offline studio unavailable:', err)
-    return null
-  }
-}
-
-/**
- * Load the Hangul renderer. In dev it comes from the Vite server; a built
- * renderer is served over the studio's loopback origin under /host/ rather
- * than loaded from file://, because rhwp-studio ignores every message from a
- * parent whose origin is not http(s), which a file:// page ("null") never is.
- * Without the studio there is no editor to embed, so file:// stays the fallback
- * that shows the offline notice.
- */
+/** Load the Hangul renderer: the Vite server in dev, the built file otherwise. */
 function loadRenderer(contents: WebContents): void {
-  if (runtime.rendererUrl) {
-    void contents.loadURL(runtime.rendererUrl)
-    return
-  }
-  if (!runtime.rendererFile) return
-  const file = runtime.rendererFile
-  void ensureStudioOrigin().then((origin) => {
-    if (contents.isDestroyed()) return
-    if (origin) void contents.loadURL(`${origin}${HOST_PREFIX}${basename(file)}`)
-    else void contents.loadFile(file)
-  })
+  if (runtime.rendererUrl) void contents.loadURL(runtime.rendererUrl)
+  else if (runtime.rendererFile) void contents.loadFile(runtime.rendererFile)
 }
 
 export function hangulIsDirty(webContentsId: number): boolean {
@@ -473,8 +433,6 @@ function registerHangulIpc(): void {
   if (ipcRegistered) return
   ipcRegistered = true
 
-  ipcMain.handle(HANGUL_CHANNELS.studioOrigin, () => ensureStudioOrigin())
-  ipcMain.handle(HANGUL_CHANNELS.editorKind, () => resolveEditorKind(process.env, app.isPackaged))
 
   ipcMain.handle(HANGUL_CHANNELS.consumePending, (e) => openPathByWc.get(e.sender.id) ?? null)
 
@@ -683,8 +641,6 @@ function grantAndTrack(wc: WebContents, openPath?: string | null): void {
 
 export function createHangulView(openPath?: string | null): WebContentsView {
   registerHangulIpc()
-  // Warm the offline studio origin so the renderer's first studioOrigin() is instant.
-  void ensureStudioOrigin()
   const view = new WebContentsView({
     webPreferences: {
       preload: runtime.preloadPath,
@@ -698,11 +654,6 @@ export function createHangulView(openPath?: string | null): WebContentsView {
   return view
 }
 
-/** Stop the offline studio server (shell quit hook). */
-export async function teardownHangul(): Promise<void> {
-  await stopHangulStudio()
-}
-
 /** Standalone window mode: `npm run dev -w @genoffice/hangul`, hwp path passed via argv */
 export function startHangulStandalone(): void {
   installNavigationGuard(app)
@@ -711,7 +662,6 @@ export function startHangulStandalone(): void {
     preloadPath: join(__dirname, '../preload/index.js'),
     rendererUrl: process.env.ELECTRON_RENDERER_URL,
     rendererFile: join(__dirname, '../renderer/index.html'),
-    studioDir: join(__dirname, '../../resources/rhwp-studio'),
   })
   void app.whenReady().then(() => {
     registerHangulIpc()
@@ -730,7 +680,7 @@ export function startHangulStandalone(): void {
     loadRenderer(win.webContents)
   })
   app.on('window-all-closed', () => {
-    void stopHangulStudio().finally(() => app.quit())
+    app.quit()
   })
 }
 

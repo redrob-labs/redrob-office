@@ -104,7 +104,7 @@ test('the interface in Korean has no English left in its chrome', async () => {
   test.setTimeout(400_000)
   const profile = createProfile({ name: 'korean-chrome', theme: 'light' })
   const docs = createFixtures('korean-chrome')
-  const app = await launchShell(profile, { env: { GENOFFICE_LANG: 'ko', REDROB_HANGUL_EDITOR: 'next' } })
+  const app = await launchShell(profile, { env: { GENOFFICE_LANG: 'ko' } })
   const found: string[] = []
   const check = async (view: ViewName, where: string) => {
     for (const t of await runInView<string[]>(app, view, ENGLISH_LEFT)) found.push(`${where}: ${t}`)

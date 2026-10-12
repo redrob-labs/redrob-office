@@ -1,9 +1,8 @@
 /**
- * The owned Hangul editor (REDROB_HANGUL_EDITOR=next, spec task 2.5): the
- * Classic ribbon over the sample document in both themes, and the 표/셀 속성
- * dialog, which exercises the shared dialog, tab and form parts. Until the
- * cutover makes it the default, the suite's `hangul-*` shots keep recording the
- * studio and these record the editor that replaces it.
+ * The Hangul editor (spec task 2.5): the Classic ribbon over the sample
+ * document in both themes, and the 표/셀 속성 dialog, which exercises the shared
+ * dialog, tab and form parts. The suite's `hangul-*` shots record the editor as
+ * it opens (Simple toolbar); these record the Classic ribbon and a dialog.
  *
  * Document pixels come from the engine (canvas); everything else is chrome.
  */
@@ -34,7 +33,7 @@ for (const theme of ['light', 'dark'] as Theme[]) {
   test(`hangul editor (${theme})`, async () => {
     const profile = createProfile({ name: `hangul-next-${theme}`, theme })
     const docs = createFixtures(`hangul-next-${theme}`)
-    const app = await launchShell(profile, { env: { REDROB_HANGUL_EDITOR: 'next' } })
+    const app = await launchShell(profile)
     try {
       await openDocument(app, 'hangul', docs.files.hangul)
       await waitForSelector(app, 'hangul', '.hwp-page canvas', { timeoutMs: 45_000 })

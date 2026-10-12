@@ -89,7 +89,7 @@ export interface HomeApi {
   newMarkdown(opts?: { projectId?: string }): Promise<void>
   /** create a blank single-page PDF in the default save folder and open it */
   newPdf(opts?: { projectId?: string }): Promise<void>
-  /** open a blank Hangul (.hwp/.hwpx) editor tab (rhwp-studio) */
+  /** open a blank Hangul (.hwp/.hwpx) editor tab */
   newHangul(opts?: { projectId?: string }): Promise<void>
   /** Home's composer: open the file the request is about, with Redrob answering it */
   ask(prompt: string): Promise<void>
