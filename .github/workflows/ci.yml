@@ -13,6 +13,12 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# The @redrob-labs scope installs from the org's GitHub Packages registry
+# (see .npmrc). read:packages lets the built-in GITHUB_TOKEN authenticate.
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   boundary:
     name: fork boundary & licences
@@ -34,6 +40,11 @@ jobs:
   build-test-linux:
     name: build & test (ubuntu-latest)
     runs-on: ubuntu-latest
+    env:
+      # Every pnpm step reads .npmrc, which resolves the @redrob-labs scope from
+      # GitHub Packages; expose the token job-wide so install, build and test all
+      # authenticate (a step-scoped var left other steps warning on ${NODE_AUTH_TOKEN}).
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -126,6 +137,7 @@ jobs:
     timeout-minutes: 45
     env:
       ELECTRON_DISABLE_SANDBOX: '1'
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -182,6 +194,8 @@ jobs:
     name: build & test (${{ matrix.os }})
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
