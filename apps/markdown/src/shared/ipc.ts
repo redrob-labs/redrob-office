@@ -160,6 +160,8 @@ export interface MarkdownApi extends OfficePrefsApi {
   getAiSettings(): Promise<AiSettings>
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
+  /** One fact about an AI session for Redrob Console insights: counts and flags, never text. */
+  insightsFact(fact: unknown): void
   onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
   /** Main-process web search (Serper/DuckDuckGo via the shared ai:web-search handler) */
   webSearch(query: string, maxResults?: number): Promise<WebSearchResult>

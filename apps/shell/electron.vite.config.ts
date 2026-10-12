@@ -6,7 +6,9 @@ export default defineConfig({
   // Bundle everything into the shell main (same policy as apps/docs): the
   // imported docs/sheets main modules are TS source with no build artifacts,
   // so externalizing them would break Node ESM resolution at runtime.
-  main: {},
+  // onnxruntime-web is the one exception: it loads its .wasm files from its own folder at runtime
+  // (the route labeller, @genoffice/electron-utils/route-labeller), so it stays a real dependency.
+  main: { build: { rollupOptions: { external: ['onnxruntime-web'] } } },
   preload: {
     build: {
       rollupOptions: {

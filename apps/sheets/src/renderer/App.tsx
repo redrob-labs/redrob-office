@@ -170,7 +170,7 @@ import {
   type CrossHighlightHandle,
 } from './cross-highlight'
 import type { ApplyOutcome, ChangePlan } from '../domain/workbook.types'
-import { createElectronTransport } from './ai/transport'
+import { createElectronTransport, insightsSink } from './ai/transport'
 import {
   MAX_READ_RANGE_CELLS,
   type ActiveSheetInfo,
@@ -1064,6 +1064,7 @@ export function App(): React.JSX.Element {
   if (!agentLoopRef.current) {
     agentLoopRef.current = new AgentLoop({
       transport: createElectronTransport(() => aiSettingsRef.current!),
+      insights: insightsSink,
       systemSuffix: aiLangDirective,
       skill: composeSkills('sheets+files', '', [
         createWorkbookSkill(sheetsSkillDeps()),

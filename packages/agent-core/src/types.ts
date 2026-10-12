@@ -94,6 +94,8 @@ export interface AgentStreamRequest {
   system: string
   messages: AgentMessage[]
   tools: AgentToolDef[]
+  /** The insights session the request belongs to, sent to the console as x-redrob-session. */
+  sessionId?: string
 }
 
 export interface AgentStreamCallbacks {

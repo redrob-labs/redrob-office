@@ -324,6 +324,10 @@ const config = {
     output: 'release',
   },
   files: ['out/**'],
+  // The route labeller's WebAssembly runtime (onnxruntime-web, see
+  // @genoffice/electron-utils/route-labeller) compiles its .wasm from a real file,
+  // not from inside the archive.
+  asarUnpack: ['node_modules/onnxruntime-web/dist/*.wasm'],
   extraResources: [
     {
       from: 'build/THIRD-PARTY-NOTICES.txt',

@@ -72,6 +72,7 @@ import {
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
 import { registerRedrobConnectIpc } from './redrob-connect'
+import { startInsights } from './insights-service'
 import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
 import {
   ANALYTICS_ENABLED_KEY,
@@ -4620,6 +4621,8 @@ setSessionPathResolver(resolveSheetsSessionPath)
 const devPidFile = () => join(app.getPath('userData'), 'dev-instance.pid')
 
 app.whenReady().then(async () => {
+  // Office's part of the Redrob Console's AI work insights; see main/insights.ts
+  startInsights()
   const lockData = () => (pendingLaunchPath ? { launchPath: pendingLaunchPath } : {})
   let hasLock = app.requestSingleInstanceLock(lockData())
   if (!hasLock && !app.isPackaged) {

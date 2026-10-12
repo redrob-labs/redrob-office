@@ -37,6 +37,8 @@ export interface IpcStreamStart<S> {
   system: string
   messages: AgentMessage[]
   tools: AgentToolDef[]
+  /** The insights session, when the loop records one (see insights.ts). */
+  sessionId?: string
 }
 
 /**
@@ -141,6 +143,7 @@ export function createIpcTransport<S>(options: IpcTransportOptions<S>): AgentTra
             system: request.system,
             messages: request.messages,
             tools: request.tools,
+            ...(request.sessionId ? { sessionId: request.sessionId } : {}),
           }),
         ).catch((err: unknown) => {
           fail(err instanceof Error ? err.message : options.unknownErrorText())

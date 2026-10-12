@@ -2464,6 +2464,11 @@ export const aiStreamRequestSchema = z
     messages: z.array(agentMessageSchema).max(MAX_AI_MESSAGES),
     tools: z.array(agentToolDefSchema).max(MAX_AI_TOOLS).optional(),
     maxTokens: z.number().int().positive().optional(),
+    /** The insights session the turn belongs to (agent-core insights.ts); sent as x-redrob-session. */
+    sessionId: z
+      .string()
+      .regex(/^[A-Za-z0-9._:-]{1,128}$/)
+      .optional(),
   })
   .strict()
 
@@ -2746,6 +2751,8 @@ export interface DesktopApi extends Partial<OfficePrefsApi>, Partial<FactsBridge
   /// start a streaming AI call; deltas arrive via onAiStream with the same requestId
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
+  /** One fact about an AI session for Redrob Console insights: counts and flags, never text. */
+  insightsFact(fact: unknown): void
   /// Genspark account status (gsk login state); withEmail also returns the email
   /// (needs a network request, slower)
   aiGskStatus(withEmail?: boolean): Promise<GenSparkAccountStatus>

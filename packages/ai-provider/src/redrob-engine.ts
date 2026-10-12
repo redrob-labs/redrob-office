@@ -1,6 +1,7 @@
 import type { AgentMessage, AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
 import { AiAuthError } from './auth-error'
 import { aiFetch } from './fetch'
+import { routeFieldsFor } from './route-labels'
 import {
   AiCreditsError,
   jsonBodyInsteadOfSse,
@@ -77,7 +78,16 @@ export function hasDegradedSteering(text: string): boolean {
  */
 export interface RedrobEngineAuth {
   apiKey: string
+  /**
+   * The insights session the request belongs to, a random id made on this computer. Sent as
+   * x-redrob-session so the console can join the session to its own record of the request's cost
+   * and model; the console takes neither from the device.
+   */
+  sessionId?: string
 }
+
+/** The console accepts 1-128 letters, digits, ".", "_", ":" or "-"; anything else is not sent. */
+const SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
 
 class RedrobEngineError extends Error {
   constructor(message: string) {
@@ -90,6 +100,9 @@ function authHeaders(auth: RedrobEngineAuth): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${auth.apiKey}`,
+    ...(auth.sessionId && SESSION_ID.test(auth.sessionId)
+      ? { 'x-redrob-session': auth.sessionId }
+      : {}),
   }
 }
 
@@ -181,6 +194,8 @@ export async function redrobEngineChat(
           model: REDROB_ENGINE_MODEL,
           messages: toWireMessages(system, [{ role: 'user', text: user }]),
           stream: false,
+          // the ModelGuide profession and task, labelled on this machine; see route-labels.ts
+          ...(await routeFieldsFor([{ role: 'user', text: user }])),
         }),
         signal: watchdog.signal,
       })
@@ -233,6 +248,8 @@ export async function redrobEngineStream(
       messages: toWireMessages(system, messages),
       max_tokens: maxTokens,
       stream: true,
+      // the ModelGuide profession and task, labelled on this machine; see route-labels.ts
+      ...(await routeFieldsFor(messages)),
     }
     if (wireTools) {
       body.tools = wireTools
