@@ -1,44 +1,15 @@
-/* Launch: the Office ground (location only), the lockup, one serif line. */
+/* Launch: a host above the shell for the DS 2026 splash (assets/splash/redrob-splash.css
+   draws the ground, the lockup and the Office icon). */
 
 .launch {
   position: fixed;
   inset: 0;
   z-index: 60;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-6);
-  background: var(--product-office-wash);
   cursor: default;
 }
 
-.launch__mark {
-  height: 56px;
-}
-
-.launch__line {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 28px;
-  line-height: 36px;
-  color: var(--ink-primary);
-}
-
-/* the line follows the mark in; nothing moves under reduced motion */
-@media (prefers-reduced-motion: no-preference) {
-  .launch:not(.launch--still) .launch__line {
-    animation: launch-line var(--duration-slow) ease-out 500ms both;
-  }
-}
-
-@keyframes launch-line {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* the splash fills the host rather than the whole document */
+.launch > .rs-splash {
+  position: absolute;
+  z-index: auto;
 }

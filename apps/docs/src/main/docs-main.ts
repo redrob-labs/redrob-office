@@ -54,7 +54,11 @@ import {
   isAiAuthError,
   isAiNetworkError,
   isAiOverloadedError,
+  REDROB_ENGINE_ID,
   chatForProvider,
+  engineCustody,
+  redrobConnected,
+  storeRedrobKey,
   defaultAiSettings,
   activeProvider,
   cloudToolsEnabled,
@@ -2631,7 +2635,7 @@ const activeAiStreams = new Map<string, AbortController>()
  * sheets' standalone AI handlers use the same channel names.
  */
 export function registerAiIpc(): void {
-  ipcMain.handle('ai:get-settings', (): AiSettings => {
+  ipcMain.handle('ai:get-settings', async (): Promise<AiSettings> => {
     const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(SETTINGS_PATH(), {})
     // pre-lock legacy file: genspark selected with cloud tools opted out. The
     // settings UI locks the tools switch on with genspark and apps read this
@@ -2645,6 +2649,13 @@ export function registerAiIpc(): void {
     const settings = resolveAiSettings(stored, defaultAiSettings())
     // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
     settings.provider = activeProvider(settings)
+    // With the key in the engine, the file has none; whether Redrob is ready is the engine's answer.
+    if (engineCustody()) {
+      settings.engineConnected = await redrobConnected()
+      // A key still in the file (before it is moved into the engine) is never handed to a renderer.
+      const slot = settings.providers[REDROB_ENGINE_ID]
+      if (slot) settings.providers = { ...settings.providers, [REDROB_ENGINE_ID]: { ...slot, apiKey: '' } }
+    }
     return settings
   })
 
@@ -2663,8 +2674,16 @@ export function registerAiIpc(): void {
     ensureGenofficeLogin((url) => void shell.openExternal(url))
   })
 
-  ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
-    writeJson(SETTINGS_PATH(), settings)
+  ipcMain.handle('ai:set-settings', async (_event, settings: AiSettings) => {
+    const { engineConnected: _, ...rest } = settings
+    const slot = rest.providers?.[REDROB_ENGINE_ID]
+    // A key typed into Settings goes to the engine and is not written to the file. If the engine refuses
+    // it the save fails, so the person sees it instead of a key that silently went nowhere.
+    if (engineCustody() && slot?.apiKey?.trim()) {
+      await storeRedrobKey(slot.apiKey)
+      rest.providers = { ...rest.providers, [REDROB_ENGINE_ID]: { ...slot, apiKey: '' } }
+    }
+    writeJson(SETTINGS_PATH(), rest)
   })
 
   ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
@@ -2674,13 +2693,15 @@ export function registerAiIpc(): void {
     const provider = settings.provider
     let config = settings.providers?.[provider]
     // the genspark key never enters the settings file; requests take it from the gsk login state
-    if (provider === 'genspark' && config && !config.apiKey) {
+    // Not under engine custody: there the engine holds the key, and a legacy login key must not route around it.
+    if (provider === 'genspark' && config && !config.apiKey && !engineCustody()) {
       config = { ...config, apiKey: gskApiKey() }
     }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
     }
-    if (!config?.apiKey) {
+    // With the engine holding the key there is none here to check: the engine answers 401 itself.
+    if (!config?.apiKey && !(config && engineCustody())) {
       send({
         requestId,
         type: 'error',
@@ -2711,7 +2732,7 @@ export function registerAiIpc(): void {
         onStopReason: (reason) => {
           stopReason = reason
         },
-      })
+      }, request.sessionId)
       send({ requestId, type: 'done', stopReason })
     } catch (err) {
       if (controller.signal.aborted) {
@@ -2821,13 +2842,14 @@ export function registerAiIpc(): void {
   )
 
   ipcMain.handle('ai:chat', async (_event, request: AiChatRequest) => {
-    const { settings, system, user } = request
+    const { settings, system, user, sessionId } = request
     const provider = settings.provider
     let config = settings.providers?.[provider]
-    if (provider === 'genspark' && config && !config.apiKey) {
+    // Not under engine custody: there the engine holds the key, and a legacy login key must not route around it.
+    if (provider === 'genspark' && config && !config.apiKey && !engineCustody()) {
       config = { ...config, apiKey: gskApiKey() }
     }
-    if (!config?.apiKey) {
+    if (!config?.apiKey && !(config && engineCustody())) {
       return {
         ok: false,
         error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
@@ -2836,7 +2858,7 @@ export function registerAiIpc(): void {
     // The Redrob engine ignores settings.model and always wires `auto`; fresh
     // defaults leave model empty, so an empty model must not fail preflight.
     try {
-      const result = await chatForProvider(provider, config, system, user)
+      const result = await chatForProvider(provider, config, system, user, undefined, sessionId)
       // the one-shot path reports HTTP failures as ok:false with the raw body —
       // replace capacity/rate-limit dumps with the localized "busy" message
       if (!result.ok && isAiOverloadedError(result.error)) {

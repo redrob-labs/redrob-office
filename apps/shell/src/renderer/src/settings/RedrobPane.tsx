@@ -71,7 +71,7 @@ export function RedrobPane({ t, prefs, onChange, developer }: RedrobPaneProps): 
       .then((s) => {
         if (!alive) return
         const keys = Object.values(s?.providers ?? {}).map((p) => p?.apiKey ?? '')
-        setConnected(keys.some((k) => k.trim().length > 0))
+        setConnected(s?.engineConnected === true || keys.some((k) => k.trim().length > 0))
       })
       .catch(() => alive && setConnected(false))
     return () => {

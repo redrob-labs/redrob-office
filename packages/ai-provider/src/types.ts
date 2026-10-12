@@ -42,6 +42,11 @@ export interface AiSettings {
   provider: AiProviderId
   providers: Record<AiProviderId, AiProviderConfig>
   /**
+   * Set by the main process, never stored: whether the bundled engine holds a Redrob key. With the key
+   * in the engine, `providers.redrob.apiKey` is empty, so this is how a renderer knows Redrob is ready.
+   */
+  engineConnected?: boolean
+  /**
    * Genspark cloud tools (web/image search via gsk, image generation, media
    * analysis). Default true; false makes tools skip the gsk backend entirely
    * (search falls back to free sources, gsk-only tools are unavailable).
@@ -70,6 +75,8 @@ export interface AiChatRequest {
   settings: AiSettings
   system: string
   user: string
+  /** The console's id for the AI session (`x-redrob-session`); see RedrobEngineAuth. */
+  sessionId?: string
 }
 
 export interface AiChatResponse {
@@ -85,6 +92,8 @@ export interface AiStreamRequest {
   messages: AgentMessage[]
   tools?: AgentToolDef[]
   maxTokens?: number
+  /** The console's id for the AI session (`x-redrob-session`); see RedrobEngineAuth. */
+  sessionId?: string
 }
 
 export interface AiStreamChunk {
