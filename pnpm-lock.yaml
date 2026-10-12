@@ -33,6 +33,109 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.5)(jsdom@28.1.0)
 
+  apps/docs:
+    dependencies:
+      '@genoffice/agent-core':
+        specifier: workspace:*
+        version: link:../../packages/agent-core
+      '@genoffice/ai-provider':
+        specifier: workspace:*
+        version: link:../../packages/ai-provider
+      '@genoffice/docx-engine':
+        specifier: workspace:*
+        version: link:../../packages/docx-engine
+      '@genoffice/electron-utils':
+        specifier: workspace:*
+        version: link:../../packages/electron-utils
+      '@genoffice/facts':
+        specifier: workspace:*
+        version: link:../../packages/facts
+      '@genoffice/font-metrics':
+        specifier: workspace:*
+        version: link:../../packages/font-metrics
+      '@genoffice/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
+      '@genoffice/pptx-render':
+        specifier: workspace:*
+        version: link:../../packages/pptx-render
+      '@genoffice/project-store':
+        specifier: workspace:*
+        version: link:../../packages/project-store
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
+      '@genoffice/ui':
+        specifier: workspace:*
+        version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
+      '@tiptap/core':
+        specifier: ^3.28.0
+        version: 3.29.2(@tiptap/pm@3.29.2)
+      '@tiptap/extensions':
+        specifier: ^3.28.0
+        version: 3.29.2(@tiptap/core@3.29.2(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2)
+      '@tiptap/pm':
+        specifier: ^3.28.0
+        version: 3.29.2
+      '@tiptap/react':
+        specifier: ^3.28.0
+        version: 3.29.2(@floating-ui/dom@1.8.0)(@tiptap/core@3.29.2(@tiptap/pm@3.29.2))(@tiptap/pm@3.29.2)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.2
+      marked:
+        specifier: ^17.0.6
+        version: 17.0.6
+      opentype.js:
+        specifier: ^2.0.0
+        version: 2.0.0
+      pdf-lib:
+        specifier: ^1.17.1
+        version: 1.17.1
+      react:
+        specifier: ^19.2.4
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.3.0(react@19.3.0)
+      y-prosemirror:
+        specifier: 1.3.7
+        version: 1.3.7(prosemirror-model@1.25.12)(prosemirror-state@1.4.4)(prosemirror-view@1.42.1)(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33)
+      y-protocols:
+        specifier: 1.0.7
+        version: 1.0.7(yjs@13.6.33)
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
+    devDependencies:
+      '@types/opentype.js':
+        specifier: ^1.3.8
+        version: 1.3.10
+      '@types/react':
+        specifier: 19.2.17
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: ^5.0.4
+        version: 5.2.0(vite@7.3.7(@types/node@24.19.2)(tsx@4.23.15))
+      jsdom:
+        specifier: ^28.0.0
+        version: 28.1.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.7(@types/node@24.19.2)(tsx@4.23.15)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@24.19.2)(jsdom@28.1.0)(vite@7.3.7(@types/node@24.19.2)(tsx@4.23.15))
+
   apps/markdown:
     dependencies:
       '@genoffice/agent-core':
@@ -380,6 +483,15 @@ importers:
       vite:
         specifier: ^7.3.1
         version: 7.3.7(@types/node@24.19.2)(tsx@4.23.15)
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.11(@types/node@24.19.2)(jsdom@28.1.0)(vite@7.3.7(@types/node@24.19.2)(tsx@4.23.15))
+
+  packages/font-metrics:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       vitest:
         specifier: ^4.1.0
         version: 4.1.11(@types/node@24.19.2)(jsdom@28.1.0)(vite@7.3.7(@types/node@24.19.2)(tsx@4.23.15))
@@ -2470,6 +2582,16 @@ packages:
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
+  y-prosemirror@1.3.7:
+    resolution: {integrity: sha512-NpM99WSdD4Fx4if5xOMDpPtU3oAmTSjlzh5U4353ABbRHl1HtAFUx6HlebLZfyFxXN9jzKMDkVbcRjqOZVkYQg==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
+    peerDependencies:
+      prosemirror-model: ^1.7.1
+      prosemirror-state: ^1.2.3
+      prosemirror-view: 1.42.1
+      y-protocols: ^1.0.1
+      yjs: ^13.5.38
+
   y-protocols@1.0.7:
     resolution: {integrity: sha512-YSVsLoXxO67J6eE/nV4AtFtT3QEotZf5sK5BHxFBXso7VDUT3Tx07IfA6hsu5Q5OmBdMkQVmFZ9QOA7fikWvnw==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
@@ -4184,6 +4306,15 @@ snapshots:
   xml-naming@0.3.0: {}
 
   xmlchars@2.2.0: {}
+
+  y-prosemirror@1.3.7(prosemirror-model@1.25.12)(prosemirror-state@1.4.4)(prosemirror-view@1.42.1)(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33):
+    dependencies:
+      lib0: 0.2.119
+      prosemirror-model: 1.25.12
+      prosemirror-state: 1.4.4
+      prosemirror-view: 1.42.1
+      y-protocols: 1.0.7(yjs@13.6.33)
+      yjs: 13.6.33
 
   y-protocols@1.0.7(yjs@13.6.33):
     dependencies:

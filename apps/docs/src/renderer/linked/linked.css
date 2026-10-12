@@ -1,0 +1,247 @@
+/* Linked figures: the card, the Sources rail and the picker are chrome, so they read kit tokens. */
+
+.doc-figcard {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-primary);
+}
+
+.doc-figcard:focus {
+  outline: none;
+}
+
+.doc-figcard__h {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.doc-figcard__h b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-figcard__st,
+.doc-sources__st {
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+}
+
+.doc-figcard__st--wait,
+.doc-sources__st--wait {
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
+}
+
+.doc-figcard__st--stale,
+.doc-sources__st--stale {
+  color: var(--status-warning);
+}
+
+.doc-figcard__v {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-figcard__v del {
+  color: var(--ink-secondary);
+  font-weight: 400;
+}
+
+.doc-figcard__v ins {
+  text-decoration: none;
+}
+
+.doc-figcard__dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.doc-figcard__dl dt {
+  color: var(--ink-secondary);
+}
+
+.doc-figcard__dl dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.doc-figcard__act,
+.doc-figcard__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.doc-figcard__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.doc-figcard__form label {
+  font-weight: 600;
+}
+
+.doc-figcard__row input {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-figcard__row input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+}
+
+.doc-figcard__note {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 18px;
+}
+
+.doc-sources {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: auto;
+  padding: 12px;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-primary);
+}
+
+.doc-sources__h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.doc-sources__h h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.doc-sources__empty {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 18px;
+}
+
+.doc-sources__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-sources__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.doc-sources__item:hover {
+  background: var(--surface-sunken);
+}
+
+.doc-sources__item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+}
+
+.doc-sources__label {
+  font-weight: 600;
+}
+
+.doc-sources__value {
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-sources__meta {
+  grid-column: 1;
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.doc-sources__st {
+  grid-column: 2;
+  margin-left: 0;
+}
+
+.doc-figpick {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-figpick__o {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.doc-figpick__o.is-on {
+  border-color: var(--action-primary);
+  background: var(--surface-brand-subtle);
+}
+
+.doc-figpick__o:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+}
+
+.doc-figpick__src {
+  grid-column: 1 / -1;
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
