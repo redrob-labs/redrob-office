@@ -1,0 +1,152 @@
+/*
+ * setup-experience.css — layout for the installer/uninstaller PROTOTYPE only.
+ *
+ * All colors come from the Redrob design-system tokens injected by
+ * @genoffice/ui (tokens.css / theme.css), never fixed hex, so the flow is
+ * readable in both light and dark themes. These are purely presentational
+ * rules for the prototype window chrome; the controls themselves are
+ * design-system components.
+ */
+
+.setup-root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rds-color-surface, var(--color-bg, #0b0b0c));
+  color: var(--rds-color-text, var(--color-fg, #f5f5f5));
+  overflow: auto;
+  padding: 32px;
+}
+
+/* The installer "window": a fixed-aspect card echoing a native setup window. */
+.setup-window {
+  width: min(640px, 100%);
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: var(--rds-color-raised, var(--color-panel, #161618));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+/* Header band carrying the Redrob lockup. */
+.setup-window__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--rds-color-border, rgba(255, 255, 255, 0.08));
+}
+
+.setup-window__brand img {
+  height: 24px;
+  width: auto;
+}
+
+.setup-window__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px;
+}
+
+.setup-window__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* Headline + body for the prototype. @genoffice/ui does not re-export the
+ * design system's Display/Statement voice components, so the prototype uses
+ * plain semantic elements styled with the system's own token variables rather
+ * than editing the shared kit for a preview. */
+.setup-window__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--rds-color-text, var(--color-fg, #f5f5f5));
+}
+
+.setup-window__title--lg {
+  font-size: 30px;
+}
+
+.setup-window__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--rds-color-text-muted, var(--color-fg, #d6d6d6));
+}
+
+.setup-window__license {
+  flex: 1;
+  max-height: 220px;
+  overflow: auto;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--rds-color-sunken, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--rds-color-border, rgba(255, 255, 255, 0.08));
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.setup-window__path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--rds-color-sunken, rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--rds-color-border, rgba(255, 255, 255, 0.08));
+  font-family: var(--rds-font-mono, ui-monospace, monospace);
+  font-size: 13px;
+}
+
+/* Footer action row, pinned to the bottom like a native wizard. */
+.setup-window__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 28px;
+  border-top: 1px solid var(--rds-color-border, rgba(255, 255, 255, 0.08));
+}
+
+.setup-window__footer--split {
+  justify-content: space-between;
+}
+
+.setup-window__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.setup-window__step--done {
+  opacity: 0.5;
+}
+
+.setup-window__center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .setup-window,
+  .setup-window * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

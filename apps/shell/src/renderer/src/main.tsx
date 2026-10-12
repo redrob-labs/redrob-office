@@ -12,32 +12,60 @@ import '@genoffice/ui/dropdown.css'
 import './home.css'
 import './tabbar.css'
 import { applyUiTheme, installScreenTips } from '@genoffice/ui'
+import { pickSetupScreen, SetupExperience } from './setup-experience/SetupExperience'
 
 installScreenTips()
+
+// OPT-IN installer/uninstaller PROTOTYPE (design preview only; see
+// setup-experience/PORTING.md). Active ONLY when the renderer URL carries
+// ?screen=setup or ?screen=uninstall. With no such param this returns null and
+// the normal Home boot below runs unchanged — the shipped app is untouched.
+const setupScreen = pickSetupScreen()
+if (setupScreen) {
+  void window.aiOffice
+    .getLanguage()
+    .catch(() => 'en' as const)
+    .then((lang) => {
+      const resolved = lang === 'zh' ? 'zh' : 'en'
+      document.documentElement.lang = resolved
+      void window.aiOffice
+        .getTheme()
+        .catch(() => 'system' as const)
+        .then((theme) => applyUiTheme(theme))
+      createRoot(document.getElementById('root')!).render(
+        <React.StrictMode>
+          <SetupExperience screen={setupScreen} lang={resolved} />
+        </React.StrictMode>,
+      )
+    })
+}
 
 // macOS shell window is created with vibrancy; a transparent body lets the
 // editor views' translucent regions (e.g. slides thumbnail pane) show it
 if (navigator.platform.toLowerCase().includes('mac')) document.body.classList.add('vib')
 
-// resolve the persisted language, first-run flag, and theme before first paint
-// so the UI never flashes (home showing briefly before the onboarding overlay)
-void Promise.all([
-  window.aiOffice.getLanguage(),
-  // if the flag is unreadable, skip onboarding rather than block the home screen
-  window.aiOffice.onboardingSeen().catch(() => true),
-  window.aiOffice.getTheme().catch(() => 'system' as const),
-  // once per app session; an unreadable answer skips it rather than block Home
-  window.aiOffice.takeLaunch().catch(() => false),
-]).then(([lang, onboardingSeen, theme, launch]) => {
-  document.documentElement.lang = htmlLang(lang)
-  // apply theme attribute before first paint to avoid flash
-  applyUiTheme(theme)
-  window.aiOffice.onThemeChanged((next) => applyUiTheme(next))
-  createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <LocaleProvider initial={lang}>
-        <AppFrame initialOnboardingSeen={onboardingSeen} initialLaunch={launch} />
-      </LocaleProvider>
-    </React.StrictMode>,
-  )
-})
+// Normal Home boot — skipped only while the opt-in prototype above is showing.
+if (!setupScreen) {
+  // resolve the persisted language, first-run flag, and theme before first paint
+  // so the UI never flashes (home showing briefly before the onboarding overlay)
+  void Promise.all([
+    window.aiOffice.getLanguage(),
+    // if the flag is unreadable, skip onboarding rather than block the home screen
+    window.aiOffice.onboardingSeen().catch(() => true),
+    window.aiOffice.getTheme().catch(() => 'system' as const),
+    // once per app session; an unreadable answer skips it rather than block Home
+    window.aiOffice.takeLaunch().catch(() => false),
+  ]).then(([lang, onboardingSeen, theme, launch]) => {
+    document.documentElement.lang = htmlLang(lang)
+    // apply theme attribute before first paint to avoid flash
+    applyUiTheme(theme)
+    window.aiOffice.onThemeChanged((next) => applyUiTheme(next))
+    createRoot(document.getElementById('root')!).render(
+      <React.StrictMode>
+        <LocaleProvider initial={lang}>
+          <AppFrame initialOnboardingSeen={onboardingSeen} initialLaunch={launch} />
+        </LocaleProvider>
+      </React.StrictMode>,
+    )
+  })
+}
