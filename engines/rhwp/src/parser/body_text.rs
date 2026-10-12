@@ -111,6 +111,12 @@ pub fn parse_body_text_section(data: &[u8]) -> Result<Section, BodyTextError> {
 
     link_orphan_field_ends(&mut section.paragraphs);
 
+    // [Redrob E4] 메모 본문 — 한글은 구역 끝에 빈 root 문단을 두고 그 자식으로
+    // MEMO_LIST(번호) + LIST_HEADER + 본문 문단을 메모마다 쓴다. 본문을 각 메모
+    // 필드(`memo_index`)에 붙이고, 직렬화기가 다시 만드는 root 문단은 모델에서 뺀다.
+    // 종전에는 본문이 모델에 없어서, 마지막 구역을 고친 뒤 저장하면 메모 본문이 사라졌다.
+    attach_memo_tail(&records, &mut section);
+
     // 확장 바탕쪽 파싱: 마지막 문단 이후의 LIST_HEADER (level=1)
     // HWP 바이너리에서 확장 바탕쪽(마지막 쪽, 임의 쪽)은 Section 스트림 끝에 저장되지만,
     // level=1로 태그되어 마지막 문단의 자식으로 오인됨.
@@ -147,6 +153,74 @@ pub fn parse_body_text_section(data: &[u8]) -> Result<Section, BodyTextError> {
     }
 
     Ok(section)
+}
+
+/// [Redrob E4] The memo tail: the last level-0 paragraph whose level-1 children
+/// include MEMO_LIST records. Returns (memo number, body paragraphs) per memo.
+fn memo_tail_bodies(records: &[Record]) -> Option<(usize, Vec<(u32, Vec<Paragraph>)>)> {
+    let root = records.iter().rposition(|r| r.tag_id == tags::HWPTAG_PARA_HEADER && r.level == 0)?;
+    let first_memo = records[root + 1..].iter().position(|r| r.tag_id == tags::HWPTAG_MEMO_LIST && r.level == 1)? + root + 1;
+    if records[root + 1..first_memo].iter().any(|r| r.level == 1 && r.tag_id == tags::HWPTAG_PARA_TEXT) {
+        return None; // a real paragraph with text, not the memo root
+    }
+    let mut out = Vec::new();
+    let mut i = first_memo;
+    while i < records.len() {
+        let r = &records[i];
+        if r.level == 0 {
+            break;
+        }
+        if r.tag_id == tags::HWPTAG_MEMO_LIST && r.level == 1 {
+            let number = r.data.get(..4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]])).unwrap_or(0);
+            let start = i + 1;
+            let mut end = start;
+            while end < records.len() && records[end].level >= 1 && !(records[end].tag_id == tags::HWPTAG_MEMO_LIST && records[end].level == 1) {
+                end += 1;
+            }
+            let body: Vec<Record> = records[start..end].iter().filter(|r| r.tag_id != tags::HWPTAG_LIST_HEADER || r.level != 1).cloned().collect();
+            out.push((number, parse_paragraph_list(&body)));
+            i = end;
+        } else {
+            i += 1;
+        }
+    }
+    Some((root, out))
+}
+
+fn attach_memo_tail(records: &[Record], section: &mut Section) {
+    let Some((_, bodies)) = memo_tail_bodies(records) else {
+        return;
+    };
+    // The memo root is the last parsed paragraph: empty, no controls.
+    if section.paragraphs.len() > 1 {
+        let last = section.paragraphs.last().unwrap();
+        if last.text.is_empty() && last.controls.is_empty() {
+            section.paragraphs.pop();
+        }
+    }
+    let mut bodies: std::collections::HashMap<u32, Vec<Paragraph>> = bodies.into_iter().collect();
+    fn visit(paragraphs: &mut [Paragraph], bodies: &mut std::collections::HashMap<u32, Vec<Paragraph>>) {
+        for p in paragraphs {
+            for c in &mut p.controls {
+                match c {
+                    Control::Field(f) if f.field_type == crate::model::control::FieldType::Memo || f.command.starts_with("MEMO/") => {
+                        let n = if f.memo_index != 0 { f.memo_index } else { f.command.split('/').nth(2).and_then(|t| t.parse().ok()).unwrap_or(0) };
+                        if let Some(body) = bodies.remove(&n) {
+                            f.memo_index = n;
+                            f.memo_paragraphs = body;
+                        }
+                    }
+                    Control::Table(t) => {
+                        for cell in &mut t.cells {
+                            visit(&mut cell.paragraphs, bodies);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+    visit(&mut section.paragraphs, &mut bodies);
 }
 
 /// 다단락 필드의 종료 마커에 짝 `fieldBegin` 의 id 를 채운다.

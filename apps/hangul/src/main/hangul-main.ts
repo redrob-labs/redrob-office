@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
+import { userInfo } from 'node:os'
 import { BrowserWindow, WebContentsView, app, dialog, ipcMain, shell } from 'electron'
 import type { WebContents } from 'electron'
 import {
@@ -13,9 +14,12 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
-import { resolveEditorKind } from './editor-kind'
-import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
+import { checkPages, pdfOfPages, printPages, standaloneHtml, withPrintWindow, wordHtml, type PrintWindowLike } from './print-export'
+import { cloudToolsOn, createHangulDocument, type HangulAiHooks } from './ai-ipc'
+import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
+import { hancomFontRoots, hancomFontSource } from './hancom-fonts'
 import { HANGUL_CHANNELS } from '../shared/ipc'
+import type { CreateHangulDocumentRequest, PrintPagesRequest } from '../shared/ipc'
 import type {
   HangulDocumentBytes,
   HangulFormat,
@@ -44,6 +48,13 @@ const tDlg = createI18n({
     btnSave: 'Save',
     btnDontSave: "Don't Save",
     btnCancel: 'Cancel',
+    dlgPdfTitle: 'Save as PDF',
+    dlgHtmlTitle: 'Export as HTML',
+    filterPdf: 'PDF documents',
+    filterHtml: 'Web pages',
+    dlgDocTitle: 'Export as Word Document',
+    filterDoc: 'Word documents',
+    dlgCompareTitle: 'Compare with Document',
   },
   ja: {
     dlgSaveTitle: 'Hangul ドキュメントを保存',
@@ -64,6 +75,13 @@ const tDlg = createI18n({
     btnSave: '저장',
     btnDontSave: '저장 안 함',
     btnCancel: '취소',
+    dlgPdfTitle: 'PDF로 저장',
+    dlgHtmlTitle: 'HTML로 내보내기',
+    filterPdf: 'PDF 문서',
+    filterHtml: '웹 페이지',
+    dlgDocTitle: 'Word 문서로 내보내기',
+    filterDoc: 'Word 문서',
+    dlgCompareTitle: '비교할 문서',
   },
   fr: {
     dlgSaveTitle: 'Enregistrer le document Hangul',
@@ -225,20 +243,26 @@ type DlgKey =
   | 'btnSave'
   | 'btnDontSave'
   | 'btnCancel'
+  | 'dlgPdfTitle'
+  | 'dlgHtmlTitle'
+  | 'filterPdf'
+  | 'filterHtml'
+  | 'dlgDocTitle'
+  | 'filterDoc'
+  | 'dlgCompareTitle'
 const tm = (key: DlgKey) => tDlg(getUiLang(), key)
 
 interface RuntimePaths {
   preloadPath: string
   rendererUrl?: string
   rendererFile?: string
-  /**
-   * Absolute path to the bundled, offline rhwp-studio build directory
-   * (index.html + assets). Served over an app-local loopback origin; never a CDN.
-   */
-  studioDir: string
+  /** open a generated file in a new tab (shell openGeneratedDocument) */
+  openGeneratedPath?: HangulAiHooks['openGeneratedPath']
+  /** Docs-owned create_document for docx/pdf/md */
+  createDocument?: HangulAiHooks['createDocument']
 }
 
-let runtime: RuntimePaths = { preloadPath: '', studioDir: '' }
+let runtime: RuntimePaths = { preloadPath: '' }
 
 export function configureHangulRuntime(paths: RuntimePaths): void {
   runtime = paths
@@ -259,47 +283,49 @@ const saveWaiters = new Map<number, (ok: boolean) => void>()
 /** Fired after a save lands on a NEW path (untitled first save / Save As) — the shell syncs tab title, recents, projects */
 let fileSavedHook: ((wc: WebContents, path: string) => void) | null = null
 
+/** Fired after every successful save with the bytes written: the shell records a version and uploads a shared file. */
+let docSavedHook: ((path: string, bytes: Uint8Array) => void) | null = null
+
+export function setHangulDocSavedHook(hook: (path: string, bytes: Uint8Array) => void): void {
+  docSavedHook = hook
+}
+
+/**
+ * What the shell does for 새 문서, 불러오기 and 최근 문서: it owns tabs and the
+ * recent list, so the editor asks it rather than opening files itself.
+ */
+export interface HangulShellHooks {
+  newDocument(): void
+  openViaDialog(): Promise<void>
+  recentFiles(): string[]
+  openPath(path: string): boolean
+  removeRecent(paths: string[]): void
+  /** Bring Home forward with Settings open (한글's 환경 설정). */
+  openSettings(): void
+}
+
+let shellHooks: HangulShellHooks | null = null
+
+export function setHangulShellHooks(hooks: HangulShellHooks): void {
+  shellHooks = hooks
+}
+
+const HANGUL_FILE = /\.(hwp|hwpx)$/i
+const MAX_RECENT = 20
+
+/** Hangul files in the shell's recent list, newest first. */
+export function hangulRecentFiles(all: readonly string[]): string[] {
+  return all.filter((p) => HANGUL_FILE.test(p)).slice(0, MAX_RECENT)
+}
+
 export function setHangulFileSavedHook(hook: (wc: WebContents, path: string) => void): void {
   fileSavedHook = hook
 }
 
-/**
- * Start (idempotently) serving the bundled offline studio and return its
- * loopback origin, or null when the bundle is unavailable. Never a CDN.
- */
-async function ensureStudioOrigin(): Promise<string | null> {
-  if (!runtime.studioDir) return null
-  try {
-    // a built renderer is served from the same loopback origin (see loadRenderer)
-    const hostDir =
-      !runtime.rendererUrl && runtime.rendererFile ? dirname(runtime.rendererFile) : undefined
-    return await serveHangulStudio(runtime.studioDir, hostDir)
-  } catch (err) {
-    console.warn('[hangul] offline studio unavailable:', err)
-    return null
-  }
-}
-
-/**
- * Load the Hangul renderer. In dev it comes from the Vite server; a built
- * renderer is served over the studio's loopback origin under /host/ rather
- * than loaded from file://, because rhwp-studio ignores every message from a
- * parent whose origin is not http(s), which a file:// page ("null") never is.
- * Without the studio there is no editor to embed, so file:// stays the fallback
- * that shows the offline notice.
- */
+/** Load the Hangul renderer: the Vite server in dev, the built file otherwise. */
 function loadRenderer(contents: WebContents): void {
-  if (runtime.rendererUrl) {
-    void contents.loadURL(runtime.rendererUrl)
-    return
-  }
-  if (!runtime.rendererFile) return
-  const file = runtime.rendererFile
-  void ensureStudioOrigin().then((origin) => {
-    if (contents.isDestroyed()) return
-    if (origin) void contents.loadURL(`${origin}${HOST_PREFIX}${basename(file)}`)
-    else void contents.loadFile(file)
-  })
+  if (runtime.rendererUrl) void contents.loadURL(runtime.rendererUrl)
+  else if (runtime.rendererFile) void contents.loadFile(runtime.rendererFile)
 }
 
 export function hangulIsDirty(webContentsId: number): boolean {
@@ -407,8 +433,6 @@ function registerHangulIpc(): void {
   if (ipcRegistered) return
   ipcRegistered = true
 
-  ipcMain.handle(HANGUL_CHANNELS.studioOrigin, () => ensureStudioOrigin())
-  ipcMain.handle(HANGUL_CHANNELS.editorKind, () => resolveEditorKind(process.env, app.isPackaged))
 
   ipcMain.handle(HANGUL_CHANNELS.consumePending, (e) => openPathByWc.get(e.sender.id) ?? null)
 
@@ -443,7 +467,13 @@ function registerHangulIpc(): void {
         if (!target) return done({ ok: false, error: 'hangul: no save target' })
         const currentPath = savePathByWc.get(e.sender.id)
         const isNewPath = currentPath !== target
-        await atomicWriteFile(target, Buffer.from(request.base64, 'base64'))
+        const bytes = Buffer.from(request.base64, 'base64')
+        await atomicWriteFile(target, bytes)
+        try {
+          docSavedHook?.(target, new Uint8Array(bytes))
+        } catch {
+          /* history and sharing never fail a save */
+        }
         savePathByWc.set(e.sender.id, target)
         openPathByWc.set(e.sender.id, target)
         const allowed = allowedByWc.get(e.sender.id) ?? new Set<string>()
@@ -457,6 +487,85 @@ function registerHangulIpc(): void {
       }
     },
   )
+
+  // A hidden window for printing: sandboxed, no scripts, never shown.
+  const printWindow = (): PrintWindowLike =>
+    new BrowserWindow({ show: false, webPreferences: { sandbox: true, javascript: false, contextIsolation: true, nodeIntegration: false } }) as unknown as PrintWindowLike
+  const EXPORT = {
+    pdf: { title: 'dlgPdfTitle', filter: 'filterPdf', extensions: ['pdf'] },
+    html: { title: 'dlgHtmlTitle', filter: 'filterHtml', extensions: ['html', 'htm'] },
+    doc: { title: 'dlgDocTitle', filter: 'filterDoc', extensions: ['doc'] },
+  } as const
+  const exportTarget = async (e: Electron.IpcMainInvokeEvent, name: string | undefined, ext: keyof typeof EXPORT) => {
+    const current = savePathByWc.get(e.sender.id)
+    const base = (name || (current ? basename(current, extname(current)) : tm('untitledFile'))).replace(/[\\/:*?"<>|]/g, '_')
+    const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
+    const picked = await showSaveDialogWithMemory(dialog, win, {
+      title: tm(EXPORT[ext].title),
+      defaultPath: join(current ? dirname(current) : configuredDefaultSaveDir(app), `${base}.${ext}`),
+      filters: [{ name: tm(EXPORT[ext].filter), extensions: [...EXPORT[ext].extensions] }],
+    })
+    return picked.canceled || !picked.filePath ? null : picked.filePath
+  }
+
+  // 문서 비교: the other document is picked here and only its bytes go back; nothing is granted for saving.
+  ipcMain.handle(HANGUL_CHANNELS.pickCompare, async (e) => {
+    const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
+    const opts = { title: tm('dlgCompareTitle'), properties: ['openFile' as const], filters: [{ name: tm('filterHangul'), extensions: ['hwp', 'hwpx'] }] }
+    const picked = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const path = picked.canceled ? undefined : picked.filePaths[0]
+    if (!path) return null
+    const bytes = await readFile(path)
+    if (bytes.length > 200 * 1024 * 1024) return null
+    return { fileName: basename(path), bytes: new Uint8Array(bytes) }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.printPages, async (e, request: PrintPagesRequest) => {
+    const pages = checkPages(request?.pages)
+    if (typeof pages === 'string') return { ok: false, error: `hangul: ${pages}` }
+    try {
+      if (request.mode === 'pdf') {
+        const target = await exportTarget(e, request.name, 'pdf')
+        if (!target) return { ok: true, canceled: true }
+        const data = await withPrintWindow(printWindow, pages, pdfOfPages)
+        await atomicWriteFile(target, data)
+        return { ok: true, path: target }
+      }
+      return await withPrintWindow(printWindow, pages, printPages)
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.newDocument, () => shellHooks?.newDocument())
+  ipcMain.handle(HANGUL_CHANNELS.openDialog, () => shellHooks?.openViaDialog())
+  ipcMain.handle(HANGUL_CHANNELS.recentFiles, () => (shellHooks ? hangulRecentFiles(shellHooks.recentFiles()) : []))
+  // Only a path that is in the recent list opens, so the renderer cannot name an arbitrary file.
+  ipcMain.handle(HANGUL_CHANNELS.openRecent, (_e, path: unknown) => {
+    if (!shellHooks || typeof path !== 'string' || !hangulRecentFiles(shellHooks.recentFiles()).includes(path)) return false
+    return shellHooks.openPath(path)
+  })
+  ipcMain.handle(HANGUL_CHANNELS.openSettings, () => shellHooks?.openSettings())
+  ipcMain.handle(HANGUL_CHANNELS.clearRecent, () => {
+    if (shellHooks) shellHooks.removeRecent(shellHooks.recentFiles().filter((p) => HANGUL_FILE.test(p)))
+  })
+
+  const fontSource = hancomFontSource(() => hancomFontRoots(process.platform, process.env))
+  ipcMain.handle(HANGUL_CHANNELS.fontSource, (_e, face: unknown) => fontSource(face))
+
+  ipcMain.handle(HANGUL_CHANNELS.exportHtml, async (e, request: { html?: unknown; name?: string; format?: unknown }) => {
+    if (typeof request?.html !== 'string' || !request.html || request.html.length > 200 * 1024 * 1024) return { ok: false, error: 'hangul: bad export request' }
+    const format = request.format === 'doc' ? 'doc' : 'html'
+    try {
+      const target = await exportTarget(e, request.name, format)
+      if (!target) return { ok: true, canceled: true }
+      const title = basename(target, extname(target))
+      await atomicWriteFile(target, Buffer.from(format === 'doc' ? wordHtml(request.html, title) : standaloneHtml(request.html, title), 'utf8'))
+      return { ok: true, path: target }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
 
   ipcMain.on(HANGUL_CHANNELS.dirtyChanged, (e, dirty: unknown) => {
     if (dirty === true) dirtyByWc.add(e.sender.id)
@@ -474,6 +583,31 @@ function registerHangulIpc(): void {
     const waiter = saveWaiters.get(e.sender.id)
     saveWaiters.delete(e.sender.id)
     waiter?.(ok === true)
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.createDocument, (_e, request: CreateHangulDocumentRequest) =>
+    createHangulDocument(request, configuredDefaultSaveDir(app), { openGeneratedPath: runtime.openGeneratedPath, createDocument: runtime.createDocument }),
+  )
+
+  ipcMain.handle(HANGUL_CHANNELS.authorName, () => {
+    try {
+      return userInfo().username || 'User'
+    } catch {
+      return 'User'
+    }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.generateImage, async (_e, op: { prompt?: unknown; aspectRatio?: unknown }) => {
+    if (!hasGskAuth()) return { error: 'Redrob account is not logged in on this machine; ask the user to log in first' }
+    if (!cloudToolsOn(app.getPath('userData'))) return { error: 'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool' }
+    const prompt = String(op?.prompt ?? '').trim()
+    if (!prompt) return { error: 'prompt must not be empty' }
+    try {
+      const r = await gskGenerateImage({ prompt, aspectRatio: op?.aspectRatio ? String(op.aspectRatio) : undefined })
+      return { url: r.url }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
   })
 
   // Language channel shared with other modules; removeHandler tolerates duplicate registration
@@ -507,8 +641,6 @@ function grantAndTrack(wc: WebContents, openPath?: string | null): void {
 
 export function createHangulView(openPath?: string | null): WebContentsView {
   registerHangulIpc()
-  // Warm the offline studio origin so the renderer's first studioOrigin() is instant.
-  void ensureStudioOrigin()
   const view = new WebContentsView({
     webPreferences: {
       preload: runtime.preloadPath,
@@ -522,11 +654,6 @@ export function createHangulView(openPath?: string | null): WebContentsView {
   return view
 }
 
-/** Stop the offline studio server (shell quit hook). */
-export async function teardownHangul(): Promise<void> {
-  await stopHangulStudio()
-}
-
 /** Standalone window mode: `npm run dev -w @genoffice/hangul`, hwp path passed via argv */
 export function startHangulStandalone(): void {
   installNavigationGuard(app)
@@ -535,7 +662,6 @@ export function startHangulStandalone(): void {
     preloadPath: join(__dirname, '../preload/index.js'),
     rendererUrl: process.env.ELECTRON_RENDERER_URL,
     rendererFile: join(__dirname, '../renderer/index.html'),
-    studioDir: join(__dirname, '../../resources/rhwp-studio'),
   })
   void app.whenReady().then(() => {
     registerHangulIpc()
@@ -554,7 +680,7 @@ export function startHangulStandalone(): void {
     loadRenderer(win.webContents)
   })
   app.on('window-all-closed', () => {
-    void stopHangulStudio().finally(() => app.quit())
+    app.quit()
   })
 }
 

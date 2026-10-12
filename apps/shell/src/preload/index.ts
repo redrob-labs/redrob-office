@@ -21,6 +21,8 @@ import type {
 import { HOME_CHANNELS, PROJECT_CHANNELS } from '../shared/home-api'
 import type { TabsApi, TabSummary } from '../shared/tabs-api'
 import { TABS_CHANNELS } from '../shared/tabs-api'
+import type { WindowApi, WindowState } from '../shared/window-api'
+import { WINDOW_CHANNELS } from '../shared/window-api'
 import { normalizeFactsState } from '@genoffice/facts'
 import { IDENTITY_CHANNELS, type IdentityApi } from '@genoffice/identity'
 import { shareBridge } from '@genoffice/sync-client'
@@ -170,6 +172,10 @@ const homeApi: HomeApi = {
     const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.getAppVersion)
     return typeof result === 'string' ? result : ''
   },
+  async hangulAi() {
+    const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.hangulAi)
+    return result === true
+  },
   async onboardingSeen() {
     const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.onboardingSeen)
     return result === true
@@ -210,6 +216,11 @@ const homeApi: HomeApi = {
     }
     ipcRenderer.on('app:theme-changed', listener)
     return () => ipcRenderer.removeListener('app:theme-changed', listener)
+  },
+  onOpenSettings(handler) {
+    const listener = () => handler()
+    ipcRenderer.on('app:open-settings', listener)
+    return () => ipcRenderer.removeListener('app:open-settings', listener)
   },
   async getOfficePrefs() {
     return normalizeOfficePrefs(await ipcRenderer.invoke(HOME_CHANNELS.getOfficePrefs))
@@ -299,6 +310,12 @@ const homeApi: HomeApi = {
   },
   async cancelRedrobConnect(id) {
     await ipcRenderer.invoke('redrob:connect-cancel', id)
+  },
+  async getModelGuide(locale) {
+    return (await ipcRenderer.invoke('ai:get-model-guide', locale)) as {
+      asOf: string
+      professions: unknown[]
+    } | null
   },
   async testAiSettings(settings) {
     const result: unknown = await ipcRenderer.invoke('ai:chat', {
@@ -397,6 +414,29 @@ const tabsApi: TabsApi = {
 }
 
 contextBridge.exposeInMainWorld('aiOfficeTabs', tabsApi)
+
+// The strip's window controls on Windows and Linux (no OS title bar there)
+const toWindowState = (raw: unknown): WindowState => ({
+  maximized: typeof raw === 'object' && raw !== null && (raw as Record<string, unknown>).maximized === true,
+})
+const windowApi: WindowApi = {
+  platform: process.platform === 'darwin' || process.platform === 'win32' ? process.platform : 'linux',
+  minimize: () => ipcRenderer.invoke(WINDOW_CHANNELS.minimize),
+  toggleMaximize: () => ipcRenderer.invoke(WINDOW_CHANNELS.toggleMaximize),
+  close: () => ipcRenderer.invoke(WINDOW_CHANNELS.close),
+  async state() {
+    return toWindowState(await ipcRenderer.invoke(WINDOW_CHANNELS.state))
+  },
+  onStateChanged(handler) {
+    const listener = (_event: IpcRendererEvent, raw: unknown) => handler(toWindowState(raw))
+    ipcRenderer.on(WINDOW_CHANNELS.stateChanged, listener)
+    return () => ipcRenderer.removeListener(WINDOW_CHANNELS.stateChanged, listener)
+  },
+  showAppMenu: (x, y) => ipcRenderer.invoke(WINDOW_CHANNELS.showAppMenu, x, y),
+  focusSearch: () => ipcRenderer.invoke(WINDOW_CHANNELS.focusSearch),
+}
+
+contextBridge.exposeInMainWorld('aiOfficeWindow', windowApi)
 
 // Linked figures: the state is re-read defensively on every crossing
 const factsApi: FactsApi = {

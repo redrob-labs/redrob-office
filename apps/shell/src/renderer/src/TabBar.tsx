@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { DocTabs, Icon, IconButton } from '@genoffice/ui'
+import { DocTabs, Icon, IconButton, WindowControls, frameCopy } from '@genoffice/ui'
 import type { TabsApi, TabSummary } from '../../shared/tabs-api'
+import type { WindowApi } from '../../shared/window-api'
+import productIcon from './assets/redrob-office-icon-small.svg'
 import { useI18n } from './locale'
 
 declare global {
   interface Window {
     aiOfficeTabs: TabsApi
+    aiOfficeWindow: WindowApi
   }
 }
 
@@ -79,21 +82,15 @@ function MarkdownIcon() {
   )
 }
 
+/* same artwork as the home screen's file-hwp.svg asset: the jamo ㅎ drawn as
+ * geometry, so it renders on a machine with no Korean font */
 function HangulIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 240 240" fill="none" aria-hidden="true">
-      <rect width="240" height="240" rx="48" fill="#2B6CB0" />
-      <text
-        x="120"
-        y="120"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize="140"
-        fontFamily="'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif"
-        fill="#fff"
-      >
-        한
-      </text>
+      <rect width="240" height="240" rx="48" fill="#0E7C86" />
+      <rect x="96" y="50" width="48" height="18" rx="9" fill="#fff" />
+      <rect x="50" y="84" width="140" height="18" rx="9" fill="#fff" />
+      <circle cx="120" cy="156" r="38" stroke="#fff" strokeWidth="20" />
     </svg>
   )
 }
@@ -115,7 +112,7 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
  * WebContentsViews that would cover any DOM popover the shell drew.
  */
 export function TabBar() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [tabs, setTabs] = useState<TabSummary[]>([])
 
   useEffect(() => {
@@ -130,6 +127,16 @@ export function TabBar() {
     document.addEventListener('pointerdown', notify, true)
     return () => document.removeEventListener('pointerdown', notify, true)
   }, [])
+
+  const search = frameCopy(lang).search
+  const editorActive = tabs.some((tab) => tab.active && tab.kind !== 'home')
+  const platform = window.aiOfficeWindow.platform
+  const [maximized, setMaximized] = useState(false)
+  useEffect(() => {
+    if (platform === 'darwin') return
+    void window.aiOfficeWindow.state().then((state) => setMaximized(state.maximized))
+    return window.aiOfficeWindow.onStateChanged((state) => setMaximized(state.maximized))
+  }, [platform])
 
   const reorder = (id: string, toIndex: number): void => {
     // optimistic local reorder so clearing the drag transforms causes no
@@ -166,8 +173,26 @@ export function TabBar() {
       onActivate={(id) => void window.aiOfficeTabs.activate(id)}
       onClose={(id) => void window.aiOfficeTabs.close(id)}
       onReorder={reorder}
-      // room for the macOS traffic lights (titleBarStyle: hiddenInset)
-      start={<div className="tab-bar-drag-spacer" />}
+      start={
+        platform === 'darwin' ? (
+          // room for the macOS traffic lights (titleBarStyle: hiddenInset)
+          <div className="tab-bar-drag-spacer" />
+        ) : (
+          // Windows and Linux have no menu bar: the product icon opens the
+          // active tab's File/Edit/View menus, natively (see showAppMenu)
+          <button
+            type="button"
+            className="tab-app-menu-btn"
+            aria-label={t('appMenu')}
+            title={t('appMenu')}
+            aria-haspopup="menu"
+            onClick={(event) => void window.aiOfficeWindow.showAppMenu(...anchorOf(event.currentTarget))}
+          >
+            <img src={productIcon} alt="" width={20} height={20} aria-hidden="true" />
+            <Icon name="chevronDown" size={12} />
+          </button>
+        )
+      }
       trailing={
         <IconButton
           className="tab-new-btn"
@@ -181,14 +206,40 @@ export function TabBar() {
         </IconButton>
       }
       end={
-        <IconButton
-          className="tab-overflow-btn"
-          label={t('tabList')}
-          size="sm"
-          onClick={(event) => void window.aiOfficeTabs.showMenu(...anchorOf(event.currentTarget))}
-        >
-          <Icon name="stack" size={16} />
-        </IconButton>
+        <>
+          {/* The editor in front owns the search (EditorFrame, Alt+Q); this box hands focus to it. */}
+          {platform !== 'darwin' && editorActive ? (
+            <button type="button" className="tab-search-btn" onClick={() => void window.aiOfficeWindow.focusSearch()}>
+              <Icon name="search" size={14} />
+              <span className="tab-search-btn__label">{search.placeholder}</span>
+              <kbd className="tab-search-btn__kbd">{search.shortcut}</kbd>
+            </button>
+          ) : null}
+          <IconButton
+            className="tab-overflow-btn"
+            label={t('tabList')}
+            size="sm"
+            onClick={(event) => void window.aiOfficeTabs.showMenu(...anchorOf(event.currentTarget))}
+          >
+            <Icon name="stack" size={16} />
+          </IconButton>
+          {platform === 'linux' ? (
+            <WindowControls
+              maximized={maximized}
+              strings={{
+                minimize: t('minimizeWindow'),
+                maximize: t('maximizeWindow'),
+                restore: t('restoreWindow'),
+                close: t('closeWindow'),
+              }}
+              onMinimize={() => void window.aiOfficeWindow.minimize()}
+              onToggleMaximize={() => void window.aiOfficeWindow.toggleMaximize()}
+              onClose={() => void window.aiOfficeWindow.close()}
+            />
+          ) : null}
+          {/* Windows draws its caption buttons here (titleBarOverlay) */}
+          {platform === 'win32' ? <div className="tab-bar-caption-space" /> : null}
+        </>
       }
     />
   )

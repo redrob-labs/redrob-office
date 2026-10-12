@@ -27,7 +27,7 @@
  */
 
 const { execFileSync } = require('node:child_process')
-const { existsSync, rmSync } = require('node:fs')
+const { existsSync, readdirSync, rmSync } = require('node:fs')
 const { dirname, join } = require('node:path')
 
 // Resolve dependency files through Node module resolution from THIS package
@@ -128,7 +128,10 @@ function assertUniversalRedrobCode() {
 // engine is bundled with the app (no separate cloud CLI sidecar), so no gsk
 // CLI tree is packaged here.
 const HB_SUBSET_WASM = join(__dirname, '../pdf/node_modules/harfbuzzjs/hb-subset.wasm')
-for (const abs of [CHROMIUM_LICENSE, PDFIUM_WASM, HB_SUBSET_WASM]) {
+// Our rhwp fork built to WASM (packages/hwp-core). The bundled main reads it from
+// Resources/wasm to extract text from .hwp/.hwpx attachments (packages/file-parse).
+const HWP_CORE_WASM = join(__dirname, '../../packages/hwp-core/wasm/rhwp_bg.wasm')
+for (const abs of [CHROMIUM_LICENSE, PDFIUM_WASM, HB_SUBSET_WASM, HWP_CORE_WASM]) {
   if (!existsSync(abs)) {
     throw new Error(
       `electron-builder extraResources source missing: ${abs} ` +
@@ -249,10 +252,10 @@ function assertUniversalSidecar() {
 
 // Every editor module the shell can open MUST ship, or that tab opens WHITE in
 // the packaged app (the shell main resolves each at resources/modules/<name>
-// and, for hangul, resources/rhwp-studio — apps/shell/src/main/index.ts). A
-// packaged Hangul regression (missing modules/hangul + rhwp-studio) is exactly
-// what this guard exists to make impossible: enumerate all six editors plus the
-// rhwp-studio entry point and fail the build if any is absent. electron-builder
+// — apps/shell/src/main/index.ts). A packaged Hangul regression (missing
+// modules/hangul, or its engine) is exactly what this guard exists to make
+// impossible: enumerate all six editors plus the Hangul engine's WASM inside
+// its renderer build, and fail the build if any is absent. electron-builder
 // only WARNS on a missing extraResources source and still exits 0, so this is
 // the only thing that turns a silently-broken package into a failed build.
 const REQUIRED_MODULE_TREES = [
@@ -263,9 +266,9 @@ const REQUIRED_MODULE_TREES = [
   '../markdown/out',
   '../hangul/out',
 ]
-// The rhwp-studio build the Hangul editor embeds; index.html is its entry, so
-// its presence is proof the offline studio was built and staged.
-const REQUIRED_STUDIO_FILES = [['../hangul/resources/rhwp-studio/index.html', 'rhwp-studio']]
+// The Hangul editor's engine (hwp-core WASM) is emitted into its renderer
+// assets by the build; without it the editor cannot open a document.
+const HANGUL_ASSETS = '../hangul/out/renderer/assets'
 
 function assertModuleTreesPresent() {
   for (const rel of REQUIRED_MODULE_TREES) {
@@ -275,14 +278,12 @@ function assertModuleTreesPresent() {
       )
     }
   }
-  for (const [rel, label] of REQUIRED_STUDIO_FILES) {
-    if (!existsSync(join(__dirname, rel))) {
-      throw new Error(
-        `electron-builder extraResources source missing: ${rel} — the ${label} entry point. ` +
-          'Build the Hangul module (its build step produces resources/rhwp-studio) before packaging; ' +
-          'without it the packaged Hangul editor opens white.',
-      )
-    }
+  const assets = join(__dirname, HANGUL_ASSETS)
+  if (!existsSync(assets) || !readdirSync(assets).some((f) => f.endsWith('.wasm'))) {
+    throw new Error(
+      `electron-builder extraResources source missing: the hwp-core engine (.wasm) in ${HANGUL_ASSETS}. ` +
+        'Build the Hangul module before packaging; without it the packaged Hangul editor cannot open a document.',
+    )
   }
 }
 
@@ -324,6 +325,10 @@ const config = {
     output: 'release',
   },
   files: ['out/**'],
+  // The route labeller's WebAssembly runtime (onnxruntime-web, see
+  // @genoffice/electron-utils/route-labeller) compiles its .wasm from a real file,
+  // not from inside the archive.
+  asarUnpack: ['node_modules/onnxruntime-web/dist/*.wasm'],
   extraResources: [
     {
       from: 'build/THIRD-PARTY-NOTICES.txt',
@@ -363,15 +368,6 @@ const config = {
       from: '../hangul/out',
       to: 'modules/hangul',
     },
-    {
-      // The bundled, offline rhwp-studio build the Hangul editor iframes over
-      // an app-local loopback origin (apps/hangul/src/main/studio-serve.ts).
-      // The shell main resolves it at resources/rhwp-studio when packaged
-      // (index.html + rhwp.js + assets); missing it leaves the editor with no
-      // studio to embed. Never a CDN.
-      from: '../hangul/resources/rhwp-studio',
-      to: 'rhwp-studio',
-    },
     // PDF text editing engines: the bundled main resolves these under
     // Resources/wasm when node_modules is absent (apps/pdf/src/main/wasm-path.ts)
     {
@@ -382,6 +378,12 @@ const config = {
     {
       from: '../pdf/node_modules/harfbuzzjs/hb-subset.wasm',
       to: 'wasm/hb-subset.wasm',
+    },
+    // Hangul attachment text: hwp-core's Node entry falls back to Resources/wasm
+    // when the package directory is absent (packages/hwp-core/src/node.ts)
+    {
+      from: HWP_CORE_WASM,
+      to: 'wasm/rhwp_bg.wasm',
     },
     // NOTE: the platform system-OCR helpers (macOS vision-ocr, Windows
     // win-ocr.exe) are NOT listed here. They are declared per-platform in

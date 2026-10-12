@@ -1,6 +1,8 @@
 import type { AgentMessage, AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
 import { AiAuthError } from './auth-error'
+import type { EngineTarget } from './engine-integration'
 import { aiFetch } from './fetch'
+import { routeFieldsFor } from './route-labels'
 import {
   AiCreditsError,
   jsonBodyInsteadOfSse,
@@ -75,9 +77,33 @@ export function hasDegradedSteering(text: string): boolean {
  * an empty key means onboarding is not finished, so the turn is refused with the
  * honest-failure notice rather than sent keyless.
  */
-export interface RedrobEngineAuth {
-  apiKey: string
+export type RedrobEngineAuth =
+  | { apiKey: string }
+  /**
+   * Through the bundled engine, which holds the key: Office sends no key at all. `target` is the engine
+   * the shell spawned on loopback, never a URL from settings. `session` is the console's id for the AI
+   * session this turn belongs to (`x-redrob-session`), so the console can join it to its labels.
+   */
+  | { engine: EngineTarget; session?: string | undefined }
+
+/** Console ids: 1-128 of letters, digits, `.`, `_`, `:`, `-` (console `clientSessionId`). */
+const SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
+
+/** Where a turn goes and with what, for either custody. */
+function route(auth: RedrobEngineAuth): { url: string; headers: Record<string, string>; model: string } | null {
+  if ('engine' in auth) {
+    const { baseUrl, username, password } = auth.engine
+    const basic = typeof Buffer !== 'undefined' ? Buffer.from(`${username}:${password}`, 'utf8').toString('base64') : btoa(`${username}:${password}`)
+    const headers: Record<string, string> = { 'Content-Type': 'application/json', Authorization: `Basic ${basic}` }
+    if (auth.session && SESSION_ID.test(auth.session)) headers['x-redrob-session'] = auth.session
+    return { url: new URL('/v1/chat/completions', baseUrl).toString(), headers, model: REDROB_ENGINE_ROUTE }
+  }
+  if (!auth.apiKey.trim()) return null
+  return { url: `${REDROB_CONSOLE_API_BASE}/chat/completions`, headers: authHeaders(auth), model: REDROB_ENGINE_MODEL }
 }
+
+/** The console accepts 1-128 letters, digits, ".", "_", ":" or "-"; anything else is not sent. */
+const SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
 
 class RedrobEngineError extends Error {
   constructor(message: string) {
@@ -86,7 +112,7 @@ class RedrobEngineError extends Error {
   }
 }
 
-function authHeaders(auth: RedrobEngineAuth): Record<string, string> {
+function authHeaders(auth: { apiKey: string }): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${auth.apiKey}`,
@@ -168,19 +194,22 @@ export async function redrobEngineChat(
   user: string,
   signal?: AbortSignal,
 ): Promise<AiChatResponse> {
-  if (!auth.apiKey.trim()) {
+  const target = route(auth)
+  if (!target) {
     return { ok: false, error: redrobEngineUnavailableMessage('no Redrob Console key') }
   }
   const watchdog = createStreamWatchdog(signal, AI_CHAT_RESPONSE_TIMEOUT_MS, AI_CHAT_RESPONSE_TIMEOUT_MS)
   try {
     return await watchdog.guard(async () => {
-      const response = await aiFetch(`${REDROB_CONSOLE_API_BASE}/chat/completions`, {
+      const response = await aiFetch(target.url, {
         method: 'POST',
-        headers: authHeaders(auth),
+        headers: target.headers,
         body: JSON.stringify({
-          model: REDROB_ENGINE_MODEL,
+          model: target.model,
           messages: toWireMessages(system, [{ role: 'user', text: user }]),
           stream: false,
+          // the ModelGuide profession and task, labelled on this machine; see route-labels.ts
+          ...(await routeFieldsFor([{ role: 'user', text: user }])),
         }),
         signal: watchdog.signal,
       })
@@ -222,25 +251,28 @@ export async function redrobEngineStream(
   maxTokens: number,
   cb: StreamCallbacks,
 ): Promise<void> {
-  if (!auth.apiKey.trim()) {
+  const target = route(auth)
+  if (!target) {
     throw new AiAuthError(redrobEngineUnavailableMessage('no Redrob Console key'))
   }
   const watchdog = createStreamWatchdog(cb.signal)
   await watchdog.guard(async () => {
     const wireTools = toWireTools(tools)
     const body: Record<string, unknown> = {
-      model: REDROB_ENGINE_MODEL,
+      model: target.model,
       messages: toWireMessages(system, messages),
       max_tokens: maxTokens,
       stream: true,
+      // the ModelGuide profession and task, labelled on this machine; see route-labels.ts
+      ...(await routeFieldsFor(messages)),
     }
     if (wireTools) {
       body.tools = wireTools
       body.tool_choice = 'auto'
     }
-    const response = await aiFetch(`${REDROB_CONSOLE_API_BASE}/chat/completions`, {
+    const response = await aiFetch(target.url, {
       method: 'POST',
-      headers: authHeaders(auth),
+      headers: target.headers,
       body: JSON.stringify(body),
       signal: watchdog.signal,
     })

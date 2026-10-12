@@ -240,6 +240,7 @@ pub(super) fn parse_hwpx_header_with_plain_margin_units(
     // 설정이라 헤더 재생성 시 splice 로 무손실 복원한다.
     doc_info.hwpx_head_tail = extract_head_tail(xml);
     doc_info.memo_properties_xml = extract_memo_properties(xml);
+    doc_info.track_changes_xml = extract_track_changes(xml);
 
     Ok((doc_info, doc_props))
 }
@@ -262,6 +263,24 @@ fn extract_memo_properties(xml: &str) -> Option<String> {
     const CLOSE: &str = "</hh:memoProperties>";
     let end = tail.find(CLOSE)? + CLOSE.len();
     Some(tail[..end].to_string())
+}
+
+/// [Redrob E5a] `<hh:trackChanges>` and `<hh:trackChangeAuthors>` verbatim, in
+/// the order they appear; None when the document has neither.
+fn extract_track_changes(xml: &str) -> Option<String> {
+    let block = |name: &str| -> Option<String> {
+        let open = format!("<hh:{name}");
+        let start = xml.find(&format!("{open}>")).or_else(|| xml.find(&format!("{open} ")))?;
+        let tail = &xml[start..];
+        let first_close = tail.find('>')?;
+        if tail.as_bytes()[first_close - 1] == b'/' {
+            return Some(tail[..=first_close].to_string());
+        }
+        let close = format!("</hh:{name}>");
+        Some(tail[..tail.find(&close)? + close.len()].to_string())
+    };
+    let out: String = ["trackChanges", "trackChangeAuthors"].iter().filter_map(|n| block(n)).collect();
+    (!out.is_empty()).then_some(out)
 }
 
 /// HWPX 헤더 문자열에서 `</hh:refList>` 닫는 태그와 `</hh:head>` 사이 구간을

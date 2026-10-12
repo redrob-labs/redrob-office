@@ -51,15 +51,21 @@ describe('Launch', () => {
       )
     })
 
-  it('says the one line and hands over on its own, still under reduced motion', () => {
+  it('shows the Redrob lockup, then the Office icon and name, still under reduced motion', async () => {
     vi.useFakeTimers()
     const onDone = vi.fn()
     render(onDone, true)
-    expect(host.querySelector('.launch__line')!.textContent).toBe('Your work updates itself.')
-    // still: a plain image, no moving mark
-    expect(host.querySelector('img.launch__mark')).not.toBeNull()
-    expect(host.querySelector('.launch--still')).not.toBeNull()
-    act(() => vi.advanceTimersByTime(1000))
+    const splash = host.querySelector('.rs-splash')!
+    expect(splash.classList.contains('rs-splash--still')).toBe(true)
+    // beat 1: the universal lockup
+    expect(host.querySelector('.rs-splash__brand img.rs-splash__art')).not.toBeNull()
+    expect((host.querySelector('.rs-splash__product') as HTMLElement).hidden).toBe(true)
+    await act(async () => vi.advanceTimersByTimeAsync(800))
+    // beat 2: the product icon with its name
+    expect((host.querySelector('.rs-splash__product') as HTMLElement).hidden).toBe(false)
+    expect(host.querySelector('.rs-splash__product svg.rs-icon--office')).not.toBeNull()
+    expect(host.querySelector('.rs-splash__name')!.textContent).toBe('Redrob Office')
+    await act(async () => vi.advanceTimersByTimeAsync(1000))
     expect(onDone).toHaveBeenCalledOnce()
   })
 
@@ -68,6 +74,7 @@ describe('Launch', () => {
     const onDone = vi.fn()
     render(onDone, false)
     expect(host.querySelector('.launch--still')).toBeNull()
+    expect(host.querySelector('.rs-splash--still')).toBeNull()
     act(() => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     })
@@ -143,6 +150,7 @@ describe('Settings', () => {
       'Fact check',
       'Challenge',
       'Plan or Run',
+      'How Redrob Auto chooses',
     ])
     const privacy = host.querySelectorAll('.set-row')[1]!
     expect(privacy.querySelector('button, input')).toBeNull()

@@ -116,6 +116,34 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob E4] `{target, start, end, author, body}` → field id.
+     * @param {string} options_json
+     * @returns {number}
+     */
+    addMemo(options_json) {
+        const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_addMemo(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] >>> 0;
+    }
+    /**
+     * [Redrob E5b] `{target, start, end, kind, author, date}` → revision id.
+     * @param {string} options_json
+     * @returns {number}
+     */
+    addRevision(options_json) {
+        const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_addRevision(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return ret[0] >>> 0;
+    }
+    /**
      * [#5959] 셀/zone border_fill_id 직접 대입 (undo·redo 전용).
      *
      * 스타일 테이블을 건드리지 않고 execute 의 변경 기록을 되돌린다.
@@ -315,6 +343,38 @@ export class HwpDocument {
             const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
             const len0 = WASM_VECTOR_LEN;
             const ret = wasm.hwpdocument_applyCharFormatInCellEx(this.__wbg_ptr, ptr0, len0);
+            var ptr2 = ret[0];
+            var len2 = ret[1];
+            if (ret[3]) {
+                ptr2 = 0; len2 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
+     * 각주/미주 선택 범위에 글자 서식 적용 (Redrob E9)
+     * @param {number} section_idx
+     * @param {number} para_idx
+     * @param {number} control_idx
+     * @param {number} start_fn_para_idx
+     * @param {number} start_char_offset
+     * @param {number} end_fn_para_idx
+     * @param {number} end_char_offset
+     * @param {string} props_json
+     * @returns {string}
+     */
+    applyCharFormatInFootnote(section_idx, para_idx, control_idx, start_fn_para_idx, start_char_offset, end_fn_para_idx, end_char_offset, props_json) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const ptr0 = passStringToWasm0(props_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.hwpdocument_applyCharFormatInFootnote(this.__wbg_ptr, section_idx, para_idx, control_idx, start_fn_para_idx, start_char_offset, end_fn_para_idx, end_char_offset, ptr0, len0);
             var ptr2 = ret[0];
             var len2 = ret[1];
             if (ret[3]) {
@@ -3345,6 +3405,33 @@ export class HwpDocument {
         }
     }
     /**
+     * 각주/미주 캐럿 위치의 글자 속성 조회 (Redrob E9)
+     * @param {number} section_idx
+     * @param {number} para_idx
+     * @param {number} control_idx
+     * @param {number} fn_para_idx
+     * @param {number} char_offset
+     * @returns {string}
+     */
+    getCharPropertiesInFootnote(section_idx, para_idx, control_idx, fn_para_idx, char_offset) {
+        let deferred2_0;
+        let deferred2_1;
+        try {
+            const ret = wasm.hwpdocument_getCharPropertiesInFootnote(this.__wbg_ptr, section_idx, para_idx, control_idx, fn_para_idx, char_offset);
+            var ptr1 = ret[0];
+            var len1 = ret[1];
+            if (ret[3]) {
+                ptr1 = 0; len1 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred2_0 = ptr1;
+            deferred2_1 = len1;
+            return getStringFromWasm0(ptr1, len1);
+        } finally {
+            wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+        }
+    }
+    /**
      * 머리말/꼬리말 캐럿 위치의 글자 속성을 조회한다.
      * @param {number} section_idx
      * @param {boolean} is_header
@@ -5411,6 +5498,22 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob 4.2] The Redrob comment-metadata part (JSON text), or "" when absent.
+     * @returns {string}
+     */
+    getRedrobComments() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_getRedrobComments(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
      * 문서 글을 한글 스캔 차례로 — `InitScan`·`GetText`·`ReleaseScan` 이 쓴다.
      * @returns {string}
      */
@@ -6686,6 +6789,33 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob E7] `{section, para, offset, kind, title?, categories, series:[{name, values}], width?, height?}`
+     * → `{ok, paraIdx, controlIdx, chart}`. `kind` is column, bar, line or pie; the default
+     * size is 한글's for a new chart (32250 × 18750 HWPUNIT).
+     * @param {string} options_json
+     * @returns {string}
+     */
+    insertChart(options_json) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.hwpdocument_insertChart(this.__wbg_ptr, ptr0, len0);
+            var ptr2 = ret[0];
+            var len2 = ret[1];
+            if (ret[3]) {
+                ptr2 = 0; len2 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
      * 현재 본문 위치에 ClickHere 누름틀 필드를 삽입한다.
      * @param {number} section_idx
      * @param {number} para_idx
@@ -7606,6 +7736,38 @@ export class HwpDocument {
             return getStringFromWasm0(ptr1, len1);
         } finally {
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+        }
+    }
+    /**
+     * [Redrob E4] Every memo: field id, number, author, body, target, node id, range and annotated text.
+     * @returns {string}
+     */
+    listMemos() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_listMemos(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * [Redrob E5b] Every tracked change: id, kind, author, date, range and text.
+     * @returns {string}
+     */
+    listRevisions() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hwpdocument_listRevisions(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
     }
     /**
@@ -8755,6 +8917,25 @@ export class HwpDocument {
         const ptr0 = passStringToWasm0(options_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.hwpdocument_removeHyperlinkEx(this.__wbg_ptr, ptr0, len0);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
+    }
+    /**
+     * @param {number} field_id
+     */
+    removeMemo(field_id) {
+        const ret = wasm.hwpdocument_removeMemo(this.__wbg_ptr, field_id);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
+    }
+    /**
+     * [Redrob E5b] Remove a revision's marks and table entry; the text stays.
+     * @param {number} id
+     */
+    removeRevision(id) {
+        const ret = wasm.hwpdocument_removeRevision(this.__wbg_ptr, id);
         if (ret[1]) {
             throw takeFromExternrefTable0(ret[0]);
         }
@@ -9987,6 +10168,33 @@ export class HwpDocument {
         }
     }
     /**
+     * [Redrob] Columns of different widths: `ratios_json` is an array of positive shares.
+     * @param {number} section_idx
+     * @param {string} ratios_json
+     * @param {number} spacing_hu
+     * @returns {string}
+     */
+    setColumnWidths(section_idx, ratios_json, spacing_hu) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const ptr0 = passStringToWasm0(ratios_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            const len0 = WASM_VECTOR_LEN;
+            const ret = wasm.hwpdocument_setColumnWidths(this.__wbg_ptr, section_idx, ptr0, len0, spacing_hu);
+            var ptr2 = ret[0];
+            var len2 = ret[1];
+            if (ret[3]) {
+                ptr2 = 0; len2 = 0;
+                throw takeFromExternrefTable0(ret[2]);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
      * 개체를 뒤집는다 — 웹한글컨트롤 `Run("ShapeObjHorzFlip")` 계열.
      * @param {number} para_in_list
      * @param {number} control_index
@@ -10352,6 +10560,18 @@ export class HwpDocument {
         }
     }
     /**
+     * @param {number} field_id
+     * @param {string} body
+     */
+    setMemoBody(field_id, body) {
+        const ptr0 = passStringToWasm0(body, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.hwpdocument_setMemoBody(this.__wbg_ptr, field_id, ptr0, len0);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
+    }
+    /**
      * 각주/미주 내부 수식 컨트롤의 속성을 변경한다.
      * @param {string} kind
      * @param {number} section_idx
@@ -10603,6 +10823,15 @@ export class HwpDocument {
         } finally {
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
+    }
+    /**
+     * [Redrob 4.2] Set the comment-metadata part; "" removes it.
+     * @param {string} json
+     */
+    setRedrobComments(json) {
+        const ptr0 = passStringToWasm0(json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.hwpdocument_setRedrobComments(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * 구역 정의(SectionDef)를 변경하고 재페이지네이션한다.

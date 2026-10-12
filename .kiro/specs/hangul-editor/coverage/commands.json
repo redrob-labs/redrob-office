@@ -1,7 +1,7 @@
 {
   "generatedFrom": "https://github.com/edwardkim/rhwp v0.8.7 (1a76570e833917d15817415a53c09ad61ab3203f) rhwp-studio/src/command",
   "note": "Baseline from rhwp-studio. Reconcile with 한글 2024 menus on the runner: set hancom2024 per row; add missing 한글 2024 items with source \"hancom2024\".",
-  "count": 163,
+  "count": 176,
   "commands": [
     {
       "id": "edit:undo",
@@ -1632,6 +1632,136 @@
       "dialog": null,
       "source": "rhwp-studio",
       "hancom2024": null
+    },
+    {
+      "id": "review:memo-insert",
+      "group": "review",
+      "ko": "메모 넣기",
+      "en": "Insert Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-delete",
+      "group": "review",
+      "ko": "메모 지우기",
+      "en": "Delete Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-next",
+      "group": "review",
+      "ko": "다음 메모",
+      "en": "Next Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-previous",
+      "group": "review",
+      "ko": "이전 메모",
+      "en": "Previous Memo",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:memo-show",
+      "group": "review",
+      "ko": "메모 보이기/숨기기",
+      "en": "Show/Hide Memos",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:track-changes",
+      "group": "review",
+      "ko": "변경 내용 추적",
+      "en": "Track Changes",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-accept",
+      "group": "review",
+      "ko": "변경 내용 적용",
+      "en": "Accept Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-reject",
+      "group": "review",
+      "ko": "변경 내용 취소",
+      "en": "Reject Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-accept-all",
+      "group": "review",
+      "ko": "모든 변경 내용 적용",
+      "en": "Accept All Changes",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-reject-all",
+      "group": "review",
+      "ko": "모든 변경 내용 취소",
+      "en": "Reject All Changes",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-next",
+      "group": "review",
+      "ko": "다음 변경 내용",
+      "en": "Next Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:revision-previous",
+      "group": "review",
+      "ko": "이전 변경 내용",
+      "en": "Previous Change",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
+    },
+    {
+      "id": "review:show-markup",
+      "group": "review",
+      "ko": "변경 내용 표시",
+      "en": "Show Markup",
+      "shortcut": null,
+      "dialog": null,
+      "source": "hancom2024",
+      "hancom2024": "present (검토 tab); not in rhwp-studio, needs E4/E5b"
     }
   ]
 }

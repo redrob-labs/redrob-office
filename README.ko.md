@@ -14,7 +14,7 @@
 - **Sheets**: `.xlsx` 편집과 시트 대상 AI 도구.
 - **Slides**: `.pptx` 편집과 도형·레이아웃 대상 AI 도구.
 - **PDF**: 읽기·변환과 문서 대상 AI 도구.
-- **Markdown·Hangul**: Markdown 편집기, 그리고 내장 rhwp 편집기로 `.hwp`/`.hwpx` 편집.
+- **Markdown·Hangul**: Markdown 편집기, 그리고 한글 리본·메모·변경 추적·실시간 공동 편집·Redrob AI를 갖춘 `.hwp`/`.hwpx` 편집기.
 - **하나의 Home 화면**: 모든 편집기를 단일 셸과 공용 프로젝트 저장소에서 실행합니다.
 
 AI 편집은 `packages/agent-core`의 도구 실행 루프와 `packages/ai-provider`의 고정 Redrob
@@ -71,7 +71,8 @@ pnpm dist
 | `apps/{docs,sheets,slides,pdf,markdown,hangul}` | 각 편집기와 AI 패널 |
 | `packages/agent-core` | 편집 도구를 실행하는 공용 agent loop |
 | `packages/ai-provider` | 고정 Redrob Console 전송 계층 |
-| `packages/{docx-engine,pptx-engine,pptx-render,rhwp-editor}` | 문서 포맷 엔진 |
+| `packages/{docx-engine,pptx-engine,pptx-render,hwp-core}` | 문서 포맷 엔진 (`hwp-core`는 `engines/rhwp`로 빌드한 한글 엔진) |
+| `packages/hwp-editor` | 한글 편집 코어: 세션, 명령, 입력, 메모, 실시간 바인딩 |
 | `packages/{genoffice-ui,i18n,electron-utils,project-store}` | 스위트 공용 UI·런타임 |
 
 패키지 이름은 여전히 `@genoffice/*`입니다. 제품 표면이 아니라 import 경로이므로, 이름을
@@ -121,8 +122,8 @@ Apache-2.0입니다. 오피스 편집기 애플리케이션과 지원 패키지�
 
 `pnpm check:upstream-boundary`는 그 표기가 사라지면 빌드를 실패시킵니다.
 
-한글(HWP/HWPX) 편집 기능은 [rhwp](https://github.com/edwardkim/rhwp)(MIT)가 제공하며
-저장소에 포함해 오프라인으로 제공합니다. 번들 폰트와 서드파티 구성요소는
+한글(HWP/HWPX) 엔진은 [rhwp](https://github.com/edwardkim/rhwp)(MIT)를 포크한 것으로
+`engines/rhwp`에 있으며, WebAssembly로 빌드해 앱 안에 함께 출하합니다. 번들 폰트와 서드파티 구성요소는
 [NOTICE](./NOTICE)에 정리돼 있고, 전체 서드파티 고지 파일은 패키징 시점에 생성돼 애플리케이션
 번들 안에 함께 출하됩니다.
 

@@ -102,6 +102,12 @@ pub fn write_header(doc: &Document, ctx: &SerializeContext) -> Result<Vec<u8>, S
             .write_all(memo_properties.as_bytes())
             .map_err(|e| SerializeError::XmlError(format!("memoProperties splice: {e}")))?;
     }
+    // [Redrob E5a] revision and author tables follow memoProperties in OWPML.
+    if let Some(track_changes) = &doc.doc_info.track_changes_xml {
+        w.get_mut()
+            .write_all(track_changes.as_bytes())
+            .map_err(|e| SerializeError::XmlError(format!("trackChanges splice: {e}")))?;
+    }
     end_tag(&mut w, "hh:refList")?;
 
     // 문서 설정 tail: 원본 HWPX 가 있으면 그대로 splice(compatibleDocument/

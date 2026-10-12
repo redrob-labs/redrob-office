@@ -13,6 +13,9 @@ use super::*;
 /// 이 마커가 있는 HWPX는 XML 컨테이너 형식이지만 pagination/lineSeg 부재 시멘틱은
 /// HWP5 원본을 따라야 한다. 한컴은 미지의 ZIP 엔트리를 무시하며, 한컴에서 다시 저장하면
 /// 마커가 사라져 native HWPX로 취급된다.
+pub const REDROB_COMMENTS_HWPX_ENTRY: &str = "META-INF/redrob-comments.json";
+pub const REDROB_COMMENTS_HWP_STREAM: &str = "/RedrobComments";
+
 pub const HWP5_ORIGIN_HWPX_MARKER_PATH: &str = "META-INF/rhwp-hwp5-origin";
 
 /// 제어 슬롯을 포함하는 문단 UTF-16 축으로 LineSeg를 저장하는 생산자 계약.
@@ -84,6 +87,11 @@ pub struct Document {
     /// 원본 바이트를 (경로, 데이터)로 보존한다. HWPX 직렬화 시 하드코딩 상수 대신
     /// 같은 경로의 원본을 그대로 출력하여 플랫폼/인쇄설정/미리보기 손실을 막는다.
     pub hwpx_aux_entries: Vec<(String, Vec<u8>)>,
+    /// [Redrob 4.2] Comment thread metadata that 한글's memos have no slot for
+    /// (resolved state, mentions), written as a private part like upstream's
+    /// hyperlink-format entry: HWPX `META-INF/redrob-comments.json`, HWP 5.0
+    /// CFB stream `/RedrobComments`. Opaque to the engine.
+    pub redrob_comments: Option<Vec<u8>>,
     /// [Task #1001] HWP3 → HWP5 변환본 여부 (휴리스틱 식별).
     /// 변환본의 ParaShape spacing/margin 은 HWP3 원본의 2배 단위로 저장되어
     /// 한컴 viewer 와 일치하려면 typeset 단계에서 1/2 보정 필요.
@@ -232,6 +240,10 @@ pub struct DocInfo {
     /// 라운드트립 시 refList에 재방출되지 않아, memoPr(메모 테두리/색상 모양)이
     /// 통째로 소실되는 문제를 splice 보존으로 막는다. 원본에 없으면 None.
     pub memo_properties_xml: Option<String>,
+    /// [Redrob E5a] HWPX `<hh:trackChanges>` and `<hh:trackChangeAuthors>`
+    /// (revision and author tables), kept verbatim like `memo_properties_xml`
+    /// so a save keeps the entries the body's revision marks refer to (`TcId`).
+    pub track_changes_xml: Option<String>,
     /// DISTRIBUTE_DOC_DATA 레코드 제거 플래그 (serializer에서 raw_stream surgical remove 수행)
     pub distribute_doc_data_removed: bool,
     /// raw_stream이 model 변경과 동기화되지 않음 (serializer에서 재생성 필요)

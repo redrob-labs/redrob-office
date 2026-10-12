@@ -106,9 +106,13 @@ Pinned by `packages/hwp-core/tests/known-gaps.test.ts`:
 - opening `tracked-changes.hwpx` reads `"NEXT NEW OLDPARAGRAPH"`;
 - saving it removes every revision mark.
 
+**Update (E5a, task 4.0).** HWPX revision marks and the revision and author tables now survive
+open, edit and save; the same test asserts it. Deleted text still reads as ordinary text until E5b.
+HWP 5.0 revisions still need files 한글 2024 writes (P-1).
+
 **This is a fidelity bug against R3.3** (unknown records must survive a save), not only a missing
 feature. Until E5 lands, a Hangul document with tracked changes that our editor saves comes out with
-every deletion silently kept. The current rhwp-studio-based app has the same loss.
+every deletion silently kept. The rhwp-studio-based app this replaced had the same loss.
 
 **Samples.** None of upstream's 579 HWPX samples contains tracked changes. Only one HWP 5.0 sample
 (`issue5169`) has the DocInfo record.

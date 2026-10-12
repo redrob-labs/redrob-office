@@ -29,7 +29,13 @@ import {
   shell,
   webContents,
 } from 'electron'
-import type { MenuItemConstructorOptions, NativeImage, WebContents } from 'electron'
+import type {
+  BrowserWindowConstructorOptions,
+  MenuItemConstructorOptions,
+  NativeImage,
+  TitleBarOverlayOptions,
+  WebContents,
+} from 'electron'
 import menuDocxIcon1x from './assets/menu-docx.png?asset'
 import menuDocxIcon2x from './assets/menu-docx@2x.png?asset'
 import menuXlsxIcon1x from './assets/menu-xlsx.png?asset'
@@ -72,7 +78,9 @@ import {
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
 import { registerRedrobConnectIpc } from './redrob-connect'
+import { startInsights } from './insights-service'
 import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
+import { installEngineCustody } from './engine-custody'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -223,7 +231,8 @@ import {
   requestHangulClose,
   requestHangulSave,
   setHangulFileSavedHook,
-  teardownHangul,
+  setHangulDocSavedHook,
+  setHangulShellHooks,
 } from '../../../hangul/src/main/hangul-main'
 import type {
   AccountLoginEvent,
@@ -243,7 +252,8 @@ import {
   pageRecentPaths,
   statPathEntries,
 } from './recent-files'
-import { TabManager } from './tab-manager'
+import { TAB_STRIP_HEIGHT, TabManager } from './tab-manager'
+import { WINDOW_CHANNELS, type WindowState } from '../shared/window-api'
 import { applyUpdateChannel, initAutoUpdater } from './updater'
 import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
 
@@ -338,12 +348,6 @@ const MARKDOWN_OUT = app.isPackaged
 const HANGUL_OUT = app.isPackaged
   ? join(process.resourcesPath, 'modules', 'hangul')
   : join(APPS_ROOT, 'hangul', 'out')
-// Bundled, offline rhwp-studio build (served over a loopback origin, never a CDN).
-// Packaged builds carry it as an extraResource (resources/rhwp-studio); dev/unpacked
-// resolves it from the hangul app's resources directory in the monorepo.
-const HANGUL_STUDIO_DIR = app.isPackaged
-  ? join(process.resourcesPath, 'rhwp-studio')
-  : join(APPS_ROOT, 'hangul', 'resources', 'rhwp-studio')
 const SIDECAR_BIN = app.isPackaged
   ? join(process.resourcesPath, 'native', SIDECAR_EXE)
   : join(APPS_ROOT, 'sheets', 'native', 'xlsx-engine', 'target', 'release', SIDECAR_EXE)
@@ -386,7 +390,8 @@ configureHangulRuntime({
   preloadPath: join(HANGUL_OUT, 'preload', 'index.js'),
   rendererUrl: process.env.HANGUL_RENDERER_URL,
   rendererFile: join(HANGUL_OUT, 'renderer', 'index.html'),
-  studioDir: HANGUL_STUDIO_DIR,
+  openGeneratedPath: (path) => openGeneratedDocument(path),
+  createDocument: createAiDocument,
 })
 
 // ---- UI language ----
@@ -2534,6 +2539,45 @@ function applyMenuFor(kind: TabKind): void {
   }
 }
 
+/*
+ * Windows draws its own caption buttons (minimise, maximise, close) over the
+ * right end of the 40px tab strip, which keeps Snap Layouts on maximise. It
+ * cannot read the renderer's tokens, so the design system's values are written
+ * out: a transparent strip so the tab bar's ground shows through, and glyphs in
+ * --ink-secondary for the active theme (Gray 7 light, Gray 5 dark).
+ */
+const WINDOWS_CAPTION_COLORS = {
+  light: { color: '#00000000', symbolColor: '#576071' },
+  dark: { color: '#00000000', symbolColor: '#aab0bb' },
+} as const
+
+function windowsCaptionOverlay(): TitleBarOverlayOptions {
+  const colors = nativeTheme.shouldUseDarkColors ? WINDOWS_CAPTION_COLORS.dark : WINDOWS_CAPTION_COLORS.light
+  return { ...colors, height: TAB_STRIP_HEIGHT }
+}
+
+/*
+ * The OS frame per platform. macOS keeps its traffic lights inset in the strip.
+ * Windows and Linux lose the OS title bar and menu bar: the tab strip is the
+ * title bar. Windows keeps real caption buttons through titleBarOverlay; Linux
+ * has no overlay, so it is frameless and the strip draws its own buttons.
+ */
+function shellWindowFrame(): BrowserWindowConstructorOptions {
+  if (process.platform === 'darwin') {
+    // vibrancy: editor modules punch translucent regions (e.g. the slides
+    // thumbnail pane) through to the desktop
+    return { titleBarStyle: 'hiddenInset', vibrancy: 'sidebar' }
+  }
+  return {
+    ...(process.platform === 'win32'
+      ? { titleBarStyle: 'hidden', titleBarOverlay: windowsCaptionOverlay() }
+      : { frame: false }),
+    // packaged builds embed icon.ico / the Linux icon set; an unpackaged run
+    // would otherwise show Electron's own icon in the taskbar
+    ...(app.isPackaged ? {} : { icon: join(app.getAppPath(), 'build/icon.png') }),
+  }
+}
+
 function createShellWindow(): void {
   const win = new BrowserWindow({
     width: 1360,
@@ -2541,11 +2585,7 @@ function createShellWindow(): void {
     minWidth: 980,
     minHeight: 600,
     title: 'Redrob Office',
-    // vibrancy: editor modules punch translucent regions (e.g. the slides
-    // thumbnail pane) through to the desktop
-    ...(process.platform === 'darwin'
-      ? { titleBarStyle: 'hiddenInset' as const, vibrancy: 'sidebar' as const }
-      : {}),
+    ...shellWindowFrame(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -2554,6 +2594,20 @@ function createShellWindow(): void {
     },
   })
   shellWindow = win
+  if (process.platform !== 'darwin') {
+    // The application menu stays installed (applyMenuFor swaps it per tab) so
+    // its accelerators keep working, but it is never shown as a bar: the strip's
+    // menu button pops it up instead. Auto-hide off so Alt cannot reveal it.
+    win.setAutoHideMenuBar(false)
+    win.setMenuBarVisibility(false)
+  }
+  // the strip shows Maximise or Restore, so it hears every change (its own
+  // button, Win+Up, a double-click on the strip, a drag to the screen edge)
+  const sendWindowState = (): void => {
+    if (!win.isDestroyed()) win.webContents.send(WINDOW_CHANNELS.stateChanged, { maximized: win.isMaximized() })
+  }
+  win.on('maximize', sendWindowState)
+  win.on('unmaximize', sendWindowState)
   // dragging the window by the tab strip's blank (draggable) area produces no
   // DOM event anywhere — will-move is the only signal to dismiss popovers
   win.on('will-move', () => broadcastChromePressed())
@@ -2639,6 +2693,18 @@ function createShellWindow(): void {
     manager.setTabFileFor(wc.id, path)
     recordRecentFile(path)
     applyPendingProject(path)
+  })
+  // 새 문서, 불러오기 and 최근 문서 from inside the Hangul editor go through the shell's own pipeline
+  setHangulShellHooks({
+    newDocument: () => newHangulTab(),
+    openViaDialog: () => openFileViaDialog(),
+    recentFiles: () => readRecentFiles(),
+    openPath: (path) => openDocumentPath(path),
+    removeRecent: (paths) => removeRecentFiles(paths),
+    openSettings: () => {
+      manager.openHomeTab()
+      shellWindow?.webContents.send('app:open-settings')
+    },
   })
   // hangul untitled first save / Save As lands on a new path
   setHangulFileSavedHook((wc, path) => {
@@ -2963,7 +3029,7 @@ function newMarkdownTab(): void {
 }
 
 /**
- * "New Hangul" opens a blank Hangul editor tab. rhwp-studio starts empty and
+ * "New Hangul" opens a blank Hangul editor tab. The editor starts empty and
  * the first save prompts for a .hwp/.hwpx path, so unlike sheets/pdf there is
  * no need to pre-create a file on disk.
  */
@@ -3323,6 +3389,7 @@ function registerHomeIpc(): void {
     cachedTheme = theme
     writeAppSetting(APP_SETTINGS_PATH(), 'theme', theme)
     nativeTheme.themeSource = theme
+    syncWindowsCaptionOverlay()
     for (const wc of webContents.getAllWebContents()) wc.send('app:theme-changed', theme)
   })
 
@@ -3497,6 +3564,45 @@ function broadcastChromePressed(exclude?: WebContents): void {
   for (const wc of webContents.getAllWebContents()) {
     if (wc !== exclude) wc.send('app:chrome-pressed')
   }
+}
+
+function syncWindowsCaptionOverlay(): void {
+  if (process.platform !== 'win32' || !shellWindow || shellWindow.isDestroyed()) return
+  shellWindow.setTitleBarOverlay(windowsCaptionOverlay())
+}
+
+/** The strip's window controls. Each acts on the shell window only, never on a detached editor. */
+function registerWindowIpc(): void {
+  ipcMain.handle(WINDOW_CHANNELS.minimize, () => shellWindow?.minimize())
+  ipcMain.handle(WINDOW_CHANNELS.toggleMaximize, () => {
+    if (!shellWindow) return
+    if (shellWindow.isMaximized()) shellWindow.unmaximize()
+    else shellWindow.maximize()
+  })
+  ipcMain.handle(WINDOW_CHANNELS.close, () => shellWindow?.close())
+  ipcMain.handle(WINDOW_CHANNELS.state, (): WindowState => ({ maximized: shellWindow?.isMaximized() ?? false }))
+  // the active tab's own menu (applyMenuFor), so File/Edit/View match the editor in front
+  ipcMain.handle(WINDOW_CHANNELS.showAppMenu, (_event, x: unknown, y: unknown) => {
+    if (!shellWindow) return
+    Menu.getApplicationMenu()?.popup({
+      window: shellWindow,
+      ...(typeof x === 'number' && typeof y === 'number' ? { x: Math.round(x), y: Math.round(y) } : {}),
+    })
+  })
+  // The strip's search box: hand the key press EditorFrame already answers
+  // (Alt+Q, focus the tool search) to the editor in front, so there is one
+  // search per editor and no second one in the shell.
+  ipcMain.handle(WINDOW_CHANNELS.focusSearch, () => {
+    const active = tabManager?.list().find((tab) => tab.active)
+    if (!active || active.kind === 'home') return
+    const wc = tabManager?.webContentsOf(active.id)
+    if (!wc || wc.isDestroyed()) return
+    wc.focus()
+    wc.sendInputEvent({ type: 'keyDown', keyCode: 'Q', modifiers: ['alt'] })
+    wc.sendInputEvent({ type: 'keyUp', keyCode: 'Q', modifiers: ['alt'] })
+  })
+  // the OS theme changing while the app follows "system"
+  nativeTheme.on('updated', syncWindowsCaptionOverlay)
 }
 
 function registerTabsIpc(): void {
@@ -4483,6 +4589,8 @@ app.on('second-instance', (_event, argv, _cwd, additionalData) => {
 
 installNavigationGuard(app)
 installContextMenu(app, () => contextMenuLabels(currentLang()))
+// Before the AI handlers: from here the engine holds the Redrob key and every Redrob turn goes through it.
+installEngineCustody()
 registerAiIpc()
 registerProjectIpc()
 registerDocsIpc()
@@ -4491,6 +4599,7 @@ registerRedrobConnectIpc()
 registerAskPromptIpc()
 registerEngineIpc()
 registerTabsIpc()
+registerWindowIpc()
 registerDroppedFilesIpc()
 
 // Who is signed in: Redrob Console (or, in a development build, the local sync
@@ -4582,6 +4691,19 @@ new LiveService({
   log: (m) => console.warn(m),
 }).register(ipcMain)
 
+// Hangul: every save is a version, and a shared file uploads a new version (as Docs does).
+setHangulDocSavedHook((path, bytes) => {
+  void shareService.saved(path, bytes)
+  if (!isHistoryPath(path)) return
+  let by = 'This computer'
+  try {
+    by = userInfo().username || by
+  } catch {
+    // keep the generic name
+  }
+  void versionStore.record(path, bytes, { by }).catch(() => undefined)
+})
+
 setDocSavedHook((path, bytes, auto) => {
   void shareService.saved(path, bytes)
   if (!isHistoryPath(path)) return
@@ -4620,6 +4742,8 @@ setSessionPathResolver(resolveSheetsSessionPath)
 const devPidFile = () => join(app.getPath('userData'), 'dev-instance.pid')
 
 app.whenReady().then(async () => {
+  // Office's part of the Redrob Console's AI work insights; see main/insights.ts
+  startInsights()
   const lockData = () => (pendingLaunchPath ? { launchPath: pendingLaunchPath } : {})
   let hasLock = app.requestSingleInstanceLock(lockData())
   if (!hasLock && !app.isPackaged) {
@@ -4714,8 +4838,6 @@ app.on('before-quit', () => {
   // No close prompt may fall through to "Save" during shutdown
   markSheetsShuttingDown()
   stopSheetsSidecar()
-  // Stop the offline rhwp-studio loopback server
-  void teardownHangul()
   // Stop the managed engine. An engine left alive holds its port and outlives the app,
   // so the next launch hits EADDRINUSE and the user sees a broken install rather than a
   // stale process.

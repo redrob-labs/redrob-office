@@ -25,6 +25,8 @@ import {
   type AiSettings,
   type DeviceAuthorization,
   type DeviceConnectOutcome,
+  engineCustody,
+  storeRedrobKey,
 } from '@genoffice/ai-provider'
 
 /** What the renderer is allowed to know about an attempt in progress. */
@@ -130,7 +132,11 @@ export function registerRedrobConnectIpc(): void {
           sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
         },
       })
-      if (outcome.status === 'connected') storeApiKey(outcome.key.apiKey)
+      if (outcome.status === 'connected') {
+        // The engine keeps the key when the shell has one; the settings file only in a build without it.
+        if (engineCustody()) await storeRedrobKey(outcome.key.apiKey)
+        else storeApiKey(outcome.key.apiKey)
+      }
       return publicResult(outcome)
     } finally {
       // One attempt, one device code: a retry starts a new authorization rather than

@@ -170,7 +170,7 @@ import {
   type CrossHighlightHandle,
 } from './cross-highlight'
 import type { ApplyOutcome, ChangePlan } from '../domain/workbook.types'
-import { createElectronTransport } from './ai/transport'
+import { createElectronTransport, insightsSink } from './ai/transport'
 import {
   MAX_READ_RANGE_CELLS,
   type ActiveSheetInfo,
@@ -1064,6 +1064,7 @@ export function App(): React.JSX.Element {
   if (!agentLoopRef.current) {
     agentLoopRef.current = new AgentLoop({
       transport: createElectronTransport(() => aiSettingsRef.current!),
+      insights: insightsSink,
       systemSuffix: aiLangDirective,
       skill: composeSkills('sheets+files', '', [
         createWorkbookSkill(sheetsSkillDeps()),
@@ -1244,7 +1245,7 @@ export function App(): React.JSX.Element {
     // Genspark's key never lands in the settings file; the main process injects
     // it from the gsk login state. When logged out, requests return an error
     // guiding sign-in — not intercepted here.
-    return settings.provider === 'genspark' || !!config?.apiKey
+    return settings.provider === 'genspark' || !!config?.apiKey || settings.engineConnected === true
   }
 
   /** Image attachments read as base64 and sent multimodal with this user message

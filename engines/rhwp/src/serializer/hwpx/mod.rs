@@ -137,6 +137,9 @@ pub fn serialize_hwpx_with_report(doc: &Document) -> Result<SerializedDocument, 
     if let Some(bytes) = crate::model::hyperlink_format::encode(doc) {
         z.write_deflated(crate::model::hyperlink_format::HWPX_ENTRY, &bytes)?;
     }
+    if let Some(bytes) = doc.redrob_comments.as_deref().filter(|b| !b.is_empty()) {
+        z.write_deflated(crate::model::document::REDROB_COMMENTS_HWPX_ENTRY, bytes)?;
+    }
 
     // 7. META-INF/container.rdf — header + every section part.
     // Hancom uses this RDF graph alongside content.hpf; a stale one-section

@@ -19,7 +19,7 @@ import {
 } from '@genoffice/ui'
 import { aiLangDirective, t as tGlobal, useI18n } from '../i18n/locale'
 import { createPdfSkill } from './pdf-skill'
-import { createElectronTransport } from './transport'
+import { createElectronTransport, insightsSink } from './transport'
 import { PDF_NAV_SCHEME, parsePdfNavHref } from './pdf-nav'
 import type { PdfAiDeps } from './tools'
 
@@ -332,6 +332,7 @@ export function AiPanel({
     }
     loopRef.current = new AgentLoop({
       transport: createElectronTransport(() => settingsRef.current!),
+      insights: insightsSink,
       skill: createPdfSkill(deps),
       systemSuffix: () => aiLangDirective(langRef.current),
       events: {

@@ -44,4 +44,10 @@ export function registerVersionsIpc(ipc: IpcHandleLike, deps: VersionsServiceDep
     return copy
   })
   ipc.handle(VERSIONS_CHANNELS.visit, (_e, path) => (isHistoryPath(path) ? deps.store.markVisit(path) : null))
+  // catch-up compares the document with the version from the last visit (Hangul's outline diff)
+  ipc.handle(VERSIONS_CHANNELS.read, async (_e, path, id) => {
+    if (!isHistoryPath(path) || !isId(id)) return null
+    const bytes = await deps.store.read(path, id)
+    return bytes ? Buffer.from(bytes).toString('base64') : null
+  })
 }

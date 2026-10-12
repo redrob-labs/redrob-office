@@ -31,18 +31,15 @@ import { SimpleToolbar, docsCommands, docsTools } from './components/SimpleToolb
 import { useLinkedFigures } from './linked/useLinkedFigures'
 import { MENTION_STRINGS, mentionPeople, mentionsRedrob, redrobCommentPrompt } from './comments/mentions'
 import { catchUpItems, type CatchUpItem } from '@genoffice/versions'
-import { VersionHistory } from './versions/VersionHistory'
-import { CatchUp } from './versions/CatchUp'
 import { collectRevisions as catchUpRevisions } from './versions/revisions'
-import './versions/versions.css'
+import '@genoffice/ui/collab/versions.css'
 import type { ShareApi } from '@genoffice/sync-client'
-import { SHARE_STRINGS, ShareDialog } from './share/ShareDialog'
-import './share/share.css'
+import { CatchUp, ShareDialog, VersionHistory, shareText, verT } from '@genoffice/ui'
+import '@genoffice/ui/collab/share.css'
 import { LIVE_STRINGS, useLive } from './live/useLive'
 import { useLiveText } from './live/useLiveText'
 import { historyCan, historyRedo, historyUndo, isRemoteChange } from './live/collab'
 import './live/live.css'
-import { verT } from './versions/strings'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
   BLANK_BULLET_NUM_ID,
@@ -4709,7 +4706,7 @@ export function App() {
         share={
           hasDoc && shareApi ? (
             <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>
-              {SHARE_STRINGS.button}
+              {shareText('button')}
             </Button>
           ) : undefined
         }

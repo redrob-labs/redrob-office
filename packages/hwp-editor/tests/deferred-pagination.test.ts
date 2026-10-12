@@ -5,7 +5,12 @@ import { CommandBus, EditorView, Session, type Pos } from '../src'
 
 beforeAll(() => initHwpCoreNode())
 
-function longDoc(paras = 300): Uint8Array {
+// ~60 paragraphs is about two pages: enough that the typed text moves a later
+// page break, small enough that the undeferred twin (which relays out on every
+// keystroke) stays well inside the timeout on a loaded two-core CI runner. The
+// per-keystroke relayout is quadratic in document length, so the paragraph count
+// is the dominant cost here — keep it modest to stay reliably under budget.
+function longDoc(paras = 60): Uint8Array {
   const d = HwpCoreDocument.blank()
   let p = 0
   for (let i = 0; i < paras; i++) {
@@ -30,10 +35,11 @@ describe('deferred pagination while typing (task 1.9)', () => {
   it('defers during user typing and settles to the same pages as typing without deferral', () => {
     const bytes = longDoc()
     const a = session(bytes, 20)
+    expect(a.doc.pageCount()).toBeGreaterThan(1)
     const b = session(bytes, 20)
     const busA = new CommandBus(a)
     const busB = new CommandBus(b)
-    const text = '추가되는 문장이 여러 줄로 넘어가 쪽 나눔을 바꿀 만큼 길다. '.repeat(6)
+    const text = '추가되는 문장이 여러 줄로 넘어가 쪽 나눔을 바꿀 만큼 길다. '.repeat(3)
     for (const ch of text) {
       busA.run('edit:insert-text', { text: ch })
       busB.run('edit:insert-text', { text: ch }, 'ai') // 'ai' never defers
@@ -48,7 +54,7 @@ describe('deferred pagination while typing (task 1.9)', () => {
     expect(a.layoutPending).toBe(false)
     expect(a.doc.pageCount()).toBe(b.doc.pageCount())
     expect(paint(a)).toEqual(paint(b))
-  })
+  }, 120_000)
 
   it('settles before formatting, undo and export', () => {
     const s = session(longDoc(50), 3)

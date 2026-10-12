@@ -13,10 +13,13 @@
 // key again: Chromium on Windows does not, macOS does. So such a key is kept
 // and replayed after the commit unless the browser delivers it again itself.
 import type { CursorRect } from '@genoffice/hwp-core'
-import { CommandBus } from '../commands'
+import { CommandBus, type Command } from '../commands'
 import { copy, cut, fromDataTransfer, paste, toDataTransfer } from '../clipboard'
 import { fromEngine, sameContainer, type Pos } from '../position'
 import { collapsed, ordered, type Change, type Session } from '../session'
+import { HANDLES, draggedBox, objectAt, objectBox, type Handle, type ShapeKind } from '../object-commands'
+import { hyperlinkAt } from '../field-commands'
+import { formAllows, gotoFormField } from '../form-mode'
 import { resolveKey, type KeyLike } from './keymap'
 import { Overlay } from './overlay'
 import { PageView, type PageViewOptions } from './page-view'
@@ -32,6 +35,30 @@ export interface EditorViewOptions extends PageViewOptions {
   onRender?: () => void
   /** Called for commands the bus doesn't have (file:save, dialogs…), so the host can handle them. */
   onUnhandledCommand?: (id: string, params?: unknown) => boolean
+  /** Ctrl+click (⌘+click) on a hyperlink, as in 한글. The host opens it outside the editor. */
+  onOpenLink?: (uri: string) => void
+  /** Commands whose shortcut goes to the host first (they open a dialog that asks for input). */
+  dialogFirst?: ReadonlySet<string>
+  /** Accessible name of the text input (the document body), in the host's language. */
+  inputLabel?: string
+  /** Told when a drawing tool is armed or let go, so the host can show it pressed. */
+  onDrawToolChange?: (tool: ShapeKind | null) => void
+}
+
+/** Shift while drawing: a square box, or a line snapped to the nearest 45°. */
+export function constrainDraw(d: { x0: number; y0: number; x1: number; y1: number }, line: boolean): void {
+  const dx = d.x1 - d.x0
+  const dy = d.y1 - d.y0
+  if (line) {
+    const len = Math.hypot(dx, dy)
+    const a = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4)
+    d.x1 = d.x0 + Math.round(Math.cos(a) * len * 100) / 100
+    d.y1 = d.y0 + Math.round(Math.sin(a) * len * 100) / 100
+    return
+  }
+  const side = Math.max(Math.abs(dx), Math.abs(dy))
+  d.x1 = d.x0 + Math.sign(dx || 1) * side
+  d.y1 = d.y0 + Math.sign(dy || 1) * side
 }
 
 export class EditorView {
@@ -39,7 +66,14 @@ export class EditorView {
   readonly overlay: Overlay
   readonly input: HTMLTextAreaElement
   composing = false
+  /** Suggesting mode: cut marks text deleted and paste goes in as tracked plain text. */
+  recording = false
   readOnly: boolean
+  /** 양식 모드: only click-here fields take typing; Tab goes from field to field. */
+  formMode = false
+  /** The shape the next drag on a page draws (한글's 그리기 개체), or null for ordinary clicks. */
+  drawTool: ShapeKind | null = null
+  private drawing: { page: number; x0: number; y0: number; x1: number; y1: number } | null = null
   private pendingKey: { e: KeyLike; timer: ReturnType<typeof setTimeout> | null } | null = null
   private dragging = false
   private unsubscribe: () => void
@@ -64,7 +98,7 @@ export class EditorView {
     const d = root.ownerDocument
     this.input = d.createElement('textarea')
     this.input.className = 'hwp-input'
-    this.input.setAttribute('aria-label', 'Document')
+    this.input.setAttribute('aria-label', opts.inputLabel ?? 'Document')
     this.input.setAttribute('autocapitalize', 'off')
     this.input.setAttribute('autocomplete', 'off')
     this.input.spellcheck = false
@@ -83,13 +117,23 @@ export class EditorView {
     this.input.addEventListener('cut', (e) => this.onCut(e as ClipboardEvent))
     this.input.addEventListener('paste', (e) => this.onPaste(e as ClipboardEvent))
     root.addEventListener('mousedown', (e) => this.onMouseDown(e))
+    root.addEventListener('dblclick', (e) => this.onDoubleClick(e))
     d.addEventListener('mousemove', (e) => this.onMouseMove(e))
-    d.addEventListener('mouseup', () => (this.dragging = false))
+    d.addEventListener('mouseup', (e) => this.onMouseUp(e))
 
     this.registerViewCommands()
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.followWidth())
+      this.resizeObserver.observe(this.root)
+    }
     this.unsubscribe = session.onChange((c) => this.onChange(c))
     this.unsubscribeSettle = session.onSettle(() => this.onSettled())
     this.render()
+  }
+
+  /** Rename the text input after a language change. */
+  setInputLabel(label: string): void {
+    this.input.setAttribute('aria-label', label)
   }
 
   focus(): void {
@@ -100,6 +144,7 @@ export class EditorView {
   run(id: string, params?: unknown): Change | null | 'unhandled' {
     if (!this.bus.has(id)) return this.opts.onUnhandledCommand?.(id, params) ? null : 'unhandled'
     if (this.readOnly && !id.startsWith('move:') && id !== 'edit:select-all') return null
+    if (this.formMode && !formAllows(this.session, id)) return null
     const r = this.bus.run(id, params)
     this.render()
     return r
@@ -142,9 +187,10 @@ export class EditorView {
     } catch {
       caret = null
     }
+    this.drawObjectSelection()
     if (collapsed(sel)) this.overlay.setSelection([])
     else this.overlay.setSelection(sameContainer(sel.anchor, sel.head) ? s.text.selectionRects(...ordered(sel)) : [])
-    this.overlay.setCaret(caret, collapsed(sel) && !this.composing)
+    this.overlay.setCaret(caret, collapsed(sel) && !this.composing && !s.object)
     if (caret) {
       const box = this.pages.pages[caret.pageIndex]
       if (box) {
@@ -171,21 +217,137 @@ export class EditorView {
         },
       })
     }
+    // Display toggles: they change what the engine paints, not the document, so they
+    // keep no history and never mark the file unsaved.
+    const toggle = (id: string, get: () => boolean, set: (on: boolean) => void) => {
+      if (this.bus.has(id)) return
+      this.bus.register({
+        id,
+        isEnabled: () => true,
+        isActive: () => get(),
+        run: () => {
+          set(!get())
+          this.pages.invalidate()
+          this.overlay.redrawDecorations()
+          return null
+        },
+      })
+    }
+    const raw = this.session.doc.raw
+    toggle('view:para-mark', () => raw.getShowParagraphMarks(), (on) => raw.setShowParagraphMarks(on))
+    toggle('view:ctrl-mark', () => raw.getShowControlCodes(), (on) => raw.setShowControlCodes(on))
+    toggle('view:border-transparent', () => raw.getShowTransparentBorders(), (on) => raw.setShowTransparentBorders(on))
+    let clip = true
+    toggle('view:toggle-clip', () => !clip, (show) => {
+      clip = !show
+      raw.setClipEnabled(clip)
+    })
+    toggle('view:form-mode', () => this.formMode, (on) => {
+      this.formMode = on
+      this.session.selectObject(null)
+      this.render()
+    })
+    // Arm (or disarm) drawing: the next drag on a page draws this shape, then the tool lets go.
+    const drawCommand: Command<{ shapeType: ShapeKind }> = {
+      id: 'view:draw-shape',
+      isEnabled: () => !this.readOnly && !this.formMode,
+      isActive: () => this.drawTool !== null,
+      run: (_ctx, { shapeType }) => {
+        this.setDrawTool(this.drawTool === shapeType ? null : shapeType)
+        return null
+      },
+    }
+    if (!this.bus.has(drawCommand.id)) this.bus.register(drawCommand as Command<never>)
+    toggle('view:toggle-grid', () => this.pages.content.classList.contains('hwp-show-grid'), (on) => this.pages.content.classList.toggle('hwp-show-grid', on))
+    // 현재 쪽만 감추기 (header and footer) and 머리말/꼬리말 감추기 (header) on the caret's page.
+    const page = () => {
+      try {
+        return this.session.text.cursorRect(this.session.selection.head).pageIndex
+      } catch {
+        return 0
+      }
+    }
+    const hide = (id: string, header: boolean, footer: boolean) => {
+      if (this.bus.has(id)) return
+      this.bus.register({
+        id,
+        isEnabled: () => true,
+        run: () => {
+          const p = page()
+          if (header) raw.toggleHideHeaderFooter(p, true)
+          if (footer) raw.toggleHideHeaderFooter(p, false)
+          this.pages.invalidate()
+          return null
+        },
+      })
+    }
+    hide('page:hide-current', true, true)
+    hide('page:hide-headerfooter', true, false)
     const steps = [0.25, 0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2, 3, 4, 5]
     zoom('view:zoom-in', (z) => steps.find((s) => s > z + 1e-6) ?? 5)
     zoom('view:zoom-out', (z) => [...steps].reverse().find((s) => s < z - 1e-6) ?? 0.25)
     zoom('view:zoom-100', () => 1)
-    zoom('view:zoom-fit-width', () => {
-      const page = this.pages.pages[0]
-      const width = this.root.clientWidth - 48
-      return page && width > 0 ? width / page.info.width : 1
-    })
-    zoom('view:zoom-fit-page', () => {
-      const page = this.pages.pages[0]
-      const w = this.root.clientWidth - 48
-      const h = this.root.clientHeight - 32
-      return page && w > 0 && h > 0 ? Math.min(w / page.info.width, h / page.info.height) : 1
-    })
+    if (!this.bus.has('view:zoom-set')) {
+      this.bus.register({
+        id: 'view:zoom-set',
+        isEnabled: () => true,
+        run: (_ctx, params: { percent: number }) => {
+          const percent = Number(params?.percent ?? 100)
+          this.pages.setZoom(Math.min(500, Math.max(10, percent)) / 100)
+          this.overlay.redrawDecorations()
+          return null
+        },
+      })
+    }
+    zoom('view:zoom-fit-width', () => this.fitZoom('width') ?? this.pages.zoom)
+    zoom('view:zoom-fit-page', () => this.fitZoom('page') ?? this.pages.zoom)
+  }
+
+  /** The last fit applied: while the zoom still equals it, the view follows the window in that mode. */
+  private fitted: { mode: 'width' | 'page'; value: number; cap?: number } | null = null
+  private resizeObserver: ResizeObserver | null = null
+
+  /** The zoom that fits the first page's width (or the whole page) in the view, or null before layout. */
+  private fitZoom(mode: 'width' | 'page'): number | null {
+    const page = this.pages.pages[0]
+    const w = this.root.clientWidth - 48
+    const h = this.root.clientHeight - 32
+    if (!page || w <= 0 || (mode === 'page' && h <= 0)) return null
+    const z = mode === 'width' ? w / page.info.width : Math.min(w / page.info.width, h / page.info.height)
+    this.fitted = { mode, value: z }
+    return z
+  }
+
+  /**
+   * As in Docs: a view in a fit mode follows the window; otherwise, when the
+   * page no longer fits (a narrower window, the Redrob panel opening), it
+   * shrinks to page width, so there is no sideways scrolling. A zoom the person
+   * chose that still fits is kept.
+   */
+  private followWidth(): void {
+    const page = this.pages.pages[0]
+    const w = this.root.clientWidth - 48
+    if (!page || w <= 0) return
+    const z = this.pages.zoom
+    const f = this.fitted
+    let next: number | null = null
+    // An automatic shrink remembers the zoom the person had, and never grows past it.
+    let cap: number | undefined = f?.cap
+    if (f && Math.abs(z - f.value) < 0.005) next = this.fitZoom(f.mode)
+    else if (z > w / page.info.width + 0.005) {
+      cap = z
+      next = this.fitZoom('width')
+    }
+    if (next === null) return
+    if (cap !== undefined) next = Math.min(next, cap)
+    if (Math.abs(next - z) < 0.005) {
+      if (this.fitted) this.fitted = { ...this.fitted, value: z, ...(cap !== undefined ? { cap } : {}) }
+      return
+    }
+    this.pages.setZoom(Math.max(0.5, next))
+    this.fitted = this.fitted && { ...this.fitted, value: this.pages.zoom, ...(cap !== undefined ? { cap } : {}) }
+    this.overlay.redrawDecorations()
+    this.render()
   }
 
   // ── Keyboard and IME ──────────────────────────────────────────────────
@@ -205,7 +367,28 @@ export class EditorView {
   }
 
   private handleKey(e: KeyLike): boolean {
+    if (this.drawTool && e.key === 'Escape') {
+      this.setDrawTool(null)
+      return true
+    }
+    if (this.formMode && e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (gotoFormField(this.session, e.shiftKey ? -1 : 1)) this.render()
+      return true
+    }
+    if (this.session.object && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (e.key === 'Escape') {
+        this.session.selectObject(null)
+        this.render()
+        return true
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (!this.readOnly && !this.formMode) this.run('insert:picture-delete')
+        return true
+      }
+      if (e.key === 'Enter') return !!this.opts.onUnhandledCommand?.('format:object-properties')
+    }
     for (const r of resolveKey(e, this.opts.mac)) {
+      if (this.opts.dialogFirst?.has(r.command) && this.opts.onUnhandledCommand?.(r.command, r.params)) return true
       if (this.bus.has(r.command)) {
         if (!this.bus.isEnabled(r.command, r.params)) continue
         this.run(r.command, r.params)
@@ -233,7 +416,7 @@ export class EditorView {
   onCompositionUpdate(data: string): void {
     const s = this.session
     const at = s.text.cursorRect(collapsed(s.selection) ? s.selection.head : ordered(s.selection)[0])
-    const props = s.text.charPropertiesAt(s.selection.head)
+    const props = s.charProps(s.selection.head)
     const sizePx = typeof props.fontSize === 'number' ? (props.fontSize / 100) * (96 / 72) : at.height * 0.8
     this.overlay.setPreedit(data, at, { family: String(props.fontFamily ?? ''), sizePx })
   }
@@ -265,7 +448,14 @@ export class EditorView {
 
   onCut(e: { clipboardData: DataTransfer | null; preventDefault(): void }): void {
     e.preventDefault()
-    if (this.readOnly) return this.onCopy(e)
+    if (this.readOnly || this.formMode) return this.onCopy(e)
+    if (this.recording) {
+      // Suggesting: the cut text is marked deleted, not removed.
+      const data = copy(this.session)
+      if (data && e.clipboardData) toDataTransfer(e.clipboardData, data)
+      if (data) this.bus.run('edit:delete-backward')
+      return this.render()
+    }
     const r = cut(this.session)
     if (r && e.clipboardData) toDataTransfer(e.clipboardData, r.data)
     this.render()
@@ -275,7 +465,14 @@ export class EditorView {
     e.preventDefault()
     if (this.readOnly) return
     const data = fromDataTransfer(e.clipboardData)
-    if (data) paste(this.session, data)
+    // Form mode: plain text into the field, if the caret is in one.
+    if (this.formMode) {
+      if (data?.text) this.run('edit:insert-text', { text: data.text.replace(/[\r\n]+/g, ' ') })
+      return
+    }
+    // Suggesting: paste as text through the bus, so it is recorded as an insertion.
+    if (data && this.recording) this.bus.run('edit:insert-text', { text: data.text })
+    else if (data) paste(this.session, data)
     this.render()
   }
 
@@ -284,14 +481,255 @@ export class EditorView {
   private posAt(clientX: number, clientY: number): Pos | null {
     const pt = this.pages.pageAt(clientX, clientY)
     if (!pt) return null
-    return fromEngine(this.session.doc.hitTest(pt.page, pt.x, pt.y))
+    return this.storyPosAt(pt.page, pt.x, pt.y) ?? fromEngine(this.session.doc.hitTest(pt.page, pt.x, pt.y))
   }
+
+  /**
+   * A click in a footnote goes to the note's text. A click in a header or footer
+   * goes there only while the caret is already in that header or footer; to enter
+   * one, double-click it, as in 한글.
+   */
+  private storyPosAt(page: number, x: number, y: number, enter = false): Pos | null {
+    const raw = this.session.doc.raw
+    try {
+      const fn = JSON.parse(raw.hitTestInFootnote(page, x, y)) as { hit?: boolean; footnoteIndex: number; fnParaIndex: number; charOffset: number }
+      if (fn.hit) {
+        const fi = JSON.parse(raw.getPageFootnoteInfo(page, fn.footnoteIndex)) as { ok?: boolean; sectionIdx: number; paraIdx: number; controlIdx: number; sourceType?: string }
+        if (fi.ok !== false && (fi.sourceType ?? 'body') === 'body') {
+          return { section: fi.sectionIdx, para: fn.fnParaIndex, offset: fn.charOffset, story: { kind: 'note', host: fi.paraIdx, control: fi.controlIdx } }
+        }
+      }
+      const cur = this.session.selection.head.story
+      const hf = JSON.parse(raw.hitTestHeaderFooter(page, x, y)) as { hit?: boolean; isHeader: boolean; sectionIndex: number; applyTo: number }
+      if (!hf.hit) return null
+      const kind = hf.isHeader ? 'header' : 'footer'
+      if (!enter && (!cur || cur.kind !== kind)) return null
+      const r = JSON.parse(raw.hitTestInHeaderFooter(page, hf.isHeader, x, y)) as { hit?: boolean; sectionIndex: number; applyTo: number; paraIndex: number; charOffset: number }
+      if (!r.hit) return null
+      return { section: r.sectionIndex, para: r.paraIndex, offset: r.charOffset, story: { kind, applyTo: r.applyTo, page } }
+    } catch {
+      return null
+    }
+  }
+
+  /** The picture or drawing object under the pointer, if any. */
+  private objectUnder(clientX: number, clientY: number) {
+    const pt = this.pages.pageAt(clientX, clientY)
+    if (!pt) return null
+    try {
+      return objectAt(this.session, pt.page, pt.x, pt.y)
+    } catch {
+      return null
+    }
+  }
+
+  /** Handle squares around a selected object, in page px (constant on-screen size). */
+  private handleRects(box: { page: number; x: number; y: number; width: number; height: number }): Array<{ handle: Handle; pageIndex: number; x: number; y: number; width: number; height: number }> {
+    const size = 7 / this.pages.zoom
+    const cx = box.x + box.width / 2
+    const cy = box.y + box.height / 2
+    const at: Record<Handle, [number, number]> = {
+      nw: [box.x, box.y],
+      n: [cx, box.y],
+      ne: [box.x + box.width, box.y],
+      e: [box.x + box.width, cy],
+      se: [box.x + box.width, box.y + box.height],
+      s: [cx, box.y + box.height],
+      sw: [box.x, box.y + box.height],
+      w: [box.x, cy],
+    }
+    return HANDLES.map((h) => ({ handle: h, pageIndex: box.page, x: at[h][0] - size / 2, y: at[h][1] - size / 2, width: size, height: size }))
+  }
+
+  private drawObjectSelection(): void {
+    const o = this.session.object
+    const box = o ? objectBox(this.session, o) : null
+    if (!o || !box) {
+      if (o) this.session.selectObject(null)
+      this.overlay.clearDecoration('object:selected')
+      this.overlay.clearDecoration('object:others')
+      this.overlay.clearDecoration('object:handles')
+      return
+    }
+    this.overlay.setDecoration({ key: 'object:selected', kind: 'object-selection', rects: [{ pageIndex: box.page, x: box.x, y: box.y, width: box.width, height: box.height }] })
+    const others = this.session.others.flatMap((x) => {
+      const b = objectBox(this.session, x)
+      return b ? [{ pageIndex: b.page, x: b.x, y: b.y, width: b.width, height: b.height }] : []
+    })
+    if (others.length) this.overlay.setDecoration({ key: 'object:others', kind: 'object-selection', rects: others })
+    else this.overlay.clearDecoration('object:others')
+    // Handles move or size one object; with several selected there are none.
+    if (o.kind === 'equation' || this.readOnly || this.formMode || this.session.others.length) this.overlay.clearDecoration('object:handles')
+    else this.overlay.setDecoration({ key: 'object:handles', kind: 'object-handle', rects: this.handleRects(box) })
+  }
+
+  /** A drag of the selected object or one of its handles, in page px from where it began. */
+  private objectDrag: { handle: Handle | 'move'; page: number; x: number; y: number; box: { page: number; x: number; y: number; width: number; height: number } } | null = null
+
+  /** Which handle (or the body) of the selected object a page point is on. */
+  private objectGrip(page: number, x: number, y: number): Handle | 'move' | null {
+    const o = this.session.object
+    const box = o ? objectBox(this.session, o) : null
+    if (!o || !box || box.page !== page || o.kind === 'equation' || this.readOnly || this.formMode || this.session.others.length) return null
+    const slop = 3 / this.pages.zoom
+    for (const r of this.handleRects(box)) if (x >= r.x - slop && x <= r.x + r.width + slop && y >= r.y - slop && y <= r.y + r.height + slop) return r.handle
+    return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height ? 'move' : null
+  }
+
+  onMouseUp(e: MouseEvent): void {
+    this.dragging = false
+    const drawn = this.drawing
+    if (drawn && this.drawTool) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      // Let go off the page: the box ends where the pointer last was on it.
+      if (pt && pt.page === drawn.page) Object.assign(drawn, { x1: pt.x, y1: pt.y })
+      if (e.shiftKey) constrainDraw(drawn, this.drawTool === 'line')
+      const shapeType = this.drawTool
+      this.setDrawTool(null)
+      this.run('insert:shape-draw', { shapeType, ...drawn })
+      return
+    }
+    const drag = this.objectDrag
+    if (!drag) return
+    this.objectDrag = null
+    this.overlay.clearDecoration('object:ghost')
+    const pt = this.pages.pageAt(e.clientX, e.clientY)
+    if (!pt) return this.render()
+    const dx = pt.x - drag.x
+    const dy = pt.y - drag.y
+    // A click without movement: inside a text box it places the caret in the text; otherwise it only selects.
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+      const o = this.session.object
+      if (drag.handle === 'move' && o?.kind === 'shape') {
+        const q = fromEngine(this.session.doc.hitTest(pt.page, pt.x, pt.y))
+        if (q.cell?.textBox && q.cell.control === o.control && q.para === o.para) this.session.select({ anchor: q, head: q })
+      }
+      return this.render()
+    }
+    const o = this.session.object
+    this.run('object:drag', { handle: drag.handle, dx, dy })
+    // The control index can change when an object moves to another paragraph; keep it selected.
+    if (o && !this.session.object) this.session.selectObject(o)
+    this.render()
+  }
+
+  onDoubleClick(e: MouseEvent): void {
+    if (e.button !== 0) return
+    if (this.session.object) {
+      e.preventDefault()
+      this.opts.onUnhandledCommand?.('format:object-properties')
+      return
+    }
+    // Double-clicking a header or footer area enters it (creating it when there is none).
+    const pt = this.pages.pageAt(e.clientX, e.clientY)
+    if (!pt) return
+    let hf: { hit?: boolean; isHeader: boolean; applyTo: number }
+    try {
+      hf = JSON.parse(this.session.doc.raw.hitTestHeaderFooter(pt.page, pt.x, pt.y)) as typeof hf
+    } catch {
+      return
+    }
+    if (!hf.hit) return
+    e.preventDefault()
+    // The first click of the double-click moved the caret; go back to where the person was typing.
+    if (this.beforeClick && !this.session.selection.head.story) this.session.select(this.beforeClick)
+    if (!this.readOnly && !this.formMode) this.bus.run('page:headerfooter-edit', { kind: hf.isHeader ? 'header' : 'footer', applyTo: hf.applyTo, page: pt.page })
+    const q = this.storyPosAt(pt.page, pt.x, pt.y, true)
+    if (q) this.session.select({ anchor: q, head: q })
+    this.render()
+    this.focus()
+  }
+
+  /** Arm a drawing tool, or pass null to go back to ordinary clicks. */
+  setDrawTool(tool: ShapeKind | null): void {
+    this.drawTool = tool
+    this.drawing = null
+    this.overlay.clearDecoration('object:ghost')
+    this.root.classList.toggle('hwp-drawing', tool !== null)
+    this.opts.onDrawToolChange?.(tool)
+  }
+
+  /** The outline shown while a shape is being drawn: its box, at least a pixel each way so a line shows. */
+  private drawGhost(d: { page: number; x0: number; y0: number; x1: number; y1: number }): void {
+    const x = Math.min(d.x0, d.x1)
+    const y = Math.min(d.y0, d.y1)
+    this.overlay.setDecoration({ key: 'object:ghost', kind: 'object-ghost', rects: [{ pageIndex: d.page, x, y, width: Math.max(1, Math.abs(d.x1 - d.x0)), height: Math.max(1, Math.abs(d.y1 - d.y0)) }] })
+  }
+
+  /** The selection before the latest click, so a double-click into a header can return there. */
+  private beforeClick: { anchor: Pos; head: Pos } | null = null
 
   onMouseDown(e: MouseEvent): void {
     if (e.button !== 0) return
+    if (this.drawTool) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      if (pt && !this.readOnly && !this.formMode) {
+        e.preventDefault()
+        this.drawing = { page: pt.page, x0: pt.x, y0: pt.y, x1: pt.x, y1: pt.y }
+        this.drawGhost(this.drawing)
+        this.focus()
+      }
+      return
+    }
+    if (e.detail <= 1) this.beforeClick = this.session.selection
+    // A press on the selected object's body or a handle starts a move or resize.
+    const ptDown = this.pages.pageAt(e.clientX, e.clientY)
+    const grip = ptDown && !e.shiftKey ? this.objectGrip(ptDown.page, ptDown.x, ptDown.y) : null
+    if (grip && ptDown && this.session.object) {
+      const box = objectBox(this.session, this.session.object)!
+      if (grip !== 'move' || e.detail <= 1) {
+        e.preventDefault()
+        this.objectDrag = { handle: grip, page: ptDown.page, x: ptDown.x, y: ptDown.y, box }
+        this.focus()
+        return
+      }
+    }
+    // Shift+click on another object adds it to the selected one (for 개체 묶기).
+    if (e.shiftKey && this.session.object && !this.readOnly && !this.formMode) {
+      const add = this.objectUnder(e.clientX, e.clientY)
+      if (add) {
+        e.preventDefault()
+        this.session.toggleObject({ kind: add.kind, section: add.section, para: add.para, control: add.control })
+        this.dragging = false
+        this.render()
+        this.focus()
+        return
+      }
+    }
+    let hit = e.shiftKey ? null : this.objectUnder(e.clientX, e.clientY)
+    // Inside a text box, a click places the caret in its text; its edge selects the box, as in 한글.
+    if (hit && hit.kind === 'shape') {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      const edge = 4 / this.pages.zoom
+      const inner = !!pt && pt.x > hit.x + edge && pt.x < hit.x + hit.width - edge && pt.y > hit.y + edge && pt.y < hit.y + hit.height - edge
+      const q = inner ? this.posAt(e.clientX, e.clientY) : null
+      if (q?.cell?.textBox && q.cell.control === hit.control && q.para === hit.para) hit = null
+    }
+    if (hit) {
+      e.preventDefault()
+      this.session.selectObject({ kind: hit.kind, section: hit.section, para: hit.para, control: hit.control })
+      this.dragging = false
+      this.render()
+      this.focus()
+      return
+    }
     const p = this.posAt(e.clientX, e.clientY)
-    if (!p) return
+    if (!p) {
+      // A click on empty paper still lets go of a selected object.
+      if (this.session.object && this.pages.pageAt(e.clientX, e.clientY)) {
+        this.session.selectObject(null)
+        this.render()
+      }
+      return
+    }
     e.preventDefault()
+    if ((this.opts.mac ? e.metaKey : e.ctrlKey) && this.opts.onOpenLink) {
+      const link = hyperlinkAt(this.session, p)
+      if (link) {
+        this.opts.onOpenLink(link.uri)
+        return
+      }
+    }
     const anchor = e.shiftKey ? this.session.selection.anchor : p
     this.session.select({ anchor: sameContainer(anchor, p) ? anchor : p, head: p })
     this.dragging = true
@@ -300,6 +738,24 @@ export class EditorView {
   }
 
   onMouseMove(e: MouseEvent): void {
+    if (this.drawing) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      if (!pt || pt.page !== this.drawing.page) return
+      this.drawing.x1 = pt.x
+      this.drawing.y1 = pt.y
+      // Shift keeps the box square (a circle for an ellipse) and a line at a multiple of 45°, as in 한글.
+      if (e.shiftKey) constrainDraw(this.drawing, this.drawTool === 'line')
+      this.drawGhost(this.drawing)
+      return
+    }
+    const drag = this.objectDrag
+    if (drag) {
+      const pt = this.pages.pageAt(e.clientX, e.clientY)
+      if (!pt) return
+      const g = draggedBox(drag.box, drag.handle, pt.x - drag.x, pt.y - drag.y)
+      this.overlay.setDecoration({ key: 'object:ghost', kind: 'object-ghost', rects: [{ pageIndex: drag.page, ...g }] })
+      return
+    }
     if (!this.dragging) return
     const p = this.posAt(e.clientX, e.clientY)
     if (!p) return
@@ -310,6 +766,7 @@ export class EditorView {
   }
 
   dispose(): void {
+    this.resizeObserver?.disconnect()
     if (this.settleTimer) clearTimeout(this.settleTimer)
     this.unsubscribe()
     this.unsubscribeSettle()

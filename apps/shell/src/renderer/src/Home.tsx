@@ -463,6 +463,8 @@ function AccountEntry({
   const [urlCopied, setUrlCopied] = useState(false)
   const loginDeadline = useRef(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  // An editor's own options command (한글's 환경 설정) brings Home forward and opens Settings here.
+  useEffect(() => window.aiOffice.onOpenSettings?.(() => setSettingsOpen(true)), [])
   const [loggingOut, setLoggingOut] = useState(false)
   // bumped on logout so an in-flight status refresh (which can still
   // report logged-in) is discarded instead of resurrecting the UI
@@ -1503,7 +1505,7 @@ export function Home() {
     { ext: 'pptx', title: t('newSlide'), sub: '.pptx', action: handleNewSlide },
     { ext: 'md', title: t('newMarkdown'), sub: '.md', action: handleNewMarkdown },
     { ext: 'pdf', title: t('newPdf'), sub: '.pdf', action: handleNewPdf },
-    { ext: 'hwp', title: t('newHangul'), sub: '.hwp', action: handleNewHangul, ai: false },
+    { ext: 'hwp', title: t('newHangul'), sub: '.hwp', action: handleNewHangul, ai: true },
   ]
 
   function renderQuickCards() {

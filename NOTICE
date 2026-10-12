@@ -29,24 +29,17 @@ upstream copyright notice is preserved as required by Apache-2.0 section 4:
   macOS, resources/ on Windows). Run `node tools/gen-third-party-notices.mjs`
   to produce it from a source checkout.
 
-The Hangul (HWP/HWPX) editing capability is provided by rhwp, which is embedded
-in this repository and licensed under the MIT License. The GenOffice Hangul app
-(apps/hangul) embeds the rhwp-studio editor through the @rhwp/editor iframe SDK.
-Both are vendored here verbatim and served offline from a local origin (no CDN):
+The Hangul (HWP/HWPX) engine is our fork of rhwp, which is kept in this
+repository and licensed under the MIT License. The Hangul app (apps/hangul)
+edits documents with Redrob's own editor (packages/hwp-editor) over that engine,
+built to WebAssembly and loaded from the application itself (no CDN):
 
   rhwp
   Copyright (c) 2025-2026 Edward Kim
   Licensed under the MIT License.
   https://github.com/edwardkim/rhwp
 
-  Vendored components (each retains rhwp's MIT LICENSE alongside it):
-    * packages/rhwp-editor      — the @rhwp/editor iframe SDK (npm/editor)
-    * apps/hangul/resources/rhwp-studio
-                                — the rhwp-studio web build (dist), self-hosted
-                                  offline; built with RHWP_DISABLE_EXTERNAL_WEBFONTS=1
-                                  (the build command is not recorded in this
-                                  repository; PORT-DESIGN.md, which held it, was
-                                  never checked in)
+  Components (each retains rhwp's MIT LICENSE alongside it):
     * engines/rhwp              — the rhwp Rust engine source (src/, crates/,
                                   vendor/) from upstream tag v0.8.7, commit
                                   1a76570e833917d15817415a53c09ad61ab3203f, with

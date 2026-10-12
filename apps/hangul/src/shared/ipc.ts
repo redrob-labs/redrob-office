@@ -1,20 +1,19 @@
+import type { AiSettings, AiStreamChunk, AiStreamRequest } from '@genoffice/ai-provider'
 import type { OfficePrefsApi } from '@genoffice/electron-utils/office-prefs'
+import type { VersionsApi } from '@genoffice/versions'
+import type { LiveApi, ShareApi } from '@genoffice/sync-client'
 import type { Lang } from '@genoffice/i18n'
 
 /**
  * IPC channels for the Hangul (.hwp/.hwpx) editor module.
  *
- * The editing surface itself comes from rhwp-studio (MIT, Copyright 2025-2026
- * Edward Kim), embedded in the renderer through the @rhwp/editor iframe SDK.
- * The main process only owns the offline studio origin (a loopback server over
- * the bundled studio build), file grants, and the byte read/write round-trip.
- * All HWP/HWPX parsing and serialization happens inside rhwp, never here.
+ * The editor runs in the renderer: packages/hwp-editor over the hwp-core
+ * engine (our fork of rhwp, MIT, Copyright 2025-2026 Edward Kim). The main
+ * process owns file grants, the byte read/write round trip, printing and the
+ * shell's hooks. All HWP/HWPX parsing and serialization happens in the engine,
+ * never here.
  */
 export const HANGUL_CHANNELS = {
-  /** studio origin the renderer hands the SDK's studioUrl (local loopback, never a CDN) */
-  studioOrigin: 'hangul:studio-origin',
-  /** which editor this view runs: the embedded rhwp-studio, or the owned editor on hwp-core */
-  editorKind: 'hangul:editor-kind',
   /** take the .hwp/.hwpx path pending for this view (queued at tab creation); null = nothing to open */
   consumePending: 'hangul:consume-pending',
   /** read a granted document's bytes for rhwp to load */
@@ -36,16 +35,107 @@ export const HANGUL_CHANNELS = {
   languageChanged: 'app:language-changed',
   getTheme: 'app:get-theme',
   themeChanged: 'app:theme-changed',
+  /** AI create_document: write a new .hwpx (or hand docx/pdf/md to Docs) and open it in a tab */
+  createDocument: 'hangul:create-document',
+  /** the name comments are signed with: this computer's user name */
+  authorName: 'hangul:author-name',
+  /** AI generate_image, gated on the Redrob login and the cloud-tools setting */
+  generateImage: 'hangul:ai-generate-image',
+  /** print or save as PDF the engine's page renders (SVG), laid out at paper size in main */
+  printPages: 'hangul:print-pages',
+  /** write the engine's HTML for the document to a file the person picks */
+  exportHtml: 'hangul:export-html',
+  /** bytes of a font face found in 한컴오피스's own font folders, or null */
+  fontSource: 'hangul:font-source',
+  /** 새 문서, 불러오기, 최근 문서: the shell opens files, so the editor asks it */
+  newDocument: 'hangul:new-document',
+  openDialog: 'hangul:open-dialog',
+  recentFiles: 'hangul:recent-files',
+  openRecent: 'hangul:open-recent',
+  clearRecent: 'hangul:clear-recent',
+  /** 문서 비교: pick another Hangul file and get its bytes */
+  pickCompare: 'hangul:pick-compare',
+  /** 환경 설정: the suite's Settings, on Home */
+  openSettings: 'hangul:open-settings',
 } as const
 
-export type UiTheme = 'light' | 'dark' | 'system'
+export interface PrintPagesRequest {
+  pages: Array<{ svg: string; width: number; height: number }>
+  mode: 'print' | 'pdf'
+  /** suggested file name for a PDF, without the folder */
+  name?: string
+}
 
-/**
- * 'next' is the owned editor (packages/hwp-editor over packages/hwp-core), spec
- * .kiro/specs/hangul-editor. Until cutover it is selected only by
- * REDROB_HANGUL_EDITOR=next in an unpackaged build; packaged builds always get 'studio'.
- */
-export type HangulEditorKind = 'studio' | 'next'
+/** AI channels are app-wide ipcMain handlers the shell registers once (docs-main registerAiIpc); pass-through only. */
+export const AI_CHANNELS = {
+  getSettings: 'ai:get-settings',
+  stream: 'ai:stream',
+  streamChunk: 'ai:stream-chunk',
+  streamCancel: 'ai:stream-cancel',
+  webSearch: 'ai:web-search',
+  imageSearch: 'ai:image-search',
+  fetchImage: 'ai:fetch-image',
+} as const
+
+/** Chat attachments: the shell-wide files:* handlers (docs-main registerDocsIpc). */
+export const FILES_CHANNELS = {
+  pick: 'files:pick',
+  add: 'files:add',
+  read: 'files:read',
+  readImage: 'files:read-image',
+} as const
+
+export interface AttachmentMeta {
+  path: string
+  name: string
+  /** lowercased extension without the dot */
+  ext: string
+  sizeBytes: number
+}
+
+export interface AttachmentAddResult {
+  accepted: AttachmentMeta[]
+  rejected: string[]
+}
+
+export interface AttachmentReadResult {
+  ok: boolean
+  error?: string
+  name?: string
+  totalChars?: number
+  offset?: number
+  text?: string
+}
+
+export type AttachmentImageResult = { ok: true; base64: string; mime: string } | { ok: false; error: string }
+
+export const ATTACHMENT_IMAGE_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp'])
+
+export interface ImageSearchResult {
+  images: Array<{ imageUrl: string; title?: string; thumbnailUrl?: string; width?: number; height?: number; source?: string }>
+  method?: string
+  error?: string
+}
+
+export type CreateHangulDocumentRequest =
+  | { type: 'hwpx'; title: string; base64: string }
+  | { type: 'docx' | 'pdf' | 'md'; title: string; content: string }
+
+export interface CreateHangulDocumentResult {
+  ok: boolean
+  path?: string
+  error?: string
+}
+
+export interface WebSearchResult {
+  answer?: string
+  results: Array<{ title: string; url: string; snippet: string }>
+  /** 'error' = the search backend failed (not an empty result) */
+  method?: string
+  error?: string
+}
+
+export type UiTheme = 'light' | 'dark' | 'system'
 
 export type HangulFormat = 'hwp' | 'hwpx'
 
@@ -74,14 +164,7 @@ export interface HangulDocumentBytes {
 }
 
 /** API exposed by preload to the renderer (window.hangulApi). */
-export interface HangulApi extends Partial<OfficePrefsApi> {
-  /**
-   * The local, offline rhwp-studio origin the SDK embeds (http://127.0.0.1:<port>),
-   * or null when the bundled studio is unavailable. Never a public CDN.
-   */
-  studioOrigin(): Promise<string | null>
-  /** Which editor to mount (see HangulEditorKind). */
-  editorKind(): Promise<HangulEditorKind>
+export interface HangulApi extends Partial<OfficePrefsApi>, Partial<VersionsApi>, Partial<ShareApi>, Partial<LiveApi> {
   /** Take the .hwp/.hwpx path pending for this view; null = nothing to open. */
   consumePending(): Promise<string | null>
   /** Read a granted document's bytes for rhwp to load. Only granted paths are allowed. */
@@ -109,4 +192,34 @@ export interface HangulApi extends Partial<OfficePrefsApi> {
   onThemeChanged(handler: (theme: UiTheme) => void): () => void
   /** the shell relays chrome presses (the tab strip is a sibling view) */
   onChromePressed(handler: () => void): () => void
+  getAiSettings(): Promise<AiSettings>
+  aiStream(request: AiStreamRequest): Promise<void>
+  aiStreamCancel(requestId: string): Promise<void>
+  onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
+  /** Main-process web search (the shared ai:web-search handler) */
+  webSearch(query: string, maxResults?: number): Promise<WebSearchResult>
+  imageSearch(query: string, maxResults?: number): Promise<ImageSearchResult>
+  /** Download an image URL in main (scheme and target validated there) */
+  fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
+  generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{ url?: string; error?: string }>
+  printPages?(request: PrintPagesRequest): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
+  /** `format: 'doc'` writes the HTML-based Word document (.doc) instead of a web page */
+  exportHtml?(request: { html: string; name?: string; format?: 'html' | 'doc' }): Promise<{ ok: boolean; canceled?: boolean; path?: string; error?: string }>
+  fontSource?(face: string): Promise<Uint8Array | null>
+  newDocument?(): Promise<void>
+  openDialog?(): Promise<void>
+  /** Hangul files in the suite's recent list, newest first */
+  recentFiles?(): Promise<string[]>
+  openRecent?(path: string): Promise<boolean>
+  /** Take the Hangul files out of the recent list (other kinds stay). */
+  clearRecent?(): Promise<void>
+  pickCompare?(): Promise<{ fileName: string; bytes: Uint8Array } | null>
+  openSettings?(): Promise<void>
+  createDocument(request: CreateHangulDocumentRequest): Promise<CreateHangulDocumentResult>
+  /** The name new comments are signed with. */
+  authorName(): Promise<string>
+  pickAttachments(): Promise<AttachmentAddResult | null>
+  addAttachments(paths: string[]): Promise<AttachmentAddResult>
+  readAttachment(path: string, offset: number, maxChars: number): Promise<AttachmentReadResult>
+  readAttachmentImage(path: string): Promise<AttachmentImageResult>
 }

@@ -4,22 +4,27 @@
   "version": "0.1.0",
   "license": "Apache-2.0",
   "private": true,
-  "description": "Hangul (.hwp/.hwpx) editor module: embeds the rhwp-studio editor (MIT) via the @rhwp/editor iframe SDK, hosted by shell tabs and served from a local offline origin",
+  "description": "Hangul (.hwp/.hwpx) editor module: the owned editor (packages/hwp-editor) over the hwp-core engine (our fork of rhwp, MIT), hosted by shell tabs",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "dev:renderer": "vite --config vite.renderer.config.ts",
     "build": "electron-vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval": "tsx eval/cli.ts"
   },
   "devDependencies": {
+    "@genoffice/agent-core": "workspace:*",
+    "@genoffice/ai-provider": "workspace:*",
+    "@genoffice/ai-search": "workspace:*",
     "@genoffice/electron-utils": "workspace:*",
     "@genoffice/hwp-core": "workspace:*",
     "@genoffice/hwp-editor": "workspace:*",
     "@genoffice/i18n": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
     "@genoffice/ui": "workspace:*",
-    "@rhwp/editor": "workspace:*",
+    "@genoffice/versions": "workspace:*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
@@ -29,9 +34,11 @@
     "jszip": "^3.10.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "yjs": "13.6.33"
   },
   "author": "Redrob"
 }

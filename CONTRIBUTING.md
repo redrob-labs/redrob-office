@@ -24,7 +24,8 @@ review, because no script can tell a truthful pin from a stale one.
 
 ## Branch flow
 
-- `main` is trunk. Everything lands through a pull request.
+- `develop` is the default branch and the base of every pull request; `main` is the
+  release trunk that `develop` is promoted into. Everything lands through a pull request.
 - Working branches are `<type>/<short-slug>`, where type is one of `feat`, `fix`,
   `chore`, `docs`, `test`, `refactor`, `perf`.
 - Upstream syncs are `sync/upstream-<date>`.
@@ -55,7 +56,12 @@ record other people read.
 
 ## Before you open a pull request
 
+Dependencies under the `@redrob-labs` scope (e.g. `@redrob-labs/route-labeller`)
+install from the org's GitHub Packages registry, configured in `.npmrc`. Export a
+GitHub token with `read:packages` as `NODE_AUTH_TOKEN` before installing:
+
 ```bash
+export NODE_AUTH_TOKEN=<a GitHub token with read:packages>
 pnpm install
 pnpm typecheck
 pnpm test

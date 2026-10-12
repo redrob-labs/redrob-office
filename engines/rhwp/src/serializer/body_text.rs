@@ -168,18 +168,30 @@ fn serialize_master_page_tail(section: &Section, records: &mut Vec<Record>) {
 }
 
 fn collect_memo_lists(section: &Section) -> Vec<(u32, Vec<Paragraph>)> {
-    let mut memo_lists = Vec::new();
-    for para in &section.paragraphs {
-        for ctrl in &para.controls {
-            if let Control::Field(field) = ctrl {
-                if field.field_type == crate::model::control::FieldType::Memo
-                    && !field.memo_paragraphs.is_empty()
-                {
-                    memo_lists.push((field.memo_index, field.memo_paragraphs.clone()));
+    // [Redrob E4] Memos in table cells too, and 한글's own HWP 5.0 form (a `%unk`
+    // field with a `MEMO/…` command), in document order.
+    fn visit(paragraphs: &[Paragraph], out: &mut Vec<(u32, Vec<Paragraph>)>) {
+        for para in paragraphs {
+            for ctrl in &para.controls {
+                match ctrl {
+                    Control::Field(field)
+                        if (field.field_type == crate::model::control::FieldType::Memo || field.command.starts_with("MEMO/"))
+                            && !field.memo_paragraphs.is_empty() =>
+                    {
+                        out.push((memo_field_index(field), field.memo_paragraphs.clone()));
+                    }
+                    Control::Table(t) => {
+                        for cell in &t.cells {
+                            visit(&cell.paragraphs, out);
+                        }
+                    }
+                    _ => {}
                 }
             }
         }
     }
+    let mut memo_lists = Vec::new();
+    visit(&section.paragraphs, &mut memo_lists);
     memo_lists
 }
 

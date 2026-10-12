@@ -13,6 +13,12 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# The @redrob-labs scope installs from the org's GitHub Packages registry
+# (see .npmrc). read:packages lets the built-in GITHUB_TOKEN authenticate.
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   boundary:
     name: fork boundary & licences
@@ -34,6 +40,11 @@ jobs:
   build-test-linux:
     name: build & test (ubuntu-latest)
     runs-on: ubuntu-latest
+    env:
+      # Every pnpm step reads .npmrc, which resolves the @redrob-labs scope from
+      # GitHub Packages; expose the token job-wide so install, build and test all
+      # authenticate (a step-scoped var left other steps warning on ${NODE_AUTH_TOKEN}).
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -75,8 +86,16 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # A sandboxed preload that requires a workspace package throws at load and
+      # the editor opens blank; nothing else in this job notices.
+      - name: Preload bundles
+        run: pnpm check:preload
+
       - name: Test
         run: pnpm test
+        env:
+          # The weekly run fuzzes live Hangul typing 25x deeper than a pull request does.
+          HWP_LIVE_FUZZ_ROUNDS: ${{ github.event_name == 'schedule' && '400' || '' }}
 
   # The Hangul core (engines/rhwp → packages/hwp-core/wasm). The fast check
   # compares the committed wasm and engine source with provenance.json; the
@@ -126,6 +145,7 @@ jobs:
     timeout-minutes: 45
     env:
       ELECTRON_DISABLE_SANDBOX: '1'
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -143,8 +163,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Xvfb for a display, and a CJK system font: rhwp-studio's chrome (Hangul)
-      # relies on the OS for Korean glyphs and renders boxes without one.
+      # Xvfb for a display, and a CJK system font: the Hangul engine paints Korean
+      # text with the OS's fonts and renders boxes without one.
       - name: Xvfb and fonts
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb fonts-noto-cjk
 
@@ -182,6 +202,8 @@ jobs:
     name: build & test (${{ matrix.os }})
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -206,6 +228,11 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # A sandboxed preload that requires a workspace package throws at load and
+      # the editor opens blank; nothing else in this job notices.
+      - name: Preload bundles
+        run: pnpm check:preload
 
       - name: Test
         run: pnpm test

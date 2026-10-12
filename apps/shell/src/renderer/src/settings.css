@@ -84,6 +84,9 @@
 
 .set-field {
   display: flex;
+  /* the pane is a scrolling flex column: a row must keep its height, or a
+   * description that wraps (Korean copy runs longer) draws over the next row */
+  flex-shrink: 0;
   align-items: center;
   gap: var(--space-5);
   min-height: 52px;

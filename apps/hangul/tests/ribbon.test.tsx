@@ -53,9 +53,9 @@ const p = (para: number, offset: number): Pos => ({ section: 0, para, offset })
 describe('Hangul ribbon', () => {
   it('shows 한글’s tabs, and 표 only while the caret is in a table', () => {
     const view = editor()
-    expect(tabsFor(view)).toEqual(['edit', 'insert', 'format', 'page', 'view'])
+    expect(tabsFor(view)).toEqual(['edit', 'insert', 'format', 'page', 'review', 'view'])
     render(view)
-    expect([...host.querySelectorAll('[role="tab"]')].map((t) => t.textContent)).toEqual(['Edit', 'Insert', 'Format', 'Page', 'View'])
+    expect([...host.querySelectorAll('[role="tab"]')].map((t) => t.textContent)).toEqual(['Edit', 'Insert', 'Format', 'Page', 'Review', 'View'])
     view.run('table:create', { rows: 2, cols: 2 })
     render(view)
     expect(tabsFor(view)).toContain('table')
@@ -63,11 +63,16 @@ describe('Hangul ribbon', () => {
     expect(byLabel(commandLabel('table:insert-row-below', 'en'))).not.toBeNull()
   })
 
-  it('bold is disabled without a selection and pressed after use', () => {
+  it('bold at a bare caret is held for the next typing; on a selection it applies and shows pressed', () => {
     const view = editor()
     render(view)
     const label = commandLabel('format:bold', 'en')
-    expect(byLabel(label)!.disabled).toBe(true)
+    expect(byLabel(label)!.disabled).toBe(false)
+    act(() => byLabel(label)!.click())
+    render(view)
+    expect(byLabel(label)!.getAttribute('aria-pressed')).toBe('true')
+    expect(view.session.dirty).toBe(false)
+    act(() => byLabel(label)!.click())
     view.session.select({ anchor: p(0, 0), head: p(0, 2) })
     render(view)
     act(() => byLabel(label)!.click())

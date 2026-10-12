@@ -1,4 +1,8 @@
-import { createIpcTransport, type AgentTransport } from '@genoffice/agent-core'
+import {
+  createIpcTransport,
+  type AgentLoopOptions,
+  type AgentTransport,
+} from '@genoffice/agent-core'
 import type { AiSettings } from '../../shared/ipc'
 import { t } from '../i18n/locale'
 
@@ -15,4 +19,13 @@ export function createElectronTransport(getSettings: () => AiSettings): AgentTra
     networkErrorText: () => t('aiErrNetwork'),
     overloadedErrorText: () => t('aiErrOverloaded'),
   })
+}
+
+/**
+ * Where the agent loop records facts about each AI session for the Redrob Console's insights:
+ * counts and flags, never text (@genoffice/agent-core insights.ts). The shell labels and sends them.
+ */
+export const insightsSink: NonNullable<AgentLoopOptions['insights']> = {
+  surface: 'slides',
+  record: (fact) => window.slidesApi.insightsFact(fact),
 }

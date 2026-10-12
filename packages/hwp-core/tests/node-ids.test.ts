@@ -42,6 +42,16 @@ describe('session node ids (E1)', () => {
     d.dispose()
   })
 
+  it('Enter at the start of a paragraph keeps its id on the content (the new empty one above gets a fresh id)', () => {
+    const d = threeParagraphs()
+    const second = d.nodeIdAt(0, 1)!
+    d.raw.splitParagraph(0, 1, 0)
+    expect(d.text(0, 2)).toBe('둘째')
+    expect(d.nodeIdAt(0, 2)).toBe(second)
+    expect(d.nodeIdAt(0, 1)).not.toBe(second)
+    d.dispose()
+  })
+
   it('a deleted paragraph is gone and its id is not reused', () => {
     const d = threeParagraphs()
     const second = d.nodeIdAt(0, 1)!

@@ -34,9 +34,19 @@ describe('isHistoryPath', () => {
 })
 
 describe('registerVersionsIpc', () => {
-  it('serves the four channels', () => {
+  it('serves every channel', () => {
     const { handlers } = setup()
     expect([...handlers.keys()].sort()).toEqual(Object.values(VERSIONS_CHANNELS).sort())
+  })
+
+  it('reads one version’s bytes for catch-up, and refuses bad ids', async () => {
+    const { store, call } = setup()
+    const doc = join(dir, '계약.hwpx')
+    await writeFile(doc, 'now')
+    const v = await store.record(doc, new TextEncoder().encode('then'), { by: 'felix' })
+    expect(Buffer.from((await call(VERSIONS_CHANNELS.read, doc, v.id)) as string, 'base64').toString()).toBe('then')
+    expect(await call(VERSIONS_CHANNELS.read, doc, 'nope')).toBeNull()
+    expect(await call(VERSIONS_CHANNELS.read, 'relative.hwpx', v.id)).toBeNull()
   })
 
   it('lists, names and restores a copy that opens in a tab', async () => {

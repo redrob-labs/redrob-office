@@ -313,13 +313,16 @@ describe('frame.css', () => {
 })
 
 describe('frame copy and the older-format banner', () => {
-  it('builds every prop bundle in English, filling placeholders', async () => {
+  it('builds every prop bundle in English and Korean, filling placeholders', async () => {
     const { frameCopy, frameT } = await import('../src/index')
     const copy = frameCopy('en')
     expect(copy.search.ask('polish')).toBe('Ask Redrob: "polish"')
     expect(copy.toolbar.label).toBe('Toolbar')
     expect(copy.mode.suggesting).toBe('Suggesting')
-    expect(frameT('ko', 'online')).toBe('Online')
+    expect(frameT('ko', 'online')).toBe('온라인')
+    expect(frameT('ko', 'pageOf', { current: 1, total: 3 })).toBe('3쪽 중 1쪽')
+    // a language with no table falls back to English
+    expect(frameT('ja', 'online')).toBe('Online')
     expect(frameT('en', 'pageOf', { current: 1, total: 3 })).toBe('Page 1 of 3')
   })
 

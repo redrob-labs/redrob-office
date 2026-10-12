@@ -1,9 +1,9 @@
+import JSZip from 'jszip'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { HwpCoreDocument, initHwpCoreNode } from '@genoffice/hwp-core/node'
 import { CommandBus } from '@genoffice/hwp-editor'
-import { resolveEditorKind } from '../src/main/editor-kind'
 import { HwpPasswordError, base64ToBytes, newDocument, openDocument, saveDocument, trackedChanges, type HostWriter } from '../src/renderer/next/document'
 
 beforeAll(() => initHwpCoreNode())
@@ -22,15 +22,6 @@ function host(result: Awaited<ReturnType<HostWriter['save']>> = { ok: true, path
   }
   return { h, writes }
 }
-
-describe('editor kind (R11.1)', () => {
-  it('is next only when asked, and never in a packaged build', () => {
-    expect(resolveEditorKind({}, false)).toBe('studio')
-    expect(resolveEditorKind({ REDROB_HANGUL_EDITOR: 'next' }, false)).toBe('next')
-    expect(resolveEditorKind({ REDROB_HANGUL_EDITOR: ' NEXT ' }, false)).toBe('next')
-    expect(resolveEditorKind({ REDROB_HANGUL_EDITOR: 'next' }, true)).toBe('studio')
-  })
-})
 
 describe('open and save', () => {
   it('opens HWPX, edits, saves in place and the bytes reopen with the edit', async () => {
@@ -103,20 +94,25 @@ describe('open and save', () => {
   })
 })
 
-describe('tracked-changes guard (until E5a)', () => {
+describe('tracked changes (E5a)', () => {
   it('detects HWPX revision marks', async () => {
     expect(await trackedChanges(TRACKED, 'hwpx')).toBe(true)
     expect(await trackedChanges(SAMPLE, 'hwpx')).toBe(false)
   })
 
-  it('refuses an in-place save and allows Save As to a new file', async () => {
+  it('saves in place as HWPX and the saved file still carries the marks', async () => {
     const opened = await openDocument(TRACKED, 'review.hwpx')
     expect(opened.trackedChanges).toBe(true)
-    const { h, writes } = host({ ok: true, path: '/docs/review copy.hwpx' })
-    expect(await saveDocument(opened, h, 'save')).toEqual({ saved: false, reason: 'tracked-changes' })
+    const { h, writes } = host({ ok: true, path: '/docs/review.hwpx' })
+    expect(await saveDocument(opened, h, 'save')).toMatchObject({ saved: true })
+    const zip = await JSZip.loadAsync(writes[0]!.bytes)
+    expect(await zip.file('Contents/section0.xml')!.async('string')).toMatch(/<hp:deleteBegin [^>]*\/>OLD<hp:deleteEnd/)
+  })
+
+  it('refuses converting a document with tracked changes to .hwp', async () => {
+    const opened = await openDocument(TRACKED, 'review.hwpx')
+    const { h, writes } = host({ ok: true, path: '/docs/review.hwp' })
+    expect(await saveDocument(opened, h, 'saveAs', 'hwp')).toEqual({ saved: false, reason: 'tracked-changes' })
     expect(writes).toHaveLength(0)
-    expect(await saveDocument(opened, h, 'saveAs')).toMatchObject({ saved: true })
-    expect(opened.trackedChanges).toBe(false)
-    expect(opened.fileName).toBe('review copy.hwpx')
   })
 })

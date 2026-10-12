@@ -765,5 +765,7 @@ export interface PdfApi extends Partial<OfficePrefsApi> {
   gskStatus(): Promise<{ loggedIn: boolean }>
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
+  /** One fact about an AI session for Redrob Console insights: counts and flags, never text. */
+  insightsFact(fact: unknown): void
   onAiStream(handler: (chunk: AiStreamChunk) => void): () => void
 }
