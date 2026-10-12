@@ -125,6 +125,8 @@ export interface HomeApi {
   accountLogout(): Promise<void>
   /** app version (from package.json / electron app.getVersion) */
   getAppVersion(): Promise<string>
+  /** whether new Hangul documents open in an editor with Redrob AI (the owned editor; rhwp-studio has none) */
+  hangulAi(): Promise<boolean>
   /** whether the first-run onboarding has been completed or skipped (persisted in userData/app-settings.json) */
   onboardingSeen(): Promise<boolean>
   /** mark onboarding done; analytics remains enabled unless separately opted out */
@@ -150,6 +152,8 @@ export interface HomeApi {
   pickDefaultSaveDir(): Promise<string | null>
   /** theme switched anywhere (broadcast from the main process) */
   onThemeChanged(handler: (theme: UiTheme) => void): () => void
+  /** an editor asked for Settings (한글's 환경 설정); Home is already in front */
+  onOpenSettings?(handler: () => void): () => void
   /** open the GenTeam community page in the default browser */
   openGenTeam(): Promise<void>
   /** open the Genspark credit-usage page in the default browser */
@@ -341,6 +345,7 @@ export const HOME_CHANNELS = {
   accountLoginOpenUrl: 'home:account-login-open-url',
   accountLogout: 'home:account-logout',
   getAppVersion: 'home:get-app-version',
+  hangulAi: 'home:hangul-ai',
   onboardingSeen: 'home:onboarding-seen',
   setOnboardingSeen: 'home:set-onboarding-seen',
   getTheme: 'home:get-theme',

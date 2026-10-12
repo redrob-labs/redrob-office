@@ -223,8 +223,11 @@ import {
   requestHangulClose,
   requestHangulSave,
   setHangulFileSavedHook,
+  setHangulDocSavedHook,
+  setHangulShellHooks,
   teardownHangul,
 } from '../../../hangul/src/main/hangul-main'
+import { resolveEditorKind } from '../../../hangul/src/main/editor-kind'
 import type {
   AccountLoginEvent,
   RecentEntry,
@@ -387,6 +390,8 @@ configureHangulRuntime({
   rendererUrl: process.env.HANGUL_RENDERER_URL,
   rendererFile: join(HANGUL_OUT, 'renderer', 'index.html'),
   studioDir: HANGUL_STUDIO_DIR,
+  openGeneratedPath: (path) => openGeneratedDocument(path),
+  createDocument: createAiDocument,
 })
 
 // ---- UI language ----
@@ -2640,6 +2645,18 @@ function createShellWindow(): void {
     recordRecentFile(path)
     applyPendingProject(path)
   })
+  // 새 문서, 불러오기 and 최근 문서 from inside the Hangul editor go through the shell's own pipeline
+  setHangulShellHooks({
+    newDocument: () => newHangulTab(),
+    openViaDialog: () => openFileViaDialog(),
+    recentFiles: () => readRecentFiles(),
+    openPath: (path) => openDocumentPath(path),
+    removeRecent: (paths) => removeRecentFiles(paths),
+    openSettings: () => {
+      manager.openHomeTab()
+      shellWindow?.webContents.send('app:open-settings')
+    },
+  })
   // hangul untitled first save / Save As lands on a new path
   setHangulFileSavedHook((wc, path) => {
     manager.setTabFileFor(wc.id, path)
@@ -3085,6 +3102,8 @@ function registerHomeIpc(): void {
   })
 
   ipcMain.handle(HOME_CHANNELS.getAppVersion, (): string => app.getVersion())
+  // Home's AI chip on the Hangul card follows the editor a new document opens in
+  ipcMain.handle(HOME_CHANNELS.hangulAi, (): boolean => resolveEditorKind(process.env, app.isPackaged) === 'next')
 
   ipcMain.handle(HOME_CHANNELS.recents, (_event, query: unknown): RecentPage =>
     pageRecentPaths(readRecentFiles(), query, new Set(readStarredFiles())),
@@ -4581,6 +4600,19 @@ new LiveService({
   pull: (p) => shareService.pull(p),
   log: (m) => console.warn(m),
 }).register(ipcMain)
+
+// Hangul: every save is a version, and a shared file uploads a new version (as Docs does).
+setHangulDocSavedHook((path, bytes) => {
+  void shareService.saved(path, bytes)
+  if (!isHistoryPath(path)) return
+  let by = 'This computer'
+  try {
+    by = userInfo().username || by
+  } catch {
+    // keep the generic name
+  }
+  void versionStore.record(path, bytes, { by }).catch(() => undefined)
+})
 
 setDocSavedHook((path, bytes, auto) => {
   void shareService.saved(path, bytes)

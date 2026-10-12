@@ -79,21 +79,15 @@ function MarkdownIcon() {
   )
 }
 
+/* same artwork as the home screen's file-hwp.svg asset: the jamo ㅎ drawn as
+ * geometry, so it renders on a machine with no Korean font */
 function HangulIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 240 240" fill="none" aria-hidden="true">
-      <rect width="240" height="240" rx="48" fill="#2B6CB0" />
-      <text
-        x="120"
-        y="120"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize="140"
-        fontFamily="'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif"
-        fill="#fff"
-      >
-        한
-      </text>
+      <rect width="240" height="240" rx="48" fill="#0E7C86" />
+      <rect x="96" y="50" width="48" height="18" rx="9" fill="#fff" />
+      <rect x="50" y="84" width="140" height="18" rx="9" fill="#fff" />
+      <circle cx="120" cy="156" r="38" stroke="#fff" strokeWidth="20" />
     </svg>
   )
 }

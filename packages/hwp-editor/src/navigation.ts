@@ -33,6 +33,14 @@ let preferredX = -1
 let lastVertical: Pos | null = null
 
 export function moveVerticalFrom(s: Session, p: Pos, dir: -1 | 1): Pos {
+  // In a header, footer or note: the previous or next paragraph, at the same offset where it fits.
+  if (p.story) {
+    const n = s.text.paragraphCount(containerOf(p))
+    const i = Math.min(Math.max(0, p.para + dir), n - 1)
+    if (i === p.para) return dir < 0 ? { ...p, offset: 0 } : { ...p, offset: s.text.length(p) }
+    const q = { ...p, para: i, offset: 0 }
+    return { ...q, offset: Math.min(p.offset, s.text.length(q)) }
+  }
   if (!lastVertical || lastVertical !== p) preferredX = -1
   const json = p.cell
     ? s.doc.raw.moveVertical(p.section, p.cell.para, p.offset, dir, preferredX, p.para, p.cell.control, p.cell.cell, p.cell.para)

@@ -686,6 +686,10 @@ export const strings = {
     aiToolReplaceDone: '블록 {n}개 다시 씀',
     aiToolWebSearch: '웹 검색',
     aiToolWebSearchDone: '"{query}" 검색 · 결과 {count}개',
+    mdSimpleSummarize: '요약',
+    mdSimplePolish: '다듬기',
+    mdSimpleTidy: '서식 정리',
+    mdUntitled: '제목 없음.md',
   },
   fr: {
     aiYou: 'Vous',

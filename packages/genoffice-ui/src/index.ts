@@ -1,4 +1,5 @@
 export * from './kit'
+export { TabbedPanels, type TabbedPanelsItem, type TabbedPanelsProps } from './TabbedPanels'
 export { applyUiTheme, type UiThemeMode } from './theme'
 export { Icon, type GlyphProps } from './Icon'
 export { Dialog, type DialogProps } from './Dialog'
@@ -158,3 +159,9 @@ export {
   type RunReport,
 } from './redrob/RedrobParts'
 export { useRedrobPrefs, type RedrobPrefsSource } from './redrob/useRedrobPrefs'
+
+// Version history, catch-up and Share, shared by every editor (moved from apps/docs)
+export { VersionHistory, type VersionHistoryProps } from './collab/VersionHistory'
+export { CatchUp, catchUpLine, type CatchUpProps } from './collab/CatchUp'
+export { ShareDialog, SHARE_STRINGS, shareText, type ShareDialogProps } from './collab/ShareDialog'
+export { pageLang, verT, type VerStringKey } from './collab/strings'

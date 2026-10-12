@@ -4,7 +4,7 @@
 // caret's host paragraph is used for headers and footers only).
 import type { Command } from './commands'
 import { HWPUNIT_PER_MM } from './find-commands'
-import type { Pos } from './position'
+import { inBody as isBodyPos, type Pos } from './position'
 import type { Session } from './session'
 
 function ok(r: string, what: string): Record<string, unknown> {
@@ -13,7 +13,7 @@ function ok(r: string, what: string): Record<string, unknown> {
   return v
 }
 
-const bodyCaret = (s: Session): Pos | null => (s.selection.head.cell ? null : s.selection.head)
+const bodyCaret = (s: Session): Pos | null => (isBodyPos(s.selection.head) ? s.selection.head : null)
 const inBody = ({ session }: { session: Session }): boolean => bodyCaret(session) !== null
 
 function note(id: 'insert:footnote' | 'insert:endnote'): Command<{ text?: string } | undefined> {

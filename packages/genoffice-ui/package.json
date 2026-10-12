@@ -13,7 +13,9 @@
     "./screentip.css": "./src/screentip.css",
     "./color-picker.css": "./src/color-picker.css",
     "./dropdown.css": "./src/dropdown.css",
-    "./fonts/*": "./src/fonts/*"
+    "./fonts/*": "./src/fonts/*",
+    "./collab/versions.css": "./src/collab/versions.css",
+    "./collab/share.css": "./src/collab/share.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -35,6 +37,8 @@
   "dependencies": {
     "@genoffice/i18n": "workspace:*",
     "@genoffice/pptx-render": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
+    "@genoffice/versions": "workspace:*",
     "@redrob-labs/ui": "1.0.2"
   }
 }

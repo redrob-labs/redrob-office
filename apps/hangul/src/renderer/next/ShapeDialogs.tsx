@@ -43,7 +43,7 @@ function diff(before: Record<string, unknown>, after: Record<string, unknown>): 
 export function CharShapeDialog({ view, onClose, onApplied }: Props): React.JSX.Element {
   const { t } = useI18n()
   const s = view.session
-  const initial = useMemo(() => s.text.charPropertiesAt(ordered(s.selection)[0]), [s])
+  const initial = useMemo(() => s.charProps(ordered(s.selection)[0]), [s])
   const [script, setScript] = useState<number | 'all'>('all')
   const [state, setState] = useState(() => ({
     fontSizePt: Number(initial.fontSize) / 100,

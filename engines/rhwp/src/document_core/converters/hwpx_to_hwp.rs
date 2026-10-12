@@ -422,7 +422,7 @@ fn for_each_ole_mut(doc: &mut Document, f: &mut dyn FnMut(&mut OleShape)) {
 /// `{4C3DA137-DC90-47B9-9BED-59DAE352A280}` 를 하드코딩해야 하고, `OOXMLChartContents`
 /// 하나만 든 CFB 를 한컴이 받아들이는지는 미검증이다(#4055 는 기존 CFB 를 수정했을 뿐
 /// 새로 만들지 않았다). 실물 변종이 관측되면 그때 채운다.
-fn fold_hwpx_chart_ole_for_hwp(doc: &mut Document, report: &mut AdapterReport) {
+pub(crate) fn fold_hwpx_chart_ole_for_hwp(doc: &mut Document, report: &mut AdapterReport) {
     let mut folded = 0u32;
     let mut orphaned = 0u32;
 

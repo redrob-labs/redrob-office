@@ -572,10 +572,28 @@ fn serialize_column_def(cd: &ColumnDef, level: u16, records: &mut Vec<Record>) {
     if !same_width && count > 1 {
         // same_width=false: [attr2(2)] [col0_width(2) col0_gap(2)] ...
         w.write_u16(0).unwrap(); // attr2
-        for i in 0..count {
-            w.write_i16(cd.widths[i]).unwrap();
-            let gap = cd.gaps.get(i).copied().unwrap_or(0);
-            w.write_i16(gap).unwrap();
+        // HWP 5.0 stores widths and gaps as shares of 32768. A model that holds absolute
+        // HWPUNIT (from HWPX, or an edit) is converted; one parsed from HWP 5.0 is written as is.
+        let pairs: Vec<(i64, i64)> = (0..count)
+            .map(|i| (cd.widths[i] as u16 as i64, cd.gaps.get(i).copied().unwrap_or(0) as u16 as i64))
+            .collect();
+        let scaled: Vec<(u16, u16)> = if cd.proportional_widths {
+            pairs.iter().map(|&(w, g)| (w as u16, g as u16)).collect()
+        } else {
+            let total: i64 = pairs.iter().map(|&(w, g)| w + g).sum::<i64>().max(1);
+            let mut out: Vec<(u16, u16)> = pairs
+                .iter()
+                .map(|&(w, g)| (((w * 32768) / total) as u16, ((g * 32768) / total) as u16))
+                .collect();
+            let sum: i64 = out.iter().map(|&(w, g)| w as i64 + g as i64).sum();
+            if let Some(last) = out.last_mut() {
+                last.0 = (last.0 as i64 + 32768 - sum).clamp(0, u16::MAX as i64) as u16;
+            }
+            out
+        };
+        for (wv, gv) in scaled {
+            w.write_u16(wv).unwrap();
+            w.write_u16(gv).unwrap();
         }
     } else {
         // same_width=true: [gap(2)] [attr2(2)]

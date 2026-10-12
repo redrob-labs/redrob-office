@@ -40,8 +40,16 @@ exec "${HWP_CORE_REAL_CARGO}" "$@"
 EOF
 chmod +x "${shim_dir}/cargo"
 
+# Panic messages carry source paths, and a dependency's path is absolute under
+# CARGO_HOME (/root/.cargo here, /home/runner/.cargo on CI), so the same source
+# built on two machines gave different bytes. Map the host-specific prefixes to
+# fixed ones. engines/rhwp has no .cargo/config rustflags for this to override.
+cargo_home="${CARGO_HOME:-${HOME}/.cargo}"
+remap="--remap-path-prefix=${cargo_home}=/cargo --remap-path-prefix=${engine}=/rhwp"
+
 rm -rf "${out}"
 cd "${engine}"
+RUSTFLAGS="${remap}" \
 PATH="${shim_dir}:${PATH}" HWP_CORE_REAL_CARGO="${real_cargo}" \
   wasm-pack build . --release --target web --out-dir "${out}" --out-name rhwp --no-pack -- --locked
 

@@ -1,10 +1,10 @@
 //! 각주 내용 편집 관련 native 메서드
 
 use super::super::helpers::{
-    build_tab_def_from_json, json_has_border_keys, json_has_tab_keys, parse_json_i16_array,
-    parse_para_shape_mods,
+    build_tab_def_from_json, json_has_border_keys, json_has_tab_keys, parse_char_shape_mods,
+    parse_json_i16_array, parse_para_shape_mods,
 };
-use super::formatting::restore_para_meta;
+use super::formatting::{char_shape_mods_affect_text_flow, restore_para_meta};
 use crate::document_core::DocumentCore;
 use crate::error::HwpError;
 use crate::model::control::Control;
@@ -455,6 +455,97 @@ impl DocumentCore {
         Ok("{\"ok\":true}".to_string())
     }
 
+    /// 각주/미주 캐럿 위치의 글자 속성을 조회한다. (Redrob E9)
+    pub fn get_char_properties_in_footnote_native(
+        &self,
+        section_idx: usize,
+        para_idx: usize,
+        control_idx: usize,
+        fn_para_idx: usize,
+        char_offset: usize,
+    ) -> Result<String, HwpError> {
+        let para = self
+            .get_footnote_paragraph_ref(section_idx, para_idx, control_idx, fn_para_idx)
+            .ok_or_else(|| HwpError::RenderError("각주/미주 문단을 찾을 수 없음".to_string()))?;
+        if char_offset > para.text.chars().count() {
+            return Err(HwpError::RenderError("각주/미주 문자 범위 초과".to_string()));
+        }
+        Ok(self.build_char_properties_json(para, char_offset))
+    }
+
+    /// 각주/미주의 단일·다문단 선택 범위에 글자 서식을 적용한다. (Redrob E9)
+    /// 머리말/꼬리말의 `apply_char_format_in_header_footer_native`와 같은 방식이다.
+    #[allow(clippy::too_many_arguments)]
+    pub fn apply_char_format_in_footnote_native(
+        &mut self,
+        section_idx: usize,
+        para_idx: usize,
+        control_idx: usize,
+        start_fn_para_idx: usize,
+        start_char_offset: usize,
+        end_fn_para_idx: usize,
+        end_char_offset: usize,
+        props_json: &str,
+    ) -> Result<String, HwpError> {
+        if (start_fn_para_idx, start_char_offset) > (end_fn_para_idx, end_char_offset) {
+            return Err(HwpError::RenderError(
+                "시작 위치가 끝 위치보다 뒤에 있음".to_string(),
+            ));
+        }
+        let mut lens = Vec::new();
+        for i in start_fn_para_idx..=end_fn_para_idx {
+            let p = self
+                .get_footnote_paragraph_ref(section_idx, para_idx, control_idx, i)
+                .ok_or_else(|| HwpError::RenderError("각주/미주 문단 범위 초과".to_string()))?;
+            lens.push(p.text.chars().count());
+        }
+        if start_char_offset > lens[0] || end_char_offset > *lens.last().unwrap() {
+            return Err(HwpError::RenderError("각주/미주 문자 범위 초과".to_string()));
+        }
+
+        let mut mods = parse_char_shape_mods(props_json);
+        if json_has_border_keys(props_json) {
+            mods.border_fill_id = Some(self.create_border_fill_from_json(props_json));
+        }
+        let affects_flow = char_shape_mods_affect_text_flow(&mods);
+
+        let mut changed = Vec::new();
+        for (k, fn_para_idx) in (start_fn_para_idx..=end_fn_para_idx).enumerate() {
+            let range_start = if fn_para_idx == start_fn_para_idx { start_char_offset } else { 0 };
+            let range_end = if fn_para_idx == end_fn_para_idx { end_char_offset } else { lens[k] };
+            if range_end <= range_start {
+                continue;
+            }
+            let base_ids = self
+                .get_footnote_paragraph_ref(section_idx, para_idx, control_idx, fn_para_idx)
+                .ok_or_else(|| HwpError::RenderError("각주/미주 문단을 찾을 수 없음".to_string()))?
+                .char_shape_ids_in_range(range_start, range_end);
+            let ids = self.document.modified_char_shape_ids(base_ids, &mods);
+            self.get_footnote_paragraph_mut(section_idx, para_idx, control_idx, fn_para_idx)?
+                .try_map_char_shape_range(range_start, range_end, |id| {
+                    ids.get(&id).copied().ok_or_else(|| {
+                        HwpError::RenderError(format!("글자 모양 변환 ID {id} 누락"))
+                    })
+                })?;
+            changed.push((range_start, range_end));
+            if affects_flow {
+                self.reflow_footnote_paragraph(section_idx, para_idx, control_idx, fn_para_idx);
+            }
+        }
+
+        self.document.sections[section_idx].raw_stream = None;
+        self.rebuild_section(section_idx);
+        for (start, end) in changed {
+            self.event_log.push(DocumentEvent::CharFormatChanged {
+                section: section_idx,
+                para: para_idx,
+                start,
+                end,
+            });
+        }
+        Ok("{\"ok\":true}".to_string())
+    }
+
     /// 각주 문단 정보를 반환한다.
     /// JSON: `{"ok":true,"paraCount":N,"textLen":N,"text":"..."}`
     pub fn get_footnote_info_native(
@@ -881,5 +972,71 @@ mod delete_footnote_char_shape_tests {
             Some(9),
             "각주 삭제 후 char_shapes.start_pos 가 되돌아가지 않아 글자모양 run 이 텍스트와 어긋남"
         );
+    }
+}
+
+#[cfg(test)]
+mod note_char_format_tests {
+    use crate::document_core::DocumentCore;
+    use crate::model::control::Control;
+
+    fn core_with_note(endnote: bool) -> (DocumentCore, usize) {
+        let mut core = DocumentCore::new_empty();
+        core.create_blank_document_native().unwrap();
+        core.insert_text_native(0, 0, 0, "본문").unwrap();
+        if endnote {
+            core.insert_endnote_native(0, 0, 2).unwrap();
+        } else {
+            core.insert_footnote_native(0, 0, 2).unwrap();
+        }
+        let ci = core.document.sections[0].paragraphs[0]
+            .controls
+            .iter()
+            .position(|c| matches!(c, Control::Footnote(_) | Control::Endnote(_)))
+            .unwrap();
+        core.insert_text_in_footnote_native(0, 0, ci, 0, 0, "각주내용").unwrap();
+        core.split_paragraph_in_footnote_native(0, 0, ci, 0, 2, None).unwrap();
+        (core, ci)
+    }
+
+    fn bold(core: &DocumentCore, ci: usize, p: usize, off: usize) -> bool {
+        core.get_char_properties_in_footnote_native(0, 0, ci, p, off)
+            .unwrap()
+            .contains("\"bold\":true")
+    }
+
+    #[test]
+    fn bold_in_one_footnote_paragraph_changes_only_that_range() {
+        let (mut core, ci) = core_with_note(false);
+        let body_before = core.get_char_properties_at_native(0, 0, 0).unwrap();
+        core.apply_char_format_in_footnote_native(0, 0, ci, 0, 0, 0, 1, r#"{"bold":true}"#)
+            .unwrap();
+        assert!(bold(&core, ci, 0, 0), "selected character is bold");
+        assert!(!bold(&core, ci, 0, 2), "the rest of the paragraph is not");
+        assert_eq!(core.get_char_properties_at_native(0, 0, 0).unwrap(), body_before, "body text untouched");
+    }
+
+    #[test]
+    fn a_range_across_endnote_paragraphs_formats_both() {
+        let (mut core, ci) = core_with_note(true);
+        core.apply_char_format_in_footnote_native(0, 0, ci, 0, 1, 1, 1, r#"{"italic":true}"#)
+            .unwrap();
+        let it = |p, o| {
+            core.get_char_properties_in_footnote_native(0, 0, ci, p, o)
+                .unwrap()
+                .contains("\"italic\":true")
+        };
+        assert!(!it(0, 0));
+        assert!(it(0, 2));
+        assert!(it(1, 0));
+        assert!(!it(1, 2));
+    }
+
+    #[test]
+    fn rejects_a_reversed_or_out_of_range_selection() {
+        let (mut core, ci) = core_with_note(false);
+        assert!(core.apply_char_format_in_footnote_native(0, 0, ci, 1, 0, 0, 0, "{}").is_err());
+        assert!(core.apply_char_format_in_footnote_native(0, 0, ci, 0, 0, 0, 99, "{}").is_err());
+        assert!(core.apply_char_format_in_footnote_native(0, 0, ci, 0, 0, 5, 0, "{}").is_err());
     }
 }

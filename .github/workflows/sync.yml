@@ -2,12 +2,17 @@ name: Sync service
 
 # The sync service is its own project (services/sync, outside the pnpm
 # workspace). This job is not a required check: it builds the Docker Compose
-# stack, runs the unit tests and the stack tests against it, and tears it down.
+# stack, runs the unit tests and the stack tests against it, then live Hangul
+# typing over it (apps/hangul/tests/live-stack.test.ts), and tears it down.
 on:
   pull_request:
     paths:
       - 'services/sync/**'
       - '.github/workflows/sync.yml'
+      # live Hangul typing over the stack (spec task 5.6)
+      - 'packages/sync-client/**'
+      - 'packages/hwp-editor/src/live*.ts'
+      - 'apps/hangul/tests/live-stack.test.ts'
   workflow_dispatch:
 
 concurrency:
@@ -49,6 +54,19 @@ jobs:
         run: pnpm test:integration
         env:
           SYNC_URL: http://127.0.0.1:8787
+
+      - name: Install the workspace (for the Hangul live test)
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+        env:
+          REDROB_SKIP_ELECTRON_ENSURE: '1'
+
+      - name: Hangul live typing over the stack
+        working-directory: apps/hangul
+        run: pnpm exec vitest run tests/live-stack.test.ts
+        env:
+          HWP_LIVE_STACK_URL: http://127.0.0.1:8787
+          HWP_LIVE_STACK_ROUNDS: '8'
 
       - name: Service logs
         if: failure()

@@ -31,6 +31,8 @@ pub mod parser;
 /// [#4100] 값 구간의 최소 diff 치환.
 pub mod patch;
 pub mod renderer;
+/// [Redrob E7] New chart parts from data.
+pub mod writer;
 
 /// OOXML 차트 데이터 모델
 #[derive(Debug, Clone, Default)]

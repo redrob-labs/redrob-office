@@ -125,10 +125,25 @@ describe('formatting', () => {
     expect(bus.isActive('format:bold')).toBe(false)
   })
 
-  it('is disabled with a collapsed selection', () => {
-    const { bus } = open('글')
-    expect(bus.isEnabled('format:bold')).toBe(false)
+  it('at a bare caret, Bold is held for the next typing and shows as on', () => {
+    const { s, bus } = open('글')
+    const end = { section: 0, para: 0, offset: 1 }
+    s.select({ anchor: end, head: end })
+    expect(bus.isEnabled('format:bold')).toBe(true)
     expect(bus.run('format:bold')).toBeNull()
+    expect(bus.isActive('format:bold')).toBe(true)
+    expect(s.dirty).toBe(false)
+    bus.run('edit:insert-text', { text: '자' })
+    expect(s.text.charPropertiesAt({ section: 0, para: 0, offset: 1 }).bold).toBe(true)
+    expect(s.text.charPropertiesAt({ section: 0, para: 0, offset: 0 }).bold).toBe(false)
+    // pressing Bold twice before typing cancels it
+    const e2 = { section: 0, para: 0, offset: 2 }
+    s.select({ anchor: e2, head: e2 })
+    bus.run('format:bold')
+    bus.run('format:bold')
+    expect(bus.isActive('format:bold')).toBe(true)
+    bus.run('format:bold')
+    expect(bus.isActive('format:bold')).toBe(false)
   })
 })
 
@@ -180,5 +195,64 @@ describe('caret movement', () => {
     bus.run('edit:insert-text', { text: '\n둘' })
     bus.run('edit:select-all')
     expect(s.text.textBetween(s.selection.anchor, s.selection.head)).toBe('하나\n둘')
+  })
+})
+
+describe('grouped edits', () => {
+  it('commands run inside a group are one undo step and one change', () => {
+    const { s, bus } = open('하나')
+    const changes: Change[] = []
+    s.onChange((c) => changes.push(c))
+    const seq = s.changeSeq
+    s.group('ai:replace', () => {
+      bus.run('edit:insert-text', { text: '\n둘' }, 'ai')
+      bus.run('edit:insert-text', { text: '\n셋' }, 'ai')
+      return s.selection
+    }, 'ai')
+    expect(body(s)).toEqual(['하나', '둘', '셋'])
+    expect(changes).toHaveLength(1)
+    expect(changes[0]!.origin).toBe('ai')
+    expect(changes[0]!.nodes.length).toBeGreaterThanOrEqual(2)
+    expect(s.changeSeq).toBe(seq + 1)
+    s.undo()
+    expect(body(s)).toEqual(['하나'])
+    expect(s.dirty).toBe(false)
+  })
+
+  it('a failure inside a group rolls the whole group back', () => {
+    const { s, bus } = open('하나')
+    expect(() =>
+      s.group('ai:bad', () => {
+        bus.run('edit:insert-text', { text: '\n둘' }, 'ai')
+        throw new Error('boom')
+      }, 'ai'),
+    ).toThrow('boom')
+    expect(body(s)).toEqual(['하나'])
+    expect(s.canUndo).toBe(false)
+    // The session is usable afterwards.
+    bus.run('edit:insert-text', { text: '!' })
+    expect(body(s)).toEqual(['하나!'])
+  })
+})
+
+describe('rollback points', () => {
+  it('restores a snapshot as one undoable change', () => {
+    const { s, bus } = open('하나')
+    const point = s.doc.saveSnapshot()
+    bus.run('edit:insert-text', { text: ' 둘' })
+    bus.run('edit:insert-text', { text: ' 셋' })
+    s.restore(point)
+    expect(body(s)).toEqual(['하나'])
+    s.undo()
+    expect(body(s)).toEqual(['하나 둘 셋'])
+    s.doc.discardSnapshot(point)
+  })
+
+  it('caps history under the engine snapshot limit', () => {
+    const { s, bus } = open('')
+    for (let i = 0; i < 90; i++) bus.run('edit:insert-text', { text: 'x' })
+    let n = 0
+    while (s.undo()) n++
+    expect(n).toBe(70)
   })
 })

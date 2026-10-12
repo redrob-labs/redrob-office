@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
+import { userInfo } from 'node:os'
 import { BrowserWindow, WebContentsView, app, dialog, ipcMain, shell } from 'electron'
 import type { WebContents } from 'electron'
 import {
@@ -13,9 +14,14 @@ import {
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { atomicWriteFile } from './atomic-write'
+import { checkPages, pdfOfPages, printPages, standaloneHtml, withPrintWindow, wordHtml, type PrintWindowLike } from './print-export'
+import { cloudToolsOn, createHangulDocument, type HangulAiHooks } from './ai-ipc'
+import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
 import { resolveEditorKind } from './editor-kind'
+import { hancomFontRoots, hancomFontSource } from './hancom-fonts'
 import { HOST_PREFIX, serveHangulStudio, stopHangulStudio } from './studio-serve'
 import { HANGUL_CHANNELS } from '../shared/ipc'
+import type { CreateHangulDocumentRequest, PrintPagesRequest } from '../shared/ipc'
 import type {
   HangulDocumentBytes,
   HangulFormat,
@@ -44,6 +50,13 @@ const tDlg = createI18n({
     btnSave: 'Save',
     btnDontSave: "Don't Save",
     btnCancel: 'Cancel',
+    dlgPdfTitle: 'Save as PDF',
+    dlgHtmlTitle: 'Export as HTML',
+    filterPdf: 'PDF documents',
+    filterHtml: 'Web pages',
+    dlgDocTitle: 'Export as Word Document',
+    filterDoc: 'Word documents',
+    dlgCompareTitle: 'Compare with Document',
   },
   ja: {
     dlgSaveTitle: 'Hangul ドキュメントを保存',
@@ -64,6 +77,13 @@ const tDlg = createI18n({
     btnSave: '저장',
     btnDontSave: '저장 안 함',
     btnCancel: '취소',
+    dlgPdfTitle: 'PDF로 저장',
+    dlgHtmlTitle: 'HTML로 내보내기',
+    filterPdf: 'PDF 문서',
+    filterHtml: '웹 페이지',
+    dlgDocTitle: 'Word 문서로 내보내기',
+    filterDoc: 'Word 문서',
+    dlgCompareTitle: '비교할 문서',
   },
   fr: {
     dlgSaveTitle: 'Enregistrer le document Hangul',
@@ -225,6 +245,13 @@ type DlgKey =
   | 'btnSave'
   | 'btnDontSave'
   | 'btnCancel'
+  | 'dlgPdfTitle'
+  | 'dlgHtmlTitle'
+  | 'filterPdf'
+  | 'filterHtml'
+  | 'dlgDocTitle'
+  | 'filterDoc'
+  | 'dlgCompareTitle'
 const tm = (key: DlgKey) => tDlg(getUiLang(), key)
 
 interface RuntimePaths {
@@ -236,6 +263,10 @@ interface RuntimePaths {
    * (index.html + assets). Served over an app-local loopback origin; never a CDN.
    */
   studioDir: string
+  /** open a generated file in a new tab (shell openGeneratedDocument) */
+  openGeneratedPath?: HangulAiHooks['openGeneratedPath']
+  /** Docs-owned create_document for docx/pdf/md */
+  createDocument?: HangulAiHooks['createDocument']
 }
 
 let runtime: RuntimePaths = { preloadPath: '', studioDir: '' }
@@ -258,6 +289,41 @@ const saveWaiters = new Map<number, (ok: boolean) => void>()
 
 /** Fired after a save lands on a NEW path (untitled first save / Save As) — the shell syncs tab title, recents, projects */
 let fileSavedHook: ((wc: WebContents, path: string) => void) | null = null
+
+/** Fired after every successful save with the bytes written: the shell records a version and uploads a shared file. */
+let docSavedHook: ((path: string, bytes: Uint8Array) => void) | null = null
+
+export function setHangulDocSavedHook(hook: (path: string, bytes: Uint8Array) => void): void {
+  docSavedHook = hook
+}
+
+/**
+ * What the shell does for 새 문서, 불러오기 and 최근 문서: it owns tabs and the
+ * recent list, so the editor asks it rather than opening files itself.
+ */
+export interface HangulShellHooks {
+  newDocument(): void
+  openViaDialog(): Promise<void>
+  recentFiles(): string[]
+  openPath(path: string): boolean
+  removeRecent(paths: string[]): void
+  /** Bring Home forward with Settings open (한글's 환경 설정). */
+  openSettings(): void
+}
+
+let shellHooks: HangulShellHooks | null = null
+
+export function setHangulShellHooks(hooks: HangulShellHooks): void {
+  shellHooks = hooks
+}
+
+const HANGUL_FILE = /\.(hwp|hwpx)$/i
+const MAX_RECENT = 20
+
+/** Hangul files in the shell's recent list, newest first. */
+export function hangulRecentFiles(all: readonly string[]): string[] {
+  return all.filter((p) => HANGUL_FILE.test(p)).slice(0, MAX_RECENT)
+}
 
 export function setHangulFileSavedHook(hook: (wc: WebContents, path: string) => void): void {
   fileSavedHook = hook
@@ -443,7 +509,13 @@ function registerHangulIpc(): void {
         if (!target) return done({ ok: false, error: 'hangul: no save target' })
         const currentPath = savePathByWc.get(e.sender.id)
         const isNewPath = currentPath !== target
-        await atomicWriteFile(target, Buffer.from(request.base64, 'base64'))
+        const bytes = Buffer.from(request.base64, 'base64')
+        await atomicWriteFile(target, bytes)
+        try {
+          docSavedHook?.(target, new Uint8Array(bytes))
+        } catch {
+          /* history and sharing never fail a save */
+        }
         savePathByWc.set(e.sender.id, target)
         openPathByWc.set(e.sender.id, target)
         const allowed = allowedByWc.get(e.sender.id) ?? new Set<string>()
@@ -457,6 +529,85 @@ function registerHangulIpc(): void {
       }
     },
   )
+
+  // A hidden window for printing: sandboxed, no scripts, never shown.
+  const printWindow = (): PrintWindowLike =>
+    new BrowserWindow({ show: false, webPreferences: { sandbox: true, javascript: false, contextIsolation: true, nodeIntegration: false } }) as unknown as PrintWindowLike
+  const EXPORT = {
+    pdf: { title: 'dlgPdfTitle', filter: 'filterPdf', extensions: ['pdf'] },
+    html: { title: 'dlgHtmlTitle', filter: 'filterHtml', extensions: ['html', 'htm'] },
+    doc: { title: 'dlgDocTitle', filter: 'filterDoc', extensions: ['doc'] },
+  } as const
+  const exportTarget = async (e: Electron.IpcMainInvokeEvent, name: string | undefined, ext: keyof typeof EXPORT) => {
+    const current = savePathByWc.get(e.sender.id)
+    const base = (name || (current ? basename(current, extname(current)) : tm('untitledFile'))).replace(/[\\/:*?"<>|]/g, '_')
+    const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
+    const picked = await showSaveDialogWithMemory(dialog, win, {
+      title: tm(EXPORT[ext].title),
+      defaultPath: join(current ? dirname(current) : configuredDefaultSaveDir(app), `${base}.${ext}`),
+      filters: [{ name: tm(EXPORT[ext].filter), extensions: [...EXPORT[ext].extensions] }],
+    })
+    return picked.canceled || !picked.filePath ? null : picked.filePath
+  }
+
+  // 문서 비교: the other document is picked here and only its bytes go back; nothing is granted for saving.
+  ipcMain.handle(HANGUL_CHANNELS.pickCompare, async (e) => {
+    const win = BrowserWindow.fromWebContents(e.sender) ?? BrowserWindow.getFocusedWindow() ?? undefined
+    const opts = { title: tm('dlgCompareTitle'), properties: ['openFile' as const], filters: [{ name: tm('filterHangul'), extensions: ['hwp', 'hwpx'] }] }
+    const picked = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const path = picked.canceled ? undefined : picked.filePaths[0]
+    if (!path) return null
+    const bytes = await readFile(path)
+    if (bytes.length > 200 * 1024 * 1024) return null
+    return { fileName: basename(path), bytes: new Uint8Array(bytes) }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.printPages, async (e, request: PrintPagesRequest) => {
+    const pages = checkPages(request?.pages)
+    if (typeof pages === 'string') return { ok: false, error: `hangul: ${pages}` }
+    try {
+      if (request.mode === 'pdf') {
+        const target = await exportTarget(e, request.name, 'pdf')
+        if (!target) return { ok: true, canceled: true }
+        const data = await withPrintWindow(printWindow, pages, pdfOfPages)
+        await atomicWriteFile(target, data)
+        return { ok: true, path: target }
+      }
+      return await withPrintWindow(printWindow, pages, printPages)
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.newDocument, () => shellHooks?.newDocument())
+  ipcMain.handle(HANGUL_CHANNELS.openDialog, () => shellHooks?.openViaDialog())
+  ipcMain.handle(HANGUL_CHANNELS.recentFiles, () => (shellHooks ? hangulRecentFiles(shellHooks.recentFiles()) : []))
+  // Only a path that is in the recent list opens, so the renderer cannot name an arbitrary file.
+  ipcMain.handle(HANGUL_CHANNELS.openRecent, (_e, path: unknown) => {
+    if (!shellHooks || typeof path !== 'string' || !hangulRecentFiles(shellHooks.recentFiles()).includes(path)) return false
+    return shellHooks.openPath(path)
+  })
+  ipcMain.handle(HANGUL_CHANNELS.openSettings, () => shellHooks?.openSettings())
+  ipcMain.handle(HANGUL_CHANNELS.clearRecent, () => {
+    if (shellHooks) shellHooks.removeRecent(shellHooks.recentFiles().filter((p) => HANGUL_FILE.test(p)))
+  })
+
+  const fontSource = hancomFontSource(() => hancomFontRoots(process.platform, process.env))
+  ipcMain.handle(HANGUL_CHANNELS.fontSource, (_e, face: unknown) => fontSource(face))
+
+  ipcMain.handle(HANGUL_CHANNELS.exportHtml, async (e, request: { html?: unknown; name?: string; format?: unknown }) => {
+    if (typeof request?.html !== 'string' || !request.html || request.html.length > 200 * 1024 * 1024) return { ok: false, error: 'hangul: bad export request' }
+    const format = request.format === 'doc' ? 'doc' : 'html'
+    try {
+      const target = await exportTarget(e, request.name, format)
+      if (!target) return { ok: true, canceled: true }
+      const title = basename(target, extname(target))
+      await atomicWriteFile(target, Buffer.from(format === 'doc' ? wordHtml(request.html, title) : standaloneHtml(request.html, title), 'utf8'))
+      return { ok: true, path: target }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
 
   ipcMain.on(HANGUL_CHANNELS.dirtyChanged, (e, dirty: unknown) => {
     if (dirty === true) dirtyByWc.add(e.sender.id)
@@ -474,6 +625,31 @@ function registerHangulIpc(): void {
     const waiter = saveWaiters.get(e.sender.id)
     saveWaiters.delete(e.sender.id)
     waiter?.(ok === true)
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.createDocument, (_e, request: CreateHangulDocumentRequest) =>
+    createHangulDocument(request, configuredDefaultSaveDir(app), { openGeneratedPath: runtime.openGeneratedPath, createDocument: runtime.createDocument }),
+  )
+
+  ipcMain.handle(HANGUL_CHANNELS.authorName, () => {
+    try {
+      return userInfo().username || 'User'
+    } catch {
+      return 'User'
+    }
+  })
+
+  ipcMain.handle(HANGUL_CHANNELS.generateImage, async (_e, op: { prompt?: unknown; aspectRatio?: unknown }) => {
+    if (!hasGskAuth()) return { error: 'Redrob account is not logged in on this machine; ask the user to log in first' }
+    if (!cloudToolsOn(app.getPath('userData'))) return { error: 'Redrob cloud tools are turned off in Settings (AI Model); enable them to use this tool' }
+    const prompt = String(op?.prompt ?? '').trim()
+    if (!prompt) return { error: 'prompt must not be empty' }
+    try {
+      const r = await gskGenerateImage({ prompt, aspectRatio: op?.aspectRatio ? String(op.aspectRatio) : undefined })
+      return { url: r.url }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
   })
 
   // Language channel shared with other modules; removeHandler tolerates duplicate registration

@@ -26,7 +26,7 @@
 }
 
 :root:lang(ko) {
-  --ui-cjk: 'Apple SD Gothic Neo', 'Malgun Gothic';
+  --ui-cjk: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Wanted Sans', 'Noto Sans CJK KR';
 }
 
 :root:lang(zh-TW) {

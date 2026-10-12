@@ -36,23 +36,7 @@
   box-sizing: border-box;
 }
 
-/* UI CJK fonts per language, same table as the docs/slides chrome
- * (documentElement.lang is set at bootstrap and on switch) */
-:root {
-  --ui-cjk: 'PingFang SC', 'Microsoft YaHei';
-}
-
-:root:lang(ja) {
-  --ui-cjk: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', 'Meiryo';
-}
-
-:root:lang(ko) {
-  --ui-cjk: 'Apple SD Gothic Neo', 'Malgun Gothic';
-}
-
-:root:lang(zh-TW) {
-  --ui-cjk: 'PingFang TC', 'Microsoft JhengHei';
-}
+/* UI CJK fonts per language (--ui-cjk) live in @genoffice/ui tokens.css. */
 
 html,
 body,

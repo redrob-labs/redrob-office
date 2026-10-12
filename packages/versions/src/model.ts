@@ -100,6 +100,8 @@ export type CatchUpItem =
   | { kind: 'comment'; author: string; text: string; commentId: string; reply: boolean }
   | { kind: 'suggestion'; author: string; count: number; at: number }
   | { kind: 'figures'; count: number }
+  /** paragraphs whose text changed since the last visit (Hangul: an outline diff against that version) */
+  | { kind: 'edits'; count: number; at: number }
 
 /**
  * What changed since `since`, said once per thing: each new comment or reply

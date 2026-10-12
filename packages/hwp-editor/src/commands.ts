@@ -8,6 +8,12 @@ import { moveHorizontal, moveVerticalFrom, documentEnd, documentStart } from './
 import { FORMAT_COMMANDS } from './format-commands'
 import { FIND_COMMANDS } from './find-commands'
 import { INSERT_COMMANDS } from './insert-commands'
+import { OBJECT_COMMANDS } from './object-commands'
+import { FIELD_COMMANDS } from './field-commands'
+import { STYLE_COMMANDS } from './style-commands'
+import { STRUCTURE_COMMANDS } from './structure-commands'
+import { DIALOG_COMMANDS } from './dialog-commands'
+import { STORY_COMMANDS } from './story-commands'
 
 export interface CommandContext {
   session: Session
@@ -41,12 +47,16 @@ export const insertText: Command<{ text: string }> = {
     return session.edit(
       'edit:insert-text',
       () => {
+        // Formatting held at the caret (Bold with nothing selected) goes onto what is typed; others' typing never takes it.
+        const held = origin !== 'remote' && session.pendingChar && collapsed(session.selection) ? session.pendingChar.props : null
         let p = collapsed(session.selection) ? session.selection.head : deleteSelection(session)
+        const start = p
         const parts = text.replace(/\r\n?/g, '\n').split('\n')
         parts.forEach((part, i) => {
           if (i > 0) p = session.text.split(p)
           p = session.text.insert(p, part)
         })
+        if (held && Object.keys(held).length) session.text.applyCharFormat(start, p, held)
         return { anchor: p, head: p }
       },
       origin,
@@ -114,15 +124,20 @@ type Toggle = 'bold' | 'italic' | 'underline' | 'strikethrough'
 function toggleFormat(id: string, prop: Toggle): Command {
   return {
     id,
-    isEnabled: ({ session }) => !collapsed(session.selection) && sameContainer(session.selection.anchor, session.selection.head),
+    // With nothing selected it is held for the next typing, as in 한글 and Word.
+    isEnabled: ({ session }) => session.canHoldCharFormat() || (!collapsed(session.selection) && sameContainer(session.selection.anchor, session.selection.head)),
     isActive: ({ session }) => {
       const [a] = ordered(session.selection)
-      return Boolean(session.text.charPropertiesAt(a)[prop])
+      return Boolean(session.charProps(a)[prop])
     },
     run(ctx) {
       const { session, origin } = ctx
       if (!this.isEnabled(ctx)) return null
       const on = !this.isActive!(ctx)
+      if (collapsed(session.selection)) {
+        session.holdCharFormat({ [prop]: on })
+        return null
+      }
       const sel = session.selection
       return session.edit(id, () => {
         const [a, b] = ordered(sel)
@@ -192,7 +207,7 @@ export const CORE_COMMANDS = [
 export class CommandBus {
   private readonly commands = new Map<string, Command<never>>()
 
-  constructor(readonly session: Session, commands: Command<never>[] = [...CORE_COMMANDS, ...FORMAT_COMMANDS, ...FIND_COMMANDS, ...INSERT_COMMANDS]) {
+  constructor(readonly session: Session, commands: Command<never>[] = [...CORE_COMMANDS, ...FORMAT_COMMANDS, ...FIND_COMMANDS, ...INSERT_COMMANDS, ...OBJECT_COMMANDS, ...FIELD_COMMANDS, ...STYLE_COMMANDS, ...STRUCTURE_COMMANDS, ...DIALOG_COMMANDS, ...STORY_COMMANDS]) {
     for (const c of commands) this.register(c)
   }
 
@@ -219,9 +234,32 @@ export class CommandBus {
     return !!c?.isActive?.({ session: this.session })
   }
 
+  private intercepts: Array<(id: string, params: unknown, origin: ChangeOrigin) => Change | null | undefined> = []
+
+  /**
+   * Take commands before they run (suggesting mode records edits as tracked
+   * changes; a live room takes undo). The newest runs first; returning
+   * undefined passes the command on. Returns the function that removes it.
+   */
+  addIntercept(fn: (id: string, params: unknown, origin: ChangeOrigin) => Change | null | undefined): () => void {
+    this.intercepts.unshift(fn)
+    return () => {
+      this.intercepts = this.intercepts.filter((f) => f !== fn)
+    }
+  }
+
+  /** Whether something (suggesting mode) is taking edit commands. */
+  intercepting(): boolean {
+    return this.intercepts.length > 0
+  }
+
   run(id: string, params?: unknown, origin: ChangeOrigin = 'user'): Change | null {
     const c = this.commands.get(id)
     if (!c) throw new Error(`unknown command ${id}`)
+    for (const fn of this.intercepts) {
+      const r = fn(id, params, origin)
+      if (r !== undefined) return r
+    }
     if (!c.isEnabled({ session: this.session, origin }, params as never)) return null
     return c.run({ session: this.session, origin }, params as never)
   }

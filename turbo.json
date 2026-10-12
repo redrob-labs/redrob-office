@@ -19,6 +19,9 @@
         "^build"
       ],
       "outputs": [],
+      "env": [
+        "HWP_LIVE_FUZZ_ROUNDS"
+      ],
       "passThroughEnv": [
         "REDROB_CODE_BIN",
         "REDROB_CODE_BUN",

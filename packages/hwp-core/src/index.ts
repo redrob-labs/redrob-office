@@ -15,6 +15,9 @@
 import init, { initSync, HwpDocument, version as rawVersion } from '../wasm/rhwp.js'
 import type {
   CharProperties,
+  ChartData,
+  ChartRef,
+  NewChart,
   CursorRect,
   DocumentInfo,
   EditResult,
@@ -23,6 +26,9 @@ import type {
   NodeId,
   NodeLocation,
   NodeRead,
+  Memo,
+  Revision,
+  ParagraphTarget,
   Outline,
   PageInfo,
   ParaProperties,
@@ -115,7 +121,10 @@ export class HwpCoreDocument {
 
   // ── Document ──────────────────────────────────────────────────────────
   info(): DocumentInfo {
-    return decode(this.raw.getDocumentInfo())
+    const info = decode<Omit<DocumentInfo, 'fontSubstitutions'> & { fontSubstitutions: unknown[] }>(this.raw.getDocumentInfo())
+    // The core writes each substitution as a `[face, substitute]` pair.
+    const fontSubstitutions = info.fontSubstitutions.flatMap((f) => (Array.isArray(f) && typeof f[0] === 'string' && typeof f[1] === 'string' ? [{ requested: f[0], substitute: f[1] }] : []))
+    return { ...info, fontSubstitutions }
   }
 
   sourceFormat(): HwpFormat | 'hml' {
@@ -150,6 +159,29 @@ export class HwpCoreDocument {
 
   pageSvg(page: number): string {
     return this.raw.renderPageSvg(page)
+  }
+
+  /**
+   * The font chains the core paints this page's text with, one per distinct
+   * chain: the face the document asks for first, then the core's fallbacks,
+   * ending in a generic family. Read from the page's painted output, so it is
+   * exactly what reaches the browser's font matching.
+   */
+  pageFontChains(page: number): string[][] {
+    const svg = this.pageSvg(page)
+    const seen = new Set<string>()
+    const out: string[][] = []
+    for (const m of svg.matchAll(/font-family="([^"]*)"/g)) {
+      const raw = m[1]!
+      if (seen.has(raw)) continue
+      seen.add(raw)
+      const chain = unescapeXml(raw)
+        .split(',')
+        .map((f) => f.trim().replace(/^(['"])(.*)\1$/, '$2'))
+        .filter(Boolean)
+      if (chain.length) out.push(chain)
+    }
+    return out
   }
 
   // ── Geometry ──────────────────────────────────────────────────────────
@@ -207,6 +239,61 @@ export class HwpCoreDocument {
     return decode(this.raw.readNodes(JSON.stringify(ids)))
   }
 
+  // ── Memos (E4) ────────────────────────────────────────────────────────
+  memos(): Memo[] {
+    return decode(this.raw.listMemos())
+  }
+
+  /** Add a memo over [start, end) of a paragraph; returns its field id. */
+  addMemo(target: ParagraphTarget, start: number, end: number, author: string, body: string): number {
+    return this.raw.addMemo(JSON.stringify({ target, start, end, author, body }))
+  }
+
+  setMemoBody(fieldId: number, body: string): void {
+    this.raw.setMemoBody(fieldId, body)
+  }
+
+  removeMemo(fieldId: number): void {
+    this.raw.removeMemo(fieldId)
+  }
+
+  // ── Tracked changes (E5b) ─────────────────────────────────────────────
+  revisions(): Revision[] {
+    return decode(this.raw.listRevisions())
+  }
+
+  /** Mark existing text [start, end) of one paragraph as inserted or deleted. Returns the revision id. */
+  addRevision(target: ParagraphTarget, start: number, end: number, kind: 'insert' | 'delete', author: string, date: string): number {
+    return this.raw.addRevision(JSON.stringify({ target, start, end, kind, author, date }))
+  }
+
+  /** Drop a revision's marks and table entry. The text stays. */
+  removeRevision(id: number): void {
+    this.raw.removeRevision(id)
+  }
+
+  // ── Charts (E7 and upstream #4100) ────────────────────────────────────
+  /** Insert a new chart at a body position; returns where its control sits. */
+  insertChart(section: number, para: number, offset: number, chart: NewChart): { paraIdx: number; controlIdx: number; chart: number } {
+    return decode(this.raw.insertChart(JSON.stringify({ section, para, offset, ...chart })))
+  }
+
+  charts(): ChartRef[] {
+    return decode(this.raw.listCharts())
+  }
+
+  chartData(section: number, para: number, control: number): ChartData {
+    return decode(this.raw.getChartData(section, para, control))
+  }
+
+  /**
+   * Replace a chart's data. With `structure`, series and categories may be
+   * added or removed; values are strings, as the engine stores them.
+   */
+  setChartData(section: number, para: number, control: number, data: { labels?: string[]; series: Array<{ name?: string; values: string[] }>; structure?: boolean }): ChartData {
+    return decode(this.raw.setChartData(section, para, control, JSON.stringify(data)))
+  }
+
   // ── Edit ──────────────────────────────────────────────────────────────
   insertText(section: number, para: number, offset: number, text: string): EditResult {
     return decode(this.raw.insertText(section, para, offset, text))
@@ -234,4 +321,16 @@ export class HwpCoreDocument {
     if (format === 'hwpx') return password ? this.raw.exportHwpxWithPassword(password) : this.raw.exportHwpx()
     return password ? this.raw.exportHwpWithPassword(password) : this.raw.exportHwp()
   }
+}
+
+function unescapeXml(s: string): string {
+  return s.replace(/&(apos|quot|amp|lt|gt|#\d+|#x[0-9a-f]+);/gi, (_, e: string) => {
+    const k = e.toLowerCase()
+    if (k === 'apos') return "'"
+    if (k === 'quot') return '"'
+    if (k === 'amp') return '&'
+    if (k === 'lt') return '<'
+    if (k === 'gt') return '>'
+    return String.fromCodePoint(k.startsWith('#x') ? parseInt(k.slice(2), 16) : parseInt(k.slice(1), 10))
+  })
 }

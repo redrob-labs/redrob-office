@@ -19,10 +19,10 @@ export interface DocumentInfo {
   fontSubstitutions: FontSubstitution[]
 }
 
+/** A face the document itself names a substitute for (its font record's alternate font). */
 export interface FontSubstitution {
-  requested?: string
-  resolved?: string
-  [key: string]: unknown
+  requested: string
+  substitute: string
 }
 
 export interface Rect {
@@ -168,3 +168,80 @@ export interface Outline {
 export type NodeRead =
   | { id: NodeId; missing: true }
   | { id: NodeId; missing?: false; location: NodeLocation; text: string; styleId: number; paraShapeId: number; charShapes: Array<{ start: number; charShapeId: number }> }
+
+// ── Memos (engine extension E4, document_core/memos.rs) ─────────────────
+
+/** A paragraph address: body paragraph, or a paragraph inside table cells (control, cell, inner paragraph). */
+export interface ParagraphTarget {
+  section: number
+  para: number
+  cellPath: Array<[number, number, number]>
+}
+
+/** A 한글 memo: the format's comment. Replies are further memos on the same range. */
+export interface Memo {
+  fieldId: number
+  /** 한글's memo number. */
+  number: number
+  author: string
+  /** Body, paragraphs joined with "\n". */
+  body: string
+  target: ParagraphTarget
+  /** Session id of the annotated paragraph. */
+  nodeId: NodeId
+  start: number
+  end: number
+  /** The annotated text. */
+  text: string
+}
+
+// ── Tracked changes (engine extension E5b, document_core/revisions.rs) ──
+
+/** One tracked change (변경 내용): an insertion or a deletion still to be accepted or rejected. */
+export interface Revision {
+  /** The mark pair's id. */
+  id: number
+  /** The header entry's id. */
+  tcId: number
+  kind: 'insert' | 'delete'
+  author: string
+  /** ISO 8601, as the file stores it. */
+  date: string
+  target: ParagraphTarget
+  nodeId: NodeId
+  start: number
+  /** Where it ends; the same paragraph unless the change spans paragraphs. */
+  endTarget: ParagraphTarget
+  endNodeId: NodeId
+  end: number
+  text: string
+}
+
+/** [E7] A new chart: 묶은 세로/가로 막대형, 꺾은선형 or 2차원 원형 (first series only). */
+export type ChartKind = 'column' | 'bar' | 'line' | 'pie'
+
+export interface NewChart {
+  kind: ChartKind
+  title?: string
+  categories: string[]
+  series: Array<{ name: string; values: number[] }>
+  /** HWPUNIT; 한글's default is 32250 × 18750 */
+  width?: number
+  height?: number
+}
+
+export interface ChartRef {
+  index: number
+  section: number
+  paragraph: number
+  control: number
+}
+
+/** A chart's data as the engine reads it (values stay text, as stored). */
+export interface ChartData {
+  ok: boolean
+  plot?: string
+  labels?: string[]
+  series?: Array<{ name: string | null; values: string[] }>
+  invalid?: Array<{ reason: string; message: string }>
+}

@@ -523,6 +523,8 @@ pub fn write_section(
     ctx: &mut SerializeContext,
 ) -> Result<Vec<u8>, SerializeError> {
     let mut vert_cursor: u32 = 0;
+    let pd = &section.section_def.page_def;
+    ctx.body_width = (pd.width as i64 - pd.margin_left as i64 - pd.margin_right as i64 - pd.margin_gutter as i64).max(7200);
 
     let first_para = section.paragraphs.first();
     // [#1584] 첫 문단 렌더 직전 set — 본문 첫 ColumnDef(섹션 템플릿 흡수분)의 인라인
@@ -588,7 +590,7 @@ pub fn write_section(
             .iter()
             .find(|c| matches!(c, Control::ColumnDef(_)))
         {
-            out = out.replacen(TEMPLATE_BODY_COL_PR, &render_col_pr_ctrl(cd), 1);
+            out = out.replacen(TEMPLATE_BODY_COL_PR, &render_col_pr_ctrl(cd, ctx.body_width), 1);
         }
     }
 
@@ -640,7 +642,7 @@ pub fn write_section(
             {
                 // 위 #1407 치환이 이미 심어 둔 IR colPr 블록을 정확히 되찾아
                 // (render_col_pr_ctrl 은 결정적) secPr 앞으로 옮긴다.
-                let rendered = render_col_pr_ctrl(cd);
+                let rendered = render_col_pr_ctrl(cd, ctx.body_width);
                 if let Some(colpr_at) = out.find(&rendered) {
                     out.replace_range(colpr_at..colpr_at + rendered.len(), "");
                     if let Some(secpr_at) = out.find("<hp:secPr ") {
@@ -1012,12 +1014,13 @@ impl InlineCursor<'_> {
                 break;
             }
             flush_buf(t_xml, buf);
-            match &m.color {
-                Some(color) => t_xml.push_str(&format!(
+            match (&m.revision, &m.color) {
+                (Some(revision), _) => t_xml.push_str(revision),
+                (None, Some(color)) => t_xml.push_str(&format!(
                     r#"<hp:markpenBegin color="{}"/>"#,
                     xml_escape(color)
                 )),
-                None => t_xml.push_str("<hp:markpenEnd/>"),
+                (None, None) => t_xml.push_str("<hp:markpenEnd/>"),
             }
             self.markpen_idx += 1;
         }
@@ -1057,12 +1060,13 @@ impl InlineCursor<'_> {
                 break;
             }
             flush_buf(t_xml, buf);
-            match &m.color {
-                Some(color) => t_xml.push_str(&format!(
+            match (&m.revision, &m.color) {
+                (Some(revision), _) => t_xml.push_str(revision),
+                (None, Some(color)) => t_xml.push_str(&format!(
                     r#"<hp:markpenBegin color="{}"/>"#,
                     xml_escape(color)
                 )),
-                None => t_xml.push_str("<hp:markpenEnd/>"),
+                (None, None) => t_xml.push_str("<hp:markpenEnd/>"),
             }
             self.markpen_idx += 1;
         }
@@ -1499,12 +1503,13 @@ impl PositionedMarkpens<'_> {
             }
             splitter.cut_before(pos);
             splitter.content.push_str("<hp:t>");
-            match &mark.color {
-                Some(color) => splitter.content.push_str(&format!(
+            match (&mark.revision, &mark.color) {
+                (Some(revision), _) => splitter.content.push_str(revision),
+                (None, Some(color)) => splitter.content.push_str(&format!(
                     r#"<hp:markpenBegin color="{}"/>"#,
                     xml_escape(color)
                 )),
-                None => splitter.content.push_str("<hp:markpenEnd/>"),
+                (None, None) => splitter.content.push_str("<hp:markpenEnd/>"),
             }
             splitter.content.push_str("</hp:t>");
             self.next += 1;
@@ -2442,7 +2447,9 @@ fn render_control_slot(out: &mut String, control: &Control, ctx: &mut SerializeC
             // [#5866] HWP5 출처 메모(command `MEMO/…`)는 한글 실측 형상(파라미터
             // 6종 + 빈 subList)으로 방출한다 — CROSSREF 로 굳히면 필드 범위
             // 숨김이 풀려 메모 대상 텍스트가 본문에 붙는다.
-            if let Some(memo_children) = super::field::memo_field_children_xml(f) {
+            // [Redrob E4] with a known body (HWP 5.0 memo tail), write the body instead of an empty one.
+            let hwp5_memo_params = if f.memo_paragraphs.is_empty() { None } else { super::field::memo_parameters_xml(f) };
+            if let Some(memo_children) = super::field::memo_field_children_xml(f).filter(|_| hwp5_memo_params.is_none()) {
                 out.push_str(&super::field::field_begin_open_tag(f));
                 out.push('>');
                 out.push_str(&memo_children);
@@ -2450,9 +2457,9 @@ fn render_control_slot(out: &mut String, control: &Control, ctx: &mut SerializeC
                 out.push_str("</hp:ctrl>");
                 return;
             }
-            let generated_params = generated_field_parameters(f);
+            let generated_params = hwp5_memo_params.or_else(|| generated_field_parameters(f));
             let has_params = f.raw_parameters_xml.is_some() || generated_params.is_some();
-            let has_memo = f.field_type == crate::model::control::FieldType::Memo
+            let has_memo = (f.field_type == crate::model::control::FieldType::Memo || f.command.starts_with("MEMO/"))
                 && !f.memo_paragraphs.is_empty();
             if has_params || has_memo {
                 // [#1391] 자식(parameters / memo subList)이 있으면 start/end 태그.
@@ -2531,7 +2538,7 @@ fn render_control_slot(out: &mut String, control: &Control, ctx: &mut SerializeC
             if ctx.sub_list_depth == 0 && ctx.body_coldef_template_pending {
                 ctx.body_coldef_template_pending = false;
             } else {
-                out.push_str(&render_col_pr_ctrl(cd));
+                out.push_str(&render_col_pr_ctrl(cd, ctx.body_width));
             }
         }
         // [#4388] Unknown은 HWPX 로 옮길 대응 표현이 없어 여기서도 드롭된다.
@@ -2645,7 +2652,7 @@ fn generated_field_parameters(field: &Field) -> Option<String> {
 
 /// 셀·글상자 subList 인라인 `<hp:ctrl><hp:colPr .../></hp:ctrl>` (#1379 3단계).
 /// `parse_col_pr` / `parse_col_line` / `parse_col_sz`(parser/hwpx/section.rs)의 역매핑.
-fn render_col_pr_ctrl(cd: &ColumnDef) -> String {
+fn render_col_pr_ctrl(cd: &ColumnDef, body_width: i64) -> String {
     let col_type = match cd.column_type {
         ColumnType::Distribute => "BalancedNewspaper",
         ColumnType::Parallel => "Parallel",
@@ -2666,9 +2673,17 @@ fn render_col_pr_ctrl(cd: &ColumnDef) -> String {
     // calculate_column_areas)가 균등 분할로 저하한다.
     let mut col_sz_xml = String::new();
     if !cd.same_width {
+        // [Redrob] HWP 5.0 holds widths and gaps as shares of 32768; HWPX colSz is HWPUNIT.
+        let scale = |v: i16| -> i64 {
+            if cd.proportional_widths && body_width > 0 {
+                ((v as u16 as i64) * body_width + 16384) / 32768
+            } else {
+                v as i64
+            }
+        };
         for (i, w) in cd.widths.iter().enumerate() {
             let gap = cd.gaps.get(i).copied().unwrap_or(0);
-            col_sz_xml.push_str(&format!(r#"<hp:colSz width="{}" gap="{}"/>"#, w, gap));
+            col_sz_xml.push_str(&format!(r#"<hp:colSz width="{}" gap="{}"/>"#, scale(*w), scale(gap)));
         }
     }
     if cd.separator_type != 0 || !col_sz_xml.is_empty() {

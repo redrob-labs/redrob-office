@@ -51,6 +51,15 @@ export type SettleListener = () => void
  */
 export const DEFERRABLE_COMMANDS = new Set(['edit:insert-text', 'edit:delete-backward', 'edit:delete-forward', 'edit:split-paragraph'])
 
+/**
+ * The engine keeps at most 100 snapshots (`DocumentCore::MAX_SNAPSHOTS`) and
+ * silently evicts the oldest. Undo and redo entries together never exceed the
+ * history limit, one more is taken during an edit, and AI receipts keep up to
+ * `ROLLBACK_POINTS` for rollback; 70 + 1 + 20 stays under the cap.
+ */
+export const HISTORY_LIMIT = 70
+export const ROLLBACK_POINTS = 20
+
 interface HistoryEntry {
   snapshot: number
   selection: Selection
@@ -61,6 +70,18 @@ interface HistoryEntry {
 export interface SessionOptions {
   /** Max undo steps kept (snapshots are discarded beyond it). */
   historyLimit?: number
+}
+
+/** A picture or drawing object, by where its control sits in the body. */
+export interface ObjectRef {
+  kind: 'picture' | 'shape' | 'chart' | 'equation'
+  section: number
+  para: number
+  control: number
+}
+
+function samePos(a: Pos, b: Pos): boolean {
+  return sameContainer(a, b) && compare(a, b) === 0
 }
 
 export class Session {
@@ -76,6 +97,26 @@ export class Session {
   /** True while the engine is in batch mode (pagination deferred). */
   private deferred = false
   private settleListeners = new Set<SettleListener>()
+  /**
+   * Off while a live room owns undo (each person undoes only their own typing,
+   * through Yjs): edits then keep no snapshots of their own.
+   */
+  historyEnabled = true
+  /**
+   * The picture or drawing object selected by a click, or null when the
+   * selection is text. Moving the text selection clears it.
+   */
+  object: ObjectRef | null = null
+  /**
+   * Character formatting chosen at a bare caret (Bold, a font, a size with
+   * nothing selected). It applies to the next text typed there, as in 한글
+   * and Word, and is dropped when the caret moves or anything else changes the
+   * document. `props` go to the engine; `display` only changes what the
+   * ribbon shows (the font name for a pending font id).
+   */
+  pendingChar: { at: Pos; props: Record<string, unknown>; display: Record<string, unknown> } | null = null
+  /** More objects Shift+clicked into the selection with `object` (for grouping). */
+  others: ObjectRef[] = []
 
   constructor(
     readonly doc: HwpCoreDocument,
@@ -83,7 +124,7 @@ export class Session {
     opts: SessionOptions = {},
   ) {
     this.text = new Text(doc)
-    this.historyLimit = opts.historyLimit ?? 200
+    this.historyLimit = Math.min(opts.historyLimit ?? HISTORY_LIMIT, HISTORY_LIMIT)
     const start: Pos = { section: 0, para: 0, offset: 0 }
     this.selection = { anchor: start, head: start }
   }
@@ -125,6 +166,7 @@ export class Session {
 
   /** Node id of the paragraph at a position (body or cell). */
   nodeAt(p: Pos): NodeId | null {
+    if (p.story) return null
     return p.cell ? this.doc.nodeIdInCell(p.section, p.para, p.cell.control, p.cell.cell, p.cell.para) : this.doc.nodeIdAt(p.section, p.para)
   }
 
@@ -146,7 +188,58 @@ export class Session {
    * error rethrown, so a failed command never leaves half an edit behind.
    */
   edit(command: string, fn: () => Selection, origin: ChangeOrigin = 'user'): Change {
+    if (this.group_) return this.editInGroup(command, fn)
     if (this.editing) throw new Error(`nested edit "${command}"`)
+    return this.commit(command, fn, origin)
+  }
+
+  /**
+   * Run several edits as one undoable change (one AI tool call, one
+   * replace-all). Every `edit` made inside `fn`, directly or through the
+   * command bus, joins the group: no history entry or change event of its
+   * own. If anything throws, the whole group is rolled back.
+   */
+  group(command: string, fn: () => Selection, origin: ChangeOrigin = 'user'): Change {
+    // A group inside a group joins it (tracked AI edits wrap a tool's own group).
+    if (this.group_) return this.editInGroup(command, fn)
+    if (this.editing) throw new Error(`nested group "${command}"`)
+    const touched = new Set<NodeId>()
+    return this.commit(
+      command,
+      () => {
+        this.group_ = touched
+        this.groupOrigin = origin
+        // Paginate once for the whole group, not after each of its engine calls:
+        // a rewrite is several calls, and each repaginates the section (seconds
+        // on a long government document).
+        this.doc.raw.beginBatch()
+        try {
+          return fn()
+        } finally {
+          this.group_ = null
+          this.doc.raw.endBatch()
+        }
+      },
+      origin,
+      touched,
+    )
+  }
+
+  /** Node ids touched by the edits of the open group, or null outside a group. */
+  private group_: Set<NodeId> | null = null
+  private groupOrigin: ChangeOrigin = 'user'
+
+  private editInGroup(command: string, fn: () => Selection): Change {
+    const touched = this.group_!
+    for (const id of this.nodesIn(this.selection)) touched.add(id)
+    const selection = fn()
+    this.selection = selection
+    this.pendingChar = null
+    for (const id of this.nodesIn(selection)) touched.add(id)
+    return { seq: this.changeSeq, command, nodes: [], origin: this.groupOrigin, selection }
+  }
+
+  private commit(command: string, fn: () => Selection, origin: ChangeOrigin, extra?: Set<NodeId>): Change {
     // Only a person's typing defers pagination; every other command (AI edits,
     // formatting, remote changes) sees exact pages.
     if (origin === 'user' && DEFERRABLE_COMMANDS.has(command)) {
@@ -155,7 +248,8 @@ export class Session {
         this.deferred = true
       }
     } else this.settle()
-    this.editing = true
+    // A group's inner edits run through `edit`, so `editing` stays off for them.
+    if (!extra) this.editing = true
     const before = this.selection
     const touched = new Set(this.nodesIn(before))
     const snapshot = this.doc.saveSnapshot()
@@ -163,6 +257,9 @@ export class Session {
       const selection = fn()
       this.selection = selection
       for (const id of this.nodesIn(selection)) touched.add(id)
+      for (const id of extra ?? []) touched.add(id)
+      // Typing took it (edit:insert-text applies it inside fn); any other change drops it.
+      this.pendingChar = null
     } catch (e) {
       this.doc.restoreSnapshot(snapshot)
       this.doc.discardSnapshot(snapshot)
@@ -171,8 +268,10 @@ export class Session {
     } finally {
       this.editing = false
     }
-    this.undoStack.push({ snapshot, selection: before, seq: this.changeSeq, command })
-    this.trimHistory()
+    if (this.historyEnabled) {
+      this.undoStack.push({ snapshot, selection: before, seq: this.changeSeq, command })
+      this.trimHistory()
+    } else this.doc.discardSnapshot(snapshot)
     for (const r of this.redoStack.splice(0)) this.doc.discardSnapshot(r.snapshot)
     this.changeSeq += 1
     return this.emit(command, [...touched], origin)
@@ -188,6 +287,9 @@ export class Session {
     this.doc.restoreSnapshot(entry.snapshot)
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
+    this.pendingChar = null
+    this.object = null
+    this.others = []
     this.changeSeq = entry.seq
     return this.emit(`edit:undo`, [...touched, ...this.nodesIn(this.selection)], 'history')
   }
@@ -201,13 +303,88 @@ export class Session {
     this.doc.restoreSnapshot(entry.snapshot)
     this.doc.discardSnapshot(entry.snapshot)
     this.selection = entry.selection
+    this.pendingChar = null
+    this.object = null
+    this.others = []
     this.changeSeq = entry.seq
     return this.emit(`edit:redo`, this.nodesIn(this.selection), 'history')
   }
 
+  /**
+   * Put the document back to an engine snapshot taken earlier (an AI receipt's
+   * rollback point), as one undoable change. The snapshot itself is kept, so
+   * the caller decides when to discard it.
+   */
+  restore(snapshot: number, command = 'ai:rollback'): Change {
+    return this.edit(
+      command,
+      () => {
+        const r = this.doc.restoreSnapshot(snapshot) as { ok?: boolean; error?: string }
+        if (r.ok === false) throw new Error(`restoreSnapshot: ${r.error ?? 'failed'}`)
+        const start: Pos = { section: 0, para: 0, offset: 0 }
+        return { anchor: start, head: start }
+      },
+      'user',
+    )
+  }
+
   /** Move the selection without changing the document (no history entry, no change). */
   select(selection: Selection): void {
+    const p = this.pendingChar
+    if (p && !(collapsed(selection) && samePos(selection.head, p.at))) this.pendingChar = null
     this.selection = selection
+    this.object = null
+    this.others = []
+  }
+
+  /** Whether character formatting can be held at the caret for the next typing. */
+  canHoldCharFormat(): boolean {
+    return collapsed(this.selection)
+  }
+
+  /** Hold character formatting at the caret for the next text typed there; merges with what is already held. */
+  holdCharFormat(props: Record<string, unknown>, display: Record<string, unknown> = {}): void {
+    const at = this.selection.head
+    const prev = this.pendingChar && samePos(this.pendingChar.at, at) ? this.pendingChar : null
+    this.pendingChar = { at, props: { ...prev?.props, ...props }, display: { ...prev?.display, ...display } }
+  }
+
+  /** Character properties at a position, with what is held at the caret on top. */
+  charProps(p: Pos = this.selection.head): Record<string, unknown> {
+    const base = this.text.charPropertiesAt(p)
+    const held = this.pendingChar
+    return held && samePos(held.at, p) ? { ...base, ...held.props, ...held.display } : base
+  }
+
+  /** Select a picture or drawing object (the text selection stays where it was). */
+  selectObject(object: ObjectRef | null): void {
+    this.object = object
+    this.others = []
+  }
+
+  /**
+   * Shift+click: add an object to the selection, or take it out if it is in.
+   * Only objects in the same section as the first can join it.
+   */
+  toggleObject(object: ObjectRef): void {
+    const same = (a: ObjectRef) => a.section === object.section && a.para === object.para && a.control === object.control
+    if (!this.object) return this.selectObject(object)
+    if (same(this.object)) {
+      const [next, ...rest] = this.others
+      this.object = next ?? null
+      this.others = rest
+      return
+    }
+    if (this.others.some(same)) {
+      this.others = this.others.filter((o) => !same(o))
+      return
+    }
+    if (object.section === this.object.section) this.others = [...this.others, object]
+  }
+
+  /** Every selected object, the first one first. */
+  selectedObjects(): ObjectRef[] {
+    return this.object ? [this.object, ...this.others] : []
   }
 
   /** Export for saving. Call `markSaved()` only after the write is confirmed. */
@@ -219,6 +396,13 @@ export class Session {
   /** Record that the current state is on disk. */
   markSaved(seq = this.changeSeq): void {
     this.savedSeq = seq
+  }
+
+  /** Drop undo and redo (a live room took over history, or the document was replaced). */
+  clearHistory(): void {
+    for (const e of [...this.undoStack, ...this.redoStack]) this.doc.discardSnapshot(e.snapshot)
+    this.undoStack = []
+    this.redoStack = []
   }
 
   dispose(): void {

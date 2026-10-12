@@ -145,6 +145,9 @@ pub struct SerializeContext {
     /// 방출했으므로 중복 방지를 위해 건너뛴다. `write_section` 이 첫 문단 렌더 직전
     /// true 로 설정하고, 첫 본문 ColumnDef 방출 시 `render_control_slot` 이 소거한다.
     pub body_coldef_template_pending: bool,
+    /// [Redrob] body width of the section being written (HWPUNIT), to turn HWP 5.0's
+    /// proportional column widths into the absolute `colSz` HWPX holds.
+    pub body_width: i64,
     /// [#5943] 저장 lineseg 의 `textpos` 가 이미 HWPX 슬롯 축인지 여부.
     ///
     /// `LineSeg::text_start` 는 파서가 파일 값을 그대로 담으므로 **출처마다 축이 다르다**
@@ -187,6 +190,7 @@ impl Default for SerializeContext {
             generated_hyperlink_id: u32::MAX,
             sub_list_depth: 0,
             body_coldef_template_pending: false,
+            body_width: 0,
             content_loss: ContentLossReport::new(SerializedFormat::Hwpx),
         }
     }

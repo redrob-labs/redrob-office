@@ -8,16 +8,17 @@
  * ribbon, shortcuts, command search and AI tools share one implementation, and
  * pressed/disabled state comes from the bus. Built from @genoffice/ui only.
  */
-import { useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import { Children, Fragment, isValidElement, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import type { EditorView } from '@genoffice/hwp-editor'
 import { FONT_SIZE_STEPS, copy, paste, styleAt, styleList } from '@genoffice/hwp-editor'
-import { ColorPicker, Dropdown, Icon, Tabs, Toolbar, ToolbarButton, useDismissablePopover } from '@genoffice/ui'
+import { ColorPicker, Dropdown, Icon, RedrobMark, TabbedPanels, Toolbar, ToolbarButton, useDismissablePopover } from '@genoffice/ui'
 import type { Lang } from '@genoffice/i18n'
 import { COMMAND_LABELS } from '../i18n/command-labels'
 import { useI18n } from '../i18n/locale'
+import { RibbonIcon } from './ribbon-icons'
 
-export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'view' | 'table'
+export type RibbonTab = 'edit' | 'insert' | 'format' | 'page' | 'review' | 'view' | 'table' | 'object' | 'story'
 
 /** 한글's own fonts first (installed on government PCs), then the open fonts rhwp bundles. */
 export const HANGUL_FONTS = ['함초롬바탕', '함초롬돋움', '맑은 고딕', '바탕', '돋움', '굴림', '궁서', '휴먼명조', 'HY헤드라인M', '나눔고딕', '나눔명조', 'Noto Sans KR', 'Noto Serif KR', 'Pretendard']
@@ -41,6 +42,16 @@ interface RibbonProps {
   /** Re-render after a command (the host bumps a counter). */
   onRan: () => void
   onCommand?: (id: string) => void
+  /** Tab shown first (tests, and reopening the ribbon where it was). */
+  initialTab?: RibbonTab
+  /** The Redrob panel's open state and its toggle, as in Docs' ribbon. */
+  panel?: { open: boolean; toggle(): void }
+}
+
+/** Redrob AI: opens and closes the Redrob panel (Ctrl+J). */
+function RedrobButton({ panel, size }: { panel: NonNullable<RibbonProps['panel']>; size: 'sm' | 'lg' }): React.JSX.Element {
+  const { t } = useI18n()
+  return <ToolbarButton label={t('nextRedrobPanel')} icon={<RedrobMark size={size === 'lg' ? 22 : 16} />} size={size} pressed={panel.open} shortcut="Ctrl+J" keepFocus={false} onClick={() => panel.toggle()} />
 }
 
 /** A glyph for commands the icon set has no picture for (자간, 장평 …), e.g. "자+". */
@@ -61,22 +72,129 @@ function useCommands(props: RibbonProps) {
     view.focus()
     onRan()
   }
-  const button = (id: string, icon: ReactNode, opts: { toggle?: boolean; size?: 'sm' | 'lg'; params?: unknown; label?: string } = {}) => {
+  const button = (id: string, icon: ReactNode, opts: { toggle?: boolean; pressed?: boolean; size?: 'sm' | 'lg'; params?: unknown; label?: string } = {}) => {
     const enabled = !!view && view.bus.has(id) && view.bus.isEnabled(id, opts.params) && (!readOnly || id.startsWith('view:') || id.startsWith('move:'))
     return (
       <ToolbarButton
-        key={id}
+        key={opts.label ? `${id}:${opts.label}` : id}
         label={opts.label ?? commandLabel(id, lang)}
         icon={icon}
         size={opts.size ?? 'sm'}
         shortcut={commandShortcut(id, mac)}
-        pressed={opts.toggle ? (view?.bus.isActive(id) ?? false) : undefined}
+        pressed={opts.pressed ?? (opts.toggle ? (view?.bus.isActive(id) ?? false) : undefined)}
         disabled={!enabled}
         onClick={() => run(id, opts.params)}
       />
     )
   }
   return { run, button, lang }
+}
+
+/** The groups inside a band, with fragments and empty slots taken out. */
+function groupsOf(node: ReactNode): ReactElement[] {
+  const out: ReactElement[] = []
+  for (const c of Children.toArray(node)) {
+    if (!isValidElement(c)) continue
+    if (c.type === Fragment) out.push(...groupsOf((c.props as { children?: ReactNode }).children))
+    else out.push(c)
+  }
+  return out
+}
+
+/** Space the More button takes, with the band's gap. */
+const MORE_WIDTH = 40
+
+/**
+ * One row of ribbon groups. Groups that do not fit move, in order, into a
+ * More menu at the end of the row, so the ribbon never grows a second row and
+ * nothing is cut off. Widths are measured on screen; a group that has never
+ * been measured is shown once so it can be.
+ */
+function OverflowBand({ label, moreLabel, resetKey, children }: { label: string; moreLabel: string; resetKey: string; children: ReactNode }): React.JSX.Element {
+  const groups = groupsOf(children)
+  const bandRef = useRef<HTMLDivElement>(null)
+  const widths = useRef(new Map<string, number[]>())
+  const [fit, setFit] = useState(Number.POSITIVE_INFINITY)
+  const [open, setOpen] = useState(false)
+  const [tick, setTick] = useState(0)
+  const moreRef = useRef<HTMLDivElement>(null)
+  useDismissablePopover(open, () => setOpen(false), { inside: () => [moreRef.current] })
+  // A new tab starts from nothing measured.
+  useLayoutEffect(() => {
+    setFit(Number.POSITIVE_INFINITY)
+    setOpen(false)
+  }, [resetKey])
+  useEffect(() => {
+    const el = bandRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => setTick((n) => n + 1))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  useLayoutEffect(() => {
+    const band = bandRef.current
+    if (!band) return
+    const known = widths.current.get(resetKey) ?? []
+    const slots = band.querySelectorAll<HTMLElement>(':scope > .hangul-ribbon__slot > *')
+    slots.forEach((el, i) => {
+      known[i] = el.offsetWidth + 4
+    })
+    widths.current.set(resetKey, known)
+    const avail = band.clientWidth
+    if (!avail) return
+    const n = groups.length
+    if (known.slice(0, n).some((w) => w === undefined)) {
+      if (fit !== Number.POSITIVE_INFINITY) setFit(Number.POSITIVE_INFINITY)
+      return
+    }
+    const total = known.slice(0, n).reduce((a, b) => a + b, 0)
+    let next = n
+    if (total > avail) {
+      let used = MORE_WIDTH
+      next = 0
+      while (next < n && used + known[next]! <= avail) used += known[next++]!
+    }
+    if (next !== Math.min(fit, n)) setFit(next)
+  })
+  const shown = Math.min(fit, groups.length)
+  const rest = groups.slice(shown)
+  return (
+    <Toolbar label={label} className="hangul-ribbon__band" rootRef={bandRef}>
+      {groups.slice(0, shown).map((g, i) => (
+        <div key={g.key ?? i} className="hangul-ribbon__slot">
+          {g}
+        </div>
+      ))}
+      {rest.length ? (
+        <div className="hangul-ribbon__more" ref={moreRef}>
+          <ToolbarButton label={moreLabel} icon={<Icon name="more" size={16} />} onClick={() => setOpen((o) => !o)} />
+          {open ? (
+            <div
+              className="hangul-ribbon__more-pop"
+              data-toolbar-skip
+              onClick={(e) => {
+                // A command ran: the menu goes away. Opening a picker inside it (font, colour, table size) does not.
+                const b = (e.target as HTMLElement).closest('button')
+                if (!b || b.matches('.gs-dd-btn') || b.parentElement?.matches('.hangul-color, .hangul-table-grid')) return
+                setOpen(false)
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== 'Escape') return
+                e.stopPropagation()
+                setOpen(false)
+                moreRef.current?.querySelector<HTMLButtonElement>('button')?.focus()
+              }}
+            >
+              <Toolbar label={moreLabel} className="hangul-ribbon__more-band">
+                {rest}
+              </Toolbar>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <span hidden data-tick={tick} />
+    </Toolbar>
+  )
 }
 
 function Group({ label, children }: { label: string; children: ReactNode }): React.JSX.Element {
@@ -97,7 +215,7 @@ function CharacterPickers(props: RibbonProps): React.JSX.Element {
   const { run } = useCommands(props)
   const s = view?.session
   const head = s?.selection.head
-  const props0 = s && head ? s.text.charPropertiesAt(head) : null
+  const props0 = s && head ? s.charProps(head) : null
   const family = String(props0?.fontFamily ?? HANGUL_FONTS[0])
   const size = props0 ? Math.round(Number(props0.fontSize) / 10) / 10 : 10
   const fonts = HANGUL_FONTS.includes(family) ? HANGUL_FONTS : [family, ...HANGUL_FONTS]
@@ -210,7 +328,7 @@ function TableGrid(props: RibbonProps): React.JSX.Element {
   )
 }
 
-async function clipboardCopy(view: EditorView, cut: boolean): Promise<void> {
+export async function clipboardCopy(view: EditorView, cut: boolean): Promise<void> {
   const data = copy(view.session)
   if (!data) return
   try {
@@ -223,7 +341,7 @@ async function clipboardCopy(view: EditorView, cut: boolean): Promise<void> {
   if (cut) view.run('edit:delete-backward')
 }
 
-async function clipboardPaste(view: EditorView): Promise<void> {
+export async function clipboardPaste(view: EditorView): Promise<void> {
   try {
     const [item] = await navigator.clipboard.read()
     if (!item) return
@@ -238,14 +356,17 @@ async function clipboardPaste(view: EditorView): Promise<void> {
 }
 
 export function tabsFor(view: EditorView | null): RibbonTab[] {
-  const base: RibbonTab[] = ['edit', 'insert', 'format', 'page', 'view']
-  return view?.session.selection.head.cell ? [...base, 'table'] : base
+  const base: RibbonTab[] = ['edit', 'insert', 'format', 'page', 'review', 'view']
+  if (view?.session.object) return [...base, 'object']
+  if (view?.session.selection.head.story) return [...base, 'story']
+  const c = view?.session.selection.head.cell
+  return c && !c.textBox ? [...base, 'table'] : base
 }
 
 export function HangulRibbon(props: RibbonProps): React.JSX.Element {
   const { t } = useI18n()
   const { button, lang } = useCommands(props)
-  const [tab, setTab] = useState<RibbonTab>('format')
+  const [tab, setTab] = useState<RibbonTab>(props.initialTab ?? 'format')
   const tabs = tabsFor(props.view)
   const active = tabs.includes(tab) ? tab : 'format'
   const L = (id: string) => commandLabel(id, lang)
@@ -259,13 +380,59 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
     insert: t('nextTabInsert'),
     format: t('nextTabFormat'),
     page: t('nextTabPage'),
+    review: t('nextTabReview'),
     view: t('nextTabView'),
     table: t('nextTabTable'),
+    object: t('nextTabObject'),
+    story: view?.session.selection.head.story?.kind === 'note' ? t('nextTabNote') : t('nextTabHeaderFooter'),
   }
+  // The frame's toolbar switch sits at the end of the tab row (styles.css,
+  // .hangul-toolbar--classic): reserve its width there and centre it on the row.
+  const rootRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    const tools = root?.closest<HTMLElement>('.go-frame__tools')
+    const sw = tools?.querySelector<HTMLElement>(':scope > .go-tbswitch')
+    const row = root?.querySelector<HTMLElement>(':scope > :not([role="tabpanel"])')
+    if (!tools || !sw || !row) return
+    const place = () => {
+      tools.style.setProperty('--hangul-switch-w', `${sw.offsetWidth}px`)
+      const top = row.getBoundingClientRect().top - tools.getBoundingClientRect().top
+      tools.style.setProperty('--hangul-switch-top', `${Math.max(0, top + (row.offsetHeight - sw.offsetHeight) / 2)}px`)
+    }
+    place()
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place)
+    ro?.observe(sw)
+    ro?.observe(row)
+    return () => {
+      ro?.disconnect()
+      tools.style.removeProperty('--hangul-switch-w')
+      tools.style.removeProperty('--hangul-switch-top')
+    }
+  }, [])
   return (
-    <div className="hangul-ribbon">
-      <Tabs label={t('nextRibbonLabel')} variant="line" value={active} items={tabs.map((id) => ({ id, label: tabLabel[id] }))} onChange={(id) => setTab(id as RibbonTab)} />
-      <Toolbar label={tabLabel[active]} className="hangul-ribbon__band">
+    <div className="hangul-ribbon" ref={rootRef}>
+      <TabbedPanels idPrefix="hangul-ribbon" label={t('nextRibbonLabel')} value={active} items={tabs.map((id) => ({ id, label: tabLabel[id] }))} onChange={setTab}>
+        <OverflowBand label={tabLabel[active]} moreLabel={t('nextRibbonMore')} resetKey={active}>
+        {active === 'review' ? (
+          <>
+            <Group label={t('reviewGroupMemos')}>
+              <ToolbarButton label={L('review:memo-insert')} icon={<Icon name="comment" size={16} />} disabled={!view || props.readOnly || !props.onCommand} onClick={() => props.onCommand?.('review:memo-insert')} />
+              <ToolbarButton label={L('review:memo-show')} icon={<Icon name="messages" size={16} />} disabled={!view || !props.onCommand} onClick={() => props.onCommand?.('review:memo-show')} />
+            </Group>
+            <Group label={t('reviewGroupTrack')}>
+              {button('review:track-changes', <Icon name="edit" size={16} />, { toggle: true })}
+              {button('review:revision-previous', <Icon name="chevronsLeft" size={16} />)}
+              {button('review:revision-next', <Icon name="chevronsRight" size={16} />)}
+            </Group>
+            <Group label={t('reviewGroupDecide')}>
+              {button('review:revision-accept', <Icon name="check" size={16} />)}
+              {button('review:revision-reject', <Icon name="close" size={16} />)}
+              {button('review:revision-accept-all', <Icon name="checkAll" size={16} />)}
+              {button('review:revision-reject-all', <Icon name="circleX" size={16} />)}
+            </Group>
+          </>
+        ) : null}
         {active === 'edit' ? (
           <>
             <Group label={t('nextGroupHistory')}>
@@ -273,15 +440,15 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               {button('edit:redo', <Icon name="redo" size={16} />)}
             </Group>
             <Group label={t('nextGroupClipboard')}>
-              <ToolbarButton label={L('edit:cut')} icon={g('✂')} shortcut={commandShortcut('edit:cut', props.mac) ?? (props.mac ? '⌘X' : 'Ctrl+X')} disabled={!view || props.readOnly} onClick={clip(() => clipboardCopy(view!, true))} />
+              <ToolbarButton label={L('edit:cut')} icon={RibbonIcon.cut()} shortcut={commandShortcut('edit:cut', props.mac) ?? (props.mac ? '⌘X' : 'Ctrl+X')} disabled={!view || props.readOnly} onClick={clip(() => clipboardCopy(view!, true))} />
               <ToolbarButton label={L('edit:copy')} icon={<Icon name="copy" size={16} />} shortcut={props.mac ? '⌘C' : 'Ctrl+C'} disabled={!view} onClick={clip(() => clipboardCopy(view!, false))} />
               <ToolbarButton label={L('edit:paste')} icon={<Icon name="clipboard" size={16} />} shortcut={props.mac ? '⌘V' : 'Ctrl+V'} disabled={!view || props.readOnly} onClick={clip(() => clipboardPaste(view!))} />
             </Group>
-            <Group label={t('nextGroupSelect')}>{button('edit:select-all', g('⬚'))}</Group>
+            <Group label={t('nextGroupSelect')}>{button('edit:select-all', RibbonIcon.selectAll())}</Group>
             {props.onCommand ? (
               <Group label={t('nextGroupFind')}>
                 <ToolbarButton label={L('edit:find')} icon={<Icon name="search" size={16} />} shortcut={commandShortcut('edit:find', props.mac)} disabled={!view} onClick={() => props.onCommand!('edit:find')} />
-                <ToolbarButton label={L('edit:find-replace')} icon={g('⇄')} shortcut={commandShortcut('edit:find-replace', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('edit:find-replace')} />
+                <ToolbarButton label={L('edit:find-replace')} icon={<Icon name="repeat" size={16} />} shortcut={commandShortcut('edit:find-replace', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('edit:find-replace')} />
               </Group>
             ) : null}
           </>
@@ -292,20 +459,38 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               <TableGrid {...props} />
             </Group>
             <Group label={t('nextGroupBreaks')}>
-              {button('page:break', g('⤓'), { size: 'lg' })}
-              {button('page:column-break', g('⫼'), { size: 'lg' })}
+              {button('page:break', RibbonIcon.pageBreak(24), { size: 'lg' })}
+              {button('page:column-break', RibbonIcon.columnBreak(24), { size: 'lg' })}
             </Group>
             {props.onCommand ? (
               <Group label={t('nextGroupObjects')}>
                 {(['insert:image', 'insert:equation'] as const).map((id) => (
-                  <ToolbarButton key={id} label={L(id)} icon={id === 'insert:image' ? <Icon name="image" size={24} /> : g('∑')} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled(id, { script: 'x', bytes: new Uint8Array(), extension: 'png', widthPx: 1, heightPx: 1 })} onClick={() => props.onCommand!(id)} />
+                  <ToolbarButton key={id} label={L(id)} icon={id === 'insert:image' ? <Icon name="image" size={24} /> : RibbonIcon.equation(24)} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled(id, { script: 'x', bytes: new Uint8Array(), extension: 'png', widthPx: 1, heightPx: 1 })} onClick={() => props.onCommand!(id)} />
                 ))}
               </Group>
             ) : null}
             {props.onCommand ? (
+              <Group label={t('nextGroupLinks')}>
+                <ToolbarButton label={L('insert:hyperlink')} icon={<Icon name="link" size={16} />} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:hyperlink', { uri: 'https://x' })} onClick={() => props.onCommand!('insert:hyperlink-dialog')} />
+                <ToolbarButton label={L('insert:field')} icon={RibbonIcon.field()} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:field', { guide: 'x' })} onClick={() => props.onCommand!('insert:field-dialog')} />
+                {button('field:remove', RibbonIcon.fieldRemove())}
+              </Group>
+            ) : null}
+            {props.onCommand ? (
+              <Group label={t('nextChartData')}>
+                <ToolbarButton label={t('nextChartTitle')} icon={<Icon name="chart" size={24} />} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled('insert:chart', { chart: { kind: 'column', categories: [], series: [] } })} onClick={() => props.onCommand!('insert:chart-dialog')} />
+              </Group>
+            ) : null}
+            <Group label={L('insert:shape')}>
+              {button('view:draw-shape', RibbonIcon.rectangle(), { params: { shapeType: 'rectangle' }, pressed: view?.drawTool === 'rectangle', label: t('nextShapeRectangle') })}
+              {button('view:draw-shape', RibbonIcon.ellipse(), { params: { shapeType: 'ellipse' }, pressed: view?.drawTool === 'ellipse', label: t('nextShapeEllipse') })}
+              {button('view:draw-shape', RibbonIcon.line(), { params: { shapeType: 'line' }, pressed: view?.drawTool === 'line', label: t('nextShapeLine') })}
+              {button('view:draw-shape', RibbonIcon.textBox(), { params: { shapeType: 'textbox' }, pressed: view?.drawTool === 'textbox', label: t('nextShapeTextbox') })}
+            </Group>
+            {props.onCommand ? (
               <Group label={t('nextGroupNotes')}>
-                <ToolbarButton label={L('insert:footnote')} icon={g('¹')} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:footnote')} onClick={() => props.onCommand!('insert:footnote')} />
-                {button('insert:endnote', g('ⁱ'))}
+                <ToolbarButton label={L('insert:footnote')} icon={RibbonIcon.footnote()} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:footnote')} onClick={() => props.onCommand!('insert:footnote')} />
+                {button('insert:endnote', RibbonIcon.endnote())}
                 <ToolbarButton label={L('insert:bookmark')} icon={<Icon name="bookmark" size={16} />} disabled={!view || props.readOnly || !view.bus.isEnabled('insert:bookmark', { name: 'x' })} onClick={() => props.onCommand!('insert:bookmark')} />
               </Group>
             ) : null}
@@ -347,9 +532,10 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               {button('format:line-spacing-decrease', g('줄-'))}
             </Group>
             {props.onCommand ? (
-              <Group label={t('nextGroupShapes')}>
+              <Group label={t('nextGroupFormatting')}>
                 <ToolbarButton label={L('format:char-shape')} icon={g('가')} size="lg" shortcut={commandShortcut('format:char-shape', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('format:char-shape')} />
                 <ToolbarButton label={L('format:para-shape')} icon={g('¶')} size="lg" shortcut={commandShortcut('format:para-shape', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('format:para-shape')} />
+                <ToolbarButton label={L('format:style-dialog')} icon={g('스')} size="lg" shortcut={commandShortcut('format:style-dialog', props.mac)} disabled={!view || props.readOnly} onClick={() => props.onCommand!('format:style-dialog')} />
               </Group>
             ) : null}
           </>
@@ -362,13 +548,13 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
               </Group>
             ) : null}
             <Group label={t('nextGroupBreaks')}>
-              {button('page:break', g('⤓'), { size: 'lg' })}
-              {button('page:column-break', g('⫼'), { size: 'lg' })}
+              {button('page:break', RibbonIcon.pageBreak(24), { size: 'lg' })}
+              {button('page:column-break', RibbonIcon.columnBreak(24), { size: 'lg' })}
             </Group>
             {props.onCommand ? (
               <Group label={t('nextGroupHeaderFooter')}>
-                <ToolbarButton label={L('page:header-create')} icon={g('▔')} disabled={!view || props.readOnly} onClick={() => props.onCommand!('page:header-create')} />
-                <ToolbarButton label={L('page:footer-create')} icon={g('▁')} disabled={!view || props.readOnly} onClick={() => props.onCommand!('page:footer-create')} />
+                <ToolbarButton label={L('page:header-create')} icon={RibbonIcon.header()} disabled={!view || props.readOnly} onClick={() => props.onCommand!('page:header-create')} />
+                <ToolbarButton label={L('page:footer-create')} icon={RibbonIcon.footer()} disabled={!view || props.readOnly} onClick={() => props.onCommand!('page:footer-create')} />
               </Group>
             ) : null}
           </>
@@ -378,27 +564,67 @@ export function HangulRibbon(props: RibbonProps): React.JSX.Element {
             {button('view:zoom-in', <Icon name="zoomIn" size={16} />)}
             {button('view:zoom-out', <Icon name="zoomOut" size={16} />)}
             {button('view:zoom-100', g('100%'), { label: t('nextZoom100') })}
-            {button('view:zoom-fit-width', g('↔'))}
-            {button('view:zoom-fit-page', g('▢'))}
+            {button('view:zoom-fit-width', RibbonIcon.fitWidth())}
+            {button('view:zoom-fit-page', RibbonIcon.fitPage())}
           </Group>
+        ) : null}
+        {active === 'view' && props.panel ? (
+          <Group label={t('nextGroupRedrob')}>
+            <RedrobButton panel={props.panel} size="lg" />
+          </Group>
+        ) : null}
+        {active === 'view' ? (
+          <Group label={t('nextGroupForm')}>{button('view:form-mode', <Icon name="checklist" size={16} />, { toggle: true, size: 'lg' })}</Group>
+        ) : null}
+        {active === 'story' ? (
+          <Group label={tabLabel.story}>
+            {view?.session.selection.head.story?.kind === 'note' ? (
+              button('insert:note-close', <Icon name="close" size={16} />, { size: 'lg' })
+            ) : (
+              <>
+                {button('page:headerfooter-prev', <Icon name="chevronLeft" size={16} />)}
+                {button('page:headerfooter-next', <Icon name="chevronRight" size={16} />)}
+                {button('page:headerfooter-close', <Icon name="close" size={16} />, { size: 'lg' })}
+              </>
+            )}
+          </Group>
+        ) : null}
+        {active === 'object' ? (
+          <>
+            <Group label={t('nextGroupObject')}>
+              {props.onCommand ? <ToolbarButton label={L('format:object-properties')} icon={<Icon name="settings" size={24} />} size="lg" disabled={!view || props.readOnly || !view.bus.isEnabled('object:set-properties', { props: {} })} onClick={() => props.onCommand!('format:object-properties')} /> : null}
+              {button('insert:picture-delete', <Icon name="trash" size={16} />)}
+              {props.onCommand && view?.session.object?.kind === 'chart' ? <ToolbarButton label={t('nextChartEditData')} icon={<Icon name="fileSheet" size={16} />} disabled={props.readOnly} onClick={() => props.onCommand!('insert:chart-data-edit')} /> : null}
+            </Group>
+            <Group label={t('nextGroupArrange')}>
+              {button('insert:arrange-front', <Icon name="chevronsUp" size={16} />)}
+              {button('insert:arrange-forward', RibbonIcon.forward())}
+              {button('insert:arrange-backward', RibbonIcon.backward())}
+              {button('insert:arrange-back', <Icon name="chevronsDown" size={16} />)}
+              {button('insert:group-shapes', <Icon name="merge" size={16} />)}
+              {button('insert:ungroup-shapes', <Icon name="split" size={16} />)}
+            </Group>
+          </>
         ) : null}
         {active === 'table' ? (
           <>
             <Group label={t('nextGroupRowsCols')}>
-              {button('table:insert-row-above', g('↥'))}
-              {button('table:insert-row-below', g('↧'))}
-              {button('table:insert-col-left', g('↤'))}
-              {button('table:insert-col-right', g('↦'))}
-              {button('table:delete-row', g('−줄'))}
-              {button('table:delete-col', g('−칸'))}
+              {button('table:insert-row-above', RibbonIcon.rowAbove())}
+              {button('table:insert-row-below', RibbonIcon.rowBelow())}
+              {button('table:insert-col-left', RibbonIcon.colLeft())}
+              {button('table:insert-col-right', RibbonIcon.colRight())}
+              {button('table:delete-row', RibbonIcon.deleteRow())}
+              {button('table:delete-col', RibbonIcon.deleteCol())}
             </Group>
             <Group label={t('nextGroupCells')}>
+              {props.onCommand ? <ToolbarButton label={L('table:cell-props')} icon={RibbonIcon.cellProps()} disabled={!view || props.readOnly || !view.bus.isEnabled('table:set-properties', { props: {} })} onClick={() => props.onCommand!('table:cell-props')} /> : null}
               {button('table:cell-merge', <Icon name="merge" size={16} />)}
               {button('table:delete', <Icon name="trash" size={16} />)}
             </Group>
           </>
         ) : null}
-      </Toolbar>
+        </OverflowBand>
+      </TabbedPanels>
     </div>
   )
 }
@@ -416,6 +642,7 @@ export function HangulSimpleToolbar(props: RibbonProps): React.JSX.Element {
       {button('format:align-left', <Icon name="alignLeft" size={16} />, { toggle: true })}
       {button('format:align-center', <Icon name="alignCenter" size={16} />, { toggle: true })}
       {button('format:align-right', <Icon name="alignRight" size={16} />, { toggle: true })}
+      {props.panel ? <RedrobButton panel={props.panel} size="sm" /> : null}
     </Toolbar>
   )
 }

@@ -162,6 +162,15 @@ importers:
 
   apps/hangul:
     devDependencies:
+      '@genoffice/agent-core':
+        specifier: workspace:*
+        version: link:../../packages/agent-core
+      '@genoffice/ai-provider':
+        specifier: workspace:*
+        version: link:../../packages/ai-provider
+      '@genoffice/ai-search':
+        specifier: workspace:*
+        version: link:../../packages/ai-search
       '@genoffice/electron-utils':
         specifier: workspace:*
         version: link:../../packages/electron-utils
@@ -174,9 +183,15 @@ importers:
       '@genoffice/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../../packages/sync-client
       '@genoffice/ui':
         specifier: workspace:*
         version: link:../../packages/genoffice-ui
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../../packages/versions
       '@rhwp/editor':
         specifier: workspace:*
         version: link:../../packages/rhwp-editor
@@ -207,6 +222,9 @@ importers:
       react-dom:
         specifier: ^19.2.4
         version: 19.2.8(react@19.2.8)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.23.13
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -216,6 +234,9 @@ importers:
       vitest:
         specifier: ^4.1.10
         version: 4.1.11(@types/node@25.9.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.0))
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
 
   apps/markdown:
     dependencies:
@@ -866,6 +887,9 @@ importers:
       '@genoffice/docx-engine':
         specifier: workspace:*
         version: link:../docx-engine
+      '@genoffice/hwp-core':
+        specifier: workspace:*
+        version: link:../hwp-core
       cfb:
         specifier: ^1.2.2
         version: 1.2.2
@@ -918,6 +942,12 @@ importers:
       '@genoffice/pptx-render':
         specifier: workspace:*
         version: link:../pptx-render
+      '@genoffice/sync-client':
+        specifier: workspace:*
+        version: link:../sync-client
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../versions
       '@redrob-labs/ui':
         specifier: 1.0.2
         version: 1.0.2(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -964,6 +994,12 @@ importers:
       '@genoffice/hwp-core':
         specifier: workspace:*
         version: link:../hwp-core
+      '@genoffice/versions':
+        specifier: workspace:*
+        version: link:../versions
+      yjs:
+        specifier: 13.6.33
+        version: 13.6.33
     devDependencies:
       '@types/node':
         specifier: ^24.10.1
