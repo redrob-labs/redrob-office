@@ -73,6 +73,11 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import {
+  resolveRedrobKey,
+  stripLauncherKey,
+  withSharedAccountFallback,
+} from '@genoffice/ai-provider/shared-account'
 import { csvToXlsxBuffer, decodeCsvBuffer, sheetCsvToXlsxBuffer } from '../gateway/csv-import'
 import {
   ensureGenofficeLogin,
@@ -3038,7 +3043,9 @@ export function registerSheetsAiIpc(): void {
     const settings = resolveAiSettings(stored, defaultAiSettings())
     // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
     settings.provider = activeProvider(settings)
-    return settings
+    // No key of its own: fall back to Redrob Launcher's shared sign-in, read now, and
+    // flagged so the settings pane can say where the key came from.
+    return withSharedAccountFallback(settings)
   })
 
   // Redrob account (gsk login state): the auth source for AI features; the
@@ -3059,8 +3066,10 @@ export function registerSheetsAiIpc(): void {
 
   ipcMain.handle(IPC_CHANNELS.aiSetSettings, (event, input: unknown) => {
     sessionFor(event)
-    const settings = aiSettingsInputSchema.parse(input)
-    writeJson(SETTINGS_PATH(), settings)
+    const settings = aiSettingsInputSchema.parse(input) as AiSettings
+    // The launcher's shared key must not become this app's own key by round-tripping
+    // through the settings pane; only a key the person entered or connected is stored.
+    writeJson(SETTINGS_PATH(), stripLauncherKey(settings))
   })
 
   ipcMain.handle(IPC_CHANNELS.aiChat, async (event, input: unknown) => {
@@ -3069,7 +3078,7 @@ export function registerSheetsAiIpc(): void {
     const provider = request.settings.provider as AiProviderId
     let config = request.settings.providers[provider]
     if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
+      config = { ...config, apiKey: resolveRedrobKey(config.apiKey).apiKey || gskApiKey() }
     }
     if (!config?.apiKey) {
       return {
@@ -3103,7 +3112,7 @@ export function registerSheetsAiIpc(): void {
     // Redrob's key never enters the settings file; it is read from the gsk
     // login state per request
     if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
+      config = { ...config, apiKey: resolveRedrobKey(config.apiKey).apiKey || gskApiKey() }
     }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send(IPC_CHANNELS.aiStreamChunk, chunk)

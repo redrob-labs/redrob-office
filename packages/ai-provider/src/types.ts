@@ -57,6 +57,15 @@ export interface AiSettings {
    * (absent = the default, so pre-existing settings files keep working).
    */
   maxOutputTokens?: number | undefined
+  /**
+   * Where the Redrob engine key in `providers` came from, as resolved by the main
+   * process at read time: 'own' = this app's stored key, 'launcher' = Redrob
+   * Launcher's shared sign-in filled in because the app has no key of its own,
+   * 'none' = no key anywhere. Derived, never persisted: writers strip it.
+   */
+  redrobKeySource?: 'own' | 'launcher' | 'none' | undefined
+  /** Account name from the launcher's shared sign-in, display only (set with 'launcher'). */
+  launcherAccountName?: string | undefined
 }
 
 /** pre-provider settings shape (single OpenAI-compatible endpoint); migrated into "custom" */

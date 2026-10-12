@@ -141,6 +141,8 @@ function AiModelPane({ t }: { t: TFunc }) {
 
   if (!settings) return null
   const config = settings.providers[REDROB_ENGINE_SLOT] ?? { apiKey: '', model: '' }
+  /** the key in use is Redrob Launcher's shared sign-in, not one this app stored */
+  const viaLauncher = settings.redrobKeySource === 'launcher'
 
   const touch = () => {
     setDirty(true)
@@ -148,9 +150,13 @@ function AiModelPane({ t }: { t: TFunc }) {
     setTestResult(null)
   }
   const updateKey = (apiKey: string) => {
+    // A key the person types is this app's own: drop the launcher flag so the main
+    // process stores it instead of stripping it as the launcher's.
+    const { launcherAccountName: _launcherAccountName, ...rest } = settings
     setSettings({
-      ...settings,
+      ...rest,
       provider: REDROB_ENGINE_SLOT,
+      redrobKeySource: apiKey ? 'own' : 'none',
       providers: {
         ...settings.providers,
         [REDROB_ENGINE_SLOT]: { ...config, apiKey },
@@ -272,6 +278,18 @@ function AiModelPane({ t }: { t: TFunc }) {
           {t('setAiConnect')}
         </Button>
       </div>
+      {viaLauncher ? (
+        <div className="set-field" data-testid="set-ai-launcher">
+          <div className="set-field-text">
+            <div className="set-field-stack">
+              <div className="set-field-label">{t('setAiLauncherSignedIn')}</div>
+              {settings.launcherAccountName ? (
+                <div className="set-field-desc">{settings.launcherAccountName}</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
       <div className="set-field">
         <div className="set-field-text">
           <div className="set-field-stack">
@@ -286,7 +304,9 @@ function AiModelPane({ t }: { t: TFunc }) {
           className="set-input"
           size="sm"
           type="password"
-          value={config.apiKey}
+          // The launcher's key is never shown, not even masked: the field stays empty,
+          // and a key pasted here becomes this app's own, which then wins.
+          value={viaLauncher ? '' : config.apiKey}
           placeholder="rk-..."
           spellCheck={false}
           autoComplete="off"
