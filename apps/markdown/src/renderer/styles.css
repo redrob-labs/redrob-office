@@ -1,0 +1,1115 @@
+/* Markdown-only tokens. Each is an alias of a @redrob-labs/ui token, so the
+ * kit's data-theme switch carries both themes and nothing here is repeated per
+ * theme. Chrome tokens (surface/text/border/…, the --accent family, AI panel
+ * --color-*) come from @genoffice/ui/tokens.css; nothing here may shadow those
+ * names. */
+:root {
+  --word-blue: var(--action-primary);
+
+  --md-link: var(--ink-brand);
+  --md-code-bg: var(--surface-raised);
+  --md-code-inline-bg: var(--surface-sunken);
+  --md-table-header-bg: var(--surface-sunken);
+  --md-ai-changed: color-mix(in srgb, var(--accent-yellow-3) 40%, transparent);
+  --md-ai-anchor-bg: var(--surface-ai);
+  --md-ai-anchor-line: var(--border-ai);
+  --md-on-accent: var(--ink-on-brand);
+  --md-selection: color-mix(in srgb, var(--action-primary) 12%, transparent);
+  --md-text-selection: color-mix(in srgb, var(--action-primary) 32%, transparent);
+  --md-focus: var(--focus-ring);
+  --md-node-outline: color-mix(in srgb, var(--action-primary) 60%, transparent);
+  --md-focus-ring: color-mix(in srgb, var(--ink-primary) 20%, transparent);
+  --md-focus-ring-blue: color-mix(in srgb, var(--focus-ring) 30%, transparent);
+  --md-error: var(--status-danger);
+  --md-error-border: color-mix(in srgb, var(--status-danger) 45%, transparent);
+  --md-error-bg: color-mix(in srgb, var(--status-danger) 8%, transparent);
+  /* AI composer float; the AI panel moves to kit parts in its own change */
+  --md-shadow-soft: color-mix(in srgb, var(--redrob-black) 9%, transparent);
+  --md-shimmer-base: var(--ink-secondary);
+  --md-shimmer-hi: var(--gray-3);
+  --md-pop-shadow: var(--shadow-md);
+  --md-tip-shadow: var(--shadow-sm);
+  --md-page-shadow: var(--shadow-sm);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* UI CJK fonts per language (--ui-cjk) live in @genoffice/ui tokens.css. */
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  /* same UI stack as the docs/slides chrome ('Segoe UI' first + per-language
+     CJK token) so shared toolbar controls measure identically across apps */
+  font-family: var(--font-chrome);
+  color: var(--ink-primary);
+  background: var(--surface-raised);
+  /* grayscale AA like the docs/sheets/slides/pdf chrome — macOS subpixel
+     rendering paints the same weight visibly heavier */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* buttons follow the chrome font instead of the UA default, like docs */
+button {
+  font-family: inherit;
+}
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.center-note {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
+.editor-scroll {
+  flex: 1;
+  overflow-y: auto;
+  /* same canvas backdrop as the slides workspace; the doc page stays white */
+  background: var(--surface-sunken);
+}
+
+.doc-page {
+  max-width: 860px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 40px 72px 120px;
+  background: var(--surface-base);
+  box-shadow: var(--md-page-shadow);
+}
+
+.status-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  user-select: none;
+}
+
+.status-file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-save {
+  margin-left: auto;
+}
+
+.status-failed {
+  color: var(--status-danger);
+}
+
+/* ---- editor content ---- */
+
+.doc-editor {
+  outline: none;
+  font-size: 16px;
+  line-height: 1.75;
+  word-wrap: break-word;
+}
+
+.doc-editor > *:first-child {
+  margin-top: 0;
+}
+
+.doc-editor h1,
+.doc-editor h2,
+.doc-editor h3,
+.doc-editor h4,
+.doc-editor h5,
+.doc-editor h6 {
+  line-height: 1.3;
+  margin: 1.4em 0 0.5em;
+  font-weight: 650;
+}
+
+.doc-editor h1 {
+  font-size: 2em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.doc-editor h2 {
+  font-size: 1.5em;
+}
+
+.doc-editor h3 {
+  font-size: 1.25em;
+}
+
+.doc-editor h4 {
+  font-size: 1.1em;
+}
+
+.doc-editor p {
+  margin: 0.6em 0;
+}
+
+.doc-editor ul,
+.doc-editor ol {
+  padding-left: 1.6em;
+  margin: 0.6em 0;
+}
+
+.doc-editor li > p {
+  margin: 0.15em 0;
+}
+
+.doc-editor blockquote {
+  margin: 0.8em 0;
+  padding: 0.1em 1em;
+  border-left: 3px solid var(--border-control);
+  color: var(--ink-secondary);
+}
+
+.doc-editor code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--md-code-inline-bg);
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+}
+
+.doc-editor pre {
+  background: var(--md-code-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+
+.doc-editor pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+
+.doc-editor hr {
+  border: none;
+  border-top: 2px solid var(--border-subtle);
+  margin: 1.6em 0;
+}
+
+.doc-editor a {
+  color: var(--md-link);
+}
+
+.doc-editor img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- tables ---- */
+
+.doc-editor .tableWrapper {
+  margin: 0.8em 0;
+  overflow-x: auto;
+}
+
+.doc-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0;
+}
+
+.doc-editor th,
+.doc-editor td {
+  border: 1px solid var(--border-control);
+  padding: 6px 10px;
+  vertical-align: top;
+  text-align: start;
+}
+
+/* cells hold paragraph nodes — the document paragraph margin would bloat rows */
+.doc-editor th > p,
+.doc-editor td > p {
+  margin: 0;
+}
+
+.doc-editor th {
+  background: var(--md-table-header-bg);
+  font-weight: 600;
+}
+
+/* ---- ribbon ---- */
+
+.ribbon {
+  flex: 0 0 auto;
+  /* white chrome + shared toolbar ink, same as the docs ribbon */
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  user-select: none;
+  color: var(--ink-primary);
+}
+
+/* slim quick-access row above the toolbar (save / undo / redo / autosave),
+ * same metrics as the docs tab row; it doubles as the window drag strip */
+.ribbon-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 10px 0;
+  /* docs/slides size this row with their menu tabs (13px semibold labels,
+     7/6 padding + 2.5px underline ⇒ 39px measured); markdown has no menu
+     tabs, so pin the row so the toolbar bottom edge lines up across tabs */
+  min-height: 39px;
+  -webkit-app-region: drag;
+}
+
+/* While a popover is open the row must deliver presses (drag regions swallow
+   them), so outside-press dismissal can see presses on the blank band */
+html.genoffice-popover-open .ribbon-tabs {
+  -webkit-app-region: no-drag;
+}
+
+.ribbon-tabs button,
+.ribbon-tabs .autosave-toggle {
+  -webkit-app-region: no-drag;
+}
+
+.ribbon-tabs .autosave-toggle {
+  margin: 0 var(--space-1);
+  font-size: 12px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+/* the toolbar row below the QAT row (old single-row ribbon) */
+.ribbon-body {
+  /* stretch like the docs ribbon: groups fill the band and the tall AI
+     buttons top-align at the same size/position as docs */
+  align-items: stretch;
+  /* band metrics shared with the docs/slides/pdf ribbons */
+  padding: 6px 12px;
+  /* HARD-fixed height like the other editors' ribbons, so switching shell tabs
+     never shifts the toolbar's bottom edge (no wrap-driven growth) */
+  height: 80px;
+  /* groups never shrink, so a narrow window scrolls the row inside the ribbon
+     instead of spilling controls out of reach (matching the docs ribbon). The
+     .rb-link-pop dropdown is position: fixed + anchor-positioned, so this
+     clip cannot cut it off */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.ribbon-body::-webkit-scrollbar {
+  display: none;
+}
+
+.ai-feature-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--ink-brand);
+}
+
+.ai-feature-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* block-style picker (shared @genoffice/ui gs-dd dropdown) at the dense
+ * 28px toolbar height, same box as the docs/slides font pickers */
+.rb-style.gs-dd {
+  min-width: 108px;
+}
+
+.rb-style .gs-dd-btn {
+  height: 28px;
+  font-size: 13px;
+}
+
+/* Anchor for the link popover, which is position: fixed so it escapes the
+   ribbon-body scroll clip while tracking its trigger (same pattern as the
+   docs ribbon dropdowns) */
+.rb-link-anchor {
+  position: relative;
+  display: inline-flex;
+  anchor-name: --rb-link-anchor;
+  anchor-scope: --rb-link-anchor;
+}
+
+.rb-link-pop {
+  position: fixed;
+  position-anchor: --rb-link-anchor;
+  top: calc(anchor(bottom) + var(--space-1));
+  left: anchor(left);
+  position-try-fallbacks: flip-inline;
+  position-visibility: anchors-visible;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.rb-link-pop .rb-link-input {
+  width: 240px;
+}
+
+/* ---- slash menu (kit rr-menu__list / rr-menu__item) ---- */
+
+.slash-menu.rr-menu__list {
+  z-index: 40;
+  min-width: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* the keyboard-highlighted row reads like the kit's hover row */
+.slash-item.active {
+  background: var(--surface-sunken);
+}
+
+.slash-empty {
+  padding: var(--space-2) var(--space-3);
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+/* ---- block drag handle ---- */
+
+.md-drag-handle-legacy {
+  position: absolute;
+  z-index: 20;
+  width: 18px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  color: var(--icon-muted);
+  cursor: grab;
+}
+
+.md-drag-handle-legacy:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+}
+
+/* ---- task list ---- */
+
+.doc-editor ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0.4em;
+}
+
+.doc-editor ul[data-type='taskList'] li {
+  display: flex;
+  gap: 8px;
+}
+
+.doc-editor ul[data-type='taskList'] li > label {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  /* match the first line box (16px x 1.75) so the checkbox centers on it */
+  height: 1.75em;
+  margin-top: 0.15em;
+  user-select: none;
+}
+
+.doc-editor ul[data-type='taskList'] li > label input[type='checkbox'] {
+  margin: 0;
+}
+
+.doc-editor ul[data-type='taskList'] li > div {
+  flex: 1;
+}
+
+/* the task text lives in li > div > p, so the generic `li > p` list
+ * override misses it and it keeps the full 0.6em paragraph margin */
+.doc-editor ul[data-type='taskList'] li > div > p {
+  margin: 0.15em 0;
+}
+
+.doc-editor ul[data-type='taskList'] li[data-checked='true'] > div {
+  color: var(--ink-muted);
+  text-decoration: line-through;
+}
+
+/* ---- table selection ---- */
+
+.doc-editor .selectedCell {
+  background: var(--md-selection);
+}
+
+.doc-editor table .column-resize-handle {
+  background: var(--md-focus);
+}
+
+/* ---- placeholder ---- */
+
+.doc-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--icon-muted);
+  pointer-events: none;
+  height: 0;
+}
+
+/* ---- frontmatter panel ---- */
+
+.fm-panel {
+  margin-bottom: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.fm-title {
+  padding: 6px 12px 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.fm-textarea {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  resize: vertical;
+  padding: 6px 12px 10px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-primary);
+  outline: none;
+}
+
+/* ---- editor drop cursor / node selection ---- */
+
+.doc-editor .ProseMirror-selectednode {
+  outline: 2px solid var(--md-node-outline);
+  border-radius: 4px;
+}
+/* ── AI sidebar: dock + panel shell around the shared @genoffice/ui agent parts ── */
+
+/* dock wrapper: its width animates between the panel and the 34px collapsed rail;
+ * the panel inside keeps its natural width and is clipped */
+.ai-dock {
+  display: flex;
+  flex-shrink: 0;
+  min-height: 0;
+  width: var(--ai-panel-width, 360px);
+  overflow: hidden;
+  transition: width var(--duration-base) var(--easing-standard);
+}
+
+.ai-dock.collapsed {
+  width: 34px;
+}
+
+/* while dragging the resizer, follow the pointer without easing */
+.ai-dock:has(.ai-panel-resizing) {
+  transition: none;
+}
+
+/* the panel stays mounted (chat history survives) but hidden while collapsed */
+.ai-dock.collapsed .copilot {
+  display: none;
+}
+
+/* the rail (agent.css) stretches to fill the dock while the width animates */
+.ai-dock .ai-rail {
+  flex: 1;
+  width: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-dock {
+    transition: none;
+  }
+}
+
+.copilot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  flex-shrink: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  font-family: var(--font-sans);
+  color: var(--ink-primary);
+}
+
+/* drag handle on the panel's right edge: resizes the panel horizontally */
+.ai-panel-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 20;
+  background: transparent;
+}
+
+.ai-panel-resizer:hover {
+  background: var(--border-subtle);
+}
+
+/* while dragging: keep the col-resize cursor everywhere, no text selection */
+.ai-panel-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.ai-chat {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+/* version snapshots above the composer: one row per AI run, each restorable */
+.ai-versions {
+  border-top: 1px solid var(--border-subtle);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.ai-versions-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.ai-version-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 calc(-1 * var(--space-2));
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.ai-version-row:hover {
+  background: var(--surface-sunken);
+}
+
+.ai-version-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--ink-primary);
+}
+
+.ai-version-label > :last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-version-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-composer {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  background: var(--surface-base);
+}
+
+/* ── pdfjs text layer (select/copy); structure requirements per pdfjs TextLayer ── */
+
+/* Matches pdf.js's official text_layer.css: spans laid out in unrotated page space,
+   whole layer rotated via data-main-rotation; font size/scale driven by --font-height/--scale-x vars */
+.textLayer {
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+}
+
+.textLayer[data-main-rotation='90'] {
+  transform: rotate(90deg) translateY(-100%);
+}
+
+.textLayer[data-main-rotation='180'] {
+  transform: rotate(180deg) translate(-100%, -100%);
+}
+
+.textLayer[data-main-rotation='270'] {
+  transform: rotate(270deg) translateX(-100%);
+}
+
+.textLayer span,
+.textLayer br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.textLayer > :not(.markedContent),
+.textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.textLayer .markedContent {
+  display: contents;
+}
+
+.textLayer span::selection {
+  background: var(--md-text-selection);
+}
+
+/* pdfjs uses endOfContent to carry cross-page selection */
+.textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: -1;
+  cursor: default;
+  user-select: none;
+}
+
+/* ================= status bar (unified chrome shared with docs/sheets/slides) ================= */
+
+.status-bar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  height: 24px;
+  font-size: 11.5px;
+  color: var(--ink-secondary);
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-item {
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.zoom-btn {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.zoom-btn:hover {
+  background: var(--active-bg);
+}
+
+.zoom-slider {
+  width: 110px;
+  accent-color: var(--ink-muted);
+  height: 3px;
+}
+
+.zoom-value {
+  min-width: 38px;
+  text-align: right;
+}
+
+/* body row (AI dock + content column) — the status bar spans only the content
+   column so the dock runs the full height of the window */
+.app-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.app-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- main layout: AI dock (left) + editor ---- */
+
+.app-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.app-main .editor-scroll {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- transient AI-change highlight ---- */
+
+.doc-editor .ai-changed {
+  background: var(--md-ai-changed);
+  border-radius: 2px;
+  transition: background 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---- code block chrome ---- */
+
+.md-codeblock {
+  position: relative;
+  margin: 0.8em 0;
+}
+
+.md-codeblock pre {
+  margin: 0;
+}
+
+.md-codeblock-bar {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+}
+
+.md-codeblock:hover .md-codeblock-bar,
+.md-codeblock-bar:focus-within {
+  opacity: 1;
+}
+
+/* language picker (shared @genoffice/ui gs-dd dropdown) and the kit copy
+   button share one compact 24px row */
+.md-codeblock-lang .gs-dd-btn {
+  height: 24px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.md-codeblock-bar .md-codeblock-copy {
+  height: 24px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+/* ---- floating table menu (kit-styled Toolbar on a popover surface) ---- */
+
+.table-menu {
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  padding: var(--space-1);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.table-menu .tm-danger:hover:not(:disabled) {
+  color: var(--status-danger);
+}
+
+/* ---- block gutter (+ and grip) & block menu ---- */
+
+.md-block-gutter {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.md-gutter-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.md-gutter-btn:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+}
+
+.md-gutter-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.md-gutter-grip {
+  cursor: grab;
+}
+
+/* kit rr-menu__list; top/left are set inline beside the gutter */
+.md-block-menu.rr-menu__list {
+  z-index: 30;
+  min-width: 150px;
+}
+
+/* ---- math (KaTeX) nodes & LaTeX edit popover ---- */
+
+.tiptap-mathematics-render {
+  border-radius: var(--radius-sm);
+}
+
+span.tiptap-mathematics-render {
+  display: inline-block;
+  padding: 0 2px;
+}
+
+div.tiptap-mathematics-render {
+  padding: 8px 12px;
+  margin: 0.5em 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+.tiptap-mathematics-render--editable {
+  cursor: pointer;
+}
+
+.tiptap-mathematics-render--editable:hover {
+  background: var(--surface-sunken);
+}
+
+.tiptap-mathematics-render.ProseMirror-selectednode {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* KaTeX parse failure: show the raw source in the code font */
+.tiptap-mathematics-render.block-math-error,
+.tiptap-mathematics-render.inline-math-error {
+  color: var(--status-danger);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  white-space: pre-wrap;
+}
+
+.md-math-pop {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 400px;
+  padding: var(--space-3);
+  background: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+/* a code-font textarea in the kit field look */
+.md-math-input {
+  resize: vertical;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--field-radius);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  outline: none;
+}
+
+.md-math-input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.md-math-preview {
+  display: flex;
+  /* `safe` keeps the start edge reachable when a tall formula scrolls */
+  align-items: safe center;
+  justify-content: safe center;
+  min-height: 36px;
+  max-height: 40vh;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  overflow: auto;
+}
+
+.md-math-preview-empty {
+  display: none;
+}
+
+.md-math-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* the kit ghost button, in the destructive ink */
+.md-math-actions .md-math-delete {
+  color: var(--status-danger);
+}
+
+/* ---- selection scope chip in the AI composer header ---- */
+
+/* queued-edit anchor highlight inside the document (decoration, never document data) */
+.ai-queue-anchor {
+  background: var(--md-ai-anchor-bg);
+  border-bottom: 2px dashed var(--md-ai-anchor-line);
+  cursor: pointer;
+}
+
+/* ---- floating Ask-AI entry that follows the text selection ---- */
+
+/* ---- queue card above the composer ---- */
+
+/* ================= transient toast (action feedback) ================= */
+
+/* Positions and animates the kit Toast; the surface is the kit's own. */
+.app-toast {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  z-index: 2000;
+  max-width: min(360px, 60vw);
+  transform: translate(-50%, -8px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--duration-fast) var(--easing-entrance),
+    transform var(--duration-fast) var(--easing-entrance);
+}
+
+.app-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    transition: none;
+  }
+}
+
+/* ---- the shared editor frame (EditorFrame, @genoffice/ui) ---- */
+
+.md-frame-host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.md-frame-host > .go-frame {
+  flex: 1;
+}
+
+.go-frame__page > .app-content {
+  height: 100%;
+}
+
+.go-frame__page .editor-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.go-frame__panel > .copilot {
+  flex: 1;
+  width: 100%;
+}
+
+.md-simple-style {
+  width: 130px;
+}
+
+.md-save-status {
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.status-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}

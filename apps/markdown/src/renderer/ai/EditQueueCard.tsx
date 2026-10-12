@@ -1,0 +1,193 @@
+/**
+ * Pending selection-scoped edits, shown above the composer. Rows resolve
+ * their anchors against the live document on every render, so the excerpt
+ * follows the current content instead of a snapshot taken at annotation time.
+ */
+import { useState } from 'react'
+import { Icon } from '@genoffice/ui'
+import type { ReactElement } from 'react'
+import type { Editor } from '@tiptap/core'
+import { useI18n } from '../i18n/locale'
+import {
+  EDIT_INSTRUCTION_MAX,
+  EDIT_QUEUE_MAX,
+  resolveQueueItem,
+  truncate,
+  type EditQueueItem,
+} from './edit-queue'
+
+interface Props {
+  items: EditQueueItem[]
+  editor: Editor
+  busy: boolean
+  onEditInstruction: (qid: string, instruction: string) => void
+  onRemove: (qid: string) => void
+  onDiscardAll: () => void
+  onSend: () => void
+  /** scroll to the anchored passage and select it */
+  onFocus: (qid: string) => void
+}
+
+/** beyond this the list starts collapsed so it never swallows the transcript */
+const AUTO_COLLAPSE_FROM = 4
+
+export function EditQueueCard({
+  items,
+  editor,
+  busy,
+  onEditInstruction,
+  onRemove,
+  onDiscardAll,
+  onSend,
+  onFocus,
+}: Props): ReactElement | null {
+  const { t } = useI18n()
+  /** null = follow the length-based default; set once the user clicks the chevron */
+  const [manualFold, setManualFold] = useState<boolean | null>(null)
+  const [editingQid, setEditingQid] = useState<string | null>(null)
+  const [draft, setDraft] = useState('')
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
+
+  if (items.length === 0) return null
+  const folded = manualFold ?? items.length >= AUTO_COLLAPSE_FROM
+  const liveCount = items.filter((item) => resolveQueueItem(editor, item).target !== null).length
+
+  return (
+    <div className="ai-queue">
+      <div className="ai-queue-head">
+        <span className="ai-queue-title">{t('aiQueueTitle')}</span>
+        <span className="ai-queue-count">
+          {items.length}/{EDIT_QUEUE_MAX}
+        </span>
+        <button
+          className={`ai-queue-fold${folded ? ' folded' : ''}`}
+          onClick={() => setManualFold(!folded)}
+          aria-expanded={!folded}
+        >
+          <Icon name="chevronDown" size={14} />
+        </button>
+      </div>
+      {!folded && (
+        <>
+          <div className="ai-queue-hint">{t('aiQueueHint')}</div>
+          <ol className="ai-queue-list">
+            {items.map((item, i) => {
+              const resolved = resolveQueueItem(editor, item)
+              const excerpt = resolved.target?.excerpt ?? item.capturedText
+              return (
+                <li
+                  key={item.qid}
+                  className={`ai-queue-row${resolved.target ? '' : ' stale'}`}
+                  data-tip={resolved.target ? undefined : t('aiQueueOrphan')}
+                  onClick={() => {
+                    if (editingQid !== item.qid && resolved.target) onFocus(item.qid)
+                  }}
+                >
+                  <span className="ai-queue-ord">{i + 1}</span>
+                  {editingQid === item.qid ? (
+                    <input
+                      className="ai-queue-edit-input"
+                      value={draft}
+                      autoFocus
+                      maxLength={EDIT_INSTRUCTION_MAX}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onBlur={() => {
+                        const next = draft.trim()
+                        if (next) onEditInstruction(item.qid, next)
+                        setEditingQid(null)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                          e.preventDefault()
+                          e.currentTarget.blur()
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault()
+                          setEditingQid(null)
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span className="ai-queue-text" title={item.instruction}>
+                      {excerpt && <span className="ai-queue-target">{truncate(excerpt, 24)}</span>}
+                      {item.instruction}
+                    </span>
+                  )}
+                  <span className="ai-queue-row-actions" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="rr-iconbtn rr-iconbtn--ghost rr-iconbtn--sm ai-queue-row-btn"
+                      data-tip={t('aiQueueRowEdit')}
+                      aria-label={t('aiQueueRowEdit')}
+                      disabled={busy}
+                      onClick={() => {
+                        setDraft(item.instruction)
+                        setEditingQid(item.qid)
+                      }}
+                    >
+                      <Icon name="edit" size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="rr-iconbtn rr-iconbtn--ghost rr-iconbtn--sm ai-queue-row-btn"
+                      data-tip={t('blockDelete')}
+                      aria-label={t('blockDelete')}
+                      disabled={busy}
+                      onClick={() => onRemove(item.qid)}
+                    >
+                      <Icon name="close" size={14} />
+                    </button>
+                  </span>
+                </li>
+              )
+            })}
+          </ol>
+        </>
+      )}
+      <div className="ai-queue-foot">
+        {confirmDiscard ? (
+          <>
+            <span className="ai-queue-confirm">
+              {t('aiQueueDiscardConfirm', { count: items.length })}
+            </span>
+            <button
+              type="button"
+              className="rr-btn rr-btn--ghost rr-btn--sm ai-queue-discard"
+              onClick={() => setConfirmDiscard(false)}
+            >
+              {t('aiCancel')}
+            </button>
+            <button
+              type="button"
+              className="rr-btn rr-btn--primary rr-btn--sm ai-queue-send"
+              onClick={() => {
+                setConfirmDiscard(false)
+                onDiscardAll()
+              }}
+            >
+              {t('aiQueueDiscard')}
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="rr-btn rr-btn--ghost rr-btn--sm ai-queue-discard"
+              disabled={busy}
+              onClick={() => setConfirmDiscard(true)}
+            >
+              {t('aiQueueDiscard')}
+            </button>
+            <button
+              type="button"
+              className="rr-btn rr-btn--primary rr-btn--sm ai-queue-send"
+              disabled={busy || liveCount === 0}
+              onClick={onSend}
+            >
+              {t('aiQueueSend', { count: liveCount })}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
