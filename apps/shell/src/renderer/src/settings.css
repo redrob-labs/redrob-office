@@ -1,0 +1,311 @@
+/* Settings: the shared Dialog (the kit's Modal) with a section nav on the left
+ * and label-left / control-right rows on the right. Every control is a kit
+ * component (Button, Input, Select, Switch); this file only lays them out,
+ * on the kit's semantic tokens. */
+
+/* a fixed-height panel, so switching sections never resizes the dialog */
+.set-overlay .rr-modal {
+  height: min(720px, calc(100vh - var(--space-12)));
+}
+
+.set-overlay .rr-modal__body {
+  display: flex;
+  flex: 1;
+  padding: 0;
+  color: var(--ink-primary);
+  overflow: hidden;
+}
+
+.set-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.set-nav {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 220px;
+  padding: var(--space-3) var(--space-3) var(--space-4);
+}
+
+.set-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  font: var(--text-body-sm);
+  font-size: 14px;
+  color: var(--ink-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.set-nav-item svg {
+  flex-shrink: 0;
+}
+
+.set-nav-item:hover:not(.active) {
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+}
+
+.set-nav-item.active {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.set-nav-item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.set-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) var(--space-6) var(--space-6);
+  overflow-y: auto;
+}
+
+.set-pane-title {
+  margin: 0 0 var(--space-4);
+  font: var(--text-title-4);
+  color: var(--ink-primary);
+}
+
+.set-field {
+  display: flex;
+  /* the pane is a scrolling flex column: a row must keep its height, or a
+   * description that wraps (Korean copy runs longer) draws over the next row */
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-5);
+  min-height: 52px;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.set-field:last-child {
+  border-bottom: none;
+}
+
+.set-field-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.set-field-label {
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--ink-primary);
+}
+
+.set-field-value {
+  font-size: 14px;
+  color: var(--ink-secondary);
+  text-align: right;
+  user-select: text;
+  word-break: break-all;
+}
+
+/* stacked label + secondary description */
+.set-field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.set-field-desc {
+  font: var(--text-body-sm);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ink-secondary);
+}
+
+.set-field-desc a {
+  color: var(--ink-brand);
+}
+
+/* kit controls in a row: they keep their own width instead of stretching */
+.set-field > .rr-btn,
+.set-field > .rr-switch {
+  flex-shrink: 0;
+}
+
+.set-select {
+  flex-shrink: 0;
+  min-width: 200px;
+}
+
+.set-input {
+  flex-shrink: 0;
+  width: 46%;
+  min-width: 200px;
+}
+
+.set-input > div,
+.set-input .rr-control {
+  width: 100%;
+}
+
+/* the Redrob mark beside the engine name */
+.set-provider-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.set-provider-logo {
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-primary);
+}
+
+.set-provider-logo svg {
+  width: 100%;
+  height: 100%;
+}
+
+.set-pane-footer {
+  margin-top: auto;
+  padding-top: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* footer feedback: spinner while testing, success on ok/saved, danger on failure */
+.set-ai-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-right: auto;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.set-ai-status.ok {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  color: var(--status-success);
+}
+
+.set-ai-status.err {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--status-danger);
+}
+
+.set-ai-status-icon {
+  flex-shrink: 0;
+}
+
+.set-ai-status-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.set-ai-spin {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
+/* ---- Redrob AI pane (handoff 09-settings) ---- */
+
+.set-connected {
+  margin-bottom: var(--space-4);
+}
+
+.set-row {
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.set-row .set-field-desc {
+  max-width: 52ch;
+}
+
+.set-dev {
+  margin-top: var(--space-3);
+}
+
+/* ---- Redrob account ---- */
+
+.id-pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.id-pane .set-pane-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-secondary);
+}
+
+.id-signed-in,
+.id-signed-out,
+.id-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.id-who {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+.id-email,
+.id-uri {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-secondary);
+  overflow-wrap: anywhere;
+}
+
+.id-waiting p {
+  margin: 0;
+}
+
+.id-code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--ink-primary);
+}
+
+.id-actions {
+  display: flex;
+  gap: var(--space-2);
+}

@@ -1,0 +1,38 @@
+{
+  "name": "@genoffice/shell",
+  "productName": "Redrob Office",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/redrob-labs/redrob-office",
+  "private": true,
+  "description": "Redrob Office suite shell (UI only): the host window chrome - home screen, tab bar, settings - rendered standalone in the browser. The Electron main process, window/tab orchestration, engine custody and file I/O are removed; the backend seams are stubbed via src/renderer/src/ui-stubs.ts.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@genoffice/ai-provider": "workspace:*",
+    "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/facts": "workspace:*",
+    "@genoffice/i18n": "workspace:*",
+    "@genoffice/identity": "workspace:*",
+    "@genoffice/sync-client": "workspace:*",
+    "@genoffice/ui": "workspace:*",
+    "@genoffice/versions": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.10"
+  },
+  "author": "Redrob"
+}

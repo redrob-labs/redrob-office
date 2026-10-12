@@ -1,0 +1,15 @@
+/* Launch: a host above the shell for the DS 2026 splash (assets/splash/redrob-splash.css
+   draws the ground, the lockup and the Office icon). */
+
+.launch {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  cursor: default;
+}
+
+/* the splash fills the host rather than the whole document */
+.launch > .rs-splash {
+  position: absolute;
+  z-index: auto;
+}
