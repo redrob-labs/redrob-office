@@ -1,14 +1,16 @@
 import { useEffect, useRef, type ReactElement } from 'react'
-import { MarkReveal } from '@genoffice/ui'
-import logoLockup from './assets/redrob-logo.svg'
-import { useI18n } from './locale'
+import { showRedrobSplash } from './assets/splash/redrob-splash.js'
+import logoLight from './assets/splash/redrob-logo-primary.png'
+import logoDark from './assets/splash/redrob-logo-primary-white.png'
+import './assets/splash/redrob-splash.css'
 import './launch.css'
 
-/** how long the line holds after the mark lands, and the longest the screen may stay */
-const HOLD_MS = 700
-const MAX_MS = 2600
-/** with reduced motion the mark does not move: a short, still hold instead */
-const STILL_MS = 900
+/**
+ * The longest the screen may stay, whatever the splash is doing. The splash's own
+ * timeline is about 3.8 s with motion (lockup, hand-over, product) and 1.6 s still.
+ */
+const MAX_MS = 5000
+const STILL_MAX_MS = 2400
 
 export interface LaunchProps {
   onDone: () => void
@@ -25,13 +27,14 @@ export function prefersReducedMotion(): boolean {
 }
 
 /**
- * The launch screen, once a session: the lockup arriving on the Office ground
- * and the one spoken line. It hands over on its own, and any key or click
- * skips it. Under reduced motion the mark is shown still.
+ * The launch screen, once a session (Redrob Design System 2026): the Redrob
+ * lockup (Primary on light, Primary White on dark), then the Office icon with
+ * "Redrob Office" in Pretendard SemiBold. It hands over on its own, and any key
+ * or click skips it. Under reduced motion nothing moves.
  */
 export function Launch({ onDone, reducedMotion }: LaunchProps): ReactElement {
-  const { t } = useI18n()
   const still = reducedMotion ?? prefersReducedMotion()
+  const host = useRef<HTMLDivElement>(null)
   const done = useRef(false)
   const finish = useRef(() => {})
   finish.current = () => {
@@ -41,37 +44,33 @@ export function Launch({ onDone, reducedMotion }: LaunchProps): ReactElement {
   }
 
   useEffect(() => {
-    const cap = window.setTimeout(() => finish.current(), still ? STILL_MS : MAX_MS)
+    const parent = host.current
+    if (!parent) return
+    let live = true
+    // The shell already decides once-per-session (main/launch.ts), so the splash's own
+    // sessionStorage gate is off. Office is painted underneath, so it is ready now.
+    void showRedrobSplash({ logoLight, logoDark, parent, once: false, reducedMotion: still, ready: Promise.resolve() })
+      .catch(() => {})
+      .then(() => {
+        if (live) finish.current()
+      })
+    const cap = window.setTimeout(() => finish.current(), still ? STILL_MAX_MS : MAX_MS)
     const skip = () => finish.current()
     window.addEventListener('keydown', skip)
     return () => {
+      live = false
       window.clearTimeout(cap)
       window.removeEventListener('keydown', skip)
+      parent.replaceChildren()
     }
   }, [still])
 
   return (
     <div
+      ref={host}
       className={`launch${still ? ' launch--still' : ''}`}
-      role="status"
-      aria-live="polite"
       data-testid="launch"
       onClick={() => finish.current()}
-    >
-      {still ? (
-        <img className="launch__mark" src={logoLockup} alt="Redrob Office" />
-      ) : (
-        <MarkReveal
-          className="launch__mark"
-          src={logoLockup}
-          alt="Redrob Office"
-          size="lg"
-          tone="light"
-          ground={false}
-          onDone={() => window.setTimeout(() => finish.current(), HOLD_MS)}
-        />
-      )}
-      <p className="launch__line">{t('launchLine')}</p>
-    </div>
+    />
   )
 }
