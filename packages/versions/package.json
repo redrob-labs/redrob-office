@@ -1,0 +1,22 @@
+{
+  "name": "@genoffice/versions",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "Version history and last-visit records for documents on this computer (no Electron dependency)",
+  "exports": {
+    ".": "./src/index.ts",
+    "./store": "./src/store.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.0"
+  }
+}
