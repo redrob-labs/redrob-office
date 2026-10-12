@@ -24,7 +24,8 @@ review, because no script can tell a truthful pin from a stale one.
 
 ## Branch flow
 
-- `main` is trunk. Everything lands through a pull request.
+- `develop` is the default branch and the base of every pull request; `main` is the
+  release trunk that `develop` is promoted into. Everything lands through a pull request.
 - Working branches are `<type>/<short-slug>`, where type is one of `feat`, `fix`,
   `chore`, `docs`, `test`, `refactor`, `perf`.
 - Upstream syncs are `sync/upstream-<date>`.

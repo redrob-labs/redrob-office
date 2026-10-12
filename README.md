@@ -13,7 +13,7 @@ under the Apache License 2.0, and ships in English and Korean.
 - **Sheets**: edit `.xlsx`, with AI tools over the grid.
 - **Slides**: edit `.pptx`, with AI tools over shapes and layouts.
 - **PDF**: read, convert, and run AI tools over the document.
-- **Markdown and Hangul**: a Markdown editor, and `.hwp`/`.hwpx` editing through the embedded rhwp editor.
+- **Markdown and Hangul**: a Markdown editor, and `.hwp`/`.hwpx` editing in an editor we own, built on a forked rhwp engine compiled to WebAssembly.
 - **One Home screen**: every editor opens from a single shell and a shared project store.
 
 AI editing runs through the tool loop in `packages/agent-core` and the fixed Redrob
@@ -70,7 +70,7 @@ On a headless machine that only needs typecheck and tests, set
 | `apps/{docs,sheets,slides,pdf,markdown,hangul}` | Each editor and its AI panel |
 | `packages/agent-core` | The shared agent loop that runs editing tools |
 | `packages/ai-provider` | The fixed Redrob Console transport |
-| `packages/{docx-engine,pptx-engine,pptx-render,rhwp-editor}` | Document format engines |
+| `packages/{docx-engine,pptx-engine,pptx-render,hwp-core,hwp-editor}` | Document format engines |
 | `packages/{genoffice-ui,i18n,electron-utils,project-store}` | Shared UI and runtime |
 
 Package names are still `@genoffice/*`. They are import paths, not product
@@ -120,10 +120,11 @@ in [NOTICE](./NOTICE) as Apache-2.0 section 4 requires; changes made in this por
 are copyright Janghoon Lee (Redrob) and contributors, under the same terms.
 `pnpm check:upstream-boundary` fails the build if that notice is ever removed.
 
-The Hangul editing capability is provided by [rhwp](https://github.com/edwardkim/rhwp)
-(MIT), vendored and served offline. Bundled fonts and third-party components are
-listed in [NOTICE](./NOTICE); the full third-party notice file is generated at
-packaging time and ships inside the application bundle.
+The Hangul editing capability is built on a fork of [rhwp](https://github.com/edwardkim/rhwp)
+(MIT) that we maintain in-tree (`engines/rhwp`), compiled to WebAssembly as
+`packages/hwp-core` and driven by the owned editor in `packages/hwp-editor`. Bundled
+fonts and third-party components are listed in [NOTICE](./NOTICE); the full third-party
+notice file is generated at packaging time and ships inside the application bundle.
 
 The licence covers the software, not the brand: the Redrob name and logos are not
 licensed under it.

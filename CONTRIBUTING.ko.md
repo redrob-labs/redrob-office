@@ -22,7 +22,7 @@
 
 ## 브랜치 흐름
 
-- `main`이 트렁크입니다. 모든 변경은 풀 리퀘스트로 들어옵니다.
+- `develop`이 기본 브랜치이자 모든 풀 리퀘스트의 베이스이며, `main`은 `develop`을 승격해 올리는 릴리즈 트렁크입니다. 모든 변경은 풀 리퀘스트로 들어옵니다.
 - 작업 브랜치는 `<type>/<short-slug>` 형식이며 type은 `feat`, `fix`, `chore`, `docs`,
   `test`, `refactor`, `perf` 중 하나입니다.
 - 상류 동기화는 `sync/upstream-<date>`입니다.
