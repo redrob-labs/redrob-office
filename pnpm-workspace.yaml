@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  # Vendored design system: redrob-labs/redrob-ui (@redrob-labs/ui) checked in
+  # under vendor/ so the workspace resolves it locally instead of pulling the
+  # private @redrob-labs scope from GitHub Packages. See vendor/redrob-ui/README.
+  - "vendor/*"

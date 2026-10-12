@@ -1,0 +1,4 @@
+# The Hangul core: vendored engine source and its built wasm.
+engines/rhwp/** linguist-vendored
+packages/hwp-core/wasm/** linguist-generated -diff
+*.wasm binary

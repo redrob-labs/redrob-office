@@ -1,0 +1,68 @@
+{
+  "name": "redrob-office-ui",
+  "private": true,
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Redrob Office — UI/UX layer. The renderer (React) surfaces of the office suite (Docs, Sheets, Slides, Markdown, PDF, Hangul) plus the shared design system, extracted to run without the Electron desktop backend. The Sheets (Univer) and Hangul (hwp-core/hwp-editor) editing engines are retained so those editors remain functional; all other backend (Electron main process, IPC bridges, file I/O, AI transport, sync, identity, persistence) is removed or stubbed.",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rimraf node_modules",
+    "check:ui-tokens": "node scripts/check-ui-tokens.mjs",
+    "check:copy": "node scripts/check-copy.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "rimraf": "^6.0.1",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "overrides": {
+      "prosemirror-view": "1.42.1",
+      "@types/react@^19": "19.2.17",
+      "@types/react-dom@^19": "19.2.3",
+      "@fluentui/react-icons": "2.0.333",
+      "react-konva": "19.2.5"
+    },
+    "packageExtensions": {
+      "@fluentui/react-icons": {
+        "peerDependencies": {
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        }
+      },
+      "@redrob-labs/ui": {
+        "peerDependencies": {
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        }
+      },
+      "react-konva": {
+        "peerDependencies": {
+          "@types/react": "*"
+        },
+        "peerDependenciesMeta": {
+          "@types/react": {
+            "optional": true
+          }
+        }
+      }
+    }
+  }
+}
