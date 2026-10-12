@@ -1,0 +1,20 @@
+{
+  "name": "@genoffice/electron-utils",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "UI-only slice of the former Electron helpers package: the browser-safe OfficePrefs types/constants the renderers import. The Electron main-process helpers were removed with the backend.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./office-prefs": "./src/office-prefs.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
+  }
+}
