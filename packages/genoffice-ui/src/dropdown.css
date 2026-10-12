@@ -1,0 +1,152 @@
+/* Shared select replacement (Dropdown in dropdown.tsx), drawn as the Redrob
+ * design system's Select: a field-radius control with a strong outline, and a
+ * raised, large-radius list whose selected option carries the brand check.
+ *
+ * It stays its own component rather than the kit's Select because editors need
+ * what Select does not offer: options that render arbitrary content (font and
+ * line-spacing previews), a fixed, anchor-positioned list that escapes
+ * scrolling ribbons, and denser sizes. Apps size it via a class on .gs-dd. */
+
+.gs-dd {
+  position: relative;
+  display: inline-flex;
+  anchor-name: --gs-dd;
+  anchor-scope: --gs-dd;
+}
+
+.gs-dd-btn {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 var(--space-2) 0 var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--field-radius);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard);
+}
+
+.gs-dd-btn:hover:not(:disabled) {
+  border-color: var(--ink-secondary);
+}
+
+.gs-dd-btn:focus-visible,
+.gs-dd-btn[aria-expanded='true'] {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 1px var(--focus-ring);
+  outline: none;
+}
+
+.gs-dd-btn:disabled {
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+.gs-dd-value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.gs-dd-caret {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--ink-secondary);
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.gs-dd-btn[aria-expanded='true'] .gs-dd-caret {
+  transform: rotate(180deg);
+}
+
+/* fixed + anchored so scroll-container overflow never clips the list or its
+ * shadow; flips above the trigger near the viewport bottom, and right-aligns
+ * near the right edge */
+.gs-dd-pop {
+  position: fixed;
+  position-anchor: --gs-dd;
+  top: calc(anchor(bottom) + 4px);
+  left: anchor(left);
+  min-width: anchor-size(width);
+  position-try-fallbacks:
+    flip-block,
+    flip-inline,
+    flip-block flip-inline;
+  position-visibility: anchors-visible;
+  z-index: 80;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: gs-dd-in var(--duration-fast) var(--easing-standard);
+}
+
+@keyframes gs-dd-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.gs-dd-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  min-height: 30px;
+  padding: 5px var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink-primary);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gs-dd-item.active {
+  background: var(--surface-sunken);
+}
+
+.gs-dd-item:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+/* the kit Select's selected option: semibold, with the brand check at the end */
+.gs-dd-item.selected {
+  font-weight: 600;
+}
+
+.gs-dd-item.selected::after {
+  content: '';
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  background: var(--action-primary);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpolyline points='5 12.5 10 17.5 19 7.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}

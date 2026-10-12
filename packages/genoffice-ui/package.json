@@ -1,0 +1,44 @@
+﻿{
+    "name":  "@genoffice/ui",
+    "version":  "0.1.0",
+    "license":  "Apache-2.0",
+    "private":  true,
+    "type":  "module",
+    "description":  "Shared renderer UI for the office apps: the Redrob design system (@redrob-labs/ui) re-exported, plus the Office-only controls composed from it",
+    "exports":  {
+                    ".":  "./src/index.ts",
+                    "./theme.css":  "./src/theme.css",
+                    "./preflight.css":  "./src/preflight.css",
+                    "./tokens.css":  "./src/tokens.css",
+                    "./screentip.css":  "./src/screentip.css",
+                    "./color-picker.css":  "./src/color-picker.css",
+                    "./dropdown.css":  "./src/dropdown.css",
+                    "./fonts/*":  "./src/fonts/*",
+                    "./collab/versions.css":  "./src/collab/versions.css",
+                    "./collab/share.css":  "./src/collab/share.css"
+                },
+    "scripts":  {
+                    "typecheck":  "tsc --noEmit",
+                    "test":  "vitest run"
+                },
+    "peerDependencies":  {
+                             "react":  "^19.0.0",
+                             "react-dom":  "^19.0.0"
+                         },
+    "devDependencies":  {
+                            "@types/react":  "^19.2.14",
+                            "@types/react-dom":  "^19.2.3",
+                            "jsdom":  "^28.0.0",
+                            "react":  "^19.2.4",
+                            "react-dom":  "^19.2.4",
+                            "typescript":  "^5.9.3",
+                            "vitest":  "^4.1.10"
+                        },
+    "dependencies":  {
+                         "@genoffice/i18n":  "workspace:*",
+                         "@genoffice/pptx-render":  "workspace:*",
+                         "@genoffice/sync-client":  "workspace:*",
+                         "@genoffice/versions":  "workspace:*",
+                         "@redrob-labs/ui":  "workspace:*"
+                     }
+}

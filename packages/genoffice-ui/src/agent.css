@@ -1,0 +1,866 @@
+/* AI panel parts (Agent.tsx) on the design system. The conversation surfaces
+ * themselves (rr-msg, rr-action, rr-composer, rr-alert, rr-empty, rr-prompts)
+ * are the kit's; this file only fits them to a docked side panel and styles
+ * the shared chat Markdown (ai-md, from Markdown.tsx) inside a message. */
+
+/* ── header ── */
+
+.go-agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-sans);
+}
+
+.go-agent-header__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.go-agent-header__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ── empty state ── */
+
+.go-agent-empty .rr-empty {
+  align-items: center;
+  text-align: center;
+}
+
+.go-agent-empty .rr-empty__actions {
+  justify-content: center;
+}
+
+.go-agent-empty .rr-prompts {
+  justify-content: center;
+}
+
+/* ── messages: the kit Message, sized for a 280-720px panel ── */
+
+.go-agent-msg.rr-msg {
+  max-width: 100%;
+}
+
+.go-agent-msg.rr-msg--user {
+  align-self: flex-end;
+}
+
+.go-agent-msg .rr-msg__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.go-agent-msg .rr-msg__content {
+  overflow-wrap: anywhere;
+}
+
+.go-agent-msg.rr-msg--user .rr-msg__content {
+  white-space: pre-wrap;
+}
+
+/* the Redrob mark is its own tile; drop the kit's initials disc behind it */
+.go-agent-msg.rr-msg--assistant .rr-msg__mark {
+  background: none;
+}
+
+.go-agent-msg .rr-msg__bubble > .rr-msg__content > * + * {
+  margin-top: var(--space-3);
+}
+
+/* streaming caret after the last block of an arriving answer */
+.go-agent-msg--streaming .ai-md > :last-child::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 1em;
+  margin-left: 2px;
+  border-radius: 1px;
+  background: var(--action-primary);
+  vertical-align: text-bottom;
+  animation: go-agent-caret 900ms steps(1, end) infinite;
+}
+
+@keyframes go-agent-caret {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* the failed-turn and undelivered notices sit inside the message */
+.go-agent-msg .rr-alert {
+  padding: var(--space-3);
+}
+
+/* ── chat Markdown (Markdown.tsx) ── */
+
+.go-agent-msg .ai-md p,
+.go-agent-msg .ai-md ul,
+.go-agent-msg .ai-md ol {
+  margin: 0 0 var(--space-3);
+}
+
+.go-agent-msg .ai-md > :last-child {
+  margin-bottom: 0;
+}
+
+.go-agent-msg .ai-md p:empty {
+  display: none;
+}
+
+.go-agent-msg .ai-md .ai-md-h {
+  margin: var(--space-4) 0 var(--space-2);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.go-agent-msg .ai-md .ai-md-h:first-child {
+  margin-top: 0;
+}
+
+.go-agent-msg .ai-md ul,
+.go-agent-msg .ai-md ol {
+  padding-left: var(--space-5);
+}
+
+.go-agent-msg .ai-md li + li {
+  margin-top: var(--space-1);
+}
+
+.go-agent-msg .ai-md code {
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-xs);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* in-answer navigation links (page / cell / block citations) */
+.go-agent-msg .ai-md .ai-md-nav {
+  color: var(--ink-brand);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.go-agent-msg .ai-md .ai-md-nav:hover {
+  text-decoration-style: solid;
+}
+
+.go-agent-msg .ai-md .ai-md-nav:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+  border-radius: var(--radius-xs);
+}
+
+/* ── tool activity ── */
+
+.go-agent-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.go-agent-steps__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  margin-left: calc(-1 * var(--space-2));
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.go-agent-steps__toggle:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+
+.go-agent-steps__toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 0;
+}
+
+.go-agent-steps__spinner {
+  font-size: 12px;
+  color: var(--ink-brand);
+}
+
+.go-agent-steps__caret {
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.go-agent-steps__caret--open {
+  transform: rotate(180deg);
+}
+
+.go-agent-steps__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-self: stretch;
+}
+
+.go-agent-steps__list[hidden] {
+  display: none;
+}
+
+/* the panel is narrow: let the step name wrap instead of a mono one-liner */
+.go-agent-step .rr-action__name {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  white-space: normal;
+  text-align: left;
+}
+
+.go-agent-step .rr-action__body {
+  max-height: 300px;
+  overflow-y: auto;
+  word-break: break-word;
+}
+
+/* ── in-progress ── */
+
+.go-agent-working {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-secondary);
+}
+
+.go-agent-working__elapsed {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── composer ── */
+
+.go-agent-composer .rr-composer__input {
+  max-height: 168px;
+}
+
+.go-agent-composer .rr-composer__lead:empty {
+  display: none;
+}
+
+.go-agent-composer .rr-composer__trail {
+  margin-left: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .go-agent-msg--streaming .ai-md > :last-child::after {
+    animation: none;
+  }
+  .go-agent-steps__caret {
+    transition: none;
+  }
+}
+
+/* ══ Panel extras shared by the editors' AI panels (class form) ══
+ * Scope chip, attachments, message actions, the edit queue and the Ask-AI
+ * popover are Office-only; they are drawn here once on kit tokens. */
+
+/* ── message actions (copy / regenerate / roll back) ── */
+
+.ai-msg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ai-msg-toolbar .ai-rollback-btn {
+  margin-left: var(--space-1);
+}
+
+/* earlier conversation above the live turn */
+.ai-msg-historic {
+  display: contents;
+}
+
+.ai-history-sep {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.ai-history-sep::before,
+.ai-history-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* ── selection scope chip (composer context row) ── */
+
+.ai-scope-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.ai-scope-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 24px;
+  padding: 0 var(--space-1) 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ai-scope-hint .ai-scope-label,
+.ai-scope-hint .ai-scope-clear {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ai-scope-hint .ai-scope-clear {
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+}
+
+.ai-scope-hint .ai-scope-clear:hover {
+  background: color-mix(in srgb, var(--ink-brand) 12%, transparent);
+}
+
+.ai-scope-hint button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+  border-radius: var(--radius-full);
+}
+
+.ai-scope-preview {
+  align-self: stretch;
+  max-height: 96px;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-base);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── attachments (composer context row and sent-message echo) ── */
+
+.ai-attachments,
+.ai-msg-attachments {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ai-msg-attachments {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.ai-attachment-thumb,
+.ai-attachment-card {
+  position: relative;
+  flex: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+}
+
+.ai-attachment-thumb {
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+}
+
+.ai-attachment-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ai-attachment-thumb-pending {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-sunken);
+}
+
+.ai-attachment-thumb-pending img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.ai-attachment-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 220px;
+  height: 56px;
+  padding: 0 var(--space-6) 0 var(--space-2);
+}
+
+.ai-attachment-card-icon img {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+.ai-attachment-card-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-attachment-card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-primary);
+}
+
+.ai-attachment-card-size {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.ai-attachment-thumb-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--ink-primary);
+  color: var(--surface-base);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.ai-attachment-thumb:hover .ai-attachment-thumb-remove,
+.ai-attachment-card:hover .ai-attachment-thumb-remove,
+.ai-attachment-thumb-remove:focus-visible {
+  opacity: 1;
+}
+
+.ai-attachment-thumb-remove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.ai-panel-dragover {
+  outline: 2px dashed var(--action-primary);
+  outline-offset: -4px;
+}
+
+.ai-attach-notice {
+  margin-bottom: var(--space-2);
+}
+
+/* track-changes toggle in the composer bar */
+.ai-track-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 28px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-base);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.ai-track-btn:hover {
+  background: var(--surface-sunken);
+}
+
+.ai-track-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.ai-track-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
+}
+
+.ai-track-btn.on {
+  border-color: var(--border-ai);
+  background: var(--surface-brand-subtle);
+  color: var(--ink-brand);
+}
+
+.ai-track-btn.on .ai-track-dot {
+  background: var(--action-primary);
+}
+
+/* ── edit queue card above the composer ── */
+
+.ai-queue {
+  margin-bottom: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+.ai-queue-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.ai-queue-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.ai-queue-count {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.ai-queue-fold {
+  margin-left: auto;
+  display: inline-flex;
+  padding: 2px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.ai-queue-fold.folded {
+  transform: rotate(-90deg);
+}
+
+.ai-queue-fold:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+}
+
+.ai-queue-hint {
+  padding: 0 var(--space-3) var(--space-2);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.ai-queue-list {
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-1);
+  list-style: none;
+  max-height: 168px;
+  overflow-y: auto;
+}
+
+.ai-queue-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--ink-primary);
+}
+
+.ai-queue-row:hover {
+  background: var(--surface-sunken);
+}
+
+.ai-queue-row.stale {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.ai-queue-ord {
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-queue-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-queue-target {
+  margin-right: var(--space-1);
+  color: var(--ink-muted);
+}
+
+.ai-queue-target::after {
+  content: ' ·';
+}
+
+.ai-queue-page {
+  margin-right: var(--space-1);
+  color: var(--ink-muted);
+}
+
+.ai-queue-edit-input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--field-radius);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.ai-queue-edit-input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.ai-queue-row-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.ai-queue-row:hover .ai-queue-row-actions,
+.ai-queue-row:focus-within .ai-queue-row-actions {
+  opacity: 1;
+}
+
+.ai-queue-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.ai-queue-confirm {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.ai-queue-foot .ai-queue-send {
+  margin-left: auto;
+}
+
+/* ── Ask-AI: floating entry on a selection, and its popover ── */
+
+.ai-ask-trigger {
+  position: fixed;
+  z-index: 59;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 28px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-base);
+  color: var(--ink-brand);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+.ai-ask-trigger:hover {
+  background: var(--surface-sunken);
+}
+
+.ai-ask-trigger:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.ai-ask-pop {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+}
+
+.ai-ask-pop-close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+.ai-ask-pop-title {
+  padding-right: var(--space-6);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.ai-ask-pop-sub {
+  margin-top: calc(-1 * var(--space-1));
+  font-size: 12px;
+  color: var(--ink-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-ask-pop-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--field-radius);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.ai-ask-pop-input::placeholder {
+  color: var(--ink-muted);
+}
+
+.ai-ask-pop-input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.ai-ask-pop-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.ai-ask-chip {
+  height: 26px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-base);
+  color: var(--ink-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ai-ask-chip:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+
+.ai-ask-chip:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.ai-ask-pop-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* collapsed AI panel: a thin rail on the window edge */
+.ai-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 34px;
+  padding: var(--space-3) 2px;
+  border: none;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-base);
+  color: var(--ink-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ai-rail:hover {
+  background: var(--surface-sunken);
+}
+
+.ai-rail:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -2px;
+}

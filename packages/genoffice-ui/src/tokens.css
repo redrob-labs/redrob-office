@@ -1,0 +1,121 @@
+/* Office extension tokens, on top of the Redrob design system.
+ *
+ * Chrome reads the kit's own token names (--surface-*, --ink-*, --border-*,
+ * --action-*, --status-*, --radius-*). This file holds only the few values the
+ * kit has no semantic token for: Office chrome needs them, and they are picked
+ * from the kit's ramps per theme.
+ *
+ * Rules:
+ *   - Load after @genoffice/ui/theme.css (the kit's tokens) and before any app
+ *     stylesheet.
+ *   - Never declare a name the kit declares. Doing so would restyle the kit's
+ *     own components.
+ *   - Never add an alias of a kit token. Read the kit name instead;
+ *     scripts/check-ui-tokens.mjs fails CI on the retired legacy names.
+ *   - No colour literals: every value comes from a kit ramp.
+ *   - The rendered theme is always written to <html data-theme> by
+ *     applyUiTheme (theme.ts), "system" included, so no prefers-color-scheme
+ *     copy is needed.
+ *   - Document content colours (paper, cells, exports, chart palettes) never
+ *     live here and never reference these tokens. */
+
+:root {
+  /* type: the kit's sans for all chrome, with the per-language CJK stack the
+   * apps define as --ui-cjk ahead of the system face, so Han glyphs keep the
+   * regional font they had */
+  --font-chrome:
+    Pretendard, 'Wanted Sans', var(--ui-cjk, system-ui), system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  --fs-body-lg: 17px;
+  --fs-small: 13px;
+  --fs-caption: 11px;
+  --transition-fast: var(--duration-fast) var(--easing-standard);
+
+  /* picked from the kit's ramps: light */
+  --border-control: var(--gray-4);
+  --border-hover: var(--gray-4);
+  --color-border-strong: var(--gray-4);
+  --pressed: var(--gray-3);
+  --active-bg: var(--gray-3);
+  --bg-hover-strong: var(--gray-3);
+  --bg-hover-accent: var(--blue-2);
+  --icon-muted: var(--gray-5);
+  --danger-bg: var(--accent-red-1);
+  --danger-border: var(--accent-red-2);
+  --success-bg: var(--accent-green-1);
+  --success-border: var(--accent-green-2);
+  --color-error-hover: var(--accent-red-5);
+  /* people in a shared file (title-bar faces); one pair per seat, cycling */
+  --office-peer-1-bg: var(--accent-teal-1);
+  --office-peer-1-ink: var(--accent-teal-5);
+  --office-peer-2-bg: var(--accent-violet-1);
+  --office-peer-2-ink: var(--accent-violet-5);
+  --office-peer-3-bg: var(--accent-orange-1);
+  --office-peer-3-ink: var(--accent-orange-5);
+  --office-peer-4-bg: var(--accent-pink-1);
+  --office-peer-4-ink: var(--accent-pink-5);
+  --office-peer-5-bg: var(--accent-sky-1);
+  --office-peer-5-ink: var(--accent-sky-5);
+  --office-peer-6-bg: var(--accent-lime-1);
+  --office-peer-6-ink: var(--accent-lime-5);
+}
+
+/* picked from the kit's ramps: dark */
+[data-theme='dark'] {
+  --border-control: var(--gray-7);
+  --border-hover: var(--gray-7);
+  --color-border-strong: var(--gray-7);
+  --pressed: var(--gray-8);
+  --active-bg: var(--gray-8);
+  --bg-hover-strong: var(--gray-8);
+  --bg-hover-accent: var(--blue-9);
+  --icon-muted: var(--gray-7);
+  --danger-bg: var(--accent-red-5);
+  --danger-border: var(--accent-red-4);
+  --success-bg: var(--accent-green-5);
+  --success-border: var(--accent-green-4);
+  --color-error-hover: var(--accent-red-2);
+  --office-peer-1-bg: var(--accent-teal-5);
+  --office-peer-1-ink: var(--accent-teal-1);
+  --office-peer-2-bg: var(--accent-violet-5);
+  --office-peer-2-ink: var(--accent-violet-1);
+  --office-peer-3-bg: var(--accent-orange-5);
+  --office-peer-3-ink: var(--accent-orange-1);
+  --office-peer-4-bg: var(--accent-pink-5);
+  --office-peer-4-ink: var(--accent-pink-1);
+  --office-peer-5-bg: var(--accent-sky-5);
+  --office-peer-5-ink: var(--accent-sky-1);
+  --office-peer-6-bg: var(--accent-lime-5);
+  --office-peer-6-ink: var(--accent-lime-1);
+}
+
+/* The kit tints every list marker with --ink-secondary. A marker inside a
+ * document is part of the document's content, which keeps its own colour. */
+li::marker {
+  color: inherit;
+}
+
+/*
+ * --ui-cjk: the CJK UI faces for the interface language, set from
+ * <html lang> (every renderer sets it at bootstrap and on a switch). Chrome
+ * stacks name it after their Latin face. Office extension token: the kit has
+ * no per-language UI stack. Korean ends with Wanted Sans, the kit's Hangul
+ * face (the kit's Pretendard draws no Hangul), then Noto Sans CJK KR, so
+ * Korean chrome never draws boxes on a machine without Apple SD Gothic Neo
+ * or Malgun Gothic (Linux, for one).
+ */
+:root {
+  --ui-cjk: 'PingFang SC', 'Microsoft YaHei';
+}
+
+:root:lang(ja) {
+  --ui-cjk: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Yu Gothic', 'Meiryo';
+}
+
+:root:lang(ko) {
+  --ui-cjk: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Wanted Sans', 'Noto Sans CJK KR';
+}
+
+:root:lang(zh-TW) {
+  --ui-cjk: 'PingFang TC', 'Microsoft JhengHei';
+}
