@@ -1,86 +1,86 @@
-{
-  "name": "@redrob-labs/ui",
-  "version": "1.5.0",
-  "description": "The Redrob Group Design System 2026, as typed React components",
-  "keywords": [
-    "react",
-    "components",
-    "ui",
-    "typescript",
-    "design-system",
-    "redrob"
-  ],
-  "author": "Janghoon Lee (Redrob)",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/redrob-labs/redrob-ui.git"
-  },
-  "bugs": {
-    "url": "https://github.com/redrob-labs/redrob-ui/issues"
-  },
-  "homepage": "https://github.com/redrob-labs/redrob-ui#readme",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org",
-    "access": "public"
-  },
-  "main": "dist/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/index.js"
-    },
-    "./styles.css": "./dist/styles/system.css",
-    "./tokens.css": "./dist/styles/tokens.css",
-    "./preflight.css": "./dist/styles/preflight.css",
-    "./tokens.json": "./dist/styles/tokens.json",
-    "./fonts/*": "./dist/fonts/*",
-    "./native/*": "./dist/native/*",
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "dist"
-  ],
-  "sideEffects": [
-    "dist/styles/*.css",
-    "dist/esm/styles/*.css"
-  ],
-  "scripts": {
-    "build": "rimraf dist && tsc && tsc -p tsconfig.esm.json && node tools/build/esm-extensions.js && node tools/generate/tokens.js && node tools/generate/native-icons.js && node tools/build/copy-assets.mjs",
-    "test": "node tools/parity/run.js --quiet",
-    "test:self": "node tools/parity/run.js --self --quiet",
-    "icons": "node tools/generate/icons.js",
-    "icons:check": "node tools/generate/icons.js --check",
-    "tokens": "node tools/generate/tokens.js",
-    "tokens:check": "node tools/generate/tokens.js --check",
-    "docs": "yarn build && node tools/docs/build.js",
-    "docs:check": "yarn build && node tools/docs/build.js --check",
-    "assets:check": "node tools/check/assets.js",
-    "exports:check": "node tools/check/exports.js",
-    "aliases:check": "node tools/check/aliases.js",
-    "references:check": "node tools/check/references.js",
-    "supersession:check": "node tools/check/supersession.js",
-    "guide:check": "node tools/check/model-guide.js",
-    "floating:check": "yarn build && node tools/check/floating.js",
-    "shell:check": "node tools/check/shell.js",
-    "insights:check": "node tools/check/insights.js",
-    "ids:check": "node tools/check/ssr-ids.js",
-    "prepublishOnly": "npm run build"
-  },
-  "devDependencies": {
-    "@types/node": "^20.8.9",
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "rimraf": "^6.0.1",
-    "typescript": "^5.7.2"
-  },
-  "peerDependencies": {
-    "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0"
-  }
+﻿{
+    "name":  "@redrob-labs/ui",
+    "version":  "1.5.0",
+    "description":  "The Redrob Group Design System 2026, as typed React components",
+    "keywords":  [
+                     "react",
+                     "components",
+                     "ui",
+                     "typescript",
+                     "design-system",
+                     "redrob"
+                 ],
+    "author":  "Janghoon Lee (Redrob)",
+    "license":  "MIT",
+    "repository":  {
+                       "type":  "git",
+                       "url":  "git+https://github.com/redrob-labs/redrob-ui.git"
+                   },
+    "bugs":  {
+                 "url":  "https://github.com/redrob-labs/redrob-ui/issues"
+             },
+    "homepage":  "https://github.com/redrob-labs/redrob-ui#readme",
+    "publishConfig":  {
+                          "registry":  "https://registry.npmjs.org",
+                          "access":  "public"
+                      },
+    "main":  "dist/index.js",
+    "module":  "dist/esm/index.js",
+    "types":  "dist/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./dist/index.d.ts",
+                              "import":  "./dist/esm/index.js",
+                              "require":  "./dist/index.js"
+                          },
+                    "./styles.css":  "./dist/styles/system.css",
+                    "./tokens.css":  "./dist/styles/tokens.css",
+                    "./preflight.css":  "./dist/styles/preflight.css",
+                    "./tokens.json":  "./dist/styles/tokens.json",
+                    "./fonts/*":  "./dist/fonts/*",
+                    "./native/*":  "./dist/native/*",
+                    "./package.json":  "./package.json"
+                },
+    "files":  [
+                  "dist"
+              ],
+    "sideEffects":  [
+                        "dist/styles/*.css",
+                        "dist/esm/styles/*.css"
+                    ],
+    "scripts":  {
+                    "build":  "rimraf dist \u0026\u0026 tsc \u0026\u0026 tsc -p tsconfig.esm.json \u0026\u0026 node tools/build/esm-extensions.js \u0026\u0026 node tools/generate/tokens.js \u0026\u0026 node tools/generate/native-icons.js \u0026\u0026 node tools/build/copy-assets.mjs",
+                    "test":  "node tools/parity/run.js --quiet",
+                    "test:self":  "node tools/parity/run.js --self --quiet",
+                    "icons":  "node tools/generate/icons.js",
+                    "icons:check":  "node tools/generate/icons.js --check",
+                    "tokens":  "node tools/generate/tokens.js",
+                    "tokens:check":  "node tools/generate/tokens.js --check",
+                    "docs":  "yarn build \u0026\u0026 node tools/docs/build.js",
+                    "docs:check":  "yarn build \u0026\u0026 node tools/docs/build.js --check",
+                    "assets:check":  "node tools/check/assets.js",
+                    "exports:check":  "node tools/check/exports.js",
+                    "aliases:check":  "node tools/check/aliases.js",
+                    "references:check":  "node tools/check/references.js",
+                    "supersession:check":  "node tools/check/supersession.js",
+                    "guide:check":  "node tools/check/model-guide.js",
+                    "floating:check":  "yarn build \u0026\u0026 node tools/check/floating.js",
+                    "shell:check":  "node tools/check/shell.js",
+                    "insights:check":  "node tools/check/insights.js",
+                    "ids:check":  "node tools/check/ssr-ids.js",
+                    "prepublishOnly":  "npm run build"
+                },
+    "devDependencies":  {
+                            "@types/node":  "^20.8.9",
+                            "@types/react":  "^19.2.14",
+                            "@types/react-dom":  "^19.2.3",
+                            "react":  "^19.2.4",
+                            "react-dom":  "^19.2.4",
+                            "rimraf":  "^6.0.1",
+                            "typescript":  "^5.7.2"
+                        },
+    "peerDependencies":  {
+                             "react":  "^18.2.0 || ^19.0.0",
+                             "react-dom":  "^18.2.0 || ^19.0.0"
+                         }
 }
