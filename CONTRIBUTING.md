@@ -55,7 +55,12 @@ record other people read.
 
 ## Before you open a pull request
 
+Dependencies under the `@redrob-labs` scope (e.g. `@redrob-labs/route-labeller`)
+install from the org's GitHub Packages registry, configured in `.npmrc`. Export a
+GitHub token with `read:packages` as `NODE_AUTH_TOKEN` before installing:
+
 ```bash
+export NODE_AUTH_TOKEN=<a GitHub token with read:packages>
 pnpm install
 pnpm typecheck
 pnpm test

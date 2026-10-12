@@ -13,6 +13,12 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# The @redrob-labs scope installs from the org's GitHub Packages registry
+# (see .npmrc). read:packages lets the built-in GITHUB_TOKEN authenticate.
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   boundary:
     name: fork boundary & licences
@@ -52,6 +58,8 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Dependency licences
         run: pnpm check:licenses
@@ -142,6 +150,8 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Xvfb for a display, and a CJK system font: rhwp-studio's chrome (Hangul)
       # relies on the OS for Korean glyphs and renders boxes without one.
@@ -200,6 +210,8 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Typecheck
         run: pnpm typecheck
