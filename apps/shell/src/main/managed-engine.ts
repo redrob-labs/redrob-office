@@ -168,6 +168,9 @@ async function startOnce(options: EngineSpawnOptions, hostname: string, port: nu
         // credential never outlives the process that owns it.
         REDROB_SERVER_USERNAME: username,
         REDROB_SERVER_PASSWORD: password,
+        // The engine sends this as `x-redrob-app` on every Redrob request, so the Console can
+        // group AI work by app. A label, nothing else.
+        REDROB_APP: 'office',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       // Without this the user gets a console window flashing behind the app on every
