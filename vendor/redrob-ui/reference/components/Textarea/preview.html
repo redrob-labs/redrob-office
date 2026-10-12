@@ -1,0 +1,16 @@
+<!-- @dsCard group="Forms" height=235 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return row([
+      h(R.Textarea, { key: 1, label: 'Role summary', placeholder: 'What will this person own?', hint: 'Markdown is not supported.', style: { width: '320px' } }),
+      h(R.Textarea, { key: 2, label: 'Notes', error: 'Keep this under 500 characters.', defaultValue: 'Candidate is based in Noida and can start in March.', style: { width: '320px' } }),
+    ], { alignItems: 'flex-start' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

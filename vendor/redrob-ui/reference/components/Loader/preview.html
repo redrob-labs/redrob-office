@@ -1,0 +1,44 @@
+<!-- @dsCard group="Feedback" height=465 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids) => h('div', { style: { display: 'flex', gap: '48px', alignItems: 'center', flexWrap: 'wrap' } }, kids);
+  const cap = (t) => h('div', { style: { fontSize: '11px', color: 'var(--ink-muted)', marginTop: '10px' } }, t);
+  const cell = (node, label) => h('div', { key: label }, [node, cap(label)]);
+
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '34px' } }, [
+      row([
+        cell(h(R.Loader, { size: 'sm' }), 'sm, 16px'),
+        cell(h(R.Loader, {}), 'md, 28px'),
+        cell(h(R.Loader, { size: 'lg' }), 'lg, 44px'),
+        cell(h(R.Loader, { showLabel: true, label: 'Verifying the credential' }), 'with a label'),
+      ]),
+      row([
+        cell(h(R.Loader, { tone: 'muted' }), 'muted, for a quiet surface'),
+        cell(h(R.Loader, { size: 'sm', showLabel: true, label: 'Reading 128 records' }), 'sm with a label'),
+      ]),
+      h('div', {
+        style: {
+          background: 'var(--gradient-brand)', borderRadius: 'var(--radius-lg)',
+          padding: '28px 32px', display: 'flex', gap: '48px', alignItems: 'center', flexWrap: 'wrap',
+        },
+      }, [
+        h('div', { key: 'a' }, [
+          h(R.Loader, { tone: 'inverse', size: 'lg' }),
+          h('div', { style: { fontSize: '11px', color: 'rgba(255,255,255,0.75)', marginTop: '10px' } }, 'inverse, on the brand gradient'),
+        ]),
+        h('div', { key: 'b' }, [
+          h(R.Loader, { tone: 'inverse', showLabel: true, label: 'Publishing' }),
+        ]),
+      ]),
+      row([
+        h(R.Button, { key: 1, loading: true }, 'Saving'),
+        h(R.Button, { key: 2, variant: 'secondary', loading: true }, 'Verifying'),
+        h(R.Button, { key: 3, size: 'lg', loading: true }, 'Running the check'),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

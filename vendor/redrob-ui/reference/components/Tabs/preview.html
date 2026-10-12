@@ -1,0 +1,25 @@
+<!-- @dsCard group="Navigation" height=195 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const items = [
+      { id: 'all', label: 'All', count: 128 },
+      { id: 'review', label: 'Needs review', count: 6 },
+      { id: 'interview', label: 'Interview' },
+      { id: 'archived', label: 'Archived', disabled: true },
+    ];
+    const [line, setLine] = React.useState('review');
+    const [pill, setPill] = React.useState('all');
+    return col([
+      h(R.Tabs, { key: 1, items: items, value: line, onChange: setLine, label: 'Pipeline' },
+        h('p', { style: { margin: 0, fontSize: '14px', color: 'var(--ink-secondary)' } }, 'Showing the ' + line + ' queue.')),
+      h(R.Tabs, { key: 2, variant: 'pill', items: items.slice(0, 3), value: pill, onChange: setPill, label: 'Pipeline, compact' }),
+    ], { gap: '24px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

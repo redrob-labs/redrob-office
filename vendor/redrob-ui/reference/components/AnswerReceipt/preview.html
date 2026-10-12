@@ -1,0 +1,31 @@
+<!-- @dsCard group="Agent chat" height=390 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 15, height: s || 15 });
+
+  const NOTES = h('ul', { style: { margin: 0, paddingLeft: '18px' } }, [
+    h('li', { key: 1 }, 'Our standard notice period is 60 days'), h('li', { key: 2 }, 'Seorin\'s lawyer prefers a Word redline'), h('li', { key: 3 }, 'Our standard limit is 12 months of fees')]);
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { display: 'grid', gap: '28px', maxWidth: '760px' } }, [
+    h(R.Message, { key: 'a', role: 'assistant', author: 'Cowork',
+      footer: h(R.AnswerReceipt, { items: [
+        { id: 'm', icon: ic('sparkle', 14), label: 'Claude Opus 5.5', sub: 'by Redrob Auto',
+          detail: ['Redrob Auto read your message as reviewing contracts. It chose Claude Opus 5.5, 3rd on the Redrob Leaderboard, the highest place that runs in Cowork. ', h('a', { key: 'l', href: '#model-guide' }, 'See the ranking')] },
+        { id: 'pv', icon: ic('shieldCheck', 14), label: '2 names', sub: 'kept on this computer', detail: 'Your laptop replaced both parties\' names before the message left it, and put them back in the answer.' },
+        { id: 'n', icon: ic('bookOpen', 14), label: '3 notes used', sub: 'shared memory', detail: NOTES },
+        { id: 'p', icon: ic('route', 14), label: 'Plan followed', sub: '5 of 5 steps', detail: 'The plan you approved: read clauses 8, 11 and 14, compare them with our standard positions, and draft the redline. Every step ran.' },
+        { id: 'o', icon: ic('scan', 14), tone: 'differ', label: 'Fact check: 2 things to fix', sub: 'GPT-6 Sol',
+          detail: ['4 of 6 claims hold up. One cites the wrong clause, and the answer missed one point. It ran because you will send this. ', h('a', { key: 'l', href: '#cross-check' }, 'Open the Fact check')] },
+        { id: 't', icon: ic('scales', 14), tone: 'agree', label: 'Challenged', sub: 'held up', detail: 'Three rounds for and against the conclusion that 8.2, 11.4 and 14.1 move risk onto you. It held; nothing changed.' }
+      ] }) }, 'Three clauses move risk onto you: 8.2, 11.4 and 14.1.'),
+    h(R.Message, { key: 'b', role: 'assistant', author: 'Cowork',
+      footer: h(R.AnswerReceipt, { items: [
+        { id: 'm', icon: ic('pin', 14), label: 'DeepSeek V4 Pro', sub: 'your choice', detail: 'You chose DeepSeek V4 Pro for this chat. It is 6th for reviewing contracts this month.' },
+        { id: 'pv', icon: ic('shieldCheck', 14), label: 'Nothing private in it', sub: 'checked on this computer' },
+        { id: 'o', busy: true, label: 'Fact check running, by Claude Opus 5.5' }
+      ] }) }, 'Two clauses move risk onto you: 8.2 and 11.4.')
+  ]));
+</script>

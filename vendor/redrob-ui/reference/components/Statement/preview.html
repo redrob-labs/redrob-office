@@ -1,0 +1,32 @@
+<!-- @dsCard group="Type" height=885 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const rule = () => h('div', { style: { height: '1px', background: 'var(--border-subtle)', margin: '40px 0' } });
+
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column' } }, [
+      h(R.Statement, {
+        key: 'a',
+        mark: ['The idea', 'Latin'],
+        lede: 'Redrob is Border spelled backwards. The company exists because a person can be qualified on one side of a line and unprovable on the other.'
+      }, 'Every border is a decision about who gets to try.'),
+
+      rule(),
+
+      h(R.Statement, {
+        key: 'b',
+        lang: 'ko',
+        mark: ['The idea', 'Korean'],
+        lede: '레드롭은 국경을 뒤집은 이름입니다. 한쪽에서는 자격을 갖춘 사람이 다른 쪽에서는 증명되지 않습니다.'
+      }, '모든 경계는 누가 해 볼 수 있는지를 정합니다'),
+
+      rule(),
+
+      h(R.Statement, { key: 'c', level: 2, wide: true },
+        'Qualified on one side. Unprovable on the other.')
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

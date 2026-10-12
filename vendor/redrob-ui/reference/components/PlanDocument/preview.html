@@ -1,0 +1,59 @@
+<!-- @dsCard group="Agent chat" height=1180 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const PLAN = {
+    file: 'Plan · Ending the Seorin MSA.md',
+    title: 'Ending the Seorin MSA by November 30',
+    summary: 'The MSA renews on December 1 unless notice reaches Seorin at least 30 days before. The goal is a notice the client can send this week, delivered in a way Seorin cannot dispute, with the reasons it is valid written out for the client.',
+    sections: [
+      { id: 'ask', heading: 'What you asked for', items: [
+        { text: 'A notice ending the MSA, ready to send, and the reason it is valid.', editable: false },
+        { text: 'Read the MSA and its amendments, our 37 emails with Seorin, and Korean law on notices.', editable: false },
+        { text: 'The agreement must end on November 30, 2026. The client will read the result.', editable: false }] },
+      { id: 'know', heading: 'What I already know', items: [
+        { text: 'Clause 18.1: the MSA renews for 12 months unless either party gives 30 days’ written notice.', editable: false },
+        { text: 'Clause 14 sets how notices are sent. Amendment 2 (2025) changed part of it for email.', editable: false },
+        { text: 'From Memory: Seorin’s lawyer prefers documents as Word redlines.', note: '1 note used', editable: false }] },
+      { id: 'how', heading: 'How I will do it', ordered: true, items: [
+        { lead: 'Read the notice and ending clauses.', text: 'Clause 14 in full, clause 18, and Amendment 2 line by line, because the amendment is where email could have been allowed. I will quote the exact words rather than summarize them.' },
+        { lead: 'Check the emails for an agreed method.', text: 'If Seorin ever agreed in writing to receive notices by email, that could change the answer. I will list every email that mentions notices, addresses or delivery.' },
+        { lead: 'Confirm when a notice takes effect.', text: 'Civil Act Article 111 says a declaration takes effect on arrival. I will check this on law.go.kr and note what counts as arrival for registered mail and email.' },
+        { lead: 'Work back from November 30.', text: 'Count the 30 days in calendar days, as clause 18.1 is written, find the last day the notice can arrive, and leave a week of margin for registered mail.' },
+        { lead: 'Draft the notice.', text: 'Korean and English on one page, citing clause 18.1, naming the end date, and asking Seorin to acknowledge receipt in writing. A short cover email for the copy.' }] },
+      { id: 'get', heading: 'What you will get', items: [
+        { text: 'The notice, Korean and English, as a Word document.', editable: false },
+        { text: 'A half-page note for the client: how to send it, by when, and why email alone is not enough, if that is the answer.', editable: false }] },
+      { id: 'assume', heading: 'Assumptions to confirm', items: [
+        { text: 'Seorin’s registered address is still the one in Schedule 3.', note: 'I will flag it if any email says otherwise.' },
+        { text: 'The client signs the notice, not us.' }] },
+      { id: 'risk', heading: 'Risks I will watch for', items: [
+        { text: 'A missed deadline renews the agreement for a full year, so the plan leaves a week of margin.', editable: false },
+        { text: 'An email thread with a password-protected attachment may hide an agreed method; I will say so if I cannot open it.', editable: false }] }
+    ],
+    todo: [
+      { id: 't1', label: 'Read clauses 14 and 18 and Amendment 2', who: 'Claude Opus 5.5' },
+      { id: 't2', label: 'Search 37 emails with Seorin for any agreed way to send notices', who: 'Claude Opus 5.5' },
+      { id: 't3', label: 'Confirm when a notice takes effect under Korean law', who: 'Gemini 3.1 Pro' },
+      { id: 't4', label: 'Work back from November 30 to the last safe day to send', who: 'Claude Opus 5.5' },
+      { id: 't5', label: 'Draft the notice in Korean and English, with the cover email', who: 'Claude Opus 5.5' }
+    ],
+    note: 'After the answer, Cross-check runs both checks: Fact check, because the client will rely on it, and Challenge, because the answer will recommend an action. About 3 minutes in all.'
+  };
+  function Demo() {
+    const [status, setStatus] = React.useState('draft');
+    const [done, setDone] = React.useState(0);
+    React.useEffect(() => {
+      if (status !== 'running') return;
+      if (done >= PLAN.todo.length) { setStatus('done'); return; }
+      const t = setTimeout(() => setDone(done + 1), 700); return () => clearTimeout(t);
+    }, [status, done]);
+    return h('div', { style: { maxWidth: '820px', display: 'flex', flexDirection: 'column', gap: '12px' } }, [
+      h(R.PlanDocument, Object.assign({ key: 'p' }, PLAN, { status, done,
+        onRun: () => { setDone(0); setStatus('running'); }, onKeep: () => setStatus('kept') })),
+      status !== 'draft' ? h(R.Button, { key: 'b', size: 'sm', variant: 'ghost', onClick: () => { setStatus('draft'); setDone(0); } }, 'Back to the draft') : null
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

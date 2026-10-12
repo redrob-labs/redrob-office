@@ -1,0 +1,22 @@
+<!-- @dsCard group="Safeguards" height=500 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 15, height: s || 15 });
+
+  const COLS = [
+    { id: 'opus', model: 'Claude Opus 5.5', role: 'Wrote the answer', wrote: true },
+    { id: 'ds', model: 'DeepSeek V4 Pro', role: 'Fact check' },
+    { id: 'gp', model: 'Gemini 3.1 Pro', role: 'Challenge, against' }
+  ];
+  const ROWS = [
+    { id: 'c1', label: 'Clause 8.2 makes our promise to cover their losses unlimited', where: 'Clause 8.2', cells: { ds: ['agree'], gp: ['agree'] } },
+    { id: 'c2', label: 'Data breaches are outside the 11.4 limit', where: 'Clause 11.4', cells: { ds: ['differ', 'Reads 11.4(c) as covering only gross negligence.'], gp: ['agree', 'The exception names "any breach of Clause 13 (Data)".'] } },
+    { id: 'c3', label: 'Clause 14.1 lets them end it on 30 days\' notice', where: 'Clause 14.1', cells: { ds: ['quiet'], gp: ['agree'] } },
+    { id: 'c4', label: 'Clause 6.3 renews for 12 months unless we cancel 90 days ahead', where: 'Clause 6.3', cells: { opus: ['quiet'], ds: ['agree'], gp: ['added', 'Our usual is 60 days.'] } }
+  ];
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { maxWidth: '920px' } }, h(R.OpinionGrid, { columns: COLS, rows: ROWS, caption: 'Cross-check on the Seorin review' })));
+</script>

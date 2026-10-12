@@ -1,0 +1,25 @@
+<!-- @dsCard group="Feedback" height=220 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return row([
+      h('div', { key: 1, style: { display: 'flex', gap: '12px', width: '300px' } }, [
+        h(R.Skeleton, { key: 'a', variant: 'circle', size: 40 }),
+        h('div', { key: 'b', style: { flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' } }, [
+          h(R.Skeleton, { key: 1, variant: 'text', width: '55%' }),
+          h(R.Skeleton, { key: 2, variant: 'text', lines: 2 }),
+        ]),
+      ]),
+      h('div', { key: 2, style: { width: '260px', display: 'flex', flexDirection: 'column', gap: '12px' } }, [
+        h(R.Skeleton, { key: 1, variant: 'rect', height: 96 }),
+        h(R.Skeleton, { key: 2, variant: 'text', lines: 3 }),
+      ]),
+    ], { alignItems: 'flex-start' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

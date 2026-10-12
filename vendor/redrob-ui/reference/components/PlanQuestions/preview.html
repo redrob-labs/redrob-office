@@ -1,0 +1,21 @@
+<!-- @dsCard group="Agent chat" height=560 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const QUESTIONS = [
+    { id: 'q1', question: 'What do you need at the end?', options: ['A yes or no, with the reason', 'A short memo for the client', 'A notice, ready to send'], defaultValue: 2 },
+    { id: 'q2', question: 'What should I read?', options: ['The MSA and its amendments', 'Our emails with Seorin', 'Korean law on notices'], multi: true, defaultValue: [0, 1, 2] },
+    { id: 'q3', question: 'When must the agreement end?', options: ['November 30, 2026', 'As soon as possible', 'No fixed date'], defaultValue: 0 },
+    { id: 'q4', question: 'Who will read it?', options: ['Only me', 'The client', 'Seorin’s lawyer'], defaultValue: 1 }
+  ];
+  function Demo() {
+    const [done, setDone] = React.useState(false);
+    return h('div', { style: { maxWidth: '680px', display: 'flex', flexDirection: 'column', gap: '12px' } }, [
+      h(R.PlanQuestions, { key: 'q', questions: QUESTIONS, done, onSubmit: () => setDone(true),
+        summary: 'Answered: a notice ready to send; the MSA, the emails and Korean law; end by November 30; for the client.' }),
+      done ? h(R.Button, { key: 'b', size: 'sm', variant: 'ghost', onClick: () => setDone(false) }, 'Show the questions again') : null
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

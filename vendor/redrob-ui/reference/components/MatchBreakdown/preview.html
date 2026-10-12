@@ -1,0 +1,22 @@
+<!-- @dsCard group="Evidence" height=505 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.MatchBreakdown, {
+      name:'Ji-won Seo', sub:'Staff Engineer, Danal Fintech, Seoul',
+      items:[
+        { label:'Backend engineering, seven years or more', state:'met', evidence:'Nine years, three of them at staff level' },
+        { label:'Has run payments at high volume', state:'met', evidence:'Rebuilt settlement for four card networks, 2022 to 2024' },
+        { label:'Based in Seoul or able to be', state:'met', evidence:'Seoul' },
+        { label:'Has worked at a company under 200 people', state:'partly', evidence:'Danal was 140 when she joined and 600 when she left' },
+        { label:'Open to a Series B company', state:'unknown' },
+        { label:'Currently at a bank', state:'missing', evidence:'Danal is a payments company, not a bank' }
+      ],
+      onOpen:()=>{} });
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

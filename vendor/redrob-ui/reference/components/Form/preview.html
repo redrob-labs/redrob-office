@@ -1,0 +1,46 @@
+<!-- @dsCard group="Forms" height=1015 width=820 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  const PRODUCTS = [
+    { value:'all',     label:'All seven',       description:'One account, every product' },
+    { value:'chat',    label:'Redrob Chat',     description:'Conversation, on the best model for each question' },
+    { value:'cowork',  label:'Redrob Cowork',   description:'The agent that works in your files' },
+    { value:'browser', label:'Redrob Browser',  description:'The browser that cites what it used' },
+    { value:'console', label:'Redrob Console',  description:'Your team\'s AI usage, spend and results' },
+    { value:'office',  label:'Redrob Office',   description:'Documents and sheets' },
+    { value:'design',  label:'Redrob Design',   description:'The design editor' },
+    { value:'code',    label:'Redrob Code',     description:'Writing and fixing code' }
+  ];
+
+  /* Combobox rather than Select for both. Select is a native element on purpose - it
+     brings the mobile picker and IME support with it - but its popup is drawn by the
+     operating system, so on a page it is the one list that does not look like the rest
+     of this system. Where the list is long or the match has to be visible, use this. */
+  const MARKETS = ['Korea','India','United States','Japan','Indonesia','Vietnam','Thailand',
+    'Singapore','Philippines','Malaysia','United Kingdom','Germany','Somewhere else'];
+
+  function Demo() {
+    return h(R.Band, { size:'sm' }, h('div', { style:{ display:'flex', gap:'64px', flexWrap:'wrap' } }, [
+      h(R.Form, { key:1, title:'Book a demo',
+        description:'Half an hour, on your own files. We open the products you pick and run one real piece of your work through them.',
+        errors:[{field:'email',message:'Enter a work email address so we can reply'},{message:'Tell us which market you are in, so we bring the right pricing'}],
+        consent: h(R.Checkbox, { label:'Email me when Redrob ships something new', hint:'Separate from this request. You can stop at any time.' }),
+        note:'Usually two working days. Nothing is stored beyond the reply.',
+        submitLabel:'Book the demo' }, [
+          h(R.Input, { key:'a', label:'Work email', id:'email', type:'email', required:true, invalid:true, error:'Enter a work email address so we can reply' }),
+          h(R.Input, { key:'b', label:'Company', id:'company' }),
+          h(R.Combobox, { key:'c', label:'What you want to see', id:'product', options:PRODUCTS,
+                          defaultValue:'all', placeholder:'Search the products' }),
+          h(R.Combobox, { key:'d', label:'Where you are', id:'market', options:MARKETS,
+                          placeholder:'Type to find your market' })
+        ]),
+      h(R.Form, { key:2, state:'done', doneTitle:'Booked.',
+        doneText:'We will reply to the address you gave within two working days with three times that suit us. Nothing else happens in the meantime.' })
+    ]));
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

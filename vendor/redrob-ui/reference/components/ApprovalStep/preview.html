@@ -1,0 +1,20 @@
+<!-- @dsCard group="Agent chat" height=270 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return h(R.ApprovalStep, {
+      title: 'Send the verification result to 3 recipients?',
+      description: 'Redrob will email each candidate using the interview_invite template and add the slot to your calendar.',
+      detail: 'to: aarav@example.com, meera@example.com, rohit@example.com\ntemplate: interview_invite\nslot: 8 Oct 2026, 14:00 KST',
+      onApprove: () => {},
+      onReject: () => {},
+      onAlways: () => {},
+    });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

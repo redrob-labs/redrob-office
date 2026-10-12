@@ -1,0 +1,18 @@
+<!-- @dsCard group="Feedback" height=450 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return col([
+      h(R.Alert, { key: 1, tone: 'info', title: 'Screening runs at 09:00 KST' }, 'New applications are scored once a day. You can run it manually from the role page.'),
+      h(R.Alert, { key: 2, tone: 'success', title: 'Offer letter sent' }, 'Ji-woo Park was notified by email.'),
+      h(R.Alert, { key: 3, tone: 'warning', title: 'Two roles have no reviewer' }, 'Assign a reviewer so applications are not left waiting.'),
+      h(R.Alert, { key: 4, tone: 'danger', title: 'Import failed', onClose: () => {} }, 'Row 42 is missing an email address. Fix the file and upload again.'),
+    ], { width: '520px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

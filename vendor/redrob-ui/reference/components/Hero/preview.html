@@ -1,0 +1,65 @@
+<!-- @dsCard group="Marketing" height=760 width=1280 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  /* The site's one navigation (90-web.md, One navigation): the same on every page. */
+  const NAV = [
+    { label:'Products', items:[
+      { label:'Redrob Chat',     href:'#', detail:'A conversation, with each question sent to the model that answers it best' },
+      { label:'Redrob Cowork',   href:'#', detail:'The agent that works beside you, in your own files and apps' },
+      { label:'Redrob Browser',  href:'#', detail:'A browser that finishes the task you give it' },
+      { label:'Redrob Console',  href:'#', detail:'Where a team sees its AI: usage, spend, models and results' },
+      { label:'Redrob Office',   href:'#', detail:'Documents, sheets and decks that update when a fact changes' },
+      { label:'Redrob Design',   href:'#', detail:'Designs the whole product as one system, in the file' },
+      { label:'Redrob Code',     href:'#', detail:'An agent that writes and fixes code in your terminal' } ] },
+    { label:'Solutions', items:['For founders','For small teams','For engineers','For designers','For product managers','For marketers','For sales teams','For recruiters','For HR teams','For lawyers','For accountants','For consultants','For investors'].map(l => ({ label:l, href:'#' })) },
+    { label:'Research', href:'#' },
+    { label:'News', href:'#' },
+    { label:'Blog', href:'#' },
+    { label:'Company', href:'#' }
+  ];
+  /* English, Korean and Hindi first (the three markets), then the world's most spoken
+     languages. Native names; Arabic sets right to left. A language with no version of this
+     page renders as unavailable, never as a link home (LangSwitch). */
+  const LANGS = [
+    {code:'en',label:'English',href:'#'}, {code:'ko',label:'\ud55c\uad6d\uc5b4',href:'#'}, {code:'hi',label:'\u0939\u093f\u0928\u094d\u0926\u0940',href:'#'},
+    {code:'zh-Hans',label:'\u7b80\u4f53\u4e2d\u6587',href:'#'}, {code:'es',label:'Espa\u00f1ol',href:'#'}, {code:'fr',label:'Fran\u00e7ais',href:'#'},
+    {code:'ar',label:'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',href:'#'}, {code:'bn',label:'\u09ac\u09be\u0982\u09b2\u09be',href:'#'},
+    {code:'pt',label:'Portugu\u00eas',href:'#'}, {code:'ja',label:'\u65e5\u672c\u8a9e',href:'#'} ];
+  const LANG = h(R.LangSwitch, { current:'en', langs: LANGS });
+  /* System, Light, Dark: in the bar on every page, in the drawer on a phone. */
+  const THEME = h(R.ThemeSwitch);
+  /* 10-logo.md: Primary on a light ground, Primary White on a dark one; .rr-mark swaps them. */
+  const MARK_L = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+  const MARK_D = '/_blob/290f8c4ecd34da668364dc8794df0e45';
+  const mark = h('span', { className:'rr-mark' }, [
+    h('img', { key:'l', className:'rr-mark__light', src:MARK_L, alt:'Redrob', style:{ height:'24px' } }),
+    h('img', { key:'d', className:'rr-mark__dark',  src:MARK_D, alt:'',       style:{ height:'24px' } })
+  ]);
+
+  /* The homepage hero: the film behind the whole band, the display cut as the h1 on the
+     scrim, no lockup under the header. The film is generated, so it says so, beside Pause. */
+  const FILM = {
+    src: '/_blob/29a0a4b28aee48aa4be9ddd9a75de9b3',
+    webm: '/_blob/2a990ba7c3658a97f20d27002cbb6ae7',
+    poster: '/_blob/035451a1e73210c3ecc1d47a0dc62c7c',
+    label: 'AI-generated with Seedance 2.5, Higgsfield'
+  };
+  function Demo() {
+    return h('div', null, [
+      h(R.SiteHeader, { key:'hd', mark, homeLabel:'Redrob',
+        sections: NAV, lang: LANG, theme: THEME,
+        action: h(R.Button, { size:'sm', shape:'pill' }, 'Start free') }),
+      h(R.Band, { key:'b', ground:'deep' },
+        h(R.Hero, {
+          film: FILM,
+          lede: 'Seven products that carry the world\'s best models into your own files, documents and language.',
+          action: h(R.Button, { size:'lg', shape:'pill', emphasis:true }, 'Start free'),
+          secondary: 'See the seven products',
+          foot: 'Free to start. Nothing leaves without your rules.'
+        }, h(R.Display, { level:2, as:'h1', lang:'en' }, 'The whole job, not the interesting part.')))
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

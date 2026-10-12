@@ -1,0 +1,23 @@
+<!-- @dsCard group="Forms" height=300 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const roles = [
+      { value: 'be', label: 'Backend Engineer', description: 'Noida' },
+      { value: 'fe', label: 'Frontend Engineer', description: 'Seoul' },
+      { value: 'pd', label: 'Product Designer', description: 'Seoul' },
+      { value: 'da', label: 'Data Analyst', description: 'New York' },
+      { value: 'rc', label: 'Recruiter', description: 'Noida' },
+    ];
+    return row([
+      h(R.Combobox, { key: 1, label: 'Role', options: roles, defaultOpen: true, defaultValue: 'fe', placeholder: 'Search roles', style: { width: '300px' } }),
+      h(R.Combobox, { key: 2, label: 'Reviewer', options: ['Felix Kim', 'Swati Chauhan', 'Jae Gardner'], hint: 'Type to filter, Enter to pick.', style: { width: '260px' } }),
+    ], { alignItems: 'flex-start' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

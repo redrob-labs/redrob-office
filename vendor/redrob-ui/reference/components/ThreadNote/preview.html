@@ -1,0 +1,20 @@
+<!-- @dsCard group="Agent chat" height=420 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    const [gone, setGone] = React.useState(false);
+    return h('div', { style: { display: 'grid', gap: '18px', maxWidth: '760px' } }, [
+      h(R.Message, { key: 'u', role: 'user', author: 'Felix' }, 'Now send Seorin a short update on where we are.'),
+      h(R.ThreadNote, { key: 's', to: 'Kimi K3', reason: 'for client updates' }),
+      h(R.Message, { key: 'a', role: 'assistant', author: 'Cowork' }, 'Here is a short update, ready to send.'),
+      h(R.ThreadNote, { key: 'y', to: 'DeepSeek V4 Pro', by: 'you' }),
+      gone
+        ? h('p', { key: 'm', style: { fontSize: '13px', color: 'var(--ink-secondary)', margin: 0 } }, 'Removed from memory.')
+        : h(R.ThreadNote, { key: 'm', kind: 'memory', onUndo: () => setGone(true) }, 'your standard notice period is 60 days')
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

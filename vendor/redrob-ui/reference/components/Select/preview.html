@@ -1,0 +1,22 @@
+<!-- @dsCard group="Forms" height=420 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+
+  function Demo() {
+    const offices = [
+      { value: 'seoul', label: 'Seoul', detail: 'McKinley Rice, headquarters' },
+      { value: 'noida', label: 'Noida', detail: 'Redrob Creativity, India' },
+      { value: 'ny', label: 'New York', detail: 'Redrob Inc., United States' }
+    ];
+    const jobs = ['Lawyer', 'Accountant', 'Recruiter', 'HR', 'Founder', 'Sales', 'Marketer', 'Consultant', 'Investor', 'Product manager', 'Engineer'];
+    return row([
+      h(R.Select, { key: 1, label: 'Office', options: offices, defaultValue: 'seoul', style: { width: '240px' } }),
+      h(R.Select, { key: 2, label: 'Show examples for', options: jobs, placeholder: 'Choose a profession', hint: 'Ten professions. The list scrolls.', style: { width: '240px' } }),
+      h(R.Select, { key: 3, label: 'Locked', options: offices, disabled: true, defaultValue: 'ny', style: { width: '180px' } })
+    ], { alignItems: 'flex-start' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

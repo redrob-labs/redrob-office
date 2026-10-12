@@ -1,0 +1,55 @@
+<!-- @dsCard group="Navigation" height=365 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  const MARKETS = [
+    ['Seoul', 'Korea', 'Placement and platform'], ['Noida', 'India', 'Eight years in market'],
+    ['New York', 'United States', 'Opened Q2 2026'], ['Jakarta', 'Indonesia', 'Pilot'],
+    ['Lagos', 'Nigeria', 'Pilot'], ['Manila', 'Philippines', 'Waitlist'],
+    ['Nairobi', 'Kenya', 'Waitlist'], ['Hanoi', 'Vietnam', 'Waitlist'],
+    ['Dhaka', 'Bangladesh', 'Waitlist'], ['Karachi', 'Pakistan', 'Waitlist'],
+    ['Bogota', 'Colombia', 'Research'], ['Cairo', 'Egypt', 'Research'],
+  ];
+  const cap = (t) => h('div', { style: { fontSize: '11px', color: 'var(--ink-muted)', marginTop: '10px' } }, t);
+
+  const rows = MARKETS.map(([city, country, note], i) =>
+    h('div', { key: i, style: {
+      display: 'flex', alignItems: 'baseline', gap: '12px', padding: '11px 16px 11px 0',
+      borderTop: i ? '1px solid var(--border-subtle)' : 'none',
+    } }, [
+      h('span', { key: 'c', style: { fontSize: '15px', fontWeight: 500, width: '92px', flex: 'none' } }, city),
+      h('span', { key: 'k', style: { fontSize: '13px', color: 'var(--ink-secondary)', flex: 1 } }, country),
+      h('span', { key: 'n', style: { fontSize: '12px', color: 'var(--ink-muted)' } }, note),
+    ]));
+
+  function Demo() {
+    return h('div', { style: { display: 'flex', gap: '28px', alignItems: 'flex-start', flexWrap: 'wrap' } }, [
+      h('div', { key: 'a', style: { flex: '1 1 340px', minWidth: 0 } }, [
+        h(R.SectionMark, { label: ['Vertical'], trailing: '12 markets' }),
+        h('div', { style: { marginTop: '10px' } },
+          h(R.Scroller, { maxHeight: 240, label: 'Markets' }, rows)),
+        cap('scroll it: the top edge fades in, the bottom fades out at the end'),
+      ]),
+      h('div', { key: 'b', style: { flex: '1 1 300px', minWidth: 0 } }, [
+        h(R.SectionMark, { label: ['Horizontal', 'thin'] }),
+        h('div', { style: { marginTop: '10px' } },
+          h(R.Scroller, { axis: 'x', size: 'thin', label: 'Products' },
+            h('div', { style: { display: 'flex', gap: '10px', paddingBottom: '12px' } },
+              ['Chat', 'Cowork', 'Browser', 'Console', 'Office', 'Design', 'Code'].map((p) =>
+                h('div', { key: p, style: {
+                  flex: 'none', padding: '14px 18px', border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)', fontSize: '14px', fontWeight: 500, whiteSpace: 'nowrap',
+                } }, p))))),
+        cap('axis x, size thin'),
+        h('div', { style: { marginTop: '22px', background: 'var(--redrob-black)', borderRadius: 'var(--radius-lg)', padding: '14px 16px' } },
+          h(R.Scroller, { tone: 'inverse', maxHeight: 120, background: 'var(--redrob-black)', label: 'Log' },
+            h('div', { style: { color: 'rgba(255,255,255,.72)', fontSize: '13px', lineHeight: '22px' } },
+              MARKETS.map(([c], i) => h('div', { key: i }, 'Routed ' + c + ' workspace to its model'))))),
+        cap('tone inverse, on a dark surface'),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

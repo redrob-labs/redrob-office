@@ -1,0 +1,21 @@
+<!-- @dsCard group="Frames" height=165 width=1180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const MARK = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+
+  function Demo() {
+    return h('div', { style:{ padding:'24px' } },
+      h(R.ConsentBar, {
+        categories:[
+          { id:'need', label:'What the site needs to work', detail:'Your language, and whether you have answered this question. Cannot be turned off.', required:true },
+          { id:'use',  label:'How the site is used', detail:'Which pages are read and for how long. Nothing that identifies you.' },
+          { id:'ads',  label:'Advertising', detail:'Lets an advertising network recognize you on other sites.' }
+        ],
+        onDecide:()=>{}
+      }, 'We would like to measure how this site is used. Nothing is on until you say so, and saying no costs you nothing on this site.'));
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

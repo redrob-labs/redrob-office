@@ -1,0 +1,22 @@
+<!-- @dsCard group="Agent chat" height=520 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  const VIEWS = [
+    { who: 'Gemini 3.1 Pro', said: 'Agrees. The exception names "any breach of Clause 13 (Data)", so data breaches have no limit.' },
+    { who: 'DeepSeek V4 Pro', said: 'Sees it differently. It reads 11.4(c) as covering only gross negligence, so ordinary data breaches stay under the limit.' }
+  ];
+  function Demo() {
+    const [settled, setSettled] = React.useState(false);
+    return h('div', { style: { maxWidth: '760px' } }, h(R.Message, { role: 'assistant', author: 'Cowork' }, h('div', null, [
+      h('p', { key: 1, style: { margin: '0 0 10px' } }, ['Clause 8.2 makes your promise to cover their losses unlimited. ',
+        h(R.Opinion, { key: 'd', n: 1, views: VIEWS, defaultOpen: true, onSettle: () => setSettled(true) }, 'Clause 11.4 limits what you owe to 12 months of fees, but data breaches are outside that limit.'),
+        ' Clause 14.1 lets them end the agreement on 30 days\' notice.']),
+      settled ? h('p', { key: 2, style: { margin: '0 0 10px', fontSize: '13px', color: 'var(--ink-secondary)' } }, 'Asked Claude Opus 5.5 to settle point 1. It is rereading Clause 11.4 with both readings in front of it.') : null,
+      h(R.Opinion, { key: 3, kind: 'added', by: 'Gemini 3.1 Pro' }, h('p', null, 'Clause 6.3 renews the agreement for another 12 months unless you cancel 90 days ahead. Your usual is 60.'))
+    ])));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,23 @@
+<!-- @dsCard group="Local formats" height=285 width=820 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  const AT = '2026-03-04T14:30:00Z';
+  const row = (label, node, note) => h('tr', { key:label }, [
+    h('td', { key:'a', style:{ padding:'9px 22px 9px 0', fontSize:'12px', color:'var(--ink-muted)', whiteSpace:'nowrap' } }, label),
+    h('td', { key:'b', style:{ padding:'9px 22px 9px 0', fontSize:'15px' } }, node),
+    h('td', { key:'c', style:{ padding:'9px 0', fontSize:'12px', color:'var(--ink-secondary)' } }, note)
+  ]);
+  function Demo() {
+    return h('table', { style:{ borderCollapse:'collapse' } }, h('tbody', null, [
+      row('Seoul', h(R.Timestamp,{ at:AT, zone:'Asia/Seoul', locale:'ko-KR' }), 'The marker goes before the time in Korean'),
+      row('Noida', h(R.Timestamp,{ at:AT, zone:'Asia/Kolkata', locale:'en-IN' }), 'Half an hour off the hour, which breaks anything that assumed whole offsets'),
+      row('New York', h(R.Timestamp,{ at:AT, zone:'America/New_York', locale:'en-US' }), 'Same instant, three readings'),
+      row('Both parties', h(R.Timestamp,{ at:AT, zone:'America/New_York', originZone:'Asia/Seoul', locale:'en-US' }),
+        'A deadline belongs to two people. Converting one of them away is the invisible kind of border'),
+      row('Relative', h(R.Timestamp,{ at:AT, zone:'Asia/Seoul', locale:'en-US', relative:true }),
+        'Readable, and the absolute value stays in the title. Never for anything audited')
+    ]));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

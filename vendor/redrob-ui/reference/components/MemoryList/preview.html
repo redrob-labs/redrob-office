@@ -1,0 +1,16 @@
+<!-- @dsCard group="Safeguards" height=480 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 15, height: s || 15 });
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { maxWidth: '860px' } }, h(R.MemoryList, { items: [
+    { text: 'Our standard limit is 12 months of fees', source: 'You told it on 3 Sep', readBy: 'Claude Opus 5.5, DeepSeek V4 Pro, Gemini 3.1 Pro' },
+    { text: 'Seorin\'s lawyer prefers changes as a Word redline', source: 'Learned in a chat on 11 Sep', readBy: 'Claude Opus 5.5, Kimi K3' },
+    { text: 'Our standard notice period is 60 days', source: 'Learned today', readBy: 'Claude Opus 5.5' },
+    { text: 'Person 1 is Seorin\'s lawyer', source: 'Learned on 11 Sep. The name itself stays on your laptop.', readBy: 'Claude Opus 5.5, Kimi K3' },
+    { text: 'Never send ID or bank numbers', source: 'Set by your admin on 20 Aug', readBy: 'Every AI', locked: true }
+  ] })));
+</script>

@@ -1,0 +1,37 @@
+<!-- @dsCard group="Actions" height=220 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return col([
+      row([
+        h(R.Button, { key: 1 }, 'Primary'),
+        h(R.Button, { key: 2, variant: 'secondary' }, 'Secondary'),
+        h(R.Button, { key: 3, variant: 'ghost' }, 'Ghost'),
+        h(R.Button, { key: 4, variant: 'danger' }, 'Delete'),
+        h(R.Button, { key: 5, disabled: true }, 'Disabled'),
+      ]),
+      row([
+        h(R.Button, { key: 1, size: 'sm' }, 'Small'),
+        h(R.Button, { key: 2, size: 'md' }, 'Medium'),
+        h(R.Button, { key: 3, size: 'lg' }, 'Large'),
+        h(R.Button, { key: 4, iconLeft: h(R.icons.plus, {}) }, 'New search'),
+        h(R.Button, { key: 5, loading: true }, 'Saving'),
+      ]),
+      row([
+        h(R.Button, { key: 1, shape: 'pill' }, 'Pill'),
+        h(R.Button, { key: 2, shape: 'pill', variant: 'secondary' }, 'Pill secondary'),
+        h(R.Button, { key: 3, emphasis: true }, 'Emphasis'),
+        h('span', { key: 4, 'data-density': 'compact', style: { display: 'inline-flex', gap: '12px' } }, [
+          h(R.Button, { key: 1, variant: 'secondary' }, 'Compact density'),
+          h(R.Button, { key: 2 }, 'Compact'),
+        ]),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

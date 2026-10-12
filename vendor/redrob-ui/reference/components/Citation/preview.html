@@ -1,0 +1,26 @@
+<!-- @dsCard group="Agent chat" height=145 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return col([
+      h('p', { key: 1, style: { margin: 0, maxWidth: '62ch', fontSize: '15px', lineHeight: '26px' } }, [
+        'Median time to first review fell to 9.2 hours last quarter ',
+        h(R.Citation, { key: 'a', index: 1, source: 'Pipeline report Q3', href: '/records/pipeline-report-q3' }),
+        ', and offer acceptance held at 86% ',
+        h(R.Citation, { key: 'b', index: 2, source: 'ATS export', href: '/records/ats-export' }),
+        '.',
+      ]),
+      row([
+        h(R.Citation, { key: 1, index: 1, source: 'Aarav Sharma - CV.pdf', href: '/records/aarav-sharma-cv-pdf' }),
+        h(R.Citation, { key: 2, index: 2, source: 'redrob.co/careers', href: '/records/redrob-co-careers' }),
+        h(R.Citation, { key: 3, source: 'Screening notes', href: '/records/screening-notes' }),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

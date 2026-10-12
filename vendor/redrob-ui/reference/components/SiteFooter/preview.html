@@ -1,0 +1,66 @@
+<!-- @dsCard group="Frames" height=480 width=1180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  /* The site's one navigation (90-web.md, One navigation): the same on every page. */
+  const NAV = [
+    { label:'Products', items:[
+      { label:'Redrob Chat',     href:'#', detail:'A conversation, with each question sent to the model that answers it best' },
+      { label:'Redrob Cowork',   href:'#', detail:'The agent that works beside you, in your own files and apps' },
+      { label:'Redrob Browser',  href:'#', detail:'A browser that finishes the task you give it' },
+      { label:'Redrob Console',  href:'#', detail:'Where a team sees its AI: usage, spend, models and results' },
+      { label:'Redrob Office',   href:'#', detail:'Documents, sheets and decks that update when a fact changes' },
+      { label:'Redrob Design',   href:'#', detail:'Designs the whole product as one system, in the file' },
+      { label:'Redrob Code',     href:'#', detail:'An agent that writes and fixes code in your terminal' } ] },
+    { label:'Solutions', items:['For founders','For small teams','For engineers','For designers','For product managers','For marketers','For sales teams','For recruiters','For HR teams','For lawyers','For accountants','For consultants','For investors'].map(l => ({ label:l, href:'#' })) },
+    { label:'Research', href:'#' },
+    { label:'News', href:'#' },
+    { label:'Blog', href:'#' },
+    { label:'Company', href:'#' }
+  ];
+  /* English, Korean and Hindi first (the three markets), then the world's most spoken
+     languages. Native names; Arabic sets right to left. A language with no version of this
+     page renders as unavailable, never as a link home (LangSwitch). */
+  const LANGS = [
+    {code:'en',label:'English',href:'#'}, {code:'ko',label:'\ud55c\uad6d\uc5b4',href:'#'}, {code:'hi',label:'\u0939\u093f\u0928\u094d\u0926\u0940',href:'#'},
+    {code:'zh-Hans',label:'\u7b80\u4f53\u4e2d\u6587',href:'#'}, {code:'es',label:'Espa\u00f1ol',href:'#'}, {code:'fr',label:'Fran\u00e7ais',href:'#'},
+    {code:'ar',label:'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',href:'#'}, {code:'bn',label:'\u09ac\u09be\u0982\u09b2\u09be',href:'#'},
+    {code:'pt',label:'Portugu\u00eas',href:'#'}, {code:'ja',label:'\u65e5\u672c\u8a9e',href:'#'} ];
+  const LANG = h(R.LangSwitch, { current:'en', langs: LANGS });
+  /* System, Light, Dark: in the bar on every page, in the drawer on a phone. */
+  const THEME = h(R.ThemeSwitch);
+  const MARK_L = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+  const MARK_D = '/_blob/290f8c4ecd34da668364dc8794df0e45';
+  const mark = (px) => h('span', { className:'rr-mark' }, [
+    h('img', { key:'l', className:'rr-mark__light', src:MARK_L, alt:'Redrob', style:{ height:px+'px' } }),
+    h('img', { key:'d', className:'rr-mark__dark',  src:MARK_D, alt:'',       style:{ height:px+'px' } })
+  ]);
+  const SUITE = [
+    ['Redrob Chat', '/_blob/bf10c52aa8d82d7664c19060542fd0f9', 'A conversation, with each question sent to the model that answers it best'],
+    ['Redrob Cowork', '/_blob/58948e9c2994969a266dddc91ee86cb5', 'The agent that works beside you, in your own files and apps'],
+    ['Redrob Browser', '/_blob/8da12a0f6a1d4f4863b066f8f382e3b3', 'A browser that finishes the task you give it'],
+    ['Redrob Console', '/_blob/40c7e8a4cbf1d8ec92cc0af110f96ce5', 'Where a team sees its AI: usage, spend, models and results'],
+    ['Redrob Office', '/_blob/14ac1d8d7434e80578b423a4d0f5704a', 'Documents, sheets and decks that update when a fact changes'],
+    ['Redrob Design', '/_blob/dce03e4290a23e41a58cbfa285ab0fab', 'Designs the whole product as one system, in the file'],
+    ['Redrob Code', '/_blob/51456d190e75be46664a010cba510aca', 'An agent that writes and fixes code in your terminal']
+  ];
+  const HEADER = h(R.SiteHeader, { key:'hd', mark: mark(24), homeLabel:'Redrob',
+    sections: NAV, lang: LANG, theme: THEME,
+    action: h(R.Button, { size:'sm', shape:'pill' }, 'Start free') });
+  const FOOTER = h(R.SiteFooter, { key:'ft', mark: mark(24),
+    line: "The last mile of AI: the world's best models, across every border of language, place, background and technical skill.",
+    columns: [
+      { title:'Products', items:[
+        {label:'Redrob Chat',href:'#'},{label:'Redrob Cowork',href:'#'},{label:'Redrob Browser',href:'#'},{label:'Redrob Console',href:'#'},
+        {label:'Redrob Office',href:'#'},{label:'Redrob Design',href:'#'},{label:'Redrob Code',href:'#'},
+        {label:'Luma, by Redrob',href:'#',divider:true,external:true},{label:'Signal, by Redrob',href:'#',external:true},{label:'Kaabil, by Redrob',href:'#',external:true},{label:'Crew, by Redrob',href:'#',external:true}] },
+      { title:'Solutions', items:[{label:'For founders',href:'#'},{label:'For small teams',href:'#'},{label:'For engineers',href:'#'},{label:'For designers',href:'#'},{label:'For product managers',href:'#'},{label:'For marketers',href:'#'},{label:'For sales teams',href:'#'},{label:'For recruiters',href:'#'},{label:'For HR teams',href:'#'},{label:'For lawyers',href:'#'},{label:'For accountants',href:'#'},{label:'For consultants',href:'#'},{label:'For investors',href:'#'}] },
+      { title:'Company', items:[{label:'About Redrob',href:'#'},{label:'Research',href:'#'},{label:'News',href:'#'},{label:'Blog',href:'#'}] }
+    ],
+    copyright: '© 2026 Redrob Inc.',
+    legal: [ {label:'Privacy',href:'#'}, {label:'Terms',href:'#'}, {label:'Cookies',onClick:()=>{}}, {label:'Accessibility',href:'#'}, {label:'Company details',href:'#'} ] });
+
+  function Screen() { return FOOTER; }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Screen));
+</script>

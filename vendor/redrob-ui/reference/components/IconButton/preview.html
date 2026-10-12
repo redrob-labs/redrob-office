@@ -1,0 +1,21 @@
+<!-- @dsCard group="Actions" height=105 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return row([
+      h(R.IconButton, { key: 1, label: 'Search' }, h(R.icons.search, {})),
+      h(R.IconButton, { key: 2, label: 'Add', variant: 'primary' }, h(R.icons.plus, {})),
+      h(R.IconButton, { key: 3, label: 'Add', variant: 'secondary' }, h(R.icons.plus, {})),
+      h(R.IconButton, { key: 4, label: 'Add', variant: 'primary', round: true }, h(R.icons.plus, {})),
+      h(R.IconButton, { key: 5, label: 'Close', size: 'sm' }, h(R.icons.close, {})),
+      h(R.IconButton, { key: 6, label: 'Close', size: 'lg' }, h(R.icons.close, {})),
+      h(R.IconButton, { key: 7, label: 'Disabled', disabled: true }, h(R.icons.close, {})),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

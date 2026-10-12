@@ -1,0 +1,14 @@
+<!-- @dsCard group="Safeguards" height=380 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 15, height: s || 15 });
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { display: 'grid', gap: '16px', maxWidth: '760px' } }, [
+    h(R.ProtectionStatus, { key: 1, size: 'lg', tone: 'safe', icon: ic('shieldCheck', 32), title: 'Privacy protection is on: High', live: 'Running on this laptop' }, 'Last check 2 minutes ago.'),
+    h(R.ProtectionStatus, { key: 2, tone: 'brand', icon: ic('bookOpen', 28), title: 'Memory is on: one memory for every AI' }, '12 notes, kept by Redrob outside any AI, so they work with every model.'),
+    h(R.ProtectionStatus, { key: 3, tone: 'warn', icon: ic('shield', 28), title: 'Privacy protection is off here' }, 'It runs on your laptop, so it only works in the Redrob desktop app.')
+  ]));
+</script>

@@ -1,0 +1,37 @@
+<!-- @dsCard group="Data display" height=545 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    const columns = [
+      { key: 'name', header: 'Candidate' },
+      { key: 'role', header: 'Role' },
+      { key: 'stage', header: 'Stage', render: (r) => h(R.Badge, { tone: r.tone }, r.stage) },
+      { key: 'score', header: 'Match', align: 'right' },
+    ];
+    const rows = [
+      { id: 1, name: 'Aarav Sharma', role: 'Backend Engineer', stage: 'Interview', tone: 'info', score: '92%' },
+      { id: 2, name: 'Ji-woo Park', role: 'Product Designer', stage: 'Offer', tone: 'success', score: '88%' },
+      { id: 3, name: 'Meera Nair', role: 'Data Analyst', stage: 'Screening', tone: 'neutral', score: '76%' },
+    ];
+    const columns2 = [
+      { key: 'item', header: 'Matter', grow: true },
+      { key: 'owner', header: 'Owner' },
+      { key: 'opened', header: 'Opened' },
+      { key: 'amount', header: 'Amount', align: 'right' },
+    ];
+    const rows2 = [
+      { id: 1, item: 'Global TIPS consortium agreement, second amendment', owner: 'Swati Chauhan', opened: '12 Mar', amount: '1,240,000' },
+      { id: 2, item: 'Noida lease renewal', owner: 'Jae Gardner', opened: '3 Apr', amount: '98,000' },
+      { id: 3, item: 'Board pack', owner: 'Felix Kim', opened: '28 Aug', amount: '7' },
+    ];
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '28px' } }, [
+      h(R.Table, { key: 1, columns: columns, rows: rows, caption: 'Open pipeline, Noida office' }),
+      h(R.Table, { key: 2, columns: columns2, rows: rows2, dense: true,
+        caption: 'Matters open this quarter - dense, with the first column growing' }),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

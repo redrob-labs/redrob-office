@@ -1,0 +1,18 @@
+<!-- @dsCard group="Agent harness" height=405 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.AgentRoster, { label:'Working on the board pack', onStop:()=>{}, agents:[
+      { id:1, name:'Checking the numbers', state:'running', step:'Reading 18 files you changed', elapsed:'2m 14s' },
+      { id:2, name:'Checking it reads well', state:'running', step:'Reading the draft out loud', elapsed:'2m 11s' },
+      { id:3, name:'Checking the Korean', state:'blocked', step:'Needs the approved word list', elapsed:'1m 40s' },
+      { id:4, name:'Checking the charts', state:'queued', step:'Waiting for the numbers to be checked' },
+      { id:5, name:'Collecting the sources', state:'done', step:'92 sources, each with a link', elapsed:'38s' },
+      { id:6, name:'Fetching last quarter', state:'failed', step:'Could not reach the finance system', elapsed:'4s' },
+    ] });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,17 @@
+<!-- @dsCard group="Forms" height=420 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 16, height: s || 16 });
+  const NOW = new Date(2026, 8, 28, 10, 0);
+  function Demo() {
+    const [z, setZ] = React.useState('Asia/Seoul');
+    return h('div', { style: { width: '280px', minHeight: '360px' } }, [
+      h(R.TimeZonePicker, { key: 'z', value: z, onChange: setZ, now: NOW }),
+      h('p', { key: 'p', style: { fontSize: '13px', color: 'var(--ink-secondary)' } }, 'Chosen: ' + z)
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

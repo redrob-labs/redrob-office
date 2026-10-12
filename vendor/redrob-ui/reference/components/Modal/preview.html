@@ -1,0 +1,25 @@
+<!-- @dsCard group="Feedback" height=325 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const [open, setOpen] = React.useState(true);
+    return h('div', { style: { position: 'relative', height: '264px', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', background: 'var(--surface-sunken)', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
+      h(R.Button, { key: 'b', onClick: () => setOpen(true) }, 'Open dialog'),
+      open && h(R.Modal, {
+        key: 'm',
+        title: 'Archive this role?',
+        onClose: () => setOpen(false),
+        footer: [
+          h(R.Button, { key: 1, variant: 'secondary', onClick: () => setOpen(false) }, 'Cancel'),
+          h(R.Button, { key: 2, variant: 'danger', onClick: () => setOpen(false) }, 'Archive role'),
+        ],
+      }, 'Candidates already in the pipeline keep their stage, but the role stops accepting applications. You can restore it within 30 days.'),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

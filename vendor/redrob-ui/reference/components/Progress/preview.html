@@ -1,0 +1,18 @@
+<!-- @dsCard group="Feedback" height=240 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return col([
+      h(R.Progress, { key: 1, label: 'Profile completeness', value: 68, showValue: true }),
+      h(R.Progress, { key: 2, label: 'Offer accepted', value: 100, tone: 'success', showValue: true }),
+      h(R.Progress, { key: 3, label: 'Storage used', value: 91, tone: 'warning', showValue: true, size: 'sm' }),
+      h(R.Progress, { key: 4, label: 'Importing candidates', indeterminate: true }),
+    ], { width: '360px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

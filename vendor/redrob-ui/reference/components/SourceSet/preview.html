@@ -1,0 +1,20 @@
+<!-- @dsCard group="Evidence" height=380 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', { style:{ display:'flex', flexDirection:'column', gap:'28px' } }, [
+      h(R.SourceSet, { key:1, unit:'documents', updated:'Added to 3 days ago',
+        sources:[
+          { name:'Your Contracts folder', count:308, state:'read' },
+          { name:'Signed amendments, 2019 to 2024', count:74, state:'read' },
+          { name:'Scanned originals', count:30, state:'skipped', reason:'Photographs of paper with no text layer. Nothing in them was read.', icon:R.icons.scan },
+          { name:'The public web', state:'skipped', reason:'You did not give this job access to it.', icon:R.icons.globe }
+        ] })
+    ]);
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

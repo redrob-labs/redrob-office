@@ -1,0 +1,28 @@
+<!-- @dsCard group="Agent harness" height=710 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', { style:{ display:'flex', flexDirection:'column', gap:'24px', maxWidth:'620px' } }, [
+      h(R.Changes, { key:1, title:'Series B one-pager', onAccept:()=>{}, onReject:()=>{}, items:[
+        { kind:'changed', label:'Opening line',
+          before:'Redrob is a recruitment platform for India.',
+          after:'Redrob builds the last mile of AI.' },
+        { kind:'changed', label:'Headline figure',
+          before:'93 people across two countries',
+          after:'93 people across Korea, India and the United States',
+          note:'Taken from the March headcount sheet.' },
+        { kind:'added', label:'Closing paragraph',
+          after:'A short note on what the next twelve months buy.' },
+        { kind:'removed', label:'Office list',
+          before:'The full address block for all three offices.' },
+      ] }),
+      h(R.Changes, { key:2, title:'Quarterly note', summary:'One change', items:[
+        { kind:'changed', label:'Date on the cover', before:'September 2025', after:'September 2026' },
+      ] }),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

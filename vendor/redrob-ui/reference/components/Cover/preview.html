@@ -1,0 +1,86 @@
+<!-- @dsCard group="Foundations" height=300 width=960 -->
+<style>
+  .cover {
+    position: relative;
+    width: 960px;
+    height: 288px;
+    background: var(--surface-base);
+    overflow: hidden;
+    font-family: var(--font-sans);
+  }
+  .cover svg { position: absolute; inset: 0; display: block; }
+  .cover .text {
+    position: absolute;
+    left: var(--space-16);
+    bottom: var(--space-10);
+    width: 400px;
+  }
+  /* The name is the drawn lockup, never type. This cover used to set "Redrob"
+     in the display cut at 96px with a comment calling it a title rather than the
+     wordmark - but a heavy sans "Redrob" on a brand cover reads as a logo whatever
+     the comment says, and there was no drawn mark on the cover at all.
+     So the lockup carries the name, and the cut sets the word the name is made
+     from: Border, the thing Redrob is spelled backwards from. Four of its six
+     letters trap something, and all four are opened. */
+  .cover .rr-mark { display: block; margin: 0 0 var(--space-5); }
+  .cover .rr-mark img { height: 24px; width: auto; }
+  .cover h1 {
+    margin: 0;
+    font-size: 96px;
+    line-height: 0.9;
+    color: var(--ink-primary);
+  }
+  .cover p {
+    margin: var(--space-3) 0 0;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--ink-secondary);
+  }
+  .ground { fill: var(--surface-base); }
+  .near   { fill: var(--redrob-black); }
+  .seam   { fill: var(--blue-5); }
+  .spill  { fill: var(--blue-6); }
+  .far    { fill: var(--blue-2); }
+  .cyan   { fill: var(--accent-teal-3); }
+  .ray    { fill: var(--blue-8); }
+  </style>
+
+<div class="cover">
+  <!--
+    blocks: redrob-black near-side slab 176x336 bleeding top and bottom; blue-6 spill 158x336; blue-2 far field 120x336; accent-teal-3 breath 24x336 - together a little under half the cover
+    arrangement: the threshold, left to right and contiguous - the near side dark, a lit seam at x=672, the light falling away past it and cooling to a teal edge at the far side, everything bleeding off the top, bottom and right
+    pattern: the gateway's layered faces as 4 bars raked at the brand's own 40 degrees, cut into the dark slab where the light reaches through
+    scales: seam 10px, left inset space-16 (64px), bottom inset space-10 (40px), bar pitch 3x space-12 (144px), corners radius-2xl (24px)
+  -->
+  <svg viewBox="0 0 960 288" width="960" height="288" aria-hidden="true">
+    <defs>
+      <clipPath id="near"><rect x="496" y="-24" width="176" height="336" rx="24"/></clipPath>
+    </defs>
+    <rect class="ground" x="0" y="0" width="960" height="288"/>
+
+    <rect class="near" x="496" y="-24" width="176" height="336" rx="24"/>
+    <rect class="near" x="640" y="-24" width="32" height="336"/>
+    <g clip-path="url(#near)">
+      <polygon class="ray" points="496,392 672,244 672,258 496,406"/>
+      <polygon class="ray" points="496,248 672,100 672,114 496,262"/>
+      <polygon class="ray" points="496,104 672,-44 672,-30 496,118"/>
+      <polygon class="ray" points="496,-40 672,-188 672,-174 496,-26"/>
+    </g>
+
+    <rect class="seam" x="672" y="-24" width="10" height="336"/>
+    <rect class="spill" x="682" y="-24" width="158" height="336"/>
+    <rect class="far" x="840" y="-24" width="120" height="336"/>
+    <rect class="cyan" x="936" y="-24" width="24" height="336"/>
+  </svg>
+  <div class="text">
+    <span class="rr-mark">
+      <img class="rr-mark__light" src="/_blob/ed76761a1e006c91b7a77078f8d82da9" alt="Redrob">
+      <img class="rr-mark__dark" src="/_blob/290f8c4ecd34da668364dc8794df0e45" alt="" aria-hidden="true">
+    </span>
+    <h1 class="rr-rake" lang="en">Border</h1>
+    <p>Redrob, spelled backwards · Group Design System 2026</p>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<!-- @dsCard group="Local formats" height=230 width=1180 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  function Demo() {
+    const [a,setA] = React.useState({ day:'27', month:'3', year:'2007' });
+    const [b,setB] = React.useState({ day:'4', month:'mar', year:'2026' });
+    const [c,setC] = React.useState({ day:'4', month:'3', year:'2026' });
+    const out = (v, loc) => {
+      const iso = R.dateParts(v, loc);
+      return h('p',{style:{margin:'10px 0 0',fontSize:'12px',color:'var(--ink-muted)',fontVariantNumeric:'tabular-nums'}},
+        iso ? 'Stored as ' + iso : 'Not a date yet');
+    };
+    return h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'36px',alignItems:'start'}},[
+      h('div',{key:1},[h(R.DateInput,{ label:'Date of birth', birthday:true, value:a, onChange:setA,
+        hint:'27 3 2007 shows that a leading zero is not needed.' }), out(a,'en-GB')]),
+      h('div',{key:2},[h(R.DateInput,{ label:'Signed on', value:b, onChange:setB,
+        hint:'The month takes a word. GOV.UK found hundreds of people typing one and being told they were wrong.' }), out(b,'en-GB')]),
+      h('div',{key:3},[h(R.DateInput,{ label:'계약일', order:'ymd', locale:'ko-KR', value:c, onChange:setC,
+        dayLabel:'일', monthLabel:'월', yearLabel:'년',
+        hint:'Korean writes the year first, so the fields do too.' }), out(c,'ko-KR')])
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

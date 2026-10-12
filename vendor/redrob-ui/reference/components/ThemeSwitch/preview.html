@@ -1,0 +1,18 @@
+<!-- @dsCard group="Frames" height=200 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (label, el) => h('div', { style: { display: 'flex', alignItems: 'center', gap: '16px' } }, [
+    h('span', { key: 'l', style: { width: '120px', fontSize: '13px', color: 'var(--ink-secondary)' } }, label), el ]);
+
+  function Demo() {
+        return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '20px' } }, [
+      row('In the site header', h(R.ThemeSwitch)),
+      row('In a sidebar', h(R.ThemeSwitch, { size: 'sm' })),
+      h('p', { key: 'n', style: { margin: 0, fontSize: '13px', color: 'var(--ink-secondary)' } },
+        'Choosing sets data-theme on this page, so the card itself changes, and the two switches stay in step.')
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

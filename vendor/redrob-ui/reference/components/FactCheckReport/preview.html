@@ -1,0 +1,33 @@
+<!-- @dsCard group="Safeguards" height=1000 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const FACT = {
+    by: 'GPT-6 Sol', took: '42 seconds',
+    summary: '3 of 6 claims hold up. One cites the wrong clause, one is looser than its source, and one source couldn’t be opened. One step in the reasoning is missing, and the answer missed one point.',
+    summaryFixed: 'Fixed. The answer now cites Amendment 2, section 3, uses the amendment’s own words, says email alone is risky rather than invalid, and the notice has a signature block. One source still couldn’t be opened.',
+    claims: [
+      { id: 'c1', verdict: 'holds', claim: 'Clause 14.2 requires notice by courier or registered mail to the address in Schedule 3.', source: 'Seorin MSA, clause 14.2, page 11', passage: 'All notices under this Agreement shall be in writing and delivered by courier or registered mail to the address set out in Schedule 3.', quote: 'delivered by courier or registered mail' },
+      { id: 'c2', verdict: 'holds', claim: 'Email counts only as a copy.', source: 'Seorin MSA, clause 14.3, page 11', passage: 'A copy of any notice may also be sent by email, which shall not by itself constitute notice.', quote: 'shall not by itself constitute notice' },
+      { id: 'c3', verdict: 'partly', claim: 'Amendment 2 allows email for routine notices.', source: 'Amendment 2, section 2', passage: 'Routine operational communications, including invoices and delivery schedules, may be sent by email.', quote: 'Routine operational communications', note: 'The amendment says "operational communications", not notices. The conclusion stands; the answer should use its words.' },
+      { id: 'c4', verdict: 'wrong', claim: 'Clause 14.4 excludes ending the agreement by email.', source: 'Cited: clause 14.4', passage: 'Clause 14.4 covers changes of address. The exclusion is in Amendment 2, section 3: "This amendment does not apply to notices of breach or termination."', quote: 'does not apply to notices of breach or termination', note: 'Right fact, wrong clause.' },
+      { id: 'c5', verdict: 'holds', claim: 'A notice takes effect when it reaches Seorin.', source: 'Civil Act, Article 111, law.go.kr', passage: '상대방이 있는 의사표시는 상대방에게 도달한 때에 그 효력이 생긴다.', quote: '도달한 때에', note: 'Arrival, not sending, is what counts.' },
+      { id: 'c6', verdict: 'closed', claim: 'Seorin never agreed to email notices in writing.', source: 'Email from Seorin, March 12, attachment', note: 'The attachment is password-protected, so it could not be read. Open it and run the check again, or tell Cowork what it says.' }
+    ],
+    reasoning: [{ severity: 'high', title: 'A step is missing between "email is only a copy" and "email notice is not valid"', where: 'First paragraph',
+      detail: 'Clause 14.5 says a notice is effective once actually received, however it was sent. An email Seorin reads may count, so "not valid" overstates it.',
+      suggestion: 'Say email alone is risky, not invalid, and keep registered mail as the way to be sure.' }],
+    missed: [{ text: 'Clause 18.3 requires the notice to be signed by an authorized representative. The draft has no signature block; add one for the client’s CEO.' }]
+  };
+  function Demo() {
+    const [fixed, setFixed] = React.useState(false);
+    return h('div', { style: { maxWidth: '820px', display: 'flex', flexDirection: 'column', gap: '12px' } }, [
+      h(R.FactCheckReport, Object.assign({ key: 'f' }, FACT, { summary: fixed ? FACT.summaryFixed : FACT.summary, fixed, defaultOpen: 'c4',
+        claims: FACT.claims.map((c) => fixed && (c.verdict === 'partly' || c.verdict === 'wrong') ? Object.assign({}, c, { verdict: 'fixed' }) : c),
+        onFix: () => setFixed(true) })),
+      fixed ? h(R.Button, { key: 'b', size: 'sm', variant: 'ghost', onClick: () => setFixed(false) }, 'Show before the fix') : null
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

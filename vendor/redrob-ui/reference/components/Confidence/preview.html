@@ -1,0 +1,17 @@
+<!-- @dsCard group="Agent chat" height=125 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return col([
+      h(R.Confidence, { key: 1, level: 'high', note: 'stated in the CV and confirmed on the call' }),
+      h(R.Confidence, { key: 2, level: 'medium', note: 'inferred from job titles' }),
+      h(R.Confidence, { key: 3, level: 'low', note: 'no source - worth checking' }),
+    ], { gap: '12px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

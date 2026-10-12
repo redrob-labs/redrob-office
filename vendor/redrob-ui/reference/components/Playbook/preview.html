@@ -1,0 +1,23 @@
+<!-- @dsCard group="Agent harness" height=420 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.Playbook, {
+      name:'New agreement, first pass',
+      purpose:'What we do to every agreement before a partner sees our comments.',
+      steps:[
+        { label:'Read the agreement and pull out the six standing questions', detail:'Notice, cap, governing law, assignment, data, term' },
+        { label:'Compare each answer against what we have already signed' },
+        { label:'Raise anything that differs from our own position', approval:true, approvalLabel:'You pick which to raise' },
+        { label:'Draft the wording for the ones you picked' },
+        { label:'Send the marked-up agreement to the partner', approval:true }
+      ],
+      owner:'Legal', runs:'Run 34 times', lastRun:'Last run Tuesday',
+      onRun:()=>{} });
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

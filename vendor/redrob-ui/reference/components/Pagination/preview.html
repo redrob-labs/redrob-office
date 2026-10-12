@@ -1,0 +1,17 @@
+<!-- @dsCard group="Navigation" height=140 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const [page, setPage] = React.useState(4);
+    return col([
+      h(R.Pagination, { key: 1, page: page, pageCount: 12, onChange: setPage }),
+      h(R.Pagination, { key: 2, page: 2, pageCount: 5, onChange: () => {} }),
+    ], { gap: '12px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

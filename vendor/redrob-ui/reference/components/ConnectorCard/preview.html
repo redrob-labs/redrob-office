@@ -1,0 +1,19 @@
+<!-- @dsCard group="Agent harness" height=260 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 16, height: s || 16 });
+  const NOW = new Date(2026, 8, 28, 10, 0);
+  function Demo() {
+    const [on, setOn] = React.useState({ gmail: true, jira: false });
+    return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px', maxWidth: '860px' } }, [
+      h(R.ConnectorCard, { key: 'g', name: 'Gmail', maker: 'Google Workspace', category: 'Email', icon: ic('mail', 20), description: 'Reads and drafts email.',
+        connected: on.gmail, onConnect: () => setOn(Object.assign({}, on, { gmail: true })), onDisconnect: () => setOn(Object.assign({}, on, { gmail: false })), onManage: () => {} }),
+      h(R.ConnectorCard, { key: 'j', name: 'Jira', maker: 'Atlassian', category: 'Project tracking', icon: ic('kanban', 20), description: 'Reads tickets and sprints, and drafts new tickets and updates.',
+        connected: on.jira, onConnect: () => setOn(Object.assign({}, on, { jira: true })), onDisconnect: () => setOn(Object.assign({}, on, { jira: false })), onManage: () => {} })
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

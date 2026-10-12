@@ -1,0 +1,31 @@
+<!-- @dsCard group="Foundations" height=400 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary); padding: 28px;"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const box = (t) => ({ padding: '22px', border: '1px solid', borderColor: 'inherit' });
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '26px' } }, [
+      h(R.SectionMark, { key: 'm', label: ['Strata'], trailing: 'three grounds, no shadow' }),
+      h(R.Layer, { key: 'l', depth: 0, style: {} },
+        h('div', { style: { padding: '22px' } }, [
+          h('div', { key: 'h', style: { fontSize: '15px', fontWeight: 600 } }, 'The claim'),
+          h('p', { key: 'p', style: { fontSize: '13px', color: 'var(--ink-muted)', margin: '4px 0 16px' } },
+            'Notice period is 60 days, not 30.'),
+          h(R.Layer, { key: 'a' },
+            h('div', { style: { padding: '22px', border: '1px solid var(--border-subtle)' } }, [
+              h('div', { key: 'h', style: { fontSize: '15px', fontWeight: 600 } }, 'The evidence'),
+              h('p', { key: 'p', style: { fontSize: '13px', color: 'var(--ink-muted)', margin: '4px 0 16px' } },
+                'The passage the claim rests on.'),
+              h(R.Layer, { key: 'b' },
+                h('div', { style: { padding: '22px', border: '1px solid var(--border-strong)' } }, [
+                  h('div', { key: 'h', style: { fontSize: '15px', fontWeight: 600 } }, 'The source'),
+                  h('p', { key: 'p', style: { fontSize: '13px', color: 'var(--ink-muted)', margin: '4px 0 0' } },
+                    'MSA, clause 11.2, page 14 of 41. There is no fourth layer: a fourth ground would be a distinction nobody can see.'),
+                ])),
+            ])),
+        ])),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

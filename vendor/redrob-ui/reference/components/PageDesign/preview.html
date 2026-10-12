@@ -1,0 +1,409 @@
+<!-- @dsCard group="Pages" height=8232 width=1280 page -->
+<style>
+/* Screen-only composition. The parts are bundle components; this is how a page arranges them. */
+.dx-product { display: inline-flex; align-items: center; gap: 12px; font-size: 17px; line-height: 24px; font-weight: 700; letter-spacing: -.01em; color: var(--ink-primary); }
+.dx-product img { width: 40px; height: 40px; display: block; }
+.dx-h2 { margin: 0; font-size: 40px; line-height: 46px; font-weight: 700; letter-spacing: -.025em; color: var(--ink-primary); text-wrap: balance; }
+/* how it works */
+.dx-steps { list-style: none; margin: 0; padding: 0; counter-reset: st; border-top: 1px solid var(--border-strong); }
+.dx-steps li { counter-increment: st; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; padding: 20px 0; border-bottom: 1px solid var(--border-subtle); }
+.dx-steps li::before { content: "0" counter(st); font-size: 22px; line-height: 30px; font-weight: 700; color: var(--ink-brand); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.dx-steps b { display: block; font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -.015em; margin-bottom: 8px; }
+.dx-steps span { display: block; font-size: 16px; line-height: 26px; color: var(--ink-secondary); max-width: 58ch; }
+/* a band each: the copy on one side, one close-up on the other */
+.dx-cap { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: 64px; align-items: center; }
+.dx-cap--flip > :first-child { order: 2; }
+.dx-cap__body { display: flex; flex-direction: column; gap: 20px; }
+.dx-cap__h { margin: 0; font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -.028em; color: var(--ink-primary); text-wrap: balance; max-width: 16ch; }
+.dx-cap__p { margin: 0; font-size: 17px; line-height: 28px; color: var(--ink-secondary); max-width: 50ch; }
+.dx-cap__p b { color: var(--ink-primary); }
+.dx-cap__pts { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--border-subtle); max-width: 52ch; }
+.dx-cap__pts li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); font-size: 15px; line-height: 24px; color: var(--ink-primary); }
+.dx-cap__pts svg { margin-top: 4px; color: var(--ink-brand); }
+.dx-cap__in { font-size: 13px; font-weight: 600; color: var(--ink-secondary); margin: 8px 0 -8px; }
+.dx-files { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--border-strong); }
+.dx-files li { padding: 20px 24px 20px 0; border-bottom: 1px solid var(--border-subtle); }
+.dx-files b { display: block; font-size: 17px; line-height: 24px; font-weight: 600; }
+.dx-files span { display: block; font-size: 14px; line-height: 22px; color: var(--ink-secondary); margin-top: 2px; }
+/* stories */
+.dx-head { margin: 24px 0 48px; }
+.dx-stories { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: start; }
+.dx-stories__more { display: flex; flex-direction: column; gap: 40px; }
+.dx-stories__more > * + * { padding-top: 40px; border-top: 1px solid var(--border-subtle); }
+/* close */
+.dx-close { display: flex; flex-direction: column; align-items: flex-start; gap: 32px; max-width: 58%; color: #fff; }
+.dx-close h2 { margin: 0; font-size: 64px; line-height: 68px; font-weight: 700; letter-spacing: -.035em; color: #fff; text-wrap: balance; }
+.dx-close__row { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.dx-close__link { color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; }
+.dx-close__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 860px) {
+  .dx-cap, .dx-stories { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .dx-cap--flip > :first-child { order: 0; }
+  .dx-cap__h { font-size: 32px; line-height: 38px; }
+  .dx-h2 { font-size: 30px; line-height: 36px; }
+  .dx-steps li { grid-template-columns: 44px minmax(0, 1fr); }
+  .dx-close { max-width: 78%; }
+  .dx-close h2 { font-size: 40px; line-height: 44px; }
+}
+
+
+/* Pictures. Every picture is one feature on the same stage: 4:3, Design's wash in the top
+   corner, 32px in from every edge, and what is on it centered, at reading size, never cut off.
+   Close-ups are one or two cards drawn from bundle parts; screenshots are one component of the
+   prototype, framed as a card (below). One shadow, on what floats; the rest flat on hairlines. */
+.dx-shot .rr-figure__frame { border-radius: 16px; overflow: hidden; border: 1px solid var(--border-subtle); }
+.dx-stage { position: relative; width: 100%; height: 100%; box-sizing: border-box; padding: 32px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, #CB68DB 16%, transparent) 0%, transparent 60%), var(--surface-sunken);
+  font-family: var(--font-sans); color: var(--ink-primary); font-size: 13px; line-height: 20px; }
+.rr-band--sunken .dx-stage { background-color: var(--surface-base); }
+.dx-stage > .dx-duo { width: 100%; }
+.dx-card { background: var(--surface-base); border: 1px solid var(--border-subtle); border-radius: 12px; box-sizing: border-box; padding: 18px; min-width: 0; }
+.rr-band--sunken .dx-card { background: var(--surface-base); }
+.dx-duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; position: relative; }
+.dx-duo--lift { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: center; }
+.dx-duo--hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.dx-lift { position: relative; z-index: 2; margin: 0 0 0 -24px; display: flex; flex-direction: column; align-items: flex-end; }
+.dx-lift .rr-changes { align-self: stretch; background: var(--surface-base); box-shadow: var(--shadow-lg); }
+.dx-cap-row { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
+.dx-cap-row svg { flex: none; }
+.dx-p { margin: 0; } .dx-p + .dx-p { margin-top: 8px; }
+.dx-muted { color: var(--ink-secondary); font-size: 12px; line-height: 17px; }
+.dx-act { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
+.dx-stage .rr-receipt { margin-top: 12px; }
+.dx-stage .rr-receipt__item { white-space: nowrap; }
+.dx-old { color: var(--ink-muted); text-decoration: line-through; text-decoration-thickness: 2px; }
+/* The brand color, changed once */
+.dx-swap { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; }
+.dx-sw { display: flex; flex-direction: column; gap: 6px; font: 600 12px/16px var(--font-mono); }
+.dx-sw i { width: 52px; height: 38px; border-radius: 9px; box-shadow: inset 0 0 0 1px rgba(22,24,29,.08); }
+.dx-sw--old { color: var(--ink-muted); text-decoration: line-through; } .dx-sw--old i { opacity: .55; }
+.dx-uses { list-style: none; margin: 0; padding: 0; }
+.dx-uses li { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-subtle); }
+.dx-uses li:first-child { padding-top: 0; }
+.dx-uses b { display: block; font-size: 13px; font-weight: 600; } .dx-uses em { display: block; font-style: normal; font-size: 12px; line-height: 16px; color: var(--ink-secondary); }
+.dx-ficon { width: 26px; height: 26px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-raised); border: 1px solid var(--border-subtle); color: var(--ink-secondary); }
+/* One plan, pointed at */
+.dx-plan { position: relative; --a: #CB68DB; padding: 20px; border-radius: 12px; border: 1.5px solid var(--a); background: color-mix(in srgb, var(--a) 8%, #fff); color: #16181D;
+  outline: 2px solid #2F5BFF; outline-offset: 4px; }
+.dx-plan__sel { position: absolute; left: -6px; top: -26px; height: 18px; padding: 0 7px; border-radius: 4px 4px 4px 0; background: #2F5BFF; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; }
+.dx-plan__badge { display: inline-flex; height: 20px; padding: 0 8px; margin-bottom: 8px; border-radius: 999px; background: var(--a); color: #fff; font-size: 11px; font-weight: 700; align-items: center; }
+.dx-plan b { display: block; font-size: 14px; } .dx-plan strong { display: block; font-size: 30px; line-height: 36px; font-weight: 800; letter-spacing: -.02em; margin-top: 2px; }
+.dx-plan small { display: block; font-size: 12px; color: #5B5F6B; }
+.dx-plan ul { margin: 10px 0 12px; padding: 0 0 0 16px; font-size: 12px; line-height: 19px; color: #3E424B; }
+.dx-plan i { display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 8px; background: var(--a); color: #fff; font-style: normal; font-size: 13px; font-weight: 700; }
+.dx-ask { display: inline-block; margin-bottom: 12px; padding: 8px 12px; border-radius: 12px 12px 3px 12px; background: var(--surface-raised); border: 1px solid var(--border-subtle); font-size: 13px; }
+.dx-stage .rr-changes { font-size: 13px; }
+/* The Firewall */
+.dx-att { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-subtle); font-size: 12px; color: var(--ink-secondary); }
+.dx-saw p { margin: 0; font-size: 14px; line-height: 26px; }
+.dx-ph { display: inline-block; padding: 0 6px; border-radius: 5px; font-size: 12px; font-weight: 600; line-height: 19px; color: var(--status-success);
+  background: color-mix(in srgb, var(--status-success) 10%, transparent); border: 1px solid color-mix(in srgb, var(--status-success) 30%, transparent); }
+.dx-arrow { position: absolute; left: 50%; top: 50%; z-index: 3; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--surface-base); border: 1px solid var(--border-subtle); color: var(--ink-secondary); }
+
+/* Screenshots. Half the pictures are the prototype itself: one component, cut on its own
+   edges with no window around it, framed as a card and centered on the same stage as the
+   close-ups, never larger than it was drawn and never cut off (assets/Screens). */
+.dx-stage--cut { container-type: size; }
+@media (max-width: 860px) {
+  .dx-stage { padding: 16px; }
+}
+.dx-cut { width: min(var(--w), 100cqw, calc(100cqh * var(--r))); aspect-ratio: var(--r); flex: none; box-sizing: border-box; overflow: hidden;
+  border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--surface-base); }
+.dx-stage--cut > .dx-cut { height: auto; }
+.dx-cut img { display: block; width: 100%; height: 100%; }
+/* A close-up is drawn once, 492px wide (the desktop stage less its margins), and zoomed to
+   fit smaller stages (the queries read the stage's inner width), so it looks the same on every screen and never spills out of its frame. */
+.dx-stage { container-type: size; }
+.dx-fit { width: 492px; flex: none; }
+.dx-fit > .dx-duo, .dx-fit > .dx-stack { width: 100%; }
+@container (max-width: 500px) { .dx-fit { zoom: 0.996; } }
+@container (max-width: 490px) { .dx-fit { zoom: 0.976; } }
+@container (max-width: 480px) { .dx-fit { zoom: 0.955; } }
+@container (max-width: 470px) { .dx-fit { zoom: 0.935; } }
+@container (max-width: 460px) { .dx-fit { zoom: 0.915; } }
+@container (max-width: 450px) { .dx-fit { zoom: 0.894; } }
+@container (max-width: 440px) { .dx-fit { zoom: 0.874; } }
+@container (max-width: 430px) { .dx-fit { zoom: 0.854; } }
+@container (max-width: 420px) { .dx-fit { zoom: 0.833; } }
+@container (max-width: 410px) { .dx-fit { zoom: 0.813; } }
+@container (max-width: 400px) { .dx-fit { zoom: 0.793; } }
+@container (max-width: 390px) { .dx-fit { zoom: 0.772; } }
+@container (max-width: 380px) { .dx-fit { zoom: 0.752; } }
+@container (max-width: 370px) { .dx-fit { zoom: 0.732; } }
+@container (max-width: 360px) { .dx-fit { zoom: 0.711; } }
+@container (max-width: 350px) { .dx-fit { zoom: 0.691; } }
+@container (max-width: 340px) { .dx-fit { zoom: 0.671; } }
+@container (max-width: 330px) { .dx-fit { zoom: 0.650; } }
+@container (max-width: 320px) { .dx-fit { zoom: 0.630; } }
+@container (max-width: 310px) { .dx-fit { zoom: 0.610; } }
+@container (max-width: 300px) { .dx-fit { zoom: 0.589; } }
+@container (max-width: 290px) { .dx-fit { zoom: 0.569; } }
+@container (max-width: 280px) { .dx-fit { zoom: 0.549; } }
+@container (max-width: 270px) { .dx-fit { zoom: 0.528; } }
+@container (max-width: 260px) { .dx-fit { zoom: 0.508; } }
+@container (max-width: 250px) { .dx-fit { zoom: 0.488; } }
+@container (max-width: 240px) { .dx-fit { zoom: 0.467; } }
+@container (max-width: 230px) { .dx-fit { zoom: 0.447; } }
+</style>
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  /* The site's one navigation (90-web.md, One navigation): the same on every page. */
+  const NAV = [
+    { label:'Products', items:[
+      { label:'Redrob Chat',     href:'#', detail:'A conversation, with each question sent to the model that answers it best' },
+      { label:'Redrob Cowork',   href:'#', detail:'The agent that works beside you, in your own files and apps' },
+      { label:'Redrob Browser',  href:'#', detail:'A browser that finishes the task you give it' },
+      { label:'Redrob Console',  href:'#', detail:'Where a team sees its AI: usage, spend, models and results' },
+      { label:'Redrob Office',   href:'#', detail:'Documents, sheets and decks that update when a fact changes' },
+      { label:'Redrob Design',   href:'#', detail:'Designs the whole product as one system, in the file' },
+      { label:'Redrob Code',     href:'#', detail:'An agent that writes and fixes code in your terminal' } ] },
+    { label:'Solutions', items:['For founders','For small teams','For engineers','For designers','For product managers','For marketers','For sales teams','For recruiters','For HR teams','For lawyers','For accountants','For consultants','For investors'].map(l => ({ label:l, href:'#' })) },
+    { label:'Research', href:'#' },
+    { label:'News', href:'#' },
+    { label:'Blog', href:'#' },
+    { label:'Company', href:'#' }
+  ];
+  /* English, Korean and Hindi first (the three markets), then the world's most spoken
+     languages. Native names; Arabic sets right to left. A language with no version of this
+     page renders as unavailable, never as a link home (LangSwitch). */
+  const LANGS = [
+    {code:'en',label:'English',href:'#'}, {code:'ko',label:'\ud55c\uad6d\uc5b4',href:'#'}, {code:'hi',label:'\u0939\u093f\u0928\u094d\u0926\u0940',href:'#'},
+    {code:'zh-Hans',label:'\u7b80\u4f53\u4e2d\u6587',href:'#'}, {code:'es',label:'Espa\u00f1ol',href:'#'}, {code:'fr',label:'Fran\u00e7ais',href:'#'},
+    {code:'ar',label:'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',href:'#'}, {code:'bn',label:'\u09ac\u09be\u0982\u09b2\u09be',href:'#'},
+    {code:'pt',label:'Portugu\u00eas',href:'#'}, {code:'ja',label:'\u65e5\u672c\u8a9e',href:'#'} ];
+  const LANG = h(R.LangSwitch, { current:'en', langs: LANGS });
+  /* System, Light, Dark: in the bar on every page, in the drawer on a phone. */
+  const THEME = h(R.ThemeSwitch);
+  const MARK_L = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+  const MARK_D = '/_blob/290f8c4ecd34da668364dc8794df0e45';
+  const mark = (px) => h('span', { className:'rr-mark' }, [
+    h('img', { key:'l', className:'rr-mark__light', src:MARK_L, alt:'Redrob', style:{ height:px+'px' } }),
+    h('img', { key:'d', className:'rr-mark__dark',  src:MARK_D, alt:'',       style:{ height:px+'px' } })
+  ]);
+  const HEADER = h(R.SiteHeader, { key:'hd', mark: mark(24), homeLabel:'Redrob',
+    sections: NAV, lang: LANG, theme: THEME,
+    action: h(R.Button, { size:'sm', shape:'pill' }, 'Start free') });
+  const FOOTER = h(R.SiteFooter, { key:'ft', mark: mark(24),
+    line: "The last mile of AI: the world's best models, across every border of language, place, background and technical skill.",
+    columns: [
+      { title:'Products', items:[
+        {label:'Redrob Chat',href:'#'},{label:'Redrob Cowork',href:'#'},{label:'Redrob Browser',href:'#'},{label:'Redrob Console',href:'#'},
+        {label:'Redrob Office',href:'#'},{label:'Redrob Design',href:'#'},{label:'Redrob Code',href:'#'},
+        {label:'Luma, by Redrob',href:'#',divider:true,external:true},{label:'Signal, by Redrob',href:'#',external:true},{label:'Kaabil, by Redrob',href:'#',external:true},{label:'Crew, by Redrob',href:'#',external:true}] },
+      { title:'Solutions', items:[{label:'For founders',href:'#'},{label:'For small teams',href:'#'},{label:'For engineers',href:'#'},{label:'For designers',href:'#'},{label:'For product managers',href:'#'},{label:'For marketers',href:'#'},{label:'For sales teams',href:'#'},{label:'For recruiters',href:'#'},{label:'For HR teams',href:'#'},{label:'For lawyers',href:'#'},{label:'For accountants',href:'#'},{label:'For consultants',href:'#'},{label:'For investors',href:'#'}] },
+      { title:'Company', items:[{label:'About Redrob',href:'#'},{label:'Research',href:'#'},{label:'News',href:'#'},{label:'Blog',href:'#'}] }
+    ],
+    copyright: '© 2026 Redrob Inc.',
+    legal: [ {label:'Privacy',href:'#'}, {label:'Terms',href:'#'}, {label:'Cookies',onClick:()=>{}}, {label:'Accessibility',href:'#'}, {label:'Company details',href:'#'} ] });
+
+  const DESIGN_ICON = '/_blob/dce03e4290a23e41a58cbfa285ab0fab';
+  const ic = (n, s) => h(R.icons[n], { width: s || 16, height: s || 16, 'aria-hidden': 'true' });
+  const TICK = () => ic('check');
+  const pts = (list) => h('ul', { className:'dx-cap__pts' }, list.map(pt => h('li', { key:pt }, [h('span', { key:'i' }, TICK()), h('span', { key:'t' }, pt)])));
+  const btn = (label, variant) => h(R.Button, { size:'sm', variant: variant || 'primary', tabIndex: -1 }, label);
+  /* A close-up: Design drawn at reading size on a stage, credited as designed. Square or
+     taller than wide; the frame crops the card, as if the camera moved in on the app. */
+  const closeup = (ratio, alt, caption, kids, layout) => h(R.Figure, { className:'dx-shot', ratio, caption, credit:'Redrob Design, as designed' },
+    h('div', { className:'dx-stage', role:'img', 'aria-label': alt }, h('div', { className: 'dx-fit' + (layout ? ' ' + layout : '') }, kids)));
+
+  const SYMBOL = '/_blob/a35853f38695b112ff00dae9ab62fdce';
+  /* A screenshot of the prototype (assets/Screens). */
+  const SHOT = { plan:['/_blob/c88a87853f063d79758d32cd79cd51f0', 516, 380], memory:['/_blob/40d93493cd6b2e711c6fd4f8d084a7c9', 559, 342], check:['/_blob/7e37a0c0969062cd3e33c160bea4beef', 516, 346], ship:['/_blob/9de80d47437e9df2ba604bb6e94be9fb', 516, 260] };
+  const cut = (shot, alt, caption) => h(R.Figure, { className:'dx-shot', ratio:'4 / 3', caption, credit:'Redrob Design prototype, as designed' },
+    h('div', { className:'dx-stage dx-stage--cut' }, h('div', { className:'dx-cut', style:{ '--w': shot[1] + 'px', '--r': shot[1] + ' / ' + shot[2] } },
+      h('img', { src: shot[0], alt, width: shot[1], height: shot[2], loading:'lazy', decoding:'async' }))));
+  const receipt = (items) => h(R.AnswerReceipt, { items });
+  const noop = () => {};
+
+  /* 1. Nothing drifts: the brand color changed once, in Design Memory; every screen and component that uses it waits. */
+  const EVERYWHERE = closeup('4 / 3', 'Redrob Design: the brand color changed in Design Memory from #7C3AED to #CB68DB. Three uses follow and wait for you: Pricing, desktop; Pricing, mobile; and Button.tsx. Keep all 3 or Put it back. Design Memory, no AI, free.',
+    'The brand color changes once, in Design Memory. Every screen and component that uses it follows, and waits for you to keep it.',
+    h('div', { className:'dx-duo dx-duo--hero' }, [
+      h('div', { key:'m', className:'dx-card' }, [
+        h('div', { key:'c', className:'dx-cap-row' }, [ic('bookOpen', 13), 'Brand color']),
+        h('div', { key:'s', className:'dx-swap' }, [
+          h('span', { key:'o', className:'dx-sw dx-sw--old' }, [h('i', { key:'i', style:{ background:'#7C3AED' } }), '#7C3AED']),
+          h('span', { key:'a', style:{ color:'var(--ink-secondary)' } }, ic('arrowRight', 16)),
+          h('span', { key:'n', className:'dx-sw' }, [h('i', { key:'i', style:{ background:'#CB68DB' } }), '#CB68DB'])]),
+        h('p', { key:'p', className:'dx-p dx-muted' }, 'Changed once, by Felix Kim, just now.'),
+        receipt([{ id:'m', icon: ic('bookOpen', 13), label:'Design Memory', sub:'no AI' }, { id:'p', icon: ic('shieldCheck', 13), label:'Nothing private in it', sub:'checked on this computer' }])
+      ]),
+      h('div', { key:'u', className:'dx-card' }, [
+        h('div', { key:'c', className:'dx-cap-row' }, [ic('sync', 13), '3 follow, and wait for you']),
+        h('ul', { key:'l', className:'dx-uses' }, [
+          ['monitor', 'Pricing, desktop', '1440 wide'], ['mobile', 'Pricing, mobile', '390 wide'], ['fileCode', 'Button.tsx', 'Component']
+        ].map(r => h('li', { key:r[1] }, [h('span', { key:'i', className:'dx-ficon' }, ic(r[0], 14)), h('span', { key:'t' }, [h('b', { key:'b' }, r[1]), h('em', { key:'e' }, r[2])])]))),
+        h('div', { key:'a', className:'dx-act' }, [btn('Keep all 3'), btn('Put it back', 'ghost')])
+      ])
+    ]));
+
+  /* 2. How it works, the screenshot: Plan reads the workspace, builds Design Memory and asks two things. */
+  const PLAN_FIG = cut(SHOT.plan, 'Redrob in the conversation: I read your Redrob Office workspace, redrob.io, the web repository and Pricing sheet, Q4. Three customer names in the sheet stayed on this computer. Design Memory is built: 51 colors, 2 typefaces, 124 components, 4 rules. Two things, then I draw: who pays for it, Teams of 5 to 50; what should they do first, Start free. The receipt: Opus 5.5, $0.04, 3 kept private.',
+    'With Plan on, Redrob reads your workspace, builds Design Memory, and asks two things before it draws four directions.');
+
+  /* 3. Describe: point at the Team plan, say what should change, see the change before you keep it. */
+  const DESCRIBE_FIG = closeup('4 / 3', 'The Team plan on the pricing page, selected, with a brand-subtle fill and a Most picked badge. Beside it: Make Team stand out, and the two changes, the fill from white to brand subtle and the badge added, with Keep it and Put it back.',
+    'Point at the Team plan and say what should change. The change shows on the page and stays only if you keep it.',
+    h('div', { className:'dx-duo dx-duo--lift' }, [
+      h('div', { key:'p', className:'dx-plan', 'aria-hidden':'true' }, [
+        h('span', { key:'l', className:'dx-plan__sel' }, 'Team plan'),
+        h('span', { key:'b', className:'dx-plan__badge' }, 'Most picked'),
+        h('b', { key:'n' }, 'Team'), h('strong', { key:'v' }, '$24'), h('small', { key:'s' }, 'per person, per month'),
+        h('ul', { key:'u' }, [h('li', { key:1 }, 'Unlimited projects'), h('li', { key:2 }, 'Every AI on the leaderboard'), h('li', { key:3 }, 'Shared memory')]),
+        h('i', { key:'c' }, 'Start free trial')]),
+      h('div', { key:'c', className:'dx-lift' }, [
+        h('span', { key:'a', className:'dx-ask' }, 'Make Team stand out'),
+        h(R.Changes, { key:'x', title:'Team plan', items:[{ label:'Fill', before:'White', after:'Brand, subtle' }, { label:'Badge', after:'Most picked' }], acceptLabel:'Keep it', rejectLabel:'Put it back', onAccept: noop, onReject: noop })
+      ])
+    ]));
+
+  /* 4. Memory, the screenshot: Design Memory open beside the page. */
+  const MEMORY_FIG = cut(SHOT.memory, 'Design Memory for Redrob Office: every model reads this before it draws, and Fact check holds every screen to it. The Redrob Blue ramp, blue-1 to blue-10, and the grays, each swatch named.',
+    'Design Memory for Redrob Office, read from the product. Every model reads it before it draws, and Fact check holds every screen to it.');
+
+  /* 5. Cross-check, the screenshot: Fact check, by another maker, finds a plan hidden behind a button. */
+  const CHECK_FIG = cut(SHOT.check, 'Redrob in the conversation. Gemini 3.1 Pro, from another maker, read the page and the layers and found 1 to fix: Business hides behind “Contact sales”, use “Start with Business”, with Fix and Fix all 1, free. The receipt: Gemini 3.1 Pro, $0.03, Private, Fact check.',
+    'Gemini 3.1 Pro, from another maker, read the page and found the Business plan hiding behind “Contact sales”, with the fix. Fixes are free.');
+
+  /* 6. The Firewall: the customers you attach reach the AI as placeholders, swapped on your computer. */
+  const FIREWALL_FIG = closeup('4 / 3', 'A request with a screenshot attached, customers.png: add Tidewell Freight, with Jiwon Seo in Finance, and Orrin & Vale, with Aarav Rao, under the plans. The names are marked as kept from the AI. Beside it, what the AI saw: Company 1, Person 1, Company 2 and Person 2. Privacy High, 4 kept private.',
+    'You see your customers. The AI sees placeholders, swapped on your computer, and the real names come back on the page.',
+    h('div', { className:'dx-duo' }, [
+      h('div', { key:'m', className:'dx-card' }, [
+        h('div', { key:'c', className:'dx-cap-row' }, 'You sent'),
+        h('span', { key:'a', className:'dx-att' }, [ic('image', 12), 'customers.png']),
+        h('p', { key:'p', className:'dx-p', style:{ fontSize:'14px', lineHeight:'26px' } }, ['Add ', h(R.PrivateText, { key:1, as:'Company 1' }, 'Tidewell Freight'), ', with ', h(R.PrivateText, { key:2, as:'Person 1' }, 'Jiwon Seo'), ' in Finance, and ', h(R.PrivateText, { key:3, as:'Company 2' }, 'Orrin & Vale'), ', with ', h(R.PrivateText, { key:4, as:'Person 2' }, 'Aarav Rao'), ', under the plans.'])
+      ]),
+      h('div', { key:'w', className:'dx-card dx-saw' }, [
+        h('div', { key:'c', className:'dx-cap-row' }, [ic('sparkle', 13), 'What the AI saw']),
+        h('p', { key:'p' }, ['Add ', h('span', { key:1, className:'dx-ph' }, 'Company 1'), ', with ', h('span', { key:2, className:'dx-ph' }, 'Person 1'), ' in Finance, and ', h('span', { key:3, className:'dx-ph' }, 'Company 2'), ', with ', h('span', { key:4, className:'dx-ph' }, 'Person 2'), ', under the plans.']),
+        receipt([{ id:'p', icon: ic('shieldCheck', 13), label:'4 private details', sub:'kept on this computer' }])
+      ]),
+      h('span', { key:'a', className:'dx-arrow', 'aria-hidden':'true' }, ic('arrowRight', 14))
+    ]));
+
+  /* 7. Ship, the screenshot: the page fact checked and ready, four ways out, and it updates itself. */
+  const SHIP_FIG = cut(SHOT.ship, 'Redrob in the conversation: Fact checked by another company’s AI. It is code and tokens already. Publish, React + tokens, Hand to Claude Code, Export for Figma. This page updates itself: it watches Pricing sheet, Q4, redrob.io and Design Memory, and proposes its own change when one of them moves.',
+    'Fact checked and ready to ship four ways. After that the page watches its sources and proposes its own change when one moves.');
+
+  /* 90-web.md, The headline features: the headline and its copy verbatim; the beat closes the steps. */
+  const STEPS = [
+    ['Say what you are making', 'A sentence is enough. Redrob reads your site, your code and your files first, so it starts from your product, not from a template.'],
+    ['Plan it, then pick a direction', 'With Plan on, Redrob asks who it is for and what they should do first, then draws four directions, each built only from your own colors, type and components. Run skips the questions. The one you pick opens on the canvas as real layers.'],
+    ['Nothing drifts.', 'Change a color, a type style or a component once, and every screen, state and breakpoint that uses it follows.']
+  ];
+  const MODES = [
+    'Describe and Edit are two views of one file, one switch apart.',
+    'What you draw in Edit is there when you switch back, and Redrob works from it.',
+    'One conversation follows the file across both.',
+    'Every kept change can be undone.'
+  ];
+
+  /* 05-mission.md, verbatim; no Expert Match (Console and Code only; here it is Redrob Auto). Each capability keeps its beat. */
+  const CAPS = [
+    { key:'memory', name:'Multi-Model Memory', head:'Your work, remembered across every AI.',
+      copy:'Every AI you switch to starts from zero. Memory carries one professional context across Claude, GPT, Gemini and specialized models, and across your projects, files and conversations.', beat:'Switch models, not context.',
+      points:['Design Memory holds your colors, type, components, prices and voice, read from your code, your site and your files.',
+              'Redrob keeps it outside any AI, so every model draws from the same one, and you can download every note.',
+              'Switch models halfway through and the page stays on your system.',
+              'Opening a file checks it against Design Memory on your computer. No AI, no cost.'], fig: MEMORY_FIG },
+    { key:'crosscheck', name:'Multi-Model Crosscheck', head:"Don't rely on one AI for important work.",
+      copy:'One model is a single point of failure. Crosscheck runs the work past several models independently and shows you where they agree, where they disagree, what one of them missed and what evidence is still missing.', beat:'Fact check, then Challenge.',
+      points:['Fact check, by an AI from another company, reads the page as drawn against Design Memory: contrast, type, prices, voice and every line break in every language.',
+              'Challenge puts a direction under pressure before you ship it: one AI argues for it, another against, and a third says what held up.',
+              'Every finding points at the part of the page it is about and comes with its fix. Fixes are free.',
+              'Every answer ends with a receipt: the model, the price, what stayed private and who checked it.'], fig: CHECK_FIG },
+    { key:'firewall', name:'AI Firewall', head:'Protect your work before AI sees it.',
+      copy:'Whatever reaches a model can leave your company. The Firewall finds sensitive information, applies your policies, sends only the context the task needs and controls what reaches an outside model.', beat:'Before, not after.',
+      points:['Names, companies and emails in your screenshots and files become placeholders on your computer, and come back in the page.',
+              'Your company sets the level, Standard, High or Strict, and every file shows it.',
+              'ID and bank numbers are never sent at all.'], fig: FIREWALL_FIG }
+  ];
+  const SHIP = [
+    ['Publish', 'A live page at your own address'],
+    ['React and tokens', 'The page as React, on the tokens your product runs'],
+    ['Claude Code', 'Handed over MCP with the brief, to build into your app'],
+    ['Figma', 'Your .fig files open here, and the page exports for Figma']
+  ];
+  const band = (key, ground, flip, mark, head, body, fig) => h(R.Band, { key, product:'design', ground }, h('div', { className:'dx-cap' + (flip ? ' dx-cap--flip' : '') }, [
+    h('div', { key:'b', className:'dx-cap__body' }, [h(R.SectionMark, { key:'m', label: mark }), h('h2', { key:'h', className:'dx-cap__h' }, head)].concat(body)),
+    h('div', { key:'f' }, fig)
+  ]));
+
+  /* The Redrob Design landing page, on PageOffice's pattern. Its own grounds: the hero on
+     Design's light ground, the close on its brand ground, section ticks in its mark
+     (20-color.md). One argument: the headline shown working, how it works, Describe and Edit,
+     Memory, Cross-check and the Firewall a band each, how it ships, what changed for the
+     people using it, the close. One feature per picture, alternating: a close-up drawn from
+     bundle parts (the brand color, Describe, the Firewall), then a screenshot of the prototype
+     (Plan, Design Memory, Fact check, Ship). Customer stories are sample content:
+     fictional companies and people, to be replaced before launch. */
+  function Screen() {
+    /* One PageShell per page: the skip link, the landmarks and lang (PageShell). */
+    return h(R.PageShell, { lang:'en', header: HEADER, footer: FOOTER }, [
+      h(R.Band, { key:'hero', product:'design', threshold:true }, h(R.Hero, {
+        mark: h('span', { className:'dx-product' }, [h('img', { key:'i', src: DESIGN_ICON, alt:'' }), h('span', { key:'n' }, 'Redrob Design')]),
+        lede: 'Screens drawn one at a time stop agreeing with each other. Say what the product should do and how it should feel, and Design generates every screen, state, breakpoint and interaction in the file, and keeps them one system as the product changes.',
+        action: h(R.Button, { size:'lg', shape:'pill', emphasis:true }, 'Try Design free'),
+        secondary: 'See how it works', secondaryHref: '#how',
+        foot: 'Free to start. Opens your Figma files and ships as React and tokens.',
+        media: EVERYWHERE
+      }, h(R.Display, { level:2, as:'h1', lang:'en' }, 'Design the product once, not every screen.'))),
+
+      band('how', 'sunken', false, 'How it works', 'Start with one sentence.',
+        [h('ol', { key:'l', className:'dx-steps' }, STEPS.map(s => h('li', { key:s[0] }, h('div', null, [h('b', { key:'t' }, s[0]), h('span', { key:'d' }, s[1])]))))], PLAN_FIG),
+
+      band('modes', 'base', true, 'Describe and Edit', 'Talk to the page, or take the tools.',
+        [h('p', { key:'p', className:'dx-cap__p' }, ['Most changes take a sentence: make this stand out, match the checkout, write it in Korean. When you want your hands on it, the same file opens as layers, with the tools you know from Figma. ', h('b', { key:'b' }, 'Nothing is kept until you keep it.')]), pts(MODES)],
+        DESCRIBE_FIG),
+
+      ...CAPS.map((c, i) => band(c.key, i % 2 ? 'base' : 'sunken', i % 2 === 1, [c.name, 'Under every Redrob product'], c.head, [
+        h('p', { key:'p', className:'dx-cap__p' }, [c.copy + ' ', h('b', { key:'b' }, c.beat)]),
+        h('p', { key:'i', className:'dx-cap__in' }, 'In Design'), pts(c.points)], c.fig)),
+
+      band('ship', 'base', true, 'Ship', 'What you design is what ships.', [
+        h('p', { key:'p', className:'dx-cap__p' }, ['No handoff and no redrawing it in code. Design writes the page as the React and tokens your product already runs, ', h('b', { key:'b' }, 'so the design and the product stay one thing.')]),
+        h('ul', { key:'l', className:'dx-files' }, SHIP.map(f => h('li', { key:f[0] }, [h('b', { key:'n' }, f[0]), h('span', { key:'d' }, f[1])]))),
+        pts(['The page updates itself: it watches your price sheet, your site and Design Memory, and proposes its own change when one of them moves.',
+             'Your files stay on your computer, or in your own cloud.',
+             'One price per person, and every answer shows what it cost.'])
+      ], SHIP_FIG),
+
+      h(R.Band, { key:'stories', ground:'sunken', product:'design' }, [
+        h(R.SectionMark, { key:'m', label:'Customer stories' }),
+        h('div', { key:'h', className:'dx-head' }, h('h2', { className:'dx-h2' }, 'What changes when every screen agrees')),
+        h('div', { key:'g', className:'dx-stories' }, [
+          h(R.CustomerStory, { key:'a', customer:'Sorae Mobility', sector:'Mobility, Seoul',
+            figure:'0', figureLabel:'screens off the system at launch, across 146 screens and four breakpoints',
+            period:'Measured at the app’s launch in July 2026, against 38 at the launch before it, in 2025.',
+            quote: h(R.Quote, { cite:'Minji Oh', role:'Head of Product, Sorae Mobility' },
+              'We changed the brand color on a Tuesday. By lunch every screen had it, and so did the code.'),
+            href:'#' }, h('p', null, 'Two designers and nine engineers, one app, one system. When the brand color moved, Design found every screen and component that used it and lined the changes up for review.')),
+          h('div', { key:'m', className:'dx-stories__more' }, [
+            h(R.CustomerStory, { key:'b', customer:'Kiteline Pay', sector:'Payments, Bengaluru',
+              figure:'3 days', figureLabel:'from one sentence to a pricing page shipped as React, in English and Hindi',
+              period:'Measured on one launch in August 2026, against three weeks for the page before it.', href:'#' },
+              h('p', null, 'No designer on the team. The founder wrote one sentence, picked a direction and handed the page to Claude Code.')),
+            h(R.CustomerStory, { key:'c', customer:'Harrow & Finch', sector:'Legal software, New York',
+              figure:'212 screens', figureLabel:'moved to a new type scale from one change in Design Memory',
+              period:'Measured on one redesign in September 2026.', href:'#' },
+              h('p', null, 'A new type scale used to mean a month of redrawing. Fact check caught the eleven screens where the new sizes broke a line.'))
+          ])
+        ])
+      ]),
+
+      h(R.Band, { key:'close', ground:'brand', product:'design' }, h('div', { className:'dx-close' }, [
+        h('h2', { key:'h' }, 'Stop redrawing the same screen.'),
+        h('div', { key:'r', className:'dx-close__row' }, [
+          h(R.Button, { key:'b', size:'lg', shape:'pill', emphasis:true }, 'Try Design free'),
+          h('a', { key:'a', className:'dx-close__link', href:'#' }, 'See pricing →')
+        ])
+      ]))
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Screen));
+</script>

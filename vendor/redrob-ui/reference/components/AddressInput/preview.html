@@ -1,0 +1,19 @@
+<!-- @dsCard group="Local formats" height=490 width=1180 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  const head = (t) => h('p', { style:{ margin:'0 0 16px', fontSize:'12px', fontWeight:600, color:'var(--ink-muted)' } }, t);
+  function Demo() {
+    const [kr,setKr] = React.useState({ postal:'06236', level1:'서울특별시', level2:'강남구', line1:'테헤란로26길 14', line2:'13층' });
+    const [inn,setIn] = React.useState({ line1:'Tower B, Sector 62', line2:'Noida Expressway', level2:'Noida', level1:'Uttar Pradesh', postal:'201309' });
+    const [us,setUs] = React.useState({ line1:'115 Broadway', line2:'Floor 5', level2:'New York', level1:'NY', postal:'10006' });
+    const [other,setOther] = React.useState({ free:'' });
+    return h('div', { style:{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'28px', alignItems:'start' } }, [
+      h('div',{key:1},[head('Korea, largest to smallest'), h(R.AddressInput,{ country:'KR', value:kr, onChange:setKr })]),
+      h('div',{key:2},[head('India'), h(R.AddressInput,{ country:'IN', value:inn, onChange:setIn })]),
+      h('div',{key:3},[head('United States, the inverse order'), h(R.AddressInput,{ country:'US', value:us, onChange:setUs })]),
+      h('div',{key:4},[head('Anywhere else'), h(R.AddressInput,{ value:other, onChange:setOther })])
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

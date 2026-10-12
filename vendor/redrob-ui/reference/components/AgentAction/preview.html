@@ -1,0 +1,18 @@
+<!-- @dsCard group="Agent chat" height=255 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return col([
+      h(R.AgentAction, { key: 1, name: 'verify_credential', summary: 'issuer=DU, type=degree, target=KR', state: 'done', duration: '1.4s', defaultOpen: true },
+        '{ "verified": true, "sources": 3, "equivalence": "KR bachelor, engineering" }'),
+      h(R.AgentAction, { key: 2, name: 'send_email', summary: 'to 3 recipients, template=verification_result', state: 'running' }, ''),
+      h(R.AgentAction, { key: 3, name: 'ats_sync', summary: 'connection timed out after 30s', state: 'error' }, 'Error: ETIMEDOUT'),
+    ], { gap: '12px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

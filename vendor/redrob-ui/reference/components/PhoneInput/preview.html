@@ -1,0 +1,18 @@
+<!-- @dsCard group="Local formats" height=220 width=820 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  function Demo() {
+    const [a,setA] = React.useState({ country:'KR', local:'010-2345-6789', e164:'+821023456789' });
+    const [b,setB] = React.useState({ country:'IN', local:'98765 43210', e164:'+919876543210' });
+    const out = (v) => h('p', { style:{ margin:'8px 0 0', fontSize:'12px', color:'var(--ink-muted)', fontVariantNumeric:'tabular-nums' } },
+      'Stored as ' + (v.e164 || 'not yet'));
+    return h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'start' } }, [
+      h('div',{key:1},[h(R.PhoneInput,{ value:a, onChange:setA,
+        hint:'A Korean mobile is written 010-2345-6789 and travels without the leading zero.' }), out(a)]),
+      h('div',{key:2},[h(R.PhoneInput,{ value:b, onChange:setB,
+        hint:'Ten digits behind +91. No single pattern covers both of these, so there is no pattern.' }), out(b)])
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

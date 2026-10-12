@@ -1,0 +1,21 @@
+<!-- @dsCard group="Navigation" height=270 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const items = [
+      { id: 'scoring', title: 'How is the match score calculated?', meta: '12 signals',
+        content: 'Skills, seniority, location and availability are weighted per role. The weights are set on the role page and can be changed at any time.' },
+      { id: 'sources', title: 'Where do candidates come from?',
+        content: 'Direct applications, the Redrob talent pool, and any ATS you have connected.' },
+      { id: 'privacy', title: 'Who can see a candidate profile?',
+        content: 'Everyone in the workspace with reviewer access. Contact details are only revealed at the interview stage.' },
+    ];
+    return h('div', { style: { maxWidth: '560px' } }, h(R.Accordion, { items: items, defaultOpen: 'scoring' }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

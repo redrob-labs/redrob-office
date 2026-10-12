@@ -1,0 +1,24 @@
+<!-- @dsCard group="Agent harness" height=640 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 16, height: s || 16 });
+  const NOW = new Date(2026, 8, 28, 10, 0);
+  const APPS = [
+    { id: 'gmail', name: 'Gmail', category: 'Email', description: 'Reads and drafts email.', icon: ic('mail', 15), connected: true },
+    { id: 'gdrive', name: 'Google Drive', category: 'Files', description: 'Finds and reads files.', icon: ic('folderOpen', 15), connected: true },
+    { id: 'zoom', name: 'Zoom', category: 'Meetings', description: 'Reads recordings and transcripts.', icon: ic('videoCall', 15), connected: true },
+    { id: 'salesforce', name: 'Salesforce', category: 'CRM', description: 'Reads accounts, deals and contacts.', icon: ic('users', 15), connected: false },
+    { id: 'jira', name: 'Jira', category: 'Project tracking', description: 'Reads tickets and sprints.', icon: ic('kanban', 15), connected: false }
+  ];
+  function Demo() {
+    const [apps, setApps] = React.useState(APPS);
+    const [v, setV] = React.useState([{ id: 'salesforce', mode: 'read' }, { id: 'gmail', mode: 'write' }, { id: 'zoom', mode: 'read' }]);
+    const [mem, setMem] = React.useState(true);
+    return h('div', { style: { width: '280px' } }, h(R.AppAccess, { apps, value: v, onChange: setV, memory: mem, onMemoryChange: setMem, dialogTitle: 'Add an app to Call follow-up',
+      onConnect: (id) => setApps(apps.map(a => a.id === id ? Object.assign({}, a, { connected: true }) : a)) }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

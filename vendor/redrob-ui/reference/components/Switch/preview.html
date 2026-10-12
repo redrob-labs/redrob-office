@@ -1,0 +1,18 @@
+<!-- @dsCard group="Forms" height=150 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const [on, setOn] = React.useState(true);
+    return col([
+      h(R.Switch, { key: 1, label: 'Auto-screening', checked: on, onChange: (e) => setOn(e.target.checked) }),
+      h(R.Switch, { key: 2, size: 'sm', label: 'Small', defaultChecked: true }),
+      h(R.Switch, { key: 3, label: 'Disabled', disabled: true }),
+    ], { gap: '12px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

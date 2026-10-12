@@ -1,0 +1,19 @@
+<!-- @dsCard group="Marketing" height=500 width=1180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.Band, { size:'sm' }, h(R.StoryHeader, {
+      customer:'Northmoor',
+      sector:'Logistics, Rotterdam',
+      claim:'One handover pack, read the same way in four languages',
+      facts:[
+        { value:'40 min', label:'to produce a handover that took a shift', period:'Q1 2026, against 9 hours in 2025' },
+        { value:'14', label:'sites on the same pack', period:'since January 2026, from one site in 2025' },
+        { value:'0', label:'reworked after a language check', period:'Q1 2026, 182 packs' }
+      ] }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

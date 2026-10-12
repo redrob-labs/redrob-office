@@ -1,0 +1,23 @@
+<!-- @dsCard group="Agent harness" height=290 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', { style:{ display:'flex', gap:'40px', flexWrap:'wrap' } }, [
+      h('div', { key:1, style:{ flex:'1 1 320px' } }, h(R.AccessList, { label:'What this can get to', scopes:[
+        { kind:'files', label:'Your Contracts folder', mode:'read' },
+        { kind:'files', label:'Your Drafts folder', mode:'write' },
+        { kind:'apps', label:'Google Drive', mode:'read' },
+        { kind:'web', label:'The web', mode:'read' },
+        { kind:'computer', label:'Running programs on this computer', mode:'none' },
+      ] })),
+      h('div', { key:2, style:{ flex:'1 1 260px' } }, h(R.AccessList, { label:'The one that checks the work', scopes:[
+        { kind:'files', label:'Your Drafts folder', mode:'read' },
+        { kind:'memory', label:'What it remembers about you', mode:'read' },
+      ] })),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

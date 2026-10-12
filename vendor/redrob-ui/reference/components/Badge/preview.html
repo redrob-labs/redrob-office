@@ -1,0 +1,22 @@
+<!-- @dsCard group="Data display" height=160 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const tones = ['neutral', 'brand', 'success', 'warning', 'danger', 'info'];
+    return col([
+      row(tones.map((t, i) => h(R.Badge, { key: i, tone: t }, t))),
+      row(tones.map((t, i) => h(R.Badge, { key: i, tone: t, variant: 'solid' }, t))),
+      row([
+        h(R.Badge, { key: 1, tone: 'success', variant: 'outline', dot: true }, 'Live'),
+        h(R.Badge, { key: 2, tone: 'brand', size: 'sm' }, 'Beta'),
+        h(R.Badge, { key: 3, tone: 'neutral', variant: 'outline' }, 'Draft'),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

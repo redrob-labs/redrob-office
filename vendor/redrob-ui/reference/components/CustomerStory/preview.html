@@ -1,0 +1,20 @@
+<!-- @dsCard group="Marketing" height=525 width=820 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.Band, { size:'sm' }, h(R.CustomerStory, {
+      customer:'Northmoor',
+      sector:'Logistics, Rotterdam',
+      figure:'40 min',
+      figureLabel:'to produce a shift handover, across 14 sites',
+      period:'Measured over the first quarter of 2026, against 9 hours for the same work in 2025.',
+      quote: h(R.Quote, { cite:'Sanne de Vries', role:'Head of Operations, Northmoor' },
+        'We stopped translating the handover and started trusting it.'),
+      href:'#'
+    }, h('p', null, 'Their night shift writes the pack in Dutch and fourteen sites read it the next morning in Polish, Turkish and Tagalog. Redrob Office writes it once and every site opens it in its own language, with the figures carried across rather than retyped.')));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,46 @@
+<!-- @dsCard group="Frames" height=2780 width=1180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const MARK = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+  const SHOT = '/_blob/b3c5023586b93302b5fa11e97c5ef689';
+
+  function Demo() {
+    return h('div', null, [
+      h(R.Band, { key:1, ground:'wash', threshold:true }, [
+        h(R.SectionMark, { key:'m', label:['The thesis'] }),
+        h(R.Statement, { key:'s', level:2 }, 'A world where anyone, anywhere, can use the best AI there is.')
+      ]),
+      h(R.Band, { key:2, ground:'sunken', size:'sm' }, [
+        h(R.SectionMark, { key:'m', label:['What changed'] }),
+        h('p', { key:'p', style:{ maxWidth:'46ch', fontSize:'15px', lineHeight:'24px', color:'var(--ink-secondary)', marginTop:'16px' } },
+          'A band is a ground change. That is what separates one part of a page from the next here - not a border, and not a card.')
+      ]),
+      h(R.Band, { key:3, ground:'brand', size:'sm' }, [
+        h('p', { key:'p', style:{ margin:0, fontFamily:'var(--font-serif)', fontSize:'40px', lineHeight:'48px', letterSpacing:'-0.02em' } },
+          'The brand gradient is a band, not a panel behind a paragraph.')
+      ]),
+      /* brand + threshold="spectrum": the suite card's cut at page scale - the teal seam, then
+         the seven product lines, sized off the band's height as the cards size theirs. */
+      h(R.Band, { key:'3s', ground:'brand', threshold:'spectrum' },
+        h('p', { style:{ margin:0, maxWidth:'60%', fontSize:'48px', lineHeight:'52px', fontWeight:700, letterSpacing:'-0.03em' } }, 'The last mile of AI.')),
+      /* deep: the only dark ground, and the one a screenshot can sit on. The panel
+         is flat on it - no shadow - because the ground measures 17:1 against a pale
+         render and contrast is doing the work a shadow would otherwise do. Pair it
+         with the LIGHT screenshot: the dark one measures 1.07:1 and disappears. */
+      h(R.Band, { key:4, ground:'deep', threshold:true }, [
+        h(R.SectionMark, { key:'m', label:['Redrob Cowork'], trailing:'the run' }),
+        h('h3', { key:'h', style:{ margin:'18px 0 0', fontSize:'34px', lineHeight:'42px', letterSpacing:'-0.022em', fontWeight:700 } },
+          'The run shows what it could not read'),
+        h('p', { key:'p', style:{ margin:'14px 0 32px', maxWidth:'52ch', fontSize:'16px', lineHeight:'26px', opacity:.82 } },
+          'One panel, flat on the ground. A second one overlapping it would turn a ground into visual depth, and depth of content is the strata.'),
+        h(R.Figure, { key:'f', src: SHOT, alt:'', ratio:'8 / 5',
+          caption:'A Cowork run over 41 files, with the two it could not read listed first.',
+          credit:'Redrob Cowork, as designed' })
+      ])
+    ]);
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

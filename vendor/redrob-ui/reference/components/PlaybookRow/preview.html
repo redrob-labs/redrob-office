@@ -1,0 +1,21 @@
+<!-- @dsCard group="Agent harness" height=380 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 16, height: s || 16 });
+  const NOW = new Date(2026, 8, 28, 10, 0);
+  const demo = (label) => ({ approval: true, approvalLabel: label });
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '860px' } }, [
+      h(R.PlaybookRow, { key: 1, href: '#', icon: ic('clause'), name: 'Contract first review', highImpact: true, owner: 'Han Jiwoo',
+        summary: 'Cowork reads the contract against your firm\'s positions and marks every clause that departs from them, rated by risk. It drafts the redlines and a short note for the client, both ready for you to check.',
+        steps: [{}, {}, {}, {}, {}, demo('You approve the redlines first')], impact: ['2 days to 2 hours', 'for a first review of a supplier contract'] }),
+      h(R.PlaybookRow, { key: 2, href: '#', icon: ic('receipt'), name: 'Tax filing check',
+        summary: 'Cowork matches your purchase register with what suppliers reported to the tax portal and lists every gap that would cost you a tax credit.',
+        steps: [{}, {}, {}, demo(), {}, demo('You file')], impact: ['₹200 a day', 'late fee on each late TDS statement in India (about $2.09)'] })
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

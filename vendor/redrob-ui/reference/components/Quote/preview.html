@@ -1,0 +1,20 @@
+<!-- @dsCard group="Type" height=465 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '40px' } }, [
+      h(R.Quote, { key: 'a', cite: 'Aarti Sundaram', role: 'Head of Engineering, Fintech, Bengaluru' },
+        'We hired him in eleven days instead of four months. The difference was not the search. It was that the proof arrived with the candidate.'),
+
+      h(R.Quote, { key: 'b', lang: 'ko', cite: '김도현', role: '인사 총괄, 서울' },
+        '서류를 다시 검증할 필요가 없었습니다. 그것만으로 채용 기간이 절반으로 줄었습니다.'),
+
+      h(R.Quote, { key: 'c', rule: false, cite: 'Redrob brand book', role: '2026' },
+        'The gateway of opportunity.')
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,17 @@
+<!-- @dsCard group="Forms" height=560 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 16, height: s || 16 });
+  const NOW = new Date(2026, 8, 28, 10, 0);
+  function Demo() {
+    const [t, setT] = React.useState('08:00');
+    return h('div', { style: { display: 'flex', gap: '24px', alignItems: 'flex-start', minHeight: '500px' } }, [
+      h('div', { key: 'a', style: { width: '140px' } }, h(R.TimePicker, { label: 'Time', value: t, onChange: setT, zone: 'Asia/Seoul', now: NOW })),
+      h('div', { key: 'b', style: { width: '160px' } }, h(R.TimePicker, { label: 'Reminder', size: 'md', defaultValue: '17:45', offices: false, hint: 'Type 1745 or pick it.' }))
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

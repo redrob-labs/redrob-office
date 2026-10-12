@@ -1,0 +1,66 @@
+<!-- @dsCard group="Data display" height=880 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  const PEOPLE = ['Felix Kim', '김정우', 'Aarti Sundaram', 'Jae Gardner', 'Kartikey Handa',
+                  'Swati Chauhan', '이장훈', 'Meera Nair', 'Rohit Verma', 'Ngozi Okafor',
+                  'Budi Santoso', 'Priya Raman'];
+  const cap = (t) => h('div', { style: { fontSize: '11px', color: 'var(--ink-muted)', marginTop: '12px' } }, t);
+
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '30px' } }, [
+      h('div', { key: 'a' }, [
+        h(R.SectionMark, { label: ['New accounts'], trailing: 'no photo yet' }),
+        h('div', { style: { display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '14px' } },
+          PEOPLE.map((p) => h(R.Avatar, { key: p, name: p, size: 'lg' }))),
+        cap('one threshold, in the same place on every mark - only the color and the initials change, and the same person always gets the same mark'),
+      ]),
+      h('div', { key: 'b' }, [
+        h(R.SectionMark, { label: ['At every size'] }),
+        h('div', { style: { display: 'flex', gap: '14px', alignItems: 'center', marginTop: '14px' } },
+          ['xs', 'sm', 'md', 'lg'].map((s) => h(R.Avatar, { key: s, name: 'Aarti Sundaram', size: s }))),
+        cap('xs 24, sm 32, md 40, lg 56 - one SVG, no raster at any size'),
+      ]),
+      h('div', { key: 'c', style: { display: 'flex', gap: '40px', flexWrap: 'wrap' } }, [
+        h('div', { key: 1 }, [
+          h(R.SectionMark, { label: ['Workspaces'] }),
+          h('div', { style: { display: 'flex', gap: '10px', marginTop: '14px' } },
+            ['Redrob Inc.', 'McKinley Rice', '맥킨리라이스'].map((p) =>
+              h(R.Avatar, { key: p, name: p, size: 'lg', shape: 'square' }))),
+          cap('shape square for an organization'),
+        ]),
+        h('div', { key: 2 }, [
+          h(R.SectionMark, { label: ['No name yet'] }),
+          h('div', { style: { display: 'flex', gap: '10px', marginTop: '14px' } },
+            ['u_8812', 'u_4471', 'u_9930'].map((s) =>
+              h(R.Avatar, { key: s, name: '', seed: s, size: 'lg' }))),
+          cap('seeded by account id: the mark exists before the profile does'),
+        ]),
+        h('div', { key: 3 }, [
+          h(R.SectionMark, { label: ['A photo wins'] }),
+          h('div', { style: { display: 'flex', gap: '10px', marginTop: '14px' } }, [
+            h(R.Avatar, { key: 1, name: 'Felix Kim', size: 'lg' }),
+            h(R.Avatar, { key: 2, name: 'Felix Kim', size: 'lg', art: false }),
+          ]),
+          cap('generated, and art: false for the flat fallback'),
+        ]),
+      ]),
+      h('div', { key: 's' }, [
+        h(R.SectionMark, { label: ['Status'] }),
+        h('div', { style: { display: 'flex', gap: '14px', alignItems: 'center', marginTop: '14px' } }, [
+          h(R.Avatar, { key: 1, name: 'Felix Kim', status: 'online' }),
+          h(R.Avatar, { key: 2, name: 'Swati Chauhan', size: 'lg', status: 'busy' }),
+          h(R.Avatar, { key: 3, name: 'Jae Gardner', status: 'away' }),
+        ]),
+      ]),
+      h('div', { key: 'd' }, [
+        h(R.SectionMark, { label: ['In a stack'] }),
+        h('div', { className: 'rr-avatar-group', style: { marginTop: '14px' } },
+          PEOPLE.slice(0, 5).map((p) => h(R.Avatar, { key: p, name: p }))),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

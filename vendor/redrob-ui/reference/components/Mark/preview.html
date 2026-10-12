@@ -1,0 +1,27 @@
+<!-- @dsCard group="Foundations" height=180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const L = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+  const D = '/_blob/290f8c4ecd34da668364dc8794df0e45';
+  function Demo() {
+    /* Each row sets data-theme AND tone. The theme repaints the ground; tone
+       tells the lockup which ground it landed on. Without tone the row follows
+       the page's theme instead of its own, so in the dark theme this panel
+       painted itself white and kept the white wordmark, which vanished. */
+    const row = (theme, note) => h('div', { 'data-theme': theme,
+      style: { padding: '20px 24px', background: 'var(--surface-base)',
+      display: 'flex', alignItems: 'center', gap: '20px', borderBottom: '1px solid var(--border-subtle)' } }, [
+      h(R.Mark, { key: 'm', src: L, darkSrc: D, height: 22, tone: theme }),
+      h('span', { key: 'l', style: { fontSize: '12px', color: 'var(--ink-muted)' } }, note)
+    ]);
+    return h('div', null, [
+      h('div', { key: 'a' }, row('light', 'On a light ground it shows the primary lockup')),
+      h('div', { key: 'b' }, row('dark', 'On a dark ground it shows the white one, with no second alt text')),
+      h('div', { key: 'c', style: { padding: '14px 24px', fontSize: '12px', color: 'var(--ink-secondary)' } },
+        'Leave tone off and the lockup follows the page. Set it when a panel does not.')
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

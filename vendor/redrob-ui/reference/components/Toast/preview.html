@@ -1,0 +1,16 @@
+<!-- @dsCard group="Feedback" height=290 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return col([
+      h(R.Toast, { key: 1, tone: 'success', title: 'Shortlist saved', onClose: () => {} }, '12 candidates moved to Interview.'),
+      h(R.Toast, { key: 2, tone: 'danger', title: 'Could not reach the ATS', onClose: () => {}, action: h(R.Button, { size: 'sm', variant: 'secondary' }, 'Retry') }, 'The connection timed out after 30 seconds.'),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"]
+    },
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "strict": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "declaration": true,
+
+    // Without this, `tsc` writes output even when it reports errors, and the parity harness reads
+    // that output and passes. It happened twice during the 2026 port: a real type error, a green
+    // parity run, and nothing to indicate the two were related. The build script also deletes
+    // `dist/` first, so a failed build cannot leave a stale-but-valid tree for the harness to
+    // compare against instead.
+    "noEmitOnError": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css"],
+  "exclude": ["node_modules"]
+}

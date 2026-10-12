@@ -1,0 +1,34 @@
+<!-- @dsCard group="Evidence" height=380 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.ReviewGrid, {
+      title:'Six questions, forty-one agreements', rowLabel:'Agreement',
+      columns:[
+        { key:'term', label:'Notice to end it' },
+        { key:'cap', label:'Liability cap' },
+        { key:'law', label:'Governing law' },
+        { key:'assign', label:'Assignable?' }
+      ],
+      rows:[
+        { label:'Danal Fintech', sub:'Signed March 2024', cells:{
+            term:{ value:'30 days', source:1 }, cap:{ value:'Fees paid in 12 months', source:2 },
+            law:{ value:'Republic of Korea', source:3 }, assign:{ value:'On consent', source:4 } } },
+        { label:'Nexon Korea', sub:'Signed July 2023', cells:{
+            term:{ value:'90 days', source:5 }, cap:{ value:'Uncapped for data breach', state:'unsure', source:6 },
+            law:{ value:'Republic of Korea', source:7 }, assign:{ value:'Freely' } } },
+        { label:'Wadhwani Foundation', sub:'Signed January 2025', cells:{
+            term:{ value:'60 days', source:8 }, cap:{ state:'none' },
+            law:{ value:'India', source:9 }, assign:{ state:'unsure', value:'Silent on it', source:10 } } },
+        { label:'Penn Plaza sublease', sub:'Being read now', cells:{
+            term:{ state:'pending' }, cap:{ state:'pending' }, law:{ state:'pending' }, assign:{ state:'pending' } } }
+      ],
+      onOpenCell:()=>{}, onOpenRow:()=>{},
+      footNote:'Every answer opens at the sentence it came from. Two need a person before this goes anywhere.' });
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

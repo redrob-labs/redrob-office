@@ -1,0 +1,24 @@
+<!-- @dsCard group="Agent harness" height=605 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', { style:{ display:'flex', flexDirection:'column', gap:'20px', maxWidth:'560px' } }, [
+      h(R.AgentHandoff, { key:1,
+        from:'Market research', fromNote:'Read 11 sources and pulled the figures', fromWhen:'Finished 2:14pm',
+        to:'Writing the one-pager', toNote:'Turning those figures into a page', toWhen:'Working on it now',
+        carried:[
+          'Eleven figures, each with the page it came from',
+          'Two claims it could not confirm, marked as such',
+          'The exchange rate used, and the date it was taken' ] }),
+      h(R.AgentHandoff, { key:2,
+        from:'Writing the one-pager', fromWhen:'Finished 2:31pm',
+        to:'Felix', toNote:'Nothing is sent until you say so', toWhen:'Waiting for you',
+        passLabel:'Handed to a person',
+        carried:['redrob-one-pager.docx, one page'] }),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

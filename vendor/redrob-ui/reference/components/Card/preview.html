@@ -1,0 +1,39 @@
+<!-- @dsCard group="Data display" height=475 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return row([
+      h(R.Card, {
+        key: 1,
+        meta: ['Talent pool', 'Noida'],
+        variant: 'feature',
+        title: 'Senior Backend Engineer',
+        description: '42 candidates shortlisted this week, 6 waiting on your review.',
+        footer: [h(R.Button, { key: 1, size: 'sm' }, 'Review'), h(R.Button, { key: 2, size: 'sm', variant: 'ghost' }, 'Share')],
+        style: { width: '300px' },
+      }),
+      h(R.Card, {
+        key: 2,
+        interactive: true,
+        title: 'Connect an ATS',
+        description: 'Sync roles and candidates both ways. Takes about two minutes.',
+        padding: 'tight',
+        style: { width: '250px' },
+      }),
+      h(R.Card, {
+        key: 3,
+        variant: 'quiet',
+        meta: 'Archived',
+        title: 'Growth Marketer',
+        description: 'Closed in June. 18 applicants, 2 interviews.',
+        style: { width: '230px' },
+      }),
+    ], { alignItems: 'flex-start' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

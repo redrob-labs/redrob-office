@@ -1,0 +1,308 @@
+name: publish
+
+# Releases are cut from a tag on `main`, never from a push.
+#
+# The previous version of this file published on every push to `main`. That is the order the gitflow
+# standard warns about: it ships whatever `main` happens to hold at that moment under whatever version
+# `package.json` happens to say, with nothing asserting the two agree. A promotion pull request landing
+# a version bump and a code change together published twice, and a promotion that landed before the bump
+# published the new code under the old version.
+#
+# Order now: promote `develop` -> `main` through a reviewed pull request, tag `main`, publish from the tag.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish from, e.g. v1.0.12"
+        required: true
+      dry_run:
+        description: "Build and pack, publish nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  # Provenance signs the published tarball against this workflow run, so a consumer can check that
+  # the package on the registry was built here and not uploaded from someone's laptop.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve the tag to publish
+        id: ref
+        env:
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "release" ]; then tag="$RELEASE_TAG"; else tag="$INPUT_TAG"; fi
+          [ -n "$tag" ] || { echo "::error::no tag to publish from"; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ref.outputs.tag }}
+          fetch-depth: 0
+
+      # A tag that is not on `main` is not a release. Catching it here is cheap; catching it after
+      # the package is public is not possible at all, because a published version is immutable.
+      - name: Assert the tag is on main
+        env:
+          TAG: ${{ steps.ref.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$TAG" origin/main; then
+            echo "::error::$TAG is not an ancestor of main. Promote develop into main first, then tag main."
+            exit 1
+          fi
+          echo "$TAG is on main"
+
+      # The tag and package.json are two separate claims about the same version and nothing keeps them
+      # in step. Read both and compare, rather than trusting either.
+      - name: Assert package.json version matches the tag
+        env:
+          TAG: ${{ steps.ref.outputs.tag }}
+        run: |
+          set -euo pipefail
+          pkg="$(node -p "require('./package.json').version")"
+          want="${TAG#v}"
+          if [ "$pkg" != "$want" ]; then
+            echo "::error::tag $TAG says $want, package.json says $pkg. Bump package.json in the promotion, then retag."
+            exit 1
+          fi
+          echo "version $pkg matches $TAG"
+
+      - uses: actions/setup-node@v4
+        with:
+          # 22.14 is the floor for trusted publishing (OIDC); 20.x cannot do it at all, so a workflow
+          # pinned there silently has only the token path available no matter what npm is configured to
+          # accept. Node 24 also ships an npm new enough to detect the OIDC environment.
+          node-version: "24.x"
+          registry-url: "https://registry.npmjs.org"
+          scope: "@redrob-labs"
+          cache: yarn
+
+      # Trusted publishing needs npm >= 11.5.1. The npm bundled with a Node release drifts behind, and
+      # the failure when it is too old is an authentication error that says nothing about the version.
+      - name: Use an npm that can do OIDC
+        run: |
+          set -euo pipefail
+          npm install -g npm@latest
+          npm --version
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Assert the published surface exists
+        run: |
+          set -euo pipefail
+          # Both halves of the dual build, and the native token headers. `dist/esm/package.json` is the
+          # `"type": "module"` marker: without it Node parses the ESM tree as CommonJS and every export
+          # is a syntax error, so shipping it is not optional.
+          for f in dist/index.js dist/index.d.ts dist/esm/index.js dist/esm/package.json \
+                   dist/styles/tokens.json dist/native/redrob_tokens.h; do
+            [ -s "$f" ] || { echo "::error::$f is missing or empty; refusing to publish an incomplete package"; exit 1; }
+          done
+          for d in dist/styles dist/fonts dist/native; do
+            [ -d "$d" ] && [ -n "$(ls -A "$d")" ] || { echo "::error::$d is missing or empty"; exit 1; }
+          done
+
+      # A published version is immutable, so the entry points get checked HERE and not only on pull
+      # requests. This loads both halves and compares their exports; a broken ESM specifier passes a
+      # bundler and fails Node, and the only fix after publishing is another release.
+      - name: Assert the entry points resolve
+        run: yarn exports:check
+
+      # Provenance is decided here rather than declared in package.json, because it is not always
+      # possible. npm does not generate provenance from a PRIVATE source repository - that was
+      # withdrawn in 2023 - and it applies even when the package itself is public. With
+      # `publishConfig.provenance: true` set unconditionally, every publish from this repository would
+      # fail while it stays private, for a reason unrelated to the package.
+      #
+      # Trusted publishing generates provenance automatically when the repository is public, with no
+      # flag at all. So: ask, and only ask for it when it can be given.
+      - name: Can this repository produce provenance
+        id: prov
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          visibility="$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.visibility')"
+          if [ "$visibility" = "public" ]; then
+            echo "provenance=true" >> "$GITHUB_OUTPUT"
+            echo "repository is public; provenance will be attested"
+          else
+            echo "provenance=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::repository is $visibility, so npm cannot attest provenance; publishing without it"
+          fi
+
+      # Authentication is EITHER a token or OIDC, and the npm CLI prefers OIDC when it detects it. So
+      # this reports which one is in play instead of failing on a missing token: a repository with a
+      # trusted publisher configured needs no secret at all, and demanding one would block the more
+      # secure path.
+      #
+      # Note the ordering problem for a FIRST publish: a trusted publisher is configured on a package's
+      # settings page, and a package that has never been published has no settings page. So version one
+      # goes up another way, and OIDC takes over from the second.
+      - name: Report the authentication path
+        id: auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "${NPM_TOKEN:-}" ]; then
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+            echo "NPM_TOKEN is set; it will be used unless OIDC is available."
+          else
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### No NPM_TOKEN — relying on trusted publishing (OIDC)"
+              echo
+              echo "This works only when a trusted publisher is configured for the package on npmjs.com:"
+              echo "**Packages -> @redrob-labs/ui -> Settings -> Trusted publishing**, with"
+              echo "repository \`${GITHUB_REPOSITORY}\` and workflow filename \`publish.yml\`."
+              echo
+              echo "A package that has never been published has no settings page, so the FIRST version"
+              echo "cannot use this. Publish v1 with \`npm publish\` locally, or add an NPM_TOKEN secret"
+              echo "(granular, write on the @redrob-labs scope, 90 days maximum), then configure the"
+              echo "trusted publisher and remove the secret."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice::no NPM_TOKEN; attempting OIDC."
+          fi
+
+      - name: Publish to npm
+        if: ${{ github.event_name == 'release' || inputs.dry_run == false }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: ${{ steps.ref.outputs.tag }}
+          WANT_PROVENANCE: ${{ steps.prov.outputs.provenance }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          name="$(node -p "require('./package.json').name")"
+          # An already-published version is immutable, so a retry of a partly-succeeded run must not
+          # fail on the one step that cannot be repeated.
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "::notice::$name@$version is already published; nothing to do"
+            exit 0
+          fi
+          if [ "$WANT_PROVENANCE" = "true" ]; then
+            npm publish --provenance --access public
+          else
+            npm publish --access public
+          fi
+
+      # `npm publish` printing `+ name@version` is NOT on its own proof the version arrived. But the
+      # check for that has to read the RIGHT thing, and the first version of this step read the wrong
+      # one and would have failed a perfectly good release.
+      #
+      # Two registry documents appear on different clocks. The VERSION document
+      # (`/{pkg}/{version}`) is written synchronously - it was 200 within a minute of the publish that
+      # produced 1.0.0. The PACKUMENT (`/{pkg}`, which is what `npm view` and `npm install` resolve
+      # through) is a CDN-cached aggregate: for that same publish it still answered 404 three minutes
+      # later and only came good sometime in the next fifty. A gate that requires the packument
+      # therefore fails a successful publish on a timer, which is worse than no gate - it teaches
+      # everyone that red means nothing.
+      #
+      # So the ASSERTION is on the version document, which is the registry's own authoritative record
+      # that this version exists. The packument is probed too, but only to report: a 404 there is
+      # expected right after a publish and says nothing bad.
+      #
+      # What this still catches is the real failure: `npm publish` exiting 0 having uploaded nothing,
+      # which is what a 2FA-restricted token does when it cannot publish directly.
+      # THIS GATE HAS NOW BEEN WRONG TWICE, BOTH TIMES IN THE SAME DIRECTION: its retry window was
+      # shorter than the registry's own settling time, so it called a SUCCESSFUL publish a failure.
+      #
+      #   v1: read the packument (what `npm install` resolves through). That is a CDN aggregate and
+      #       took tens of minutes. 1.0.0 was reported as "staged, awaiting approval" on that evidence
+      #       and a version number was burned working around a publish that had actually worked.
+      #   v2: read the version document instead, on the premise that it is written synchronously.
+      #       60 seconds. 1.0.2 404'd for the whole window and failed a publish that had succeeded,
+      #       provenance and all -- because npm itself now says, in the publish output,
+      #       "Your package is being processed and may take a few minutes to become available."
+      #
+      # So no read of the registry is synchronous, and the premise of both versions was wrong. What IS
+      # authoritative about whether the publish was ACCEPTED is npm's own exit status and its `+ pkg@ver`
+      # line, and that has already happened in the step above. This step therefore confirms VISIBILITY,
+      # over a window measured in minutes rather than seconds, and when it times out it says which of
+      # the two things it could not establish -- because the remedies are opposite:
+      #
+      #   accepted but not visible  -> wait, or check Staged Packages. DO NOT bump the version.
+      #   not accepted              -> the publish step would have failed; read its output.
+      #
+      # It never tells anyone to republish under a new version, which is the one action that cannot be
+      # undone and was the actual damage the first version of this gate caused.
+      - name: Confirm the published version becomes visible
+        if: ${{ github.event_name == 'release' || inputs.dry_run == false }}
+        env:
+          TAG: ${{ steps.ref.outputs.tag }}
+        run: |
+          set -uo pipefail
+          version="${TAG#v}"
+          name="$(node -p "require('./package.json').name")"
+          encoded="$(node -p "encodeURIComponent('$name')")"
+
+          # 20 attempts x 30s = 10 minutes. npm's own wording is "a few minutes"; this is several times
+          # that, because the cost of being too short is a red release that actually shipped, while the
+          # cost of being too long is ten minutes of a runner.
+          version_doc=000
+          for attempt in $(seq 1 20); do
+            version_doc="$(curl -s -o /dev/null -w '%{http_code}' "https://registry.npmjs.org/${encoded}/${version}")"
+            [ "$version_doc" = "200" ] && break
+            echo "not visible yet (attempt ${attempt}/20, version document http ${version_doc}); waiting 30s"
+            sleep 30
+          done
+
+          packument="$(curl -s -o /dev/null -w '%{http_code}' "https://registry.npmjs.org/${encoded}")"
+
+          if [ "$version_doc" = "200" ]; then
+            echo "$name@$version is visible on the registry (version document 200)."
+            if [ "$packument" != "200" ]; then
+              echo "::notice::the packument still answers ${packument}; that is CDN propagation and resolves on its own. \`npm install\` may 404 for a while yet. This is NOT a staged publish."
+            fi
+            exit 0
+          fi
+
+          {
+            echo "### \`$name@$version\` was published but is not visible yet"
+            echo
+            echo "| read | status | what it means |"
+            echo "| --- | --- | --- |"
+            echo "| version document | $version_doc | the record of this exact version |"
+            echo "| packument | $packument | the aggregate \`npm install\` resolves through; CDN-cached |"
+            echo
+            echo "**The publish step above succeeded**, so npm ACCEPTED this version -- read its"
+            echo "\`+ $name@$version\` line. What this step could not establish is only that the registry"
+            echo "is yet SERVING it, after 10 minutes of asking."
+            echo
+            echo "Two causes, and they are told apart by looking, not by guessing:"
+            echo
+            echo "1. **Still settling.** Most likely. npm's own publish output says the package \"may take"
+            echo "   a few minutes to become available\". Re-read the two URLs above in a few minutes."
+            echo "2. **Staged, awaiting a human.** A token that bypasses 2FA can no longer publish"
+            echo "   directly; such a publish is staged and needs approval. Check **Staged Packages** on"
+            echo "   npmjs.com, or \`npm stage list $name\`. An EMPTY staging list means this is case 1."
+            echo
+            echo "**Do not republish under a new version number.** That is not reversible, and this"
+            echo "version is already taken either way. Neither cause is fixed by bumping."
+          } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+
+          echo "::error::$name@$version was accepted by npm but is not visible after 10 minutes. See the run summary before taking any action."
+          exit 1
+
+      - name: Pack only (dry run)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
+        run: |
+          set -euo pipefail
+          npm pack --dry-run
+          echo "::notice::dry run: built and packed, published nothing"

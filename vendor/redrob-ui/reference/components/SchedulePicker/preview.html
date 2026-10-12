@@ -1,0 +1,14 @@
+<!-- @dsCard group="Agent harness" height=720 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 16, height: s || 16 });
+  const NOW = new Date(2026, 8, 28, 10, 0);
+  function Demo() {
+    const [w, setW] = React.useState({ mode: 'repeat', freq: 'weekly', days: ['1'], time: '08:00', zone: 'Asia/Seoul', start: '2026-09-28' });
+    return h('div', { style: { width: '280px', minHeight: '660px' } }, h(R.SchedulePicker, { value: w, onChange: setW, now: NOW, where: 'Q3 supplier contracts', locale: 'en-GB', weekStart: 1 }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

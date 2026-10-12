@@ -1,0 +1,18 @@
+<!-- @dsCard group="Forms" height=275 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return row([
+      h(R.Input, { key: 1, label: 'Work email', placeholder: 'you@company.com', hint: 'Used only to send the report.', style: { width: '260px' } }),
+      h(R.Input, { key: 2, label: 'Company', defaultValue: 'McKinley Rice', style: { width: '200px' } }),
+      h(R.Input, { key: 3, label: 'Seats', error: 'Enter a number between 1 and 500.', defaultValue: '900', style: { width: '160px' } }),
+      h(R.Input, { key: 4, label: 'Account ID', disabled: true, defaultValue: 'RR-0042', style: { width: '160px' } }),
+    ], { alignItems: 'flex-start' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

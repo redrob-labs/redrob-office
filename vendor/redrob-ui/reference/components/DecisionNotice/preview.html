@@ -1,0 +1,23 @@
+<!-- @dsCard group="Evidence" height=510 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.DecisionNotice, {
+      decision:'A machine helped decide whether to invite you to a first interview for Backend Engineer, Seoul.',
+      used:[ 'The work history and skills in the application you sent us',
+             'The answers you gave to the three written questions',
+             'Whether you told us you can work in Korea' ],
+      notUsed:[ 'Your name, photograph, age or address', 'Where you went to school', 'Anything from your social media' ],
+      humanReview:'A recruiter read the machine\u2019s summary and your application in full before this decision was sent. No invitation is declined by the machine alone.',
+      rights:[ 'A copy of what the machine recorded about your application',
+               'To have your application looked at again by a person, with no machine involved',
+               'To correct anything in it that is wrong' ],
+      auditHref:'#', auditLabel:'Read the independent audit of this tool',
+      contact:'hiring@redrob.io' });
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

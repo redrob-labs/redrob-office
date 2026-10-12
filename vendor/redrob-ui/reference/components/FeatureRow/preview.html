@@ -1,0 +1,46 @@
+<!-- @dsCard group="Marketing" height=2067 width=1180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  /* Real renders of ScreenCoworkPlaybook, ScreenCoworkConnectors and the Office prototype (ScreenOfficeDocument), not wireframes. See assets/Screens. */
+  const SHOTS = ['/_blob/5b072da03c2da58ad18052e822caefa9', '/_blob/82884ccc49a344553615f3307e5a0983', '/_blob/b37bfd6193c8e7f4eadcc1b990d743b4'];
+  const SHOT = (i) => SHOTS[i % SHOTS.length];
+
+  function Demo() {
+    return h('div', null, [
+      /* This row bleeds, and it is the only one that does. It is the system's own
+         answer to a column of rows reading as a table - and to a page reading like
+         every other B2B site, where each section is a screenshot in a neat box,
+         alternating sides. One per page: two is a pattern. */
+      h(R.Band, { key:1 }, h(R.FeatureRow, { index:0, bleed:true,
+        title:'Redrob Cowork does the same work the same way, every time',
+        points:['Save a way of working as a playbook, step by step',
+                'Run it once, on a schedule, or when a file arrives',
+                'Every step that sends, signs or pays waits for you'],
+        action: h(R.Button,{size:'sm',variant:'secondary'},'See the thirty examples'),
+        media: h(R.Figure,{ src: SHOT(0), alt:'A Redrob Cowork playbook: the contract renewal sweep with its figure, its steps, when it runs and the apps it may reach.', ratio:'8 / 5',
+          caption:'The renewal sweep runs every Monday at 08:00 Seoul time, and stops twice for a person.', credit:'Redrob Cowork, as designed' }) }, 'A playbook is work your team already does, written down once. Cowork follows the steps in order, in any project, and stops wherever you said a person should check.')),
+      h(R.Band, { key:3, ground:'sunken' }, h(R.FeatureRow, { index:1,
+        title:'It reaches only the apps you add',
+        points:['Twenty of the most used work apps, from Gmail to Jira',
+                'Each one can read, or read and write, nothing in between',
+                'Sending is a step, and that step always asks'],
+        action: h(R.Button,{size:'sm',variant:'secondary'},'See the connectors'),
+        media: h(R.Figure,{ src: SHOT(1), alt:'The Connectors page in Redrob Cowork: six connected apps, each with what Cowork does there.', ratio:'8 / 5',
+          caption:'Six apps connected. A playbook reaches the ones added to it, and no others.', credit:'Redrob Cowork, as designed' }) }, 'Connect the apps you already work in. Then each playbook says which of them it may read, and which it may change.')),
+      h(R.Band, { key:2 }, h(R.FeatureRow, { index:2,
+        /* The copy matches the screen beside it. There is no Browser screen yet, so there
+           is no Browser row: a marketing page that describes a product it cannot show is
+           the thing 50-not-generated.md rules out, one level up from the layout. */
+        title:'Redrob Office keeps the record, not just the document',
+        points:['A figure opens at the cell it came from',
+                'Change it once, and every file that uses it waits for you',
+                'Nothing changes in another file until someone keeps it'],
+        action: h(R.Button,{size:'sm',variant:'secondary'},'See how a figure is traced'),
+        media: h(R.Figure,{ src: SHOT(2), alt:'A figure in a board memo opened: its source cell, when it last changed, the four files that use it, and a box to change it everywhere.', ratio:'44 / 31',
+          caption:'Q3 revenue in the board memo: its source, when it last changed, and the four files that use it.', credit:'Redrob Office, as designed' }) }, 'Every figure in the memo came out of a sheet somebody wrote. Open one and it says which file, which cell, who changed it last and where else it is used. Change it there and every other file lines the change up for a person to keep.'))
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

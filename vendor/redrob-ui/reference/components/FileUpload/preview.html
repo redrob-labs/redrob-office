@@ -1,0 +1,25 @@
+<!-- @dsCard group="Forms" height=325 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const [files, setFiles] = React.useState([
+      { name: 'candidates-noida-q3.csv', size: 284000 },
+      { name: 'jd-backend-engineer.pdf', size: 1180000 },
+    ]);
+    return h('div', { style: { maxWidth: '460px' } },
+      h(R.FileUpload, {
+        files: files,
+        multiple: true,
+        accept: 'CSV, XLSX, PDF',
+        maxLabel: 'Up to 20 MB each',
+        onFiles: (f) => setFiles(files.concat(f.map((x) => ({ name: x.name, size: x.size })))),
+        onRemove: (f) => setFiles(files.filter((x) => x !== f)),
+      }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

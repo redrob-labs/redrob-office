@@ -1,0 +1,49 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+# Both forms on purpose: a trailing-slash pattern matches a directory only, so a `node_modules`
+# SYMLINK into a shared store is a different kind of entry and slips past it into a commit.
+/node_modules
+node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# build output
+/dist
+
+# generated documentation site. `llms.txt` and `llms-full.txt` at the repo root are generated too but
+# ARE committed: an agent that reaches the repository instead of the published site must find the
+# same reference, and `yarn docs:check` in CI is what keeps the committed copies honest.
+/site
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.npmrc
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+

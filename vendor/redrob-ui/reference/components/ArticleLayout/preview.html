@@ -1,0 +1,52 @@
+<!-- @dsCard group="Publishing" height=1120 width=820 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const SHOT = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500"><rect width="800" height="500" fill="#EFF1F4"/>' +
+    '<rect x="40" y="40" width="300" height="16" rx="3" fill="#CBCFD7"/>' +
+    '<rect x="40" y="76" width="720" height="1" fill="#DFE2E8"/>' +
+    '<rect x="40" y="104" width="180" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="260" y="104" width="120" height="12" rx="3" fill="#2B52FF" opacity=".5"/>' +
+    '<rect x="420" y="104" width="150" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="40" y="150" width="720" height="1" fill="#EFF1F4"/>' +
+    '<rect x="40" y="178" width="200" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="260" y="178" width="90"  height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="420" y="178" width="170" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="40" y="224" width="720" height="1" fill="#EFF1F4"/>' +
+    '<rect x="40" y="252" width="160" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="260" y="252" width="140" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<text x="40" y="440" font-family="sans-serif" font-size="15" fill="#7C8390">a real screenshot goes here</text></svg>');
+  const LOGO = (n) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40"><text x="0" y="28" font-family="sans-serif" font-size="24" font-weight="700" fill="#0A0B0C">' + n + '</text></svg>');
+ 
+  function Demo() {
+    /* The story is the same object the Research list shows; the page adds the body. */
+    const story = {
+      href:'#', kind:'Evaluation', date:'9 September 2026', dateTime:'2026-09-09', reading:'7 min',
+      title:'An absence is not a negative',
+      summary:'The most expensive error a screening system makes is reporting what it does not know as what it found.',
+      authors:[
+        { name:'Dana Whitfield', role:'Evaluation', avatar: h(R.Avatar, { name:'Dana Whitfield', seed:'dw-01', size:'sm' }) },
+        { name:'Min-seo Park', role:'Research', avatar: h(R.Avatar, { name:'Min-seo Park', seed:'mp-02', size:'sm' }) }
+      ],
+      finding:{ value:'1 in 6', label:'screening misses were an unread file, not a failed match', period:'Q3 2026' },
+      paper:{ href:'#' }
+    };
+    return h(R.Band, { size:'sm' }, h(R.ArticleLayout, {
+      story,
+      contents:[{id:'s1',label:'Where the error comes from'},{id:'s2',label:'What it costs'},{id:'s3',label:'What to build instead'}],
+      tags:[{label:'Assessment',href:'#'},{label:'Fairness',href:'#'}]
+    }, [
+      h('p', { key:1 }, 'A machine reads two hundred applications and reports that a candidate does not have the experience. There are two things that sentence can mean, and the difference between them decides whether a person gets an interview.'),
+      h('h2', { key:2, id:'s1' }, 'Where the error comes from'),
+      h('p', { key:3 }, 'Most systems collapse "the sources show this is not so" into the same cell as "nothing in the sources speaks to this". The first is a finding. The second is a gap in what was read, and it belongs to the system rather than to the person.'),
+      h('blockquote', { key:4 }, 'Reporting an absence as a negative is how somebody gets ruled out for a fact nobody ever established.'),
+      h('h2', { key:5, id:'s2' }, 'What it costs'),
+      h('p', { key:6 }, 'It costs the candidate an interview and it costs the employer a defense. Under Korea\u2019s automated decision rules a person may demand the criteria and the processing behind a decision, and "we did not know" is not an answer that survives being written down.')
+    ]));
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

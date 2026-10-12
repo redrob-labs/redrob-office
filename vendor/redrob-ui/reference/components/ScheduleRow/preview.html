@@ -1,0 +1,18 @@
+<!-- @dsCard group="Agent harness" height=235 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', {}, [
+      h(R.ScheduleRow, { key:1, name:'Morning brief', cadence:'Weekdays at 7am', nextRun:'tomorrow 7:00',
+        lastRun:{ state:'done', label:'Ran at 7:00' }, enabled:true, onToggle:()=>{} }),
+      h(R.ScheduleRow, { key:2, name:'Re-check credentials', cadence:'Every Monday at 2am', nextRun:'Mon 2:00',
+        lastRun:{ state:'failed', label:'Did not finish' }, enabled:true, onToggle:()=>{} }),
+      h(R.ScheduleRow, { key:3, name:'Quarterly board pack', cadence:'First day of the quarter',
+        lastRun:{ state:'done', label:'Ran 1 July' }, enabled:false, onToggle:()=>{} }),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

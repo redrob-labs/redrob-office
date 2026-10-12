@@ -1,0 +1,41 @@
+<!-- @dsCard group="Frames" height=550 width=1280 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<style> #root, #root .rr-shell { min-height: 540px; } </style>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  function Demo() {
+    return h(R.AppShell, {
+      product: 'Office', theme: h(R.ThemeSwitch, { size: 'sm' }),
+      mark: '/_blob/ed76761a1e006c91b7a77078f8d82da9',
+      markDark: '/_blob/290f8c4ecd34da668364dc8794df0e45',
+      nav: [
+        { label: 'Documents', icon: h(I.clause, { width: 15, height: 15 }), current: true, meta: '24' },
+        { label: 'Shared with me', icon: h(I.users, { width: 15, height: 15 }) },
+        { label: 'Templates', icon: h(I.copy, { width: 15, height: 15 }) }
+      ],
+      title: 'Handover pack, 18 September',
+      meta: 'Written in Dutch, read in four languages',
+      actions: h(R.Button, { variant: 'secondary', size: 'sm' }, 'Share'),
+      rail: h('div', null, [
+        h('p', { key: 'h', style: { margin: '0 0 10px', fontSize: '11px', fontWeight: 600, color: 'var(--ink-muted)' } }, 'Who has it'),
+        h(R.AgentRoster, { key: 'r', agents: [
+          { name: 'Rotterdam', state: 'done', step: 'Signed off', elapsed: '23:04' },
+          { name: 'Antwerp', state: 'running', step: 'Reading', elapsed: '2m' }
+        ] })
+      ]),
+      foot: h('div', { style: { display: 'flex', gap: '10px' } }, [
+        h('div', { key: 'i', style: { flex: '1 1 auto' } }, h(R.Input, { placeholder: 'Leave a note for the morning shift' })),
+        h(R.Button, { key: 'b', variant: 'primary' }, 'Post')
+      ])
+    }, [
+      h(R.Statement, { key: 's', level: 2,
+        lede: 'The work column is capped at a readable measure. Set measure={false} for a table or a canvas that should use the whole width.' },
+        'The frame a product screen lives in.'),
+      h('p', { key: 'p', style: { margin: 0, fontSize: '15px', lineHeight: '24px', color: 'var(--ink-secondary)' } },
+        'Three regions: nav on the left, the work in the middle, context on the right. The rail drops at 1180px and the sidebar collapses to icons at 900px.')
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

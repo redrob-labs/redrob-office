@@ -1,0 +1,59 @@
+<!-- @dsCard group="Foundations" height=4925 page -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const GROUPS = [
+      ["The brand's own", ["door", "threshold", "passport", "spark", "ladder", "key", "bridge", "translate", "beacon", "seal"]],
+      ["Interface", ["check", "minus", "plus", "close", "chevronUp", "chevronDown", "chevronLeft", "chevronRight", "arrowLeft", "arrowRight", "arrowDown", "arrowUpRight", "external", "search", "menu", "more", "settings", "sort", "filter", "refresh", "play", "copy", "edit", "compare", "columns", "stack", "scan", "branch", "history"]],
+      ["State", ["info", "success", "warning", "danger", "stop", "shield", "lock", "unlock", "eye", "star", "bookmark", "flag", "anonymous", "redact"]],
+      ["AI", ["sparkle", "tool"]],
+      ["Evidence", ["clause", "highlight", "checklist", "signature", "scales", "route"]],
+      ["Work", ["mail", "file", "grid", "chart", "trend", "clock", "calendar", "link", "upload", "download", "send", "user", "users", "globe", "briefcase", "building", "graduation", "network", "pin"]],
+      ["Arrows, chevrons and layout", ["arrowUp", "arrowUpLeft", "arrowDownLeft", "arrowDownRight", "chevronsRight", "chevronsLeft", "chevronsUp", "chevronsDown", "home", "back", "forward", "expand", "collapse", "maximize", "minimize", "fullscreen", "sidebar", "panelRight", "layout"]],
+      ["Files and documents", ["fileText", "fileCode", "fileSheet", "fileImage", "fileZip", "filePdf", "filePlus", "folder", "folderOpen", "folderPlus", "archive", "clipboard", "clipboardCheck", "attachment", "save", "duplicate", "trash", "restore"]],
+      ["Editing and text", ["bold", "italic", "underline", "strikethrough", "list", "listOrdered", "indent", "outdent", "alignLeft", "alignCenter", "alignRight", "alignJustify", "undo", "redo", "crop"]],
+      ["Communication", ["message", "messages", "comment", "bell", "bellOff", "phone", "videoCall", "at", "hash", "share", "reply", "inbox", "draft"]],
+      ["Media", ["image", "images", "camera", "video", "mic", "micOff", "volume", "volumeOff", "pause", "skipBack", "skipForward", "record"]],
+      ["Status and feedback", ["help", "question", "alert", "bug", "verified", "pending", "blocked", "circleCheck", "circleX", "circlePlus", "circleMinus", "dot"]],
+      ["Commerce", ["card", "wallet", "receipt", "tag", "cart", "percent", "coins", "bank", "invoice"]],
+      ["System and data", ["code", "terminal", "database", "server", "cloud", "cloudOff", "wifi", "wifiOff", "sync", "cpu", "api", "log", "plug", "power", "gauge", "package", "pulse", "monitor", "sun", "moon", "signIn", "signOut", "shieldCheck", "eyeOff", "zoomIn", "zoomOut"]],
+      ["People and organization", ["userPlus", "userCheck", "userX", "userSearch", "userOff", "usersPlus", "hierarchy", "idCard", "permission", "resume", "interview", "invite", "roster"]],
+      ["Time and scheduling", ["timer", "clockAlert", "hourglass", "calendarPlus", "calendarCheck", "calendarX", "calendarRange", "calendarGrid", "calendarClock", "repeat", "alarm"]],
+      ["Product and work", ["desk", "browser", "kanban", "pipeline", "target", "presentation", "mobile", "note", "book", "bookOpen", "lightbulb", "map", "barcode", "print"]],
+      ["Objects and controls", ["qr", "move", "keyboard", "split", "merge", "dragHandle", "megaphone", "checkAll", "sliders", "accessibility"]]
+  ];
+  // Nothing in the set is allowed to be invisible here: whatever the lists above
+  // miss is collected and shown, so a new icon appears on this sheet the day it
+  // is added rather than the day someone remembers to list it.
+  const listed = new Set(GROUPS.flatMap(([, n]) => n));
+  const rest = Object.keys(R.icons).filter((n) => !listed.has(n));
+  if (rest.length) GROUPS.push(["Not yet grouped", rest]);
+
+  function Cell(name) {
+    const I = R.icons[name];
+    return h('div', { key: name, style: {
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px',
+      padding: '14px 4px', minWidth: 0,
+    } }, [
+      h('span', { key: 'i', style: { fontSize: '24px', lineHeight: 0, color: 'var(--ink-primary)' } }, h(I)),
+      h('span', { key: 's', style: { fontSize: '16px', lineHeight: 0, color: 'var(--action-primary)' } }, h(I)),
+      h('span', { key: 'n', style: {
+        fontSize: '11px', color: 'var(--ink-muted)', textAlign: 'center',
+        overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%', whiteSpace: 'nowrap',
+      } }, name),
+    ]);
+  }
+
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '28px' } },
+      GROUPS.map(([title, names]) => h('div', { key: title }, [
+        h(R.SectionMark, { key: 'm', label: [title], trailing: String(names.length) }),
+        h('div', { key: 'g', style: {
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(78px, 1fr))',
+          gap: '2px', marginTop: '14px',
+        } }, names.map(Cell)),
+      ])));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

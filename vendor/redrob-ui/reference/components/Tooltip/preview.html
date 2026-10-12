@@ -1,0 +1,17 @@
+<!-- @dsCard group="Feedback" height=150 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return row([
+      h(R.Tooltip, { key: 1, content: 'Match score across 12 signals', open: true }, h(R.Badge, { tone: 'brand' }, '92% match')),
+      h(R.Tooltip, { key: 2, content: 'Export as CSV', placement: 'bottom' }, h(R.IconButton, { label: 'Export', variant: 'secondary' }, h(R.icons.plus, {}))),
+      h(R.Tooltip, { key: 3, content: 'Hover or focus me', placement: 'right' }, h(R.Button, { variant: 'secondary', size: 'sm' }, 'Right')),
+    ], { padding: '36px 0 8px', paddingLeft: '90px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

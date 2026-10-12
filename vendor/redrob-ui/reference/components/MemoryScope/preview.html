@@ -1,0 +1,22 @@
+<!-- @dsCard group="Safeguards" height=430 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 15, height: s || 15 });
+
+  const PRIVACY = h(R.PrivacyProtection, { level: 'high', summary: '214 private details kept from AI this week.',
+    last: ['Your last message: 3 details kept private. ', h('a', { key: 'a', href: '#what-the-ai-saw' }, 'See what the AI saw')],
+    foot: [h('span', { key: 'a' }, 'Set to High for your whole team by your admin, Park Hyunjin.'), h('a', { key: 'b', href: '#privacy' }, 'How it works')] });
+  const MEMORY = (value, onChange) => h(R.MemoryScope, { value, onChange,
+    options: [
+      { value: 'project', label: 'This project', detail: '12 notes about Seorin MSA', summary: '12 notes, kept by Redrob outside any AI, so they work with every model.' },
+      { value: 'all', label: 'All my work', detail: 'Also 31 notes on how you like to work', summary: '43 notes, kept by Redrob outside any AI, so they work with every model.' },
+      { value: 'none', label: 'Off for this chat', detail: 'Nothing is read, and nothing is saved', off: true }
+    ],
+    foot: [h('span', { key: 'a' }, 'Yours to keep: download every note at any time.'), h('a', { key: 'b', href: '#memory' }, 'Open Memory')] });
+
+  function Demo() { const [v, setV] = React.useState('project'); return h('div', { style: { maxWidth: '760px' } }, MEMORY(v, setV)); }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

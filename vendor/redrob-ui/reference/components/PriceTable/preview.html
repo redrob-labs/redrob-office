@@ -1,0 +1,34 @@
+<!-- @dsCard group="Marketing" height=1015 width=1180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h(R.Band, { size:'sm', wide:true }, h(R.PriceTable, {
+      rowLabel:'What you get',
+      plans:[
+        { id:'free', name:'Free', price:'$0', per:'a person, a month',
+          detail:'One seat. Cowork and Browser.', action: h(R.Button,{size:'sm',variant:'secondary'},'Start free') },
+        { id:'pro', name:'Pro', price:'$30', per:'a seat, a month',
+          detail:'All seven products. Up to 50 people.', action: h(R.Button,{size:'sm'},'Start') },
+        { id:'business', name:'Business', price:'$55', per:'a seat, a month',
+          detail:'From 50 people. Sets its own retention and residency.', action: h(R.Button,{size:'sm',variant:'secondary'},'Start') }
+      ],
+      rows:[
+        { group:'Working' },
+        { label:'Products', values:{ free:'Cowork, Browser', pro:'All seven', business:'All seven' } },
+        { label:'Agent hours a month', detail:'Counted while it is working, not while it is open', values:{ free:'20', pro:'400', business:'Unmetered' } },
+        { label:'Files in a project', values:{ free:'50', pro:'5,000', business:'Unmetered' } },
+        { group:'Language and place' },
+        { label:'Interface languages', values:{ free:'English, \ud55c\uad6d\uc5b4', pro:'All ten', business:'All ten' } },
+        { label:'Where your files are stored', values:{ free:'United States', pro:'United States or Korea', business:'You choose' } },
+        { group:'People and control' },
+        { label:'Single sign-on', values:{ free:false, pro:false, business:true } },
+        { label:'A record of who ran what', values:{ free:false, pro:true, business:true } },
+        { label:'Your own retention period', values:{ free:'30 days', pro:'90 days', business:'You set it' } }
+      ],
+      footNote:'US dollars, for Redrob Inc. Each market sets its own number rather than converting this one, so the Korean and Indian pages show their own prices. Sales tax is added at checkout.' }));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

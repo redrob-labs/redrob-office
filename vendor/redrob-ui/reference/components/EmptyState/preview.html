@@ -1,0 +1,22 @@
+<!-- @dsCard group="Feedback" height=350 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    return h(R.EmptyState, {
+      wash: 'brand',
+      icon: h(R.icons.search, {}),
+      title: 'Nothing matches these filters yet',
+      description: 'Try widening the location or removing a skill. Saved searches keep running in the background either way.',
+      action: [
+        h(R.Button, { key: 1 }, 'Clear filters'),
+        h(R.Button, { key: 2, variant: 'secondary' }, 'Save this search'),
+      ],
+    });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

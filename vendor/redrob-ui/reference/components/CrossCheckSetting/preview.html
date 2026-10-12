@@ -1,0 +1,15 @@
+<!-- @dsCard group="Safeguards" height=560 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  function Demo() {
+    const [v, setV] = React.useState({ factCheck: 'auto', challenge: 'auto' });
+    return h('div', { style: { maxWidth: '560px', display: 'flex', flexDirection: 'column', gap: '16px' } }, [
+      h('p', { key: 's', style: { margin: 0, fontSize: '13px', color: 'var(--ink-secondary)' } }, ['The status line reads: ', h('b', { key: 'b', style: { color: 'var(--ink-primary)' } }, 'Cross-check ' + R.CrossCheckSetting.value(v))]),
+      h(R.CrossCheckSetting, { key: 'c', value: v, onChange: setV,
+        foot: [h('span', { key: 'a' }, 'Set for your whole team by your admin, Park Hyunjin.'), h('a', { key: 'b', href: '#cross-check' }, 'See how a check reads')] })
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,20 @@
+<!-- @dsCard group="Agent chat" height=200 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const text = 'Reading the twelve source documents';
+    return col([
+      h(R.Streaming, { key: 1, state: 'thinking', label: 'Reading the sources', onStop: () => {} }),
+      h('div', { key: 2, style: { maxWidth: '62ch', fontSize: '15px', lineHeight: '24px' } },
+        h(R.Streaming, { state: 'streaming', label: 'Writing', onStop: () => {} }, text + ' and mapping them onto the local framework')),
+      h('div', { key: 3, style: { maxWidth: '62ch', fontSize: '15px', lineHeight: '24px' } },
+        h(R.Streaming, { state: 'done' }, 'Three qualifications map cleanly. One needs a human.')),
+    ], { gap: '20px' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

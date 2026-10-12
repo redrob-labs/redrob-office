@@ -1,0 +1,19 @@
+<!-- @dsCard group="Marketing" height=910 width=1180 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  /* A real render of ScreenCoworkNewChat. See assets/Screens for why it is a render. */
+  const SHOT = '/_blob/1cc743b986a0e432d7075548bde1455e';
+  const LOGO = (n) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40"><text x="0" y="28" font-family="sans-serif" font-size="24" font-weight="700" fill="#0A0B0C">' + n + '</text></svg>');
+ 
+  function Demo() {
+    return h(R.Band, { size:'sm' }, h(R.Figure, {
+      src: SHOT, alt:'A new chat in Redrob Cowork: a hello, one line, and the composer with Plan or Run, and privacy, memory and Cross-check under it.',
+      caption:'A new chat in Cowork. Under the composer, what happens to every message: privacy on High, one memory for every AI, Cross-check when it matters.',
+      credit:'Redrob Cowork, as designed' }));
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,236 @@
+<!-- @dsCard group="Pages" height=5920 width=1280 page -->
+<style>
+/* Screen-only composition. The parts are bundle components; this is how a page arranges them. */
+.sx-split { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 64px; align-items: start; }
+.sx-split__side { display: flex; flex-direction: column; gap: 16px; }
+.sx-h1 { margin: 0; font-size: 64px; line-height: 68px; font-weight: 700; letter-spacing: -.035em; text-wrap: balance; }
+.sx-h2 { margin: 0; font-size: 40px; line-height: 46px; font-weight: 700; letter-spacing: -.025em; color: var(--ink-primary); text-wrap: balance; }
+.sx-intro { margin: 0; font-size: 16px; line-height: 26px; color: var(--ink-secondary); max-width: 34ch; }
+.sx-p { margin: 0; font-size: 17px; line-height: 28px; max-width: 50ch; }
+.sx-rule { border: 0; border-top: 1px solid var(--border-strong); margin: 0; }
+.sx-head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 48px; }
+/* opening */
+.rr-hero--film .sx-h1 { color: #fff; max-width: 14ch; }
+/* vision */
+.sx-vision { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: 64px; align-items: end; }
+.sx-vision .rr-statement .rr-voice-1 { max-width: 16ch; font-size: 76px; line-height: 80px; }
+.sx-vision .sx-p { color: var(--ink-secondary); }
+/* commitments */
+.sx-commit { list-style: none; margin: 0; padding: 0; counter-reset: sx; border-top: 1px solid var(--border-strong); }
+.sx-commit li { counter-increment: sx; display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; padding: 28px 0; border-bottom: 1px solid var(--border-subtle); }
+.sx-commit li::before { content: "0" counter(sx); font-size: 28px; line-height: 32px; font-weight: 700; color: var(--ink-brand); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.sx-commit b { display: block; font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -.015em; color: var(--ink-primary); margin-bottom: 8px; }
+.sx-commit span { font-size: 16px; line-height: 26px; color: var(--ink-secondary); max-width: 60ch; display: block; }
+/* suite */
+.sx-suite { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; border-top: 1px solid var(--border-strong); }
+.sx-suite li { border-bottom: 1px solid var(--border-subtle); }
+.sx-suite a { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; align-items: start; padding: 20px 0; text-decoration: none; }
+.sx-suite img { width: 40px; height: 40px; display: block; }
+.sx-suite b { display: block; font-size: 17px; line-height: 24px; font-weight: 600; color: var(--ink-primary); }
+.sx-suite span { display: block; font-size: 14px; line-height: 22px; color: var(--ink-secondary); margin-top: 2px; }
+.sx-suite a:hover b { color: var(--ink-brand); }
+.sx-also { margin: 24px 0 0; font-size: 14px; line-height: 22px; color: var(--ink-secondary); }
+.sx-also a { color: var(--ink-primary); font-weight: 600; text-decoration: none; }
+.sx-also a:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* suite, grouped (homepage) */
+.sx-groups { display: flex; flex-direction: column; border-top: 1px solid var(--border-strong); }
+.sx-group { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 64px; padding: 32px 0; border-bottom: 1px solid var(--border-subtle); }
+.sx-group__label b { display: block; font-size: 20px; line-height: 28px; font-weight: 700; color: var(--ink-primary); letter-spacing: -.01em; }
+.sx-group__label span { display: block; margin-top: 6px; font-size: 14px; line-height: 22px; color: var(--ink-secondary); max-width: 32ch; }
+.sx-group ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
+.sx-group a { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; text-decoration: none; }
+.sx-group img { width: 40px; height: 40px; display: block; }
+.sx-group a b { display: block; font-size: 17px; line-height: 24px; font-weight: 600; color: var(--ink-primary); }
+.sx-group a span { display: block; font-size: 14px; line-height: 22px; color: var(--ink-secondary); margin-top: 2px; }
+.sx-group a:hover b { color: var(--ink-brand); }
+/* capabilities (homepage) */
+.sx-caps { list-style: none; margin: 0; padding: 0; counter-reset: cap; border-top: 1px solid var(--border-strong); }
+.sx-caps li { counter-increment: cap; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; padding: 28px 0; border-bottom: 1px solid var(--border-subtle); }
+.sx-caps li::before { content: "0" counter(cap); font-size: 15px; line-height: 24px; font-weight: 700; color: var(--ink-brand); font-variant-numeric: tabular-nums; }
+.sx-caps small { display: block; font-size: 13px; line-height: 20px; font-weight: 600; color: var(--ink-secondary); }
+.sx-caps h3 { margin: 4px 0 10px; font-size: 27px; line-height: 34px; font-weight: 700; letter-spacing: -.02em; color: var(--ink-primary); text-wrap: balance; }
+.sx-caps p { margin: 0; font-size: 16px; line-height: 26px; color: var(--ink-secondary); max-width: 60ch; }
+.sx-caps p b { color: var(--ink-primary); }
+/* close */
+.sx-close { display: flex; flex-direction: column; align-items: flex-start; gap: 32px; max-width: 60%; color: #fff; }
+.sx-close .sx-h1 { color: #fff; }
+.sx-close__row { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.sx-close__link { color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; }
+.sx-close__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 860px) {
+  .sx-split, .sx-vision, .sx-close, .sx-group { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .sx-split__side { position: static; }
+  .sx-h1 { font-size: 40px; line-height: 44px; }
+  .sx-h2 { font-size: 30px; line-height: 36px; }
+  .sx-vision .rr-statement .rr-voice-1 { font-size: 48px; line-height: 54px; }
+  .sx-suite, .sx-group ul { grid-template-columns: minmax(0, 1fr); }
+  .sx-commit li { grid-template-columns: 48px minmax(0, 1fr); }
+  .sx-commit li::before { font-size: 20px; }
+  .sx-close { max-width: 78%; }
+  .sx-group { gap: 16px; }
+  .sx-caps h3 { font-size: 22px; line-height: 28px; }
+}
+</style>
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  /* The site's one navigation (90-web.md, One navigation): the same on every page. */
+  const NAV = [
+    { label:'Products', items:[
+      { label:'Redrob Chat',     href:'#', detail:'A conversation, with each question sent to the model that answers it best' },
+      { label:'Redrob Cowork',   href:'#', detail:'The agent that works beside you, in your own files and apps' },
+      { label:'Redrob Browser',  href:'#', detail:'A browser that finishes the task you give it' },
+      { label:'Redrob Console',  href:'#', detail:'Where a team sees its AI: usage, spend, models and results' },
+      { label:'Redrob Office',   href:'#', detail:'Documents, sheets and decks that update when a fact changes' },
+      { label:'Redrob Design',   href:'#', detail:'Designs the whole product as one system, in the file' },
+      { label:'Redrob Code',     href:'#', detail:'An agent that writes and fixes code in your terminal' } ] },
+    { label:'Solutions', items:['For founders','For small teams','For engineers','For designers','For product managers','For marketers','For sales teams','For recruiters','For HR teams','For lawyers','For accountants','For consultants','For investors'].map(l => ({ label:l, href:'#' })) },
+    { label:'Research', href:'#' },
+    { label:'News', href:'#' },
+    { label:'Blog', href:'#' },
+    { label:'Company', href:'#' }
+  ];
+  /* English, Korean and Hindi first (the three markets), then the world's most spoken
+     languages. Native names; Arabic sets right to left. A language with no version of this
+     page renders as unavailable, never as a link home (LangSwitch). */
+  const LANGS = [
+    {code:'en',label:'English',href:'#'}, {code:'ko',label:'\ud55c\uad6d\uc5b4',href:'#'}, {code:'hi',label:'\u0939\u093f\u0928\u094d\u0926\u0940',href:'#'},
+    {code:'zh-Hans',label:'\u7b80\u4f53\u4e2d\u6587',href:'#'}, {code:'es',label:'Espa\u00f1ol',href:'#'}, {code:'fr',label:'Fran\u00e7ais',href:'#'},
+    {code:'ar',label:'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',href:'#'}, {code:'bn',label:'\u09ac\u09be\u0982\u09b2\u09be',href:'#'},
+    {code:'pt',label:'Portugu\u00eas',href:'#'}, {code:'ja',label:'\u65e5\u672c\u8a9e',href:'#'} ];
+  const LANG = h(R.LangSwitch, { current:'en', langs: LANGS });
+  /* System, Light, Dark: in the bar on every page, in the drawer on a phone. */
+  const THEME = h(R.ThemeSwitch);
+  const MARK_L = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+  const MARK_D = '/_blob/290f8c4ecd34da668364dc8794df0e45';
+  const mark = (px) => h('span', { className:'rr-mark' }, [
+    h('img', { key:'l', className:'rr-mark__light', src:MARK_L, alt:'Redrob', style:{ height:px+'px' } }),
+    h('img', { key:'d', className:'rr-mark__dark',  src:MARK_D, alt:'',       style:{ height:px+'px' } })
+  ]);
+  const SUITE = [
+    ['Redrob Chat', '/_blob/bf10c52aa8d82d7664c19060542fd0f9', 'A conversation, with each question sent to the model that answers it best'],
+    ['Redrob Cowork', '/_blob/58948e9c2994969a266dddc91ee86cb5', 'The agent that works beside you, in your own files and apps'],
+    ['Redrob Browser', '/_blob/8da12a0f6a1d4f4863b066f8f382e3b3', 'A browser that finishes the task you give it'],
+    ['Redrob Console', '/_blob/40c7e8a4cbf1d8ec92cc0af110f96ce5', 'Where a team sees its AI: usage, spend, models and results'],
+    ['Redrob Office', '/_blob/14ac1d8d7434e80578b423a4d0f5704a', 'Documents, sheets and decks that update when a fact changes'],
+    ['Redrob Design', '/_blob/dce03e4290a23e41a58cbfa285ab0fab', 'Designs the whole product as one system, in the file'],
+    ['Redrob Code', '/_blob/51456d190e75be46664a010cba510aca', 'An agent that writes and fixes code in your terminal']
+  ];
+  const HEADER = h(R.SiteHeader, { key:'hd', mark: mark(24), homeLabel:'Redrob',
+    sections: NAV, lang: LANG, theme: THEME,
+    action: h(R.Button, { size:'sm', shape:'pill' }, 'Start free') });
+  const FOOTER = h(R.SiteFooter, { key:'ft', mark: mark(24),
+    line: "The last mile of AI: the world's best models, across every border of language, place, background and technical skill.",
+    columns: [
+      { title:'Products', items:[
+        {label:'Redrob Chat',href:'#'},{label:'Redrob Cowork',href:'#'},{label:'Redrob Browser',href:'#'},{label:'Redrob Console',href:'#'},
+        {label:'Redrob Office',href:'#'},{label:'Redrob Design',href:'#'},{label:'Redrob Code',href:'#'},
+        {label:'Luma, by Redrob',href:'#',divider:true,external:true},{label:'Signal, by Redrob',href:'#',external:true},{label:'Kaabil, by Redrob',href:'#',external:true},{label:'Crew, by Redrob',href:'#',external:true}] },
+      { title:'Solutions', items:[{label:'For founders',href:'#'},{label:'For small teams',href:'#'},{label:'For engineers',href:'#'},{label:'For designers',href:'#'},{label:'For product managers',href:'#'},{label:'For marketers',href:'#'},{label:'For sales teams',href:'#'},{label:'For recruiters',href:'#'},{label:'For HR teams',href:'#'},{label:'For lawyers',href:'#'},{label:'For accountants',href:'#'},{label:'For consultants',href:'#'},{label:'For investors',href:'#'}] },
+      { title:'Company', items:[{label:'About Redrob',href:'#'},{label:'Research',href:'#'},{label:'News',href:'#'},{label:'Blog',href:'#'}] }
+    ],
+    copyright: '© 2026 Redrob Inc.',
+    legal: [ {label:'Privacy',href:'#'}, {label:'Terms',href:'#'}, {label:'Cookies',onClick:()=>{}}, {label:'Accessibility',href:'#'}, {label:'Company details',href:'#'} ] });
+  const MILESTONES = [
+    { year: 2018, text: 'Founded in Seoul, South Korea.' },
+    { year: 2019, text: 'Opens in New Delhi, India.' },
+    { year: 2020, text: 'Launches its recruitment and skills-testing platform.' },
+    { year: 2023, text: 'Raises its seed round.' },
+    { year: 2024, text: 'Opens in New York, U.S.' },
+    { year: 2025, text: 'Raises its Series A.' },
+    { year: 2026, text: 'Launches the Redrob suite: seven products for the whole job.' }
+  ];
+  const PEOPLE = [
+    { name: 'Felix Kim', title: 'Founder & CEO', photo: '/_blob/70df7900794a8d3f9136b3db4d675ed5' },
+    { name: 'Seunghyun Seok', title: 'Co-founder & CSO', photo: '/_blob/a0f7809e68d01abe473a00358bd92e26' },
+    { name: 'Janghoon Lee', title: 'Co-founder & CTO', photo: '/_blob/42ec0417e47405d01f82db02dfc2ca35' },
+    { name: 'Kartikey Handa', title: 'COO', photo: '/_blob/d66f9ad8a837016c2642c25d63e04efe' },
+    { name: 'Jae Gardner', title: 'Managing Director, U.S.', photo: '/_blob/a85fa607de6ac6f02f3eb91206a2ec67' }
+  ];
+  const INVESTORS = [
+    { name: 'Korea Investment Partners', src: '/_blob/8ccf338d2f7c4b1a4ae4cca5011c9045', scale: 1.2 },
+    { name: 'KB Investment',             src: '/_blob/74dd85926aff1c2a94b0c9c4631c7e25' },
+    { name: 'Kiwoom Investment',         src: '/_blob/289297c8231a6b5d5c7ed7eb232960bc' },
+    { name: 'KDB Capital',               src: '/_blob/b98a0ca083e16be74e1f95b1c58f264a' },
+    { name: 'DS & Partners',             src: '/_blob/39cdb2299b4e875a8d724e551ffee0a8', scale: 1.3 },
+    { name: 'Murex Partners',            src: '/_blob/d7042f77913a6ea67eb01bdb5bc4f49b', scale: 1.3 },
+    { name: 'Daekyo Investment',         src: '/_blob/eb5a2355b127796c0190cfbb3fc92a08' },
+    { name: 'Wanted Lab',                src: '/_blob/33869d1e8d046ff547cd187afd0f74ac' }
+  ];
+  /* 05-mission.md, verbatim: the commitments are body, never the serif. */
+  const COMMITMENTS = [
+    ['Last mile or nothing.', "Finished when it works in the person's own language, on their own device, at a price their market pays. English, fast connection and prompting skill are not arrival."],
+    ['Localization is not translation.', 'A language carries a keyboard, a calendar, a legal system and its politeness; swapped strings do not arrive. Latin and Korean are two complete systems answering role for role, neither a fallback; a third script joins on those terms or not at all.'],
+    ['The floor matters more than the ceiling.', 'Build for the slowest connection, the oldest device and nobody to hand the work to: raise what people can reach, not what they can understand.'],
+    ['The machine explains itself.', 'Every judgment carries the evidence that moved it, openable at its source. An agent proposes, a person approves.'],
+    ['Access is a market, not a cause.', 'Customers are buyers, not beneficiaries. Win on a better, cheaper product, not an admirable mission.']
+  ];
+
+  /* The Company hero's film, in the Hero's film format (assets/Film). Generated, so it says so. */
+  const FILM = { src:'/_blob/8766e795bf8f57f45211bba66e9a11ea', webm:'/_blob/7558527b27c7fd79677e4bd1f6288109',
+    poster:'/_blob/e67646064ffbf403cfd51e1633bc4201', label:'AI-generated with Seedance 2.5, Higgsfield' };
+  const side = (title, intro) => h('div', { className:'sx-split__side' }, [
+    h('h2', { key:'h', className:'sx-h2' }, title), intro ? h('p', { key:'p', className:'sx-intro' }, intro) : null ]);
+
+  /* The Company page. One hero - the name, on the deep band over its film - and then sections that each
+     hold one idea: what the company believes, who runs it, how it behaves, where it has
+     been, what it makes, who backs it. Splits (a heading on the left third) alternate
+     with full-width rows, and no second band competes with the hero. */
+  function Screen() {
+    /* One PageShell per page: the skip link, the landmarks and lang (PageShell). */
+    return h(R.PageShell, { lang:'en', header: HEADER, footer: FOOTER }, [
+      h(R.Band, { key:'open', ground:'deep' }, h(R.Hero, {
+        film: FILM,
+        lede: 'The best AI in the world has already been built. Who gets to use it is decided by everything around it: the language a product speaks, the country it launched in, the background it assumes, how much you already know about models. Those are borders, and Redrob exists to take them down.'
+      }, h('h1', { className:'sx-h1' }, 'Redrob is Border, reversed.'))),
+
+      h(R.Band, { key:'v' }, h('div', { className:'sx-split' }, [
+        side('Vision', null),
+        h('div', { key:'r', style:{ display:'flex', flexDirection:'column', gap:'24px' } }, [
+          h(R.Statement, { key:'s', level:2, wide:true }, 'A world where anyone, anywhere, can use the best AI there is.'),
+          h('p', { key:'p', className:'sx-p', style:{ color:'var(--ink-secondary)' } }, 'You should not need to be an AI specialist to use the world\'s best models. A two-person company in Gorakhpur or Mokpo should have the same capability as a lab in San Francisco, in its own language, on the device it already owns.')
+        ])
+      ])),
+
+      h(R.Band, { key:'l', ground:'raised' }, [
+        h('div', { key:'h', className:'sx-head' }, h('h2', { className:'sx-h2' }, 'Leadership')),
+        h(R.PeopleList, { key:'p', people: PEOPLE })
+      ]),
+
+      h(R.Band, { key:'c' }, h('div', { className:'sx-split' }, [
+        side('Five commitments', 'How the company decides when a decision is hard.'),
+        h('ol', { key:'l', className:'sx-commit' }, COMMITMENTS.map((c, i) => h('li', { key:i }, h('div', null, [h('b', { key:'t' }, c[0]), h('span', { key:'d' }, c[1])]))))
+      ])),
+
+      h(R.Band, { key:'m' }, [
+        h('div', { key:'h', className:'sx-head' }, h('h2', { className:'sx-h2' }, 'Since 2018')),
+        h(R.Milestones, { key:'l', items: MILESTONES })
+      ]),
+
+      h(R.Band, { key:'p', ground:'sunken' }, h('div', { className:'sx-split' }, [
+        side('What we make', 'Seven products on one account, and three brands of their own.'),
+        h('div', { key:'r' }, [
+          h('ul', { key:'l', className:'sx-suite' }, SUITE.map(s => h('li', { key:s[0] }, h('a', { href:'#' }, [
+            h('img', { key:'i', src:s[1], alt:'' }), h('div', { key:'t' }, [h('b', { key:'n' }, s[0]), h('span', { key:'d' }, s[2])])])))),
+          h('p', { key:'a', className:'sx-also' }, ['Also by Redrob: ',
+            h('a', { key:1, href:'#' }, 'Luma, by Redrob'), ', ', h('a', { key:2, href:'#' }, 'Signal, by Redrob'), ', ', h('a', { key:3, href:'#' }, 'Kaabil, by Redrob'), ' and ', h('a', { key:4, href:'#' }, 'Crew, by Redrob'), '.'])
+        ])
+      ])),
+
+      h(R.Band, { key:'i' }, [
+        h('div', { key:'h', className:'sx-head' }, h('h2', { className:'sx-h2' }, 'Backed by')),
+        h(R.LogoRow, { key:'l', logos: INVESTORS, label:'Investors' })
+      ]),
+
+      h(R.Band, { key:'z', ground:'brand', threshold:'spectrum' }, h('div', { className:'sx-close' }, [
+        h('h2', { key:'h', className:'sx-h1' }, 'The last mile of AI.'),
+        h('div', { key:'r', className:'sx-close__row' }, [
+          h(R.Button, { key:'b', size:'lg', shape:'pill', emphasis:true }, 'Start free'),
+          h('a', { key:'a', className:'sx-close__link', href:'#' }, 'Read the research →')
+        ])
+      ]))
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Screen));
+</script>

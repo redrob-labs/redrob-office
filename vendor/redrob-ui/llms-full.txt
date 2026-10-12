@@ -1,0 +1,3479 @@
+# @redrob-labs/ui - full reference
+
+Version 1.5.0. 145 React components on the Redrob Group Design System 2026, plus 252 icons.
+
+## Using the package
+
+```tsx
+import { Button, Input, Table } from '@redrob-labs/ui';
+import '@redrob-labs/ui/tokens.css';
+import '@redrob-labs/ui/styles.css';
+import '@redrob-labs/ui/preflight.css';
+```
+
+- Every export is named and lives at the package root, and there is no default export. The only subpaths are the stylesheets, the fonts and the token files, all listed in the package's `exports` map.
+- `tokens.css` before `styles.css`: the second reads the custom properties the first declares.
+- `preflight.css` is OPTIONAL and paints the page itself. Import it when this system owns the whole page; leave it out when mounting a component inside somebody else's page, because neither `styles.css` nor the design system's own bundle declares an `html` or `body` rule and overriding that is the host application's decision. Without it, `data-theme="dark"` darkens the components and leaves the page background browser-default white.
+- Every component is a function component taking one props object. None of them read global state.
+- A prop marked required below has no default. A prop absent from a component's table does not exist on it, whatever a similar component accepts.
+- Fonts ship in the package and are reachable as `@redrob-labs/ui/fonts/<file>.woff2`; `tokens.css` declares the `@font-face` rules that point at them.
+- Not React? `@redrob-labs/ui/tokens.json` carries every design token resolved to a literal for both themes, and `@redrob-labs/ui/native/redrob_tokens.h` the same as C++ constants, for a surface that cannot evaluate CSS.
+
+## Components
+
+### Foundations
+
+#### Mark
+
+The Redrob lockup, sized by height and swapped by theme.
+
+Both lockups are in the DOM and the stylesheet shows one, which is why the height is set inline: an inline `display` here would beat the stylesheet's `display: none` and render both at once. That is how this first shipped, so the sizing stays confined to `height` and `width`.
+
+Import: `import { Mark } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `src` | `string` | no | The light-theme lockup. |
+| `darkSrc` | `string` | no | The dark-theme lockup. Omit it and the light one is used on both grounds. |
+| `height` | `number` | no | Height in pixels. Width follows. The only size control: the lockup is never stretched. |
+| `alt` | `string` | no | Accessible name. Pass `''` when a heading beside it already says "Redrob". |
+| `tone` | `'light' \| 'dark'` | no | Forces a ground rather than following `data-theme`. For a panel whose ground does not follow the page: a dark band on a light page, a light card on a dark one. |
+| `className` | `string` | no |  |
+
+#### MarkReveal
+
+The lockup arriving: light wipes across it on the 40 degree rake.
+
+One per surface, at an entrance - a loading screen, the top of a launch page. It is the brand's one piece of performed motion, and a second one on the same page turns an entrance into decoration.
+
+`onDone` filters on the animation name because the element runs more than one animation and a plain `onAnimationEnd` would fire on the sheen too, handing over before the wipe finished.
+
+Import: `import { MarkReveal } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `src` | `string` | no | The lockup. Used twice: as the image and as the wipe's mask, so it must be a single asset. |
+| `alt` | `string` | no | Accessible name for the whole animation. |
+| `mode` | `'intro' \| 'handoff'` | no | `handoff` is the shorter form, for a transition between two surfaces rather than an entrance. |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `symbol` | `boolean` | no | The symbol alone rather than the full lockup. |
+| `tone` | `'light' \| 'dark'` | no |  |
+| `ground` | `boolean` | no | Set `false` to drop the ground behind the lockup, e.g. over an existing band. |
+| `height` | `number \| string` | no | Reserves vertical space so the surrounding page does not shift when it plays. |
+| `onDone` | `() => void` | no | Fires once the wipe finishes, so a splash can hand over to the app. |
+| `className` | `string` | no |  |
+
+#### Layer
+
+One step of depth. The system's only expression of depth, measured in CIE L* off rendered pixels rather than chosen by eye.
+
+Nest it and each child steps down on its own, so a panel does not have to know where it sits. The cap at 2 is deliberate and warns instead of failing: a fourth stratum usually means the content wants restructuring, not another shade, and crashing a page over it would be worse than the flaw.
+
+Import: `import { Layer } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `depth` | `number` | no | Force a depth instead of taking one from the parent. `0` base, `1` raised, `2` sunken. Anything above 2 is held at 2 and warned about. |
+| `as` | `keyof React.JSX.IntrinsicElements` | no | The element to render. `section` or `article` when the layer is also a document landmark. |
+| `id` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Exported beside it: `LayerContext`, `LAYER_MEANS`.
+
+#### Illustration
+
+One of the system's drawings, at one of three sizes.
+
+Constructions carry the identity and get the larger frame; everything else is an Object and is drawn at icon scale, for an empty state or a failure. The split is what keeps a "no results" panel from being handed the full-bleed treatment meant for a launch page.
+
+An unknown `name` returns `null` on purpose: a missing drawing should leave a gap a reviewer notices, not a placeholder box that ships.
+
+Import: `import { Illustration } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string` | no | Which drawing. An unknown name renders nothing rather than a broken frame. |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `alt` | `string` | no | Names the drawing. Leave it off when the drawing only repeats adjacent text. |
+| `className` | `string` | no |  |
+| `style` | `React.CSSProperties` | no |  |
+
+#### Diagram
+
+A process, drawn as numbered steps, saying who did each one.
+
+Two lanes at most, and only the two that matter: who acted. A third lane is an org chart wearing a process diagram's clothes, which is why `laneLabels` renames the two rather than adding to them.
+
+The steps are an ordered list, so the order survives with the stylesheet switched off and a screen reader announces it as a sequence rather than a picture.
+
+Import: `import { Diagram } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `steps` | `DiagramStep[]` | no |  |
+| `title` | `React.ReactNode` | no | Names the diagram and becomes its accessible label. |
+| `lanes` | `boolean` | no | Split the steps into a person lane and a machine lane. |
+| `laneLabels` | `string[]` | no | Rename the two lanes. Two entries; a third is ignored because there is no third lane. |
+| `orientation` | `'flow' \| 'stack'` | no | `stack` reads down the page instead of across it. For narrow columns. |
+| `source` | `React.ReactNode` | no | Where the steps came from. Printed under the diagram. |
+| `className` | `string` | no |  |
+
+Exported types: `DiagramActor`, `DiagramStep`.
+
+### Voice
+
+#### Display
+
+One line set in Redrob Rake Display.
+
+One per surface. The face has twenty opened glyphs of ninety-one and a 42px floor, so it is a statement, not a heading style - it is never the wordmark and never a paragraph.
+
+`as` defaults to `p` rather than a heading tag deliberately: a display line is usually the same sentence a heading nearby already carries, and two competing `h1`s is worse than none.
+
+Import: `import { Display } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `level` | `1 \| 2 \| 3` | no | Size step. 1 is the largest. |
+| `as` | `keyof React.JSX.IntrinsicElements` | no | The element. `p` by default: display type is usually a line, not a document heading. |
+| `lang` | `string` | no | Required when the line is not in the page's language - Korean display sets at 96%. |
+| `id` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### Statement
+
+The one spoken sentence on a surface, set in the voice face.
+
+One per surface, and never a heading: the voice faces are for something the brand says, so a second one on the same page turns a statement into a typeface choice.
+
+`lang` is not optional in practice. Pretendard carries no Hangul, so a Korean sentence without it falls back to whatever the browser picks and the page silently loses the voice it was set in.
+
+Import: `import { Statement } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `lang` | `string` | no | Language of the sentence. Drives the voice face: Newsreader for Latin, Nanum Myeongjo for Korean. |
+| `level` | `1 \| 2` | no | Size step. 1 is the larger. |
+| `mark` | `React.ReactNode` | no | A `SectionMark` above the sentence, naming what this is about. |
+| `lede` | `React.ReactNode` | no | A supporting line under the sentence, in the lede size. |
+| `wide` | `boolean` | no | Lets the sentence run to a wider measure. For a single short line. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### Quote
+
+Somebody else's words, attributed.
+
+A `figure` with a real `blockquote` and `figcaption`, not styled paragraphs: the attribution is structurally tied to the quotation, which is what lets a reader in a screen reader tell where the quote ends and who said it.
+
+The margins are zeroed inline because a `figure` and a `blockquote` both arrive with browser margins that would fight the layout this sits in.
+
+Import: `import { Quote } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `lang` | `string` | no | Language of the quotation, so it sets in the right voice face. |
+| `cite` | `React.ReactNode` | no | Who said it. Omit it and there is no attribution line at all. |
+| `role` | `React.ReactNode` | no | Their role or company, under the name. |
+| `rule` | `boolean` | no | `false` drops the rule beside the quotation, for a quote already inside a bordered panel. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### SectionMark
+
+A 40 degree tick and a short label: the system's section opener, and one of its marks of authorship.
+
+Not an eyebrow. Never all-caps, and never used to label a control - it opens a stretch of content.
+
+`as="heading"` exists because the mark is often the only thing announcing a section. Without it the element is a `div` and a screen reader walking the headings skips the section entirely; with it the mark carries an explicit level instead of guessing from the visual size.
+
+Import: `import { SectionMark } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode \| React.ReactNode[]` | no | The label. An array is joined with a middle dot, for a breadcrumb-ish pair like section · date. |
+| `as` | `'div' \| 'heading'` | no | `heading` makes it a real heading for assistive tech. Use it when it opens a section. |
+| `level` | `number` | no | Heading level when `as="heading"`. Defaults to 2. |
+| `tone` | `'default' \| 'muted'` | no | `muted` dims the tick where the mark is one of many in a dense list. |
+| `trailing` | `React.ReactNode` | no | Right-aligned aside: a count, a date. Never a second label. |
+| `className` | `string` | no |  |
+
+### Actions
+
+#### Button
+
+Triggers an action: submitting a form, opening a dialog, running a search.
+
+Labels are verbs - "Save role", not "OK". An icon on its own is `IconButton`, not a Button with no children: the two have different hit areas and different accessible names.
+
+`loading` keeps the label in place rather than replacing it with a spinner, so the button does not change width while a request is in flight, and sets `aria-busy` for anything listening.
+
+Import: `import { Button } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `variant` | `'primary' \| 'secondary' \| 'ghost' \| 'danger'` | no | Visual weight. One `primary` per view: it names the action the screen is about. |
+| `size` | `'sm' \| 'md' \| 'lg'` | no | `sm` 32px, `md` 40px, `lg` 48px. `md` everywhere except toolbars and table rows. |
+| `shape` | `'rounded' \| 'pill'` | no | Fully rounded. One prominent action per view. |
+| `emphasis` | `boolean` | no | Soft brand halo around the one action a view is about. |
+| `loading` | `boolean` | no | Disables the button, swaps the leading icon for a spinner and keeps the label. |
+| `iconLeft` | `React.ReactNode` | no |  |
+| `iconRight` | `React.ReactNode` | no |  |
+| `fullWidth` | `boolean` | no |  |
+
+Also accepts: `React.ButtonHTMLAttributes<HTMLButtonElement>`.
+
+#### IconButton
+
+A button whose whole label is an icon: close, more, copy, expand.
+
+`label` is not optional and is not decoration. It becomes both `aria-label` and `title`, so the control has a name for a screen reader and a tooltip for a sighted user who cannot read the glyph. An icon button with no name is a button nobody can describe.
+
+Defaults to `ghost`, because these sit in dense rows where four framed buttons read as a wall.
+
+Import: `import { IconButton } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `string` | yes | What the button does, in words. Required: an icon is not an accessible name. |
+| `variant` | `'primary' \| 'secondary' \| 'ghost' \| 'danger'` | no |  |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `round` | `boolean` | no | Circular rather than rounded-square. For avatars and floating controls. |
+| `children` | `React.ReactNode` | no | The glyph. One icon, nothing else. |
+
+Also accepts: `React.ButtonHTMLAttributes<HTMLButtonElement>`.
+
+#### Menu
+
+A button that opens a short list of actions.
+
+Actions, not values - a menu that sets a field is a `Select`. Keep it under about seven items and put anything destructive last, with `tone: 'danger'`.
+
+Arrow keys move between items and wrap at both ends; Escape and a click outside close it. The arrow handling reads the live DOM rather than an index in state, so a disabled item is skipped without the component tracking which ones those are.
+
+Import: `import { Menu } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode` | no | Visible label. Omit it and pass `icon` for an icon-only trigger. A string label also names the list. |
+| `icon` | `React.ReactNode` | no | An icon before the label, or the whole trigger when there is no label. |
+| `ariaLabel` | `string` | no | Accessible name. Required when the label is not a string or there is no label. |
+| `placement` | `'down' \| 'up'` | no | `up` opens the list above the trigger, for a menu at the foot of a panel. Default `down`. |
+| `items` | `MenuItem[]` | no |  |
+| `variant` | `'primary' \| 'secondary' \| 'ghost' \| 'danger'` | no |  |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `align` | `'left' \| 'right'` | no | Which edge the list hangs from. `right` when the trigger sits at the end of a row. |
+| `defaultOpen` | `boolean` | no |  |
+| `onSelect` | `(item: MenuItem) => void` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `MenuItem`.
+
+### Forms
+
+#### Form
+
+The frame around a set of fields: title, an error summary, the fields, consent, one submit.
+
+The summary takes focus when errors appear. A summary that only renders is a summary a screen reader never reaches, and that is the most common way a form fails WCAG in practice - not a missing label, but an error nobody is told about.
+
+`noValidate` is set so the browser's own bubbles do not pre-empt this summary with a message in a different voice and a different language.
+
+The honeypot is the only spam defence that costs a real person nothing: no puzzle, no third-party script, no tracking.
+
+Import: `import { Form } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `React.ReactNode` | no |  |
+| `description` | `React.ReactNode` | no |  |
+| `state` | `'idle' \| 'pending' \| 'done'` | no | `pending` disables the submit and shows it working; `done` replaces the form with the receipt. |
+| `errors` | `FormError[]` | no | Everything wrong, in one place, above the fields. |
+| `errorsTitle` | `React.ReactNode` | no |  |
+| `submitLabel` | `React.ReactNode` | no |  |
+| `pendingLabel` | `React.ReactNode` | no |  |
+| `note` | `React.ReactNode` | no | A line beside the submit: what happens next, how long it takes. |
+| `consent` | `React.ReactNode` | no | Consent text, above the submit. |
+| `doneTitle` | `React.ReactNode` | no |  |
+| `doneText` | `React.ReactNode` | no |  |
+| `trapName` | `string` | no | Name of the honeypot field. Change it if a form is being targeted specifically. |
+| `onSubmit` | `(event: React.FormEvent<HTMLFormElement>) => void` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Exported types: `FormError`.
+
+#### Input
+
+One line of text, with its label, hint and error.
+
+For a person's name, an address, a phone number, a date or an amount, reach for the components in the Borders group instead: each of those decides something about who can fill it in, and a bare text field quietly decides it wrong.
+
+The id is generated once and kept, so the label keeps pointing at the same control across re-renders. Pass `id` only when something outside needs to reference the field.
+
+Import: `import { Input } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `invalid` | `boolean` | no | Marks the control invalid without printing a message. `error` implies it. |
+
+Also accepts: `FieldShellProps`, `Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'className' | 'style' | 'id'>`.
+
+#### Textarea
+
+Several lines of text.
+
+No size prop: a textarea's height is what the content needs, set with `rows` or by the layout, and a control-height scale would only fight that.
+
+Import: `import { Textarea } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `invalid` | `boolean` | no | Marks the control invalid without printing a message. `error` implies it. |
+
+Also accepts: `FieldShellProps`, `Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'className' | 'style' | 'id'>`.
+
+#### Select
+
+Pick one value from a list.
+
+Under about seven visible options a set of `Radio`s is easier to compare. For a list long enough to need searching, that is `Combobox`.
+
+The list variant is the select-only combobox pattern: focus stays on the button and the active option is announced through `aria-activedescendant`, because moving real focus into the list would take it away from the control the person is operating. It flips upward when there is not room below, measured off the live rectangle rather than assumed.
+
+Import: `import { Select } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `options` | `Array<SelectOption \| string>` | no | Options, or bare strings when value and label are the same. |
+| `value` | `string \| number` | no |  |
+| `defaultValue` | `string \| number` | no |  |
+| `placeholder` | `string` | no | Shown when nothing is chosen, as a disabled first option. Not a label. |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `name` | `string` | no | Submitted name. In the list variant a hidden input carries it. |
+| `disabled` | `boolean` | no |  |
+| `invalid` | `boolean` | no |  |
+| `native` | `boolean` | no | Use the platform's own dropdown. Right for a long list on a phone, and for a form that has to work with JavaScript off. |
+| `onChange` | `(event: unknown, option?: SelectOption) => void` | no |  |
+
+Also accepts: `FieldShellProps`.
+
+Exported types: `SelectOption`.
+
+#### Combobox
+
+Pick one value from a list long enough that you would rather type than scroll.
+
+For a short list use `Select`; for a handful use `Radio`. The typed text is held separately from the chosen value, so closing without choosing restores what was selected rather than leaving a half-typed string standing in for a value that was never picked.
+
+`filter={false}` matters for a server-backed search: filtering again on the client would hide results the server deliberately returned for a fuzzy or aliased match.
+
+Import: `import { Combobox } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `options` | `Array<ComboboxOption \| string>` | no |  |
+| `value` | `string` | no |  |
+| `defaultValue` | `string` | no |  |
+| `placeholder` | `string` | no |  |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `disabled` | `boolean` | no |  |
+| `defaultOpen` | `boolean` | no |  |
+| `filter` | `boolean` | no | `false` when the options already came back filtered - a server search. Stops double filtering. |
+| `emptyText` | `React.ReactNode` | no | What to say when nothing matches. |
+| `onChange` | `(value: string, option: ComboboxOption) => void` | no |  |
+
+Also accepts: `FieldShellProps`.
+
+Exported types: `ComboboxOption`.
+
+#### Checkbox
+
+One independent yes or no.
+
+The whole row is the label, so the text is part of the hit area rather than something to aim beside the box.
+
+`indeterminate` is not an attribute React can render - it only exists as a DOM property - so it is set through a ref callback. Without that the parent box of a partly-checked group silently shows as unchecked, which reads as "none of these" when the truth is "some".
+
+Import: `import { Checkbox } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no | A short aside under the label. |
+| `indeterminate` | `boolean` | no | Neither checked nor unchecked: some of the things below are. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Also accepts: `Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className' | 'type'>`.
+
+#### Radio
+
+One choice out of several, where the options are all visible.
+
+Give every radio in a set the same `name` - that is what makes them one choice rather than several independent ones, and nothing here can infer it. Under about seven options this beats a `Select`, because the reader can compare them without opening anything.
+
+Import: `import { Radio } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no | A short aside under the label. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Also accepts: `Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className' | 'type'>`.
+
+#### Switch
+
+Turns something on or off, and it takes effect immediately.
+
+That is the whole difference from `Checkbox`: a checkbox states an intention that a Save button later commits, a switch acts now. A switch inside a form with a submit button is the wrong control.
+
+Carries `role="switch"` so it is announced as on/off rather than checked/unchecked.
+
+Import: `import { Switch } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode` | no |  |
+| `size` | `'sm' \| 'md'` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Also accepts: `Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className' | 'type' | 'size'>`.
+
+#### DatePicker
+
+A date, typed or picked.
+
+Typed first, and that ordering is the point. A calendar that is the only way in locks out anyone whose JavaScript failed, anyone on a screen reader, and anyone who simply knows the date and would rather write it than hunt for it. The calendar is the second route, never the only one.
+
+The typed parser accepts the shapes people actually write - "4 Mar 2026", "Mar 4 2026", "2026. 3. 4." - and when it cannot read one it keeps the text instead of discarding it, so nobody loses what they typed to a format they were never told about.
+
+For a date of birth use `DateInput`: a calendar is the wrong instrument for a year eighty years back.
+
+Import: `import { DatePicker } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `string \| Date \| null` | no | `YYYY-MM-DD`, or a Date. |
+| `defaultValue` | `string \| Date \| null` | no |  |
+| `locale` | `string` | no | Defaults to the page's `lang`. Drives the month names, the weekday names and the week start. |
+| `weekStart` | `number` | no | Override the locale's week start. 0 is Sunday. |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `placeholder` | `string` | no |  |
+| `disabled` | `boolean` | no |  |
+| `defaultOpen` | `boolean` | no |  |
+| `format` | `(d: Date) => string` | no | Format the value in the field. Defaults to the locale's medium date style. |
+| `calendarLabel` | `string` | no |  |
+| `prevLabel` | `string` | no |  |
+| `nextLabel` | `string` | no |  |
+| `todayLabel` | `React.ReactNode` | no |  |
+| `clearLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: string \| null, date: Date \| null) => void` | no |  |
+
+Also accepts: `FieldShellProps`.
+
+#### TimePicker
+
+A time of day, typed or set on a clock face.
+
+Typing is the primary route and the clock is the second one, for the same reason as `DatePicker`: somebody who knows the time should be able to write it. "0830" and "8:30" both work, and the arrow keys move in five-minute steps.
+
+The dial is one face for both stages. Hours use two rings - the outer for 1-12, the inner for 13-00 - so a 24-hour time needs no AM/PM control, which is the part people get wrong. Minutes snap to five on a tap and go to any minute on a drag, because five-minute precision is what almost every time needs and the exception should not slow the common case down.
+
+`zone` turns on the line showing the same moment in the other offices. A meeting time is the one field where being an hour out costs somebody their evening.
+
+Import: `import { TimePicker } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `string` | no | `HH:MM`, 24-hour. |
+| `defaultValue` | `string` | no |  |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `disabled` | `boolean` | no |  |
+| `zone` | `string` | no | The zone this time is in. Turns on the "and what time that is elsewhere" line. |
+| `offices` | `Array<[string, string]> \| false` | no | Offices to convert into. `false` turns the line off; an array replaces Redrob's own. |
+| `presets` | `string[] \| false` | no | One-tap times. `false` turns the row off. |
+| `now` | `Date` | no | The moment offsets are computed for, so DST is right. |
+| `openLabel` | `string` | no |  |
+| `closeLabel` | `string` | no |  |
+| `dialogLabel` | `string` | no |  |
+| `howLabel` | `string` | no |  |
+| `hourHint` | `React.ReactNode` | no |  |
+| `minuteHint` | `React.ReactNode` | no |  |
+| `doneLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: string) => void` | no |  |
+
+Also accepts: `FieldShellProps`.
+
+#### TimeZonePicker
+
+Pick a time zone by naming a city.
+
+Cities, not zone ids: nobody knows they are in `Europe/Amsterdam`, and a list of zone ids asks a person to translate where they live into a database key. The offset is shown beside each city and is computed for a real moment, so it is the actual offset today rather than the zone's standard one.
+
+Import: `import { TimeZonePicker } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no |  |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `value` | `string` | no | An IANA zone id, e.g. `Asia/Seoul`. |
+| `defaultValue` | `string` | no |  |
+| `placeholder` | `string` | no |  |
+| `emptyText` | `React.ReactNode` | no |  |
+| `zones` | `Array<[string, string]>` | no | Replace the city list. Each entry is `[ianaZone, cityLabel]`. |
+| `now` | `Date` | no | The moment the offsets are shown for. Defaults to now, so DST is already applied. |
+| `className` | `string` | no |  |
+| `onChange` | `(value: string, option: ComboboxOption) => void` | no |  |
+
+#### FileUpload
+
+Takes files, by drop or by browsing.
+
+Both routes, always. Drag and drop is not available to a keyboard user and is awkward on a phone, so the label is tied to a real file input and browsing is never the hidden path.
+
+The chosen files are the consumer's state, not this component's: uploading is where retries, progress and failures live, and a component that owned the list would have to own those too.
+
+Import: `import { FileUpload } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no | The second line: how else to get a file in. |
+| `accept` | `string` | no | Accept attribute, also printed as a line of guidance. |
+| `maxLabel` | `string` | no | A size limit, in words. Printed beside `accept`. |
+| `multiple` | `boolean` | no |  |
+| `invalid` | `boolean` | no |  |
+| `files` | `UploadedFile[]` | no | Files already chosen, listed under the drop zone. The consumer owns this list. |
+| `onFiles` | `(files: File[]) => void` | no |  |
+| `onRemove` | `(file: UploadedFile, index: number) => void` | no | Omit it and files cannot be removed - so only omit it when that is true. |
+| `className` | `string` | no |  |
+
+Exported types: `UploadedFile`.
+
+### Borders
+
+#### NameInput
+
+One field for a person's name.
+
+One, not two. A first/last pair is a decision about whose names are well formed: it breaks for a mononym, for anyone whose family name comes first, for names with more than two parts, and for anyone who does not split their name the way the form expects. A single field accepts all of them.
+
+`second` offers the name in the person's own script, kept as written and used where the document is in that script - not a transliteration to be corrected. `preferred` is what the product should call them, which is often neither of the above.
+
+`maxLength` is 120 rather than something tighter, because a real name can be long and a form that truncates one is telling its owner their name is wrong.
+
+Import: `import { NameInput } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no |  |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `value` | `NameValue` | no |  |
+| `error` | `Partial<Record<keyof NameValue, React.ReactNode>>` | no | Per-part errors, keyed the same way as the value. |
+| `required` | `boolean` | no | `false` makes the full name optional. It is required by default. |
+| `disabled` | `boolean` | no |  |
+| `second` | `boolean` | no | Offer a second field for the name in the person's own script. |
+| `secondLabel` | `React.ReactNode` | no |  |
+| `secondHint` | `React.ReactNode` | no |  |
+| `preferred` | `boolean` | no | Offer a preferred name, which is what the product then uses. |
+| `preferredLabel` | `React.ReactNode` | no |  |
+| `preferredHint` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: NameValue, key: keyof NameValue) => void` | no |  |
+
+Exported types: `NameValue`.
+
+#### AddressInput
+
+An address, in the order the country writes it.
+
+Korea runs postal code first and largest to smallest; India and the US run smallest to largest. Those are different forms, not one form with relabelled boxes, and a single "street / city / state / zip" layout is a US form wearing a neutral name.
+
+An unknown country gets one textarea, not the US layout. That is the honest answer: the system does not know how that address is written, so it accepts it as written and does not lose a part of it by insisting on boxes that do not fit.
+
+Postal codes are tidied on blur rather than validated on keystroke. Spaces, case and punctuation are how people write them, and rejecting the input as they type teaches nothing.
+
+Import: `import { AddressInput } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no |  |
+| `country` | `string` | no | ISO country code. `KR`, `IN` and `US` have field orders; anything else gets one free field. |
+| `value` | `AddressValue` | no |  |
+| `error` | `string \| Partial<Record<keyof AddressValue, React.ReactNode>>` | no | A string for the free-form variant, or per-field errors for a known country. |
+| `className` | `string` | no |  |
+| `onChange` | `(value: AddressValue, key: keyof AddressValue) => void` | no |  |
+
+Exported types: `AddressValue`.
+
+#### PhoneInput
+
+A phone number: the country, and the number as it is written at home.
+
+The person writes what they would say. E.164 is computed for them, which is what gets stored - a number kept in local form cannot be dialled from anywhere else, and the trunk zero is the part that breaks it.
+
+Not one free field with a "digits only, no spaces, include country code" hint. That hint is a form asking a person to do the work the form could do, and it is where most numbers get entered wrong.
+
+Import: `import { PhoneInput } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no |  |
+| `country` | `string` | no | Default country when the value carries none. |
+| `countries` | `string[]` | no | Which countries to offer. |
+| `countryLabel` | `string` | no |  |
+| `value` | `PhoneValue` | no |  |
+| `error` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: PhoneValue) => void` | no |  |
+
+Exported types: `PhoneValue`.
+
+#### DateInput
+
+A date typed as three parts: day, month, year.
+
+Split from `DatePicker` on purpose. For a date of birth, an expiry or anything far from today, a calendar is the wrong instrument - it asks someone to page back eighty years to reach a year they could have typed in four keystrokes. The calendar is never the only way in.
+
+`order` exists because the order is not universal, and a form that hard-codes one teaches half its readers to enter the wrong date. The month accepts a name as well as a number.
+
+Every part is `type="text"` with a numeric keypad, never `type="number"`. Chrome silently drops letters from a number input, the scroll wheel changes the value under the pointer, a screen reader announces an unlabelled spin button, and it would refuse the month names this accepts.
+
+Import: `import { DateInput } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `hint` | `React.ReactNode` | no |  |
+| `error` | `React.ReactNode` | no |  |
+| `required` | `boolean` | no |  |
+| `order` | `string` | no | Field order. `dmy`, `mdy`, `ymd` - whatever the reader writes. |
+| `locale` | `string` | no |  |
+| `birthday` | `boolean` | no | Turns on birthday autofill on the three parts. |
+| `value` | `DateInputValue` | no |  |
+| `dayLabel` | `React.ReactNode` | no |  |
+| `monthLabel` | `React.ReactNode` | no |  |
+| `yearLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: DateInputValue, key: 'day' \| 'month' \| 'year') => void` | no |  |
+
+Exported types: `DateInputValue`.
+
+#### Money
+
+An amount of money, in the reader's own convention.
+
+Everything here is `Intl`, and that is the point: crore grouping for en-IN, no decimals on the won, and US$ rather than a bare $ for a dollar shown to a Korean reader. A hand-rolled formatter gets one of those wrong, and the one it gets wrong is somebody's currency.
+
+The currency mark is its own span so it can be set apart from the digits typographically without anyone parsing the formatted string back apart.
+
+When `Intl` cannot format the pair at all it falls back to "amount currency" rather than rendering nothing: an unformatted number is readable, a missing one is a bug nobody sees.
+
+Import: `import { Money } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `amount` | `number` | yes |  |
+| `currency` | `string` | yes | ISO 4217, e.g. `KRW`, `INR`, `USD`. |
+| `locale` | `string` | no | Defaults to the page's `lang`, which is the reader's convention, not the money's. |
+| `compact` | `boolean` | no | The locale's own short form: `2.8Cr`, `28M`, `2,840만`. |
+| `display` | `'symbol' \| 'narrowSymbol' \| 'code' \| 'name'` | no | How to draw the currency. Leave it alone unless you know why. |
+| `decimals` | `boolean` | no | `false` drops `.00` from a whole amount, for a headline figure. Does not round. |
+| `title` | `string` | no | Native tooltip, for an exact figure behind a compact one. |
+| `className` | `string` | no |  |
+
+#### ConvertedAmount
+
+The same money in two currencies, and everything needed to check the conversion.
+
+The rate, the named benchmark, the markup and the measurement date all appear together. A converted figure without them cannot be verified by the person paying it, and an unverifiable price is where a quiet spread lives. This is the component that refuses to hide one.
+
+The rate is formatted to six significant digits rather than a fixed number of decimals: a won-to-dollar rate is 0.000722, and four decimal places would round it to 0.0007 - a 3% error printed as precision.
+
+The converted amount uses `display: 'code'`, so a dollar figure beside a won figure reads USD rather than a bare `$` that could be one of a dozen dollars.
+
+Import: `import { ConvertedAmount } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `amount` | `number` | yes |  |
+| `currency` | `string` | yes |  |
+| `converted` | `{ amount?: number; currency?: string }` | no | The same money in another currency. |
+| `rate` | `number` | no | How many of the target currency one unit of `currency` buys. |
+| `benchmark` | `React.ReactNode` | no | Which rate this is, by name. "ECB reference rate", "Open Exchange Rates". |
+| `markup` | `number` | no | The spread over the benchmark, as a fraction: 0.015 is 1.5%. |
+| `at` | `React.ReactNode` | no | When the rate was measured. |
+| `note` | `React.ReactNode` | no |  |
+| `locale` | `string` | no |  |
+| `decimals` | `boolean` | no |  |
+| `className` | `string` | no |  |
+
+#### Timestamp
+
+A moment in time, in the reader's zone, with the zone said out loud.
+
+A bare "14:00" is only unambiguous to whoever wrote it. The zone is printed, not assumed, and `originZone` shows the same moment where it happened - which is what a person in Noida reading a Seoul deadline actually needs.
+
+`relative` changes the face, never the record: the `datetime` attribute stays an ISO string and the absolute reading stays in the `title`. "3 hours ago" is friendly and useless in a screenshot, so it never replaces the exact value, it only covers it.
+
+An unparseable value renders as itself rather than "Invalid Date", because the raw string is at least a clue about where the bad data came from.
+
+Import: `import { Timestamp } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `at` | `Date \| string \| number` | yes | The moment. A Date, or anything `new Date()` accepts. |
+| `zone` | `string` | no | Zone to show it in. Defaults to the reader's own. |
+| `originZone` | `string` | no | A second reading in the zone the event happened in, when that differs. |
+| `locale` | `string` | no |  |
+| `precision` | `'date' \| 'minute' \| 'second'` | no | How much to show. `date` drops the clock entirely. |
+| `zoneStyle` | `'short' \| 'long' \| 'shortOffset' \| 'longOffset'` | no |  |
+| `relative` | `boolean` | no | Show "3 hours ago" on the face. The absolute value stays in the tooltip. |
+| `className` | `string` | no |  |
+
+### Navigation
+
+#### Tabs
+
+Switches between views of the same thing.
+
+Same thing, different view - not steps in a process (`Stepper`) and not separate destinations (navigation). Six tabs is about the limit before a list reads better.
+
+Roving tabindex, which is the pattern people get wrong: Tab reaches the selected tab and then leaves the list, and the arrow keys move between tabs. Making every tab tabbable sounds more accessible and is worse - a keyboard user then has to press Tab past all of them to reach the panel.
+
+Import: `import { Tabs } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `TabItem[]` | no |  |
+| `value` | `string` | no | The selected tab's id. Uncontrolled, it falls back to the first item. |
+| `variant` | `'line' \| 'pill' \| 'enclosed'` | no |  |
+| `label` | `string` | no | Names the tab list for assistive technology. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onChange` | `(id: string) => void` | no |  |
+
+Exported types: `TabItem`.
+
+#### Breadcrumb
+
+Where this page sits, and the way back up.
+
+An ordered list inside a `nav`, because the order is the meaning. The last item is the current page: it is not a link and carries `aria-current="page"`, so nobody is offered a link to where they already are.
+
+Import: `import { Breadcrumb } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `BreadcrumbItem[]` | no | Ancestors first, this page last. |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `BreadcrumbItem`.
+
+#### Pagination
+
+Page controls for a list.
+
+Every number carries its own `aria-label` ("Page 4"), because a bare digit on a button tells a screen reader nothing about what pressing it does. The current page is marked with `aria-current`, not only a colour.
+
+Import: `import { Pagination } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `page` | `number` | no |  |
+| `pageCount` | `number` | no |  |
+| `label` | `string` | no |  |
+| `previousLabel` | `string` | no |  |
+| `nextLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(page: number) => void` | no |  |
+
+Exported beside it: `pageList`.
+
+#### Stepper
+
+Where somebody is in a process that has an order.
+
+Steps, not views: use `Tabs` when the sections can be visited in any order. The state of each step is derived from `current` alone, so there is no way to render a step both done and in progress.
+
+The done marker is a check rather than a colour change, and the step in progress carries `aria-current="step"`, so the position survives without colour.
+
+Import: `import { Stepper } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `steps` | `StepperStep[]` | no |  |
+| `current` | `number` | no | Zero-based index of the step in progress. Everything before it reads as done. |
+| `orientation` | `'horizontal' \| 'vertical'` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `StepperStep`.
+
+#### Accordion
+
+Sections that open one at a time, for content most readers will skip.
+
+Right for a FAQ or a long settings page; wrong for anything a reader needs to compare, and wrong for anything they must not miss - collapsed content is content most people never see, and it is invisible to a page search.
+
+The panel is `hidden` rather than removed, so its text stays findable in the DOM, and it keeps a `region` role labelled by its own trigger so a screen reader can tell which section it landed in.
+
+Import: `import { Accordion } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `AccordionItem[]` | no |  |
+| `multiple` | `boolean` | no | Allow several open at once. One at a time by default. |
+| `defaultOpen` | `string \| string[]` | no | Id, or ids, open on first render. |
+| `className` | `string` | no |  |
+
+Exported types: `AccordionItem`.
+
+#### Scroller
+
+A scrollable area with faded edges, so it is visible that there is more.
+
+The viewport carries a `tabIndex` of 0 by default, and that is not decoration: without it somebody using only a keyboard cannot scroll the region at all, because there is nothing inside to focus that would bring the rest into view.
+
+`role="region"` is applied only when `label` is given. An unnamed region adds a landmark a screen reader has to announce and cannot describe, which is worse than no landmark.
+
+Import: `import { Scroller } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `axis` | `'x' \| 'y'` | no |  |
+| `size` | `'default' \| 'thin'` | no | `thin` for a dense panel. |
+| `tone` | `'default' \| 'inverse'` | no |  |
+| `gutter` | `'auto' \| 'stable'` | no | `auto` reserves gutter space only when a scrollbar is actually there. |
+| `fade` | `boolean` | no | `false` removes the fade at the scrollable edges. |
+| `fadeSize` | `number \| string` | no |  |
+| `background` | `string` | no | Colour the fade blends into. Set it when the scroller sits on a non-default ground. |
+| `maxHeight` | `number \| string` | no |  |
+| `height` | `number \| string` | no |  |
+| `label` | `string` | no | Names the region. Without it there is no `region` role, because an unnamed one is noise. |
+| `focusable` | `boolean` | no | `false` drops the tabindex. Only for a scroller whose content is already reachable. |
+| `className` | `string` | no |  |
+| `style` | `React.CSSProperties` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onScroll` | `(event: React.UIEvent<HTMLDivElement>) => void` | no |  |
+
+### Feedback
+
+#### Alert
+
+A message about the page, in place, that stays until it is dealt with.
+
+In place is the distinction: an Alert belongs to the thing it is about and stays there, a `Toast` floats and disappears. Anything a person must act on belongs here, never in a toast.
+
+`danger` gets `role="alert"`, which interrupts a screen reader; everything else gets `role="status"`, which waits its turn. Making them all `alert` means every mild notice talks over whatever the person was reading.
+
+Import: `import { Alert } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `tone` | `Tone` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `action` | `React.ReactNode` | no | A control to fix or learn more. One, not a row of them. |
+| `closeLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onClose` | `() => void` | no | Omit it and the alert cannot be dismissed - correct for something that must be read. |
+
+#### Toast
+
+Confirmation that something happened, floating and brief.
+
+For an action that succeeded, and for an undo. Never for something the person must act on: a toast leaves, and anything that can disappear on its own cannot carry a requirement. That belongs in `Alert`.
+
+`aria-live="polite"` for every tone but `danger`, so it is announced when the reader pauses instead of cutting across them for news they did not ask to hear twice. `danger` is assertive, as `Alert`'s is: a failure the person needs now is the one case worth interrupting for.
+
+This renders one toast. Stacking, timing and dismissal are the app's, because a component that owned the timer would also have to own pausing it on hover and on focus.
+
+Import: `import { Toast } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `tone` | `Tone` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `action` | `React.ReactNode` | no | An undo, usually. Keep it to one. |
+| `closeLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onClose` | `() => void` | no |  |
+
+#### Modal
+
+Interrupts, for one decision that has to be made before anything else.
+
+The bar is high: it takes the whole screen away. A destructive confirmation qualifies, a form usually does not, and information almost never does.
+
+`aria-modal` and `role="dialog"` are on the panel, not the scrim, and the title is wired through `aria-labelledby` - so a screen reader announces what it is rather than "dialog".
+
+Clicking the scrim closes it only when the click both started and ended there, which is why the handler compares target with currentTarget: a drag that began inside the panel should not dismiss the decision.
+
+Import: `import { Modal } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `open` | `boolean` | no | `false` renders nothing. The app owns whether it is open. |
+| `title` | `React.ReactNode` | no |  |
+| `footer` | `React.ReactNode` | no | The actions. A modal that asks a question needs an answer and a way out. |
+| `width` | `number \| string` | no | Max width. Keep it narrow: a wide modal is a page that forgot to be one. |
+| `closeLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onClose` | `() => void` | no |  |
+
+#### Drawer
+
+A panel from the edge, for detail beside what the person was looking at.
+
+Use it where a `Modal` would be too much: the row stays visible behind it, so the context is not lost. Right for a record's detail, a filter set, a settings panel.
+
+Same dialog semantics as Modal, and the same scrim rule - the click must start and end on the scrim, so a text selection dragged out of the panel does not close it.
+
+Import: `import { Drawer } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `open` | `boolean` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `description` | `React.ReactNode` | no | A line under the title: what this panel is for. |
+| `side` | `'left' \| 'right'` | no | Which edge it comes from. `right` for detail, `left` for navigation. |
+| `footer` | `React.ReactNode` | no |  |
+| `width` | `number \| string` | no |  |
+| `closeLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onClose` | `() => void` | no |  |
+
+#### Tooltip
+
+A short label on hover or focus.
+
+Never the only place something is said. A tooltip is unavailable on touch, invisible in print and gone from a screenshot, so anything a person needs belongs in the interface itself. Good for the name of an icon-only control, bad for an explanation.
+
+The wrapper takes a `tabIndex` by default so a keyboard user can reach the tip at all - hover-only would put it out of reach. Pass `focusable={false}` when the child is already a button, or Tab lands twice on the same thing.
+
+`aria-describedby` rather than `aria-label`, so the tip supplements the control's name instead of replacing it.
+
+Import: `import { Tooltip } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `content` | `React.ReactNode` | no | The text. Short - a tooltip is a label, not documentation. |
+| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | no |  |
+| `open` | `boolean` | no | Forces it visible. For a screenshot or a walkthrough, not for normal use. |
+| `focusable` | `boolean` | no | `false` when the child is already focusable, so focus is not taken twice. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### Progress
+
+How far along something measurable is.
+
+Measurable is the condition: use `Loader` when the share is unknown and there is no honest number to show. An indeterminate Progress says "I am working"; a Progress bar stuck at 90% says something untrue.
+
+The value is clamped into range rather than trusted, so a bad number from upstream cannot draw a bar past its track. When indeterminate, the value attributes are omitted entirely - a `progressbar` carrying `aria-valuenow="0"` tells a screen reader nothing is happening.
+
+Import: `import { Progress } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `number` | no |  |
+| `max` | `number` | no |  |
+| `label` | `React.ReactNode` | no | Names what is progressing. Also becomes the accessible name. |
+| `ariaLabel` | `string` | no | Accessible name when there is no visible label. |
+| `showValue` | `boolean` | no | Print the percentage beside the label. |
+| `indeterminate` | `boolean` | no | Something is happening but the share is unknown. Drops the value attributes. |
+| `tone` | `'brand' \| 'success' \| 'warning' \| 'danger'` | no |  |
+| `size` | `'sm' \| 'md'` | no |  |
+| `className` | `string` | no |  |
+
+#### Loader
+
+Something is happening and the share is unknown.
+
+When there is an honest number, use `Progress`. A spinner that could have been a percentage wastes the one thing the person wants to know.
+
+The label is always in the DOM - visible with `showLabel`, otherwise screen-reader only. A silent spinner is a page that looks broken to anyone who cannot see it move. `live={false}` exists for a screen with several loaders, where every one announcing itself turns into noise.
+
+Import: `import { Loader } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `string` | no | What is loading. Announced even when not shown. |
+| `showLabel` | `boolean` | no | Print the label beside the bars. |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `tone` | `'brand' \| 'neutral' \| 'inverse'` | no |  |
+| `live` | `boolean` | no | `false` stops it announcing. For several loaders on one screen. |
+| `className` | `string` | no |  |
+
+#### Skeleton
+
+The shape of content that has not arrived, so the layout does not jump when it does.
+
+Right when the shape is known and the wait is short. Wrong as a permanent state: a skeleton that never resolves is a page pretending to work. For an unknown wait use `Loader`, which can at least say so.
+
+Always `aria-hidden`. A screen reader has nothing to gain from placeholder bars, and the real status belongs on a `Loader` or a live region beside it.
+
+The last line of a multi-line block is 62% wide, because a paragraph does not end flush and a stack of equal bars reads as a table.
+
+Import: `import { Skeleton } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `variant` | `'text' \| 'rect' \| 'circle'` | no |  |
+| `width` | `number \| string` | no |  |
+| `height` | `number \| string` | no |  |
+| `size` | `number` | no | Diameter, for `circle`. |
+| `lines` | `number` | no | How many lines, for `text`. The last one is short, the way a paragraph ends. |
+| `className` | `string` | no |  |
+| `style` | `React.CSSProperties` | no |  |
+
+#### EmptyState
+
+Nothing here, and what to do about it.
+
+Three different situations wear this component and they need different words: nothing created yet (say how to start), a filter that matched nothing (say what to relax), and something that failed (say what broke). "No data" covers all three and helps in none of them.
+
+The title is an `h3`, so the state takes part in the page's heading outline rather than being a styled div a screen reader walks past.
+
+Import: `import { EmptyState } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `icon` | `React.ReactNode` | no | An icon or an `Illustration`. An Object drawing, not a construction. |
+| `title` | `React.ReactNode` | no |  |
+| `description` | `React.ReactNode` | no | Why it is empty, and what would fill it. |
+| `action` | `React.ReactNode` | no | The one thing to do about it. |
+| `compact` | `boolean` | no |  |
+| `wash` | `boolean \| 'brand'` | no | A wash behind it. `brand` for a first-run state worth making an occasion of. |
+| `className` | `string` | no |  |
+
+### Data display
+
+#### Card
+
+A block of related content, optionally the whole thing being one control.
+
+`interactive` changes the element to a `button` and demotes the title and description to spans. That is not cosmetic: a heading inside a button is announced as part of the button's name, so a screen reader reads the title twice and the outline gains a heading nobody can navigate to.
+
+It also sets `text-align: left` inline, because a button centres its text and a card does not.
+
+Import: `import { Card } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `meta` | `React.ReactNode \| React.ReactNode[]` | no | A tick and a short line above the title. An array joins with a middle dot. |
+| `eyebrow` | `React.ReactNode \| React.ReactNode[]` | no | Older name for `meta`. |
+| `title` | `React.ReactNode` | no |  |
+| `description` | `React.ReactNode` | no |  |
+| `media` | `React.ReactNode` | no | An image or figure above the body. |
+| `footer` | `React.ReactNode` | no |  |
+| `variant` | `'default' \| 'quiet' \| 'raised' \| 'outline'` | no | `quiet` has no box at all - one of the three square-by-rule surfaces. |
+| `interactive` | `boolean` | no | The whole card is one control. Renders a button and drops the inner headings. |
+| `padding` | `'default' \| 'tight'` | no |  |
+| `wash` | `boolean \| 'brand'` | no |  |
+| `className` | `string` | no |  |
+| `style` | `React.CSSProperties` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onClick` | `(event: React.MouseEvent) => void` | no |  |
+
+#### Table
+
+Rows and columns of data, in a real table.
+
+A real `table` with `thead`, `th scope="col"` and an optional `caption` - not a grid of divs. That is what lets a screen reader say which column a cell is in, and it is the single most common way a data table becomes unusable.
+
+Money columns split the symbol from the figure so mixed currencies align on the digits. A column of "₩1,200" and "$9.50" right-aligned as plain strings lines up the wrong characters.
+
+`lang` is per cell rather than per table because `keep-all` line breaking is scoped to the element, and a data table of mixed scripts has no single page language to inherit.
+
+Import: `import { Table } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `columns` | `Array<TableColumn<Row>>` | no |  |
+| `rows` | `Row[]` | no |  |
+| `caption` | `React.ReactNode` | no | Names the table. A real `caption`, so it is announced with the table. |
+| `dense` | `boolean` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `TableColumn`.
+
+#### Stat
+
+One number that matters, with what it is and which way it moved.
+
+`upIsGood={false}` exists because up is not always good. Cost, latency and churn going up is bad news, and a component that always paints a rise green tells that story backwards.
+
+The direction is carried by an arrow as well as the colour, so it survives for a reader who cannot separate the green from the red.
+
+Import: `import { Stat } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode` | no |  |
+| `value` | `React.ReactNode` | no |  |
+| `delta` | `number` | no | The change, as a number. Its sign decides the direction. |
+| `deltaSuffix` | `string` | no | Unit after the delta. `%` by default. |
+| `upIsGood` | `boolean` | no | `false` when down is the good direction - cost, latency, churn. |
+| `period` | `React.ReactNode` | no | What the delta is measured against: "vs last month". |
+| `trend` | `number[]` | no | A short series drawn beside the figure. Needs at least two points. |
+| `wash` | `boolean \| 'brand'` | no |  |
+| `className` | `string` | no |  |
+
+#### Chart
+
+A bar or line chart that says what it does not know.
+
+Square corners, butt caps, hairline rules rather than a grid - the brand's chart marks are three of the surfaces that are square by rule.
+
+Four honesty behaviours, and they are the reason this component exists rather than a charting library:
+
+A gap is drawn as a gap. A missing point breaks the line into separate paths and draws no bar, and the count of missing points is printed under the chart. Interpolating across a gap draws data nobody measured.
+
+Estimates get the brand's 40° hatch, not a second hue. An estimate is the same series in a different state; a different colour makes it read as a different thing being measured.
+
+The measurement date and the exclusions are printed, not left to a caption somebody forgets to write.
+
+The figures are always available as a real table behind one button. A chart is an image to a screen reader and a summary to everyone else, so the numbers have to be reachable without it.
+
+Import: `import { Chart } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `kind` | `'bar' \| 'line'` | no |  |
+| `series` | `ChartSeries[]` | no |  |
+| `labels` | `string[]` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `alt` | `string` | no | Accessible name when the title is not enough on its own. |
+| `height` | `number` | no |  |
+| `max` | `number` | no |  |
+| `locale` | `string` | no |  |
+| `format` | `(v: number) => string` | no |  |
+| `measuredAt` | `string` | no | When the data was measured. Printed under the plot. |
+| `missingNote` | `string` | no | Why points are missing. Printed with the count. |
+| `excluded` | `string` | no | What the chart leaves out. Printed under the plot. |
+| `labelHeader` | `React.ReactNode` | no |  |
+| `tableLabel` | `React.ReactNode` | no |  |
+| `hideTableLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `ChartSeries`.
+
+#### Sparkline
+
+A trend line the size of a word, for beside a number.
+
+No axes, no grid, no labels. It shows shape, not values - when a reader needs to read a figure off it, it should be a `Chart`.
+
+Missing points break the line rather than being interpolated across. A sparkline that joins straight through a gap draws data that was never measured, which is the one thing a chart must not do.
+
+Under two points it renders nothing: two is the minimum for a line, and a single dot pretending to be a trend is worse than an empty space.
+
+Import: `import { Sparkline } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `values` | `Array<number \| null>` | no | The series. `null` marks a gap, and the gap is drawn as a gap. |
+| `color` | `string` | no |  |
+| `alt` | `string` | no | Names the trend. Defaults to "Trend", which is thin - say what it is a trend of. |
+| `className` | `string` | no |  |
+
+#### Badge
+
+A short piece of state on something else: a status, a count, a label.
+
+Not a button and not a filter. It never carries an action, so if it needs to be clicked it is the wrong component.
+
+The state is always a word, never only a colour or only the dot. A red dot on its own is invisible to anyone who cannot distinguish it from the green one.
+
+Import: `import { Badge } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `tone` | `'neutral' \| 'brand' \| 'info' \| 'success' \| 'warning' \| 'danger'` | no |  |
+| `variant` | `'subtle' \| 'solid' \| 'outline'` | no | `subtle` for a tint, `solid` for a filled chip, `outline` for a hairline. |
+| `size` | `'sm' \| 'md'` | no |  |
+| `dot` | `boolean` | no | A leading dot, for a status where the word alone reads flat. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### Avatar
+
+Stands in for a person: their picture, a generated mark, or their initials.
+
+At `xs` and `sm` it always falls back to initials even when a mark is available - the mark needs about 40px to read as a mark rather than a smudge, and a smudge carries less than two letters do.
+
+The name is rendered into a visually-hidden span whenever there is no image, so the avatar has an accessible name even though the visible content is two letters or a drawing. A `title` alone would not do it: `title` is a tooltip, not a name.
+
+Import: `import { Avatar } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string` | no | The person's name. Becomes the image's alt, the title, and the initials fallback. |
+| `src` | `string` | no |  |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | no |  |
+| `shape` | `'circle' \| 'square'` | no |  |
+| `color` | `string` | no | Background when there is no picture and no generated mark. |
+| `art` | `boolean` | no | `false` forces initials instead of a generated mark. |
+| `seed` | `string \| number` | no | Hash input for the generated mark, so it survives a name change. |
+| `family` | `(typeof MARK_FAMILIES)[number]` | no |  |
+| `status` | `'online' \| 'away' \| 'busy' \| 'offline'` | no | A dot on the corner. |
+| `className` | `string` | no |  |
+
+#### AvatarMark
+
+@deprecated Use Avatar (AvatarMark is internal to it in the October 2026 delivery). Kept for 1.x.
+
+A generated mark for someone with no picture: the gateway, in one of nine accent families.
+
+The threshold sits at the same height on every mark, with the same three faces behind it. Only the colour family varies, derived from the name - a set of avatars whose diagonals sat at different angles would read as a rendering bug, not as a family.
+
+The faces are drawn before the lit wedge so the wedge covers anything past the seam, and each face is inset 5px so all three stay inside the circular crop.
+
+The initial sits left of centre, not centred. The lit wedge is on the right, so optical balance and seam clearance want the same few pixels. CJK sets larger and without the negative tracking, because one Hangul syllable is a full em where two Latin caps are not.
+
+Import: `import { AvatarMark } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string` | no | The name the mark is generated from, and the source of its initial. |
+| `seed` | `string \| number` | no | Overrides the name as the hash input, so a mark can stay put when a name changes. |
+| `family` | `(typeof MARK_FAMILIES)[number]` | no | Pin the accent family instead of deriving it. |
+| `label` | `string` | no | Names the mark. Without it the SVG is decorative and hidden. |
+| `className` | `string` | no |  |
+
+### Insights
+
+#### MixBar
+
+One 100% bar of an ordinal mix - how a body of work splits across steps that have an order, such as the six modes of AI use from Look up to Orchestrate.
+
+The colours are the ordinal ramp (`--ordinal-0..5`), light to deep, never categorical series colours: the steps are ordered, and a palette of unrelated hues would hide that order. The full text equivalent ("Look up 20%, Learn 15%, ...") is the accessible name and the tooltip, so the bar never carries a figure that only colour can tell.
+
+Import: `import { MixBar } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `mix` | `Array<number \| null>` | no | One share 0-100 per step, in step order. `null` or 0 draws no segment. |
+| `steps` | `MixStep[]` | no | The ordinal steps, shallowest first, at most six. Their names make the accessible text. |
+| `label` | `string` | no | Whose mix this is - "Your team" - prefixed to the accessible text. |
+| `thin` | `boolean` | no | A 8px strip with no numbers, for a table row. |
+| `showFrom` | `number` | no | Segments at or above this share print their number. 9 by default: below it the digits do not fit. |
+| `className` | `string` | no |  |
+
+#### MixColumns
+
+The same ordinal mix over time: one 100% column per period, the shallowest step at the bottom, so a shift towards deeper work reads as the dark part of the columns growing.
+
+An empty period is drawn as an empty track, not left out: dropping it would close the gap and make two weeks apart look adjacent.
+
+Import: `import { MixColumns } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `periods` | `Array<Array<number \| null>>` | no | One mix per period (each a share 0-100 per step), oldest first. An all-zero mix is an empty column. |
+| `labels` | `string[]` | no | A label per period, e.g. the week's start date. Every other one is printed under the columns. |
+| `steps` | `MixStep[]` | no |  |
+| `alt` | `string` | no | Accessible name of the whole chart. |
+| `periodPrefix` | `string` | no | Prefix of each column's tooltip, before its label. "Week of" by default. |
+| `className` | `string` | no |  |
+
+#### MixKey
+
+The legend for `MixBar` and `MixColumns`: a swatch of the ordinal ramp and the step's name.
+
+Import: `import { MixKey } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `steps` | `MixStep[]` | no |  |
+| `full` | `boolean` | no | Stacks the key and adds each step's defining sentence. For the first time a reader meets the scale. |
+| `className` | `string` | no |  |
+
+#### BulletBar
+
+A bullet graph: where a figure is against its goal, and optionally against a comparison, in the space of a table cell. For a habit with a target ("Check, target 85%") rather than a figure that only goes up.
+
+The full reading ("Now 72% · target 85% · Company 78%") is the accessible name, so the ticks are never the only way to tell the three apart.
+
+Import: `import { BulletBar } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `number \| null` | no |  |
+| `target` | `number` | yes | The goal. Drawn as a band up to it and a tick at it. |
+| `compare` | `number \| null` | no | A comparison, e.g. the company figure. A thinner tick. |
+| `compareLabel` | `string` | no |  |
+| `valueLabel` | `string` | no | "Now" by default. |
+| `targetLabel` | `string` | no | "target" by default. |
+| `max` | `number` | no |  |
+| `format` | `(v: number \| null \| undefined) => string` | no |  |
+| `className` | `string` | no |  |
+
+#### BarList
+
+Horizontal bars on one shared scale, one row per group, for comparing teams, tools or kinds of work.
+
+Each row is a list item whose text carries the label, the figure and its note, so the list reads in full without the bars. A group below the privacy floor keeps its row - leaving it out would let a reader subtract it back from the total - but shows a hatched track and the reason instead of a number.
+
+Import: `import { BarList } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `rows` | `BarListRow[]` | no |  |
+| `format` | `(v: number \| null \| undefined) => string` | no |  |
+| `max` | `number` | no | The scale's end. The largest value or reference by default. |
+| `referenceLabel` | `React.ReactNode` | no | Legend for the reference tick, printed under the list. |
+| `hiddenLabel` | `string` | no | What a hidden row says. "Fewer than 3 people" by default. |
+| `onNavigate` | `(href: string, event: React.MouseEvent<HTMLAnchorElement>) => void` | no | Plain-click handler for linked rows, for a client-side router. Same contract as `AppShell.onNavigate`. |
+| `className` | `string` | no |  |
+
+Exported types: `BarListRow`.
+
+#### CompareBar
+
+One measure for one group against a wider one: a team's figure as a bar, the company's as a tick, both printed beside it. Stack several for "Against the company".
+
+Import: `import { CompareBar } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode` | yes |  |
+| `value` | `number \| null` | no |  |
+| `compare` | `number \| null` | no | The figure to compare against, drawn as a tick on the same track. |
+| `compareLabel` | `string` | no | "Company" by default; printed before the comparison figure. |
+| `max` | `number` | no |  |
+| `format` | `(v: number \| null \| undefined) => string` | no |  |
+| `className` | `string` | no |  |
+
+#### Histogram
+
+How a set of runs spreads across ranges of one figure, e.g. agent runs by actions per instruction. Columns only, no axis: the counts are in the accessible name and each column's tooltip.
+
+Import: `import { Histogram } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `bins` | `number[]` | no | A count per bin, in bin order. |
+| `labels` | `string[]` | no | A label per bin, e.g. "1-2", "3-5". |
+| `highlightFrom` | `number` | no | Bins from this index on are drawn in the brand colour - the range the reader is aiming for. |
+| `alt` | `string` | no | Accessible name; the counts are appended to it. |
+| `className` | `string` | no |  |
+
+#### HeatCell
+
+A table cell shaded by how far its figure sits from a baseline, for a compare grid (teams by measures).
+
+Within 3 points is noise and is not shaded. Beyond it, three steps of the brand blue for the good direction and three of orange for the bad one - orange rather than red, because a team behind its peers is something to help with, not an error. Renders a `td`; place it in a `tr`.
+
+Import: `import { HeatCell } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `diff` | `number \| null` | no | Difference from the baseline, in points. `null`: there is no baseline to compare with. |
+| `up` | `boolean \| null` | no | Whether higher is better. `false` flips the shading; `null` shades nothing. |
+| `children` | `React.ReactNode` | no | What the cell says - the value, and the difference. It must carry both: colour is never the only signal. |
+| `title` | `string` | no |  |
+| `className` | `string` | no |  |
+
+#### Delta
+
+A signed change with an arrow, coloured by whether it moved the good way: "+3 pts" beside a figure in a table or a tile.
+
+The arrow carries the direction as well as the colour. A move the bad way is the warning colour, not danger: a figure falling is a reason to look, not a failure. A change that rounds to zero is flat, and a missing one renders nothing rather than "+0".
+
+Import: `import { Delta } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `number \| null` | no | The change. Rounded to a whole number before it is shown or judged. |
+| `up` | `boolean \| null` | no | Whether up is good. `false` for figures like rework; `null` when neither direction is better. |
+| `suffix` | `string` | no | Unit after the number: " pts", "%", " h". Nothing by default. |
+| `suffixOne` | `string` | no | A unit for exactly one, e.g. " pt" beside " pts". |
+| `className` | `string` | no |  |
+
+#### PrivacyFloor
+
+The lock and "Groups of 3 or more" beside a view of other people's work: the promise that no figure on the screen describes fewer people than that. Put it where the scope is named, not in a footer.
+
+Import: `import { PrivacyFloor } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `minGroup` | `number` | no | The smallest group a figure is shown for. |
+| `children` | `React.ReactNode` | no | Replaces the default "Groups of 3 or more", e.g. a translation. |
+| `className` | `string` | no |  |
+
+### Agent chat
+
+#### Message
+
+One turn in a conversation.
+
+The author is a real element rather than a colour or an alignment, so who said what survives for a reader who cannot see the layout. Alignment alone is how a transcript becomes unattributable.
+
+Everything known about an answer goes in `footer` - the receipt, the citations, the confidence. It sits after the content because a reader wants the answer first and the provenance second.
+
+Import: `import { Message } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `role` | `'user' \| 'assistant' \| 'system'` | no |  |
+| `author` | `string` | no | Who said it. Defaults to "You" or "Redrob" by role. |
+| `mark` | `React.ReactNode` | no | Overrides the derived initials in the corner mark. |
+| `footer` | `React.ReactNode` | no | Receipts, citations, confidence - what is known about this answer. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### Composer
+
+Where a person writes to the agent.
+
+Enter sends, Shift+Enter makes a line. The guard on `isComposing` and `keyCode === 229` is why this is worth reading: in Korean, Japanese and Chinese input, Enter first COMMITS the characters being composed. Without the guard, typing 안녕 and pressing Enter sends a half-composed message - the bug is invisible to anyone testing in English, and it makes the product unusable in two of its three languages.
+
+The field grows to `maxRows` and then scrolls, measured off the real line height rather than a guess, so it does not push the page around on a long message.
+
+Send is disabled while empty and becomes Stop while busy - a person should never have to find a different control to interrupt an answer.
+
+Import: `import { Composer } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `string` | no |  |
+| `defaultValue` | `string` | no |  |
+| `placeholder` | `string` | no |  |
+| `label` | `string` | no | Accessible name for the field. Visually hidden. |
+| `context` | `React.ReactNode` | no | Attachments or a quoted message, above the field. |
+| `leading` | `React.ReactNode` | no | Replaces the default add button on the left. |
+| `tools` | `React.ReactNode` | no | Controls to the left of Send: a model picker, a mode toggle. |
+| `status` | `React.ReactNode` | no | A `ComposerStatus` under the field. |
+| `busy` | `boolean` | no | An answer is arriving. Turns Send into Stop. |
+| `disabled` | `boolean` | no |  |
+| `maxRows` | `number` | no | Grows to this many rows, then scrolls. |
+| `addLabel` | `string` | no |  |
+| `submitLabel` | `string` | no |  |
+| `stopLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: string) => void` | no |  |
+| `onSubmit` | `(value: string) => void` | no |  |
+| `onAdd` | `() => void` | no |  |
+| `onStop` | `() => void` | no |  |
+
+#### ComposerMode
+
+Plan or Run, in the composer bar beside the model.
+
+Plan asks what it needs and writes a plan that runs only when you say so; Run starts at once. It is a per-message choice, so it sits where the message is sent rather than in a settings page somebody has to remember to visit before typing.
+
+Each option carries its label as its accessible name and its hint as a title, so the compact, icons-only form still says Plan and Run to a screen reader.
+
+Import: `import { ComposerMode } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `string` | no |  |
+| `defaultValue` | `string` | no |  |
+| `onChange` | `(value: string, option: ComposerModeOption) => void` | no |  |
+| `options` | `ComposerModeOption[]` | no |  |
+| `compact` | `boolean` | no | Icons only, labels kept for screen readers. Automatic below 560px. |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+#### ModelPicker
+
+Chooses which model answers, by asking what the person does and what they want.
+
+Profession and task first, models second. A flat list of model names asks somebody to already know which is good at what, which is the knowledge they came here without.
+
+Redrob Auto is a real option rather than a hidden default, and it says what it will do: read each message after Send, pick the highest-ranked model that runs here, and name the one that answered. A router nobody can see is a router nobody can check.
+
+Picks that run in another product are shown greyed rather than hidden, with the reason. Hiding them would make the ranking look shorter than it is; showing them selectable would offer something that cannot work here.
+
+Prices are converted into the reader's likely currency and rounded to that currency's step, because ₩13,247 claims a precision the exchange rate does not have.
+
+Import: `import { ModelPicker } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `professions` | `ModelProfession[]` | no |  |
+| `limit` | `number` | no | How many ranked picks to show. Five by default. |
+| `locale` | `string` | no |  |
+| `currency` | `string` | no | Currency the prices are given in. |
+| `rates` | `Record<string, number>` | no | Conversion rates from the base currency. |
+| `currencyByLang` | `Record<string, string>` | no |  |
+| `auto` | `boolean` | no | Offer Redrob Auto. |
+| `here` | `string` | no | The product this picker sits in. Picks from elsewhere are shown but not selectable. |
+| `value` | `string \| null` | no |  |
+| `defaultValue` | `string \| null` | no |  |
+| `defaultOpen` | `boolean` | no |  |
+| `defaultProfession` | `string` | no |  |
+| `defaultTask` | `string` | no |  |
+| `task` | `string` | no |  |
+| `matchedTask` | `string` | no | Which task Auto matched the last message to. |
+| `source` | `{ name?: string; edition?: string; note?: string }` | no | Where the ranking came from. |
+| `basis` | `React.ReactNode` | no | How the ranking and pricing work. Rendered in a details block. |
+| `label` | `string` | no |  |
+| `professionLabel` | `string` | no |  |
+| `taskLabel` | `string` | no |  |
+| `autoTaskLabel` | `string` | no |  |
+| `autoLabel` | `string` | no |  |
+| `autoText` | `string` | no |  |
+| `autoTaskText` | `string` | no |  |
+| `autoPickLabel` | `string` | no |  |
+| `matchedLabel` | `string` | no |  |
+| `awayLabel` | `string` | no |  |
+| `awayNote` | `string` | no |  |
+| `backLabel` | `React.ReactNode` | no |  |
+| `guideLabel` | `React.ReactNode` | no |  |
+| `guideHref` | `string` | no |  |
+| `basisLabel` | `React.ReactNode` | no |  |
+| `perLabel` | `string` | no |  |
+| `placement` | `string` | no |  |
+| `align` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `( pick: ModelPick \| null, context: { profession: ModelProfession; task: ModelTask; taskMode?: string }, ) => void` | no |  |
+| `onTaskChange` | `(id: string, profession: ModelProfession) => void` | no |  |
+| `onOpenGuide` | `(task: ModelTask, profession: ModelProfession) => void` | no |  |
+| `effort` | `number \| null` | no | Effort set by the person on the pinned pick: a level number on its scale, `null` for the ranked one. Reset when the pick changes. |
+| `defaultEffort` | `number \| null` | no |  |
+| `onEffortChange` | `(level: EffortLevel \| null, pick: ModelPick) => void` | no | `level` is `null` when the person goes back to the ranked effort. |
+| `effortLabel` | `string` | no |  |
+| `rankedLabel` | `string` | no |  |
+| `resetEffortLabel` | `string` | no |  |
+| `yoursLabel` | `string` | no | "you set", beside the level the person chose. |
+| `effortNote` | `(context: EffortNoteContext) => React.ReactNode` | no | Replaces the line under the effort control, e.g. for another language. |
+
+Exported types: `ModelPick`, `ModelTask`, `ModelProfession`.
+
+#### ModelGuide
+
+The full comparison behind the ranking: what each model was asked, what it wrote, and how it scored.
+
+Two modes. Simple gives the order and a reason. Advanced shows the four dimension scores, the weights, the arithmetic and the confidence interval - everything needed to disagree with the ranking. A ranking that cannot be disagreed with is marketing, which is why the advanced view is a real view and not a footnote.
+
+Every pick carries one real run: the prompt, the whole output in its own scrolling region, and a marker when the sample is illustrative rather than a verbatim capture. The output box is focusable so a keyboard can scroll it.
+
+A task with no picks says "Not ranked yet" and when it will be, rather than rendering an empty list that looks like a loading failure.
+
+Import: `import { ModelGuide } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `professions` | `GuideProfession[]` | no |  |
+| `limit` | `number` | no |  |
+| `locale` | `string` | no |  |
+| `currency` | `string` | no |  |
+| `rates` | `Record<string, number>` | no |  |
+| `currencyByLang` | `Record<string, string>` | no |  |
+| `source` | `{ name?: string; edition?: string; note?: string }` | no |  |
+| `weights` | `GuideWeights` | no |  |
+| `mode` | `'simple' \| 'advanced'` | no | `advanced` shows the scores, the weights and the arithmetic. |
+| `defaultMode` | `'simple' \| 'advanced'` | no |  |
+| `profession` | `string` | no | Controlled, so a ModelPicker can open the guide on its own task. |
+| `task` | `string` | no |  |
+| `defaultProfession` | `string` | no |  |
+| `defaultTask` | `string` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `lede` | `React.ReactNode` | no |  |
+| `method` | `React.ReactNode` | no | How the testing works. Opened by default in advanced mode. |
+| `modeLabel` | `string` | no |  |
+| `simpleLabel` | `React.ReactNode` | no |  |
+| `advancedLabel` | `React.ReactNode` | no |  |
+| `professionLabel` | `string` | no |  |
+| `taskLabel` | `string` | no |  |
+| `perLabel` | `string` | no |  |
+| `topLabel` | `React.ReactNode` | no |  |
+| `promptLabel` | `React.ReactNode` | no |  |
+| `outputLabel` | `string` | no |  |
+| `illustrativeLabel` | `React.ReactNode` | no |  |
+| `calcLabel` | `React.ReactNode` | no |  |
+| `noteLabel` | `string` | no |  |
+| `useLabel` | `React.ReactNode` | no |  |
+| `runLabel` | `React.ReactNode` | no |  |
+| `methodLabel` | `React.ReactNode` | no |  |
+| `emptyTitle` | `React.ReactNode` | no |  |
+| `emptyText` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onTaskChange` | `(taskId: string \| null, professionId: string) => void` | no |  |
+| `onModeChange` | `(mode: 'simple' \| 'advanced') => void` | no |  |
+| `onUse` | `( pick: GuidePick, context: { profession: GuideProfession; task: GuideTask; effort: EffortLevel \| null }, ) => void` | no | `effort` is the level the reader tried on the pick, or `null` for the ranked one. |
+| `effortLabel` | `string` | no | "Try another effort" in the detail; `effortHint` is the line beside it. |
+| `effortHint` | `string` | no |  |
+| `rankedLabel` | `string` | no |  |
+| `resetEffortLabel` | `string` | no |  |
+| `effortNote` | `(context: EffortNoteContext) => React.ReactNode` | no |  |
+| `languages` | `Array<{ value: string; label: string }>` | no | The language the work is done in, which re-ranks the picks. Shown as a third select when two or more. |
+| `language` | `string` | no |  |
+| `defaultLanguage` | `string` | no |  |
+| `onLanguageChange` | `(language: string) => void` | no |  |
+| `languageLabel` | `string` | no |  |
+| `outputs` | `Array<{ value: string; label: string }>` | no | What the work has to produce (documents, presentations, graphics...), which re-ranks the picks. Shown as a select when given, listing "anything" and then only the outputs the current task has a ranking for. Named `deliverable*` because `outputLabel` already labels a pick's sample output. |
+| `output` | `string` | no | Controlled output; `''` is "anything". |
+| `defaultOutput` | `string` | no |  |
+| `onOutputChange` | `(output: string) => void` | no |  |
+| `deliverableLabel` | `string` | no |  |
+| `anyOutputLabel` | `string` | no | The first option, which ranks for the task as a whole. |
+| `benchmarkLabel` | `React.ReactNode` | no | The badge on a `benchmark` pick, and the line its detail shows in place of the "use" action. |
+| `benchmarkNote` | `React.ReactNode` | no |  |
+| `kindLabels` | `Partial<Record<GuideKind, string>>` | no |  |
+| `comingSoonLabel` | `React.ReactNode` | no |  |
+| `missingLabel` | `React.ReactNode` | no | Beside a tool the harness has no equivalent for. Sits with `comingSoonLabel`, not hardcoded. |
+| `toolsLabel` | `React.ReactNode` | no |  |
+| `sourcesLabel` | `React.ReactNode` | no |  |
+| `rangeLabel` | `string` | no | "Likely between" before the monthly range. |
+| `harnessLabel` | `(harness: string) => React.ReactNode` | no | Where a pick runs, e.g. `(h) => \`on ${h}\`` (the default). |
+| `rankLabel` | `(place: number, task: string) => React.ReactNode` | no | The detail's rank line, e.g. `(place, task) => \`#${place} for ${task}\`` (the default). |
+| `effortUnit` | `string` | no | The word after an effort level, `effort` by default; `''` shows the level alone. |
+| `summary` | `'effort' \| 'glance'` | no | What each row shows under its name. `effort` (the default) is the effort meter. `glance` is the comparison strip: quality, reliability, speed and value as five-step meters against the best pick on this task, under one set of column heads, with "Tied with #1" where the 95% intervals overlap and "Best value" on the most quality per dollar. With `glance` the effort is written out in the detail instead of metered, because a maker's own scale says little next to another maker's. |
+| `glanceLabels` | `GlanceLabels` | no | Column heads, accessible names and tooltips for the strip. English by default. |
+| `tiedLabel` | `React.ReactNode` | no |  |
+| `bestValueLabel` | `React.ReactNode` | no |  |
+| `thinkingLabel` | `string` | no | Before the written-out effort in the detail with `summary="glance"`, `Thinking` by default. |
+| `sampleLabels` | `GuideSampleLabels` | no | Headings and words for a sample with a task card and scorecard. English by default. |
+| `map` | `boolean` | no | In advanced mode, a quality-against-price chart above the list. Each dot opens its pick. |
+| `mapLabels` | `GuideMapLabels` | no |  |
+
+Exported types: `GuideKind`, `GuideStep`, `GuideSource`, `GuideTool`, `GuidePick`, `GuideTask`, `GuideProfession`.
+
+#### ComposerStatus
+
+What will happen to this message, shown above the composer, before Send.
+
+Privacy, memory, second opinion: the settings in force, each opening its own panel. This is the one place these appear BEFORE the message is sent - `AnswerReceipt` is the same subjects reported after. Stating them up front is what makes the checks a choice rather than a surprise.
+
+`aria-haspopup` is claimed only for items that actually have a panel.
+
+Import: `import { ComposerStatus } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `Array<ComposerStatusItem \| false \| null \| undefined>` | no |  |
+| `label` | `string` | no |  |
+| `open` | `string \| null` | no |  |
+| `defaultOpen` | `string \| null` | no |  |
+| `className` | `string` | no |  |
+| `onOpenChange` | `(id: string \| null) => void` | no |  |
+
+Exported types: `ComposerStatusItem`.
+
+#### AnswerReceipt
+
+What happened to produce this answer: which model, what was checked, what was found.
+
+It sits under the answer, after Send, because every one of these checks runs after Send. Showing them beforehand would promise work that has not happened.
+
+Only an item with a `detail` is expandable, and `aria-expanded` is only claimed for those - a row that announces itself as expandable and then does nothing is worse than a plain row.
+
+Import: `import { AnswerReceipt } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `Array<AnswerReceiptItem \| false \| null \| undefined>` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `AnswerReceiptItem`.
+
+#### PrivateText
+
+Text the person wrote that the model did not see, shown as what they wrote.
+
+The reader sees their own words; the substitution is stated, not implied. A product that silently redacted would be asking for trust it has not shown, and one that showed only the placeholder would make the person re-read their own sentence to work out what was taken.
+
+`tabIndex={0}` and a visually-hidden sentence, because the explanation is in a `title` and a title is unreachable by keyboard and unread by most screen readers.
+
+Import: `import { PrivateText } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `as` | `string` | no | What the model saw in place of this text, e.g. `[a name]`. |
+| `out` | `boolean` | no | This text was removed entirely rather than replaced. |
+| `outLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### Opinion
+
+What Fact check found, inside an answer.
+
+`differs` marks a sentence another AI reads differently and opens what each checker said in place, built of phrasing elements so it can sit inside the answer's paragraph. `added` is what it thinks the answer missed: set after the answer, never merged into it, and marked with whose it is.
+
+Import: `import { Opinion } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `kind` | `'differs' \| 'added'` | no |  |
+| `views` | `DisputedView[]` | no |  |
+
+Also accepts: `Omit<DisputedProps, 'views'>`, `OpinionAddedProps`.
+
+#### ThreadNote
+
+A one-line note in the conversation, between turns rather than in one.
+
+`model` says a different AI took over and that it reads the same memory, so a switch does not read as a reset. `memory` says what was saved and offers Undo beside it, because a product that remembers silently is deciding what it knows about someone without telling them.
+
+Import: `import { ThreadNote } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `kind` | `'model' \| 'memory'` | no |  |
+| `to` | `React.ReactNode` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Also accepts: `Omit<ModelSwitchProps, 'to'>`, `Omit<MemorySavedProps, 'children'>`.
+
+#### Disputed
+
+@deprecated Use Opinion. Kept for 1.x.
+
+Marks a claim a second opinion disagrees with, inline, and shows both views.
+
+The disagreement stays attached to the sentence it is about rather than being collected into a footnote at the bottom. A reader who does not scroll should still know the claim under their eye is contested.
+
+The mark is keyboard-operable with Enter and Space, because it is a `span` with `role="button"` - a real button cannot be nested inside a paragraph of prose without breaking the line flow.
+
+Import: `import { Disputed } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `views` | `DisputedView[]` | no | The views that disagree. |
+| `title` | `string` | no |  |
+| `hint` | `string` | no |  |
+| `n` | `number \| string` | no | A superscript number tying this to a list. |
+| `open` | `boolean` | no |  |
+| `defaultOpen` | `boolean` | no |  |
+| `settleLabel` | `React.ReactNode` | no |  |
+| `closeLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onSettle` | `() => void` | no | Offers to resolve it. Omit it and there is no settle button. |
+| `onOpenChange` | `(open: boolean) => void` | no |  |
+
+Exported types: `DisputedView`.
+
+#### OpinionAdded
+
+@deprecated Use Opinion with `kind="added"`. Kept for 1.x.
+
+Something a second opinion added that the first answer had missed.
+
+Marked as an addition rather than blended into the answer. A crosscheck that silently improves the text removes the reader's chance to weigh where a claim came from, which is the only reason to run one.
+
+Import: `import { OpinionAdded } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `by` | `string` | no | Which model added it. Named, not hidden behind "a second model". |
+| `label` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### ModelSwitch
+
+@deprecated Use ThreadNote. Kept for 1.x.
+
+Says the model changed mid-conversation, and that nothing was lost.
+
+The reassurance is the point. A person who sees the model change reasonably assumes the new one is starting cold, so the note says it reads the same memory. Without that line, a switch reads as a reset.
+
+`role="note"`, so it is an aside in the transcript rather than another turn in the conversation.
+
+Import: `import { ModelSwitch } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `to` | `React.ReactNode` | no | The model now answering. Named, because the person is being told which one. |
+| `by` | `'you' \| 'auto'` | no | Who switched. `you` when the person pinned it, otherwise Redrob Auto did. |
+| `reason` | `string` | no | Why, as a clause: "because this needs longer reasoning". |
+| `note` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+#### MemorySaved
+
+@deprecated Use ThreadNote with `kind="memory"`. Kept for 1.x.
+
+Says something was written to memory, what it was, and how to take it back.
+
+All three, together. A product that remembers silently is a product deciding what it knows about someone without telling them, and the note says the reach out loud: every AI will know it from now on.
+
+`role="status"`, so it is announced without interrupting.
+
+Import: `import { MemorySaved } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `React.ReactNode` | no |  |
+| `note` | `React.ReactNode` | no |  |
+| `undoLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no | What was remembered. |
+| `onUndo` | `() => void` | no | Omit it and the memory cannot be undone here - so only omit it when that is true. |
+
+#### Streaming
+
+An answer arriving, with a way to stop it.
+
+`label` is the line saying what it is doing; `children` is the text it is producing. They are separate because a caller passing only `label` used to get a bare Stop button and no sentence.
+
+`thinking` is its own state with a live region, so a screen reader is told something is happening before any text exists to read. Once text arrives the caret shows it is still going, and Stop stays available until `done` - an answer that cannot be interrupted is one the person has to wait out.
+
+Import: `import { Streaming } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `state` | `'thinking' \| 'streaming' \| 'done'` | no | `thinking` before any text arrives, then the text streams, then `done`. |
+| `label` | `React.ReactNode` | no | The line saying what it is doing. Not the text it is producing. |
+| `stopLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no | The text being produced. |
+| `onStop` | `() => void` | no | Omit it and the person cannot stop a long answer. |
+
+#### PromptSuggestions
+
+A few things worth asking, for an empty chat.
+
+The list item wraps the button rather than being the button, so each one is still announced as a button inside a list - a `listitem` with a click handler is a list entry a screen reader cannot press.
+
+Import: `import { PromptSuggestions } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `Array<PromptSuggestion \| string>` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onSelect` | `(value: string \| undefined, item: PromptSuggestion \| string) => void` | no |  |
+
+Exported types: `PromptSuggestion`.
+
+#### Citation
+
+A reference to where something came from.
+
+No `href`, no link. A citation that jumps to the top of the page is worse than none: it teaches a reader that the sources in this product do not go anywhere, and then they stop checking any of them.
+
+The accessible name is composed from the index and the title, so a screen reader announces "Source 3: the Q3 filing" rather than "3".
+
+Import: `import { Citation } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `source` | `React.ReactNode` | no | Where it came from, short: a publication, a file name. |
+| `title` | `string` | no | The full title. Becomes the tooltip and part of the accessible name. |
+| `index` | `number \| string` | no | Its number in the answer's source list. |
+| `href` | `string` | no | Omit it and this renders as text, not a link. |
+| `className` | `string` | no |  |
+
+#### Confidence
+
+How sure an answer is, in words and in three bars.
+
+The words carry it; the bars are `aria-hidden` decoration. Three bars alone would be a percentage without the honesty of one - a reader cannot tell 2/3 from "probably" unless it is written.
+
+`label` is used verbatim when passed, because the composed default is English and this ships in three languages.
+
+Import: `import { Confidence } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `level` | `'low' \| 'medium' \| 'high'` | no |  |
+| `label` | `React.ReactNode` | no | Used exactly as written - it may be Korean. Only the default is composed in English. |
+| `note` | `React.ReactNode` | no | Why it is this confident. |
+| `className` | `string` | no |  |
+
+#### AgentAction
+
+One thing the agent did: a search, a file read, a call out.
+
+Collapsed by default with the outcome on the row, because a reader wants to know what happened, not how. The detail is there for the times the answer looks wrong.
+
+The state is a word AND a glyph, not a colour: "Failed" beside a red dot is readable, a red dot alone is not.
+
+Import: `import { AgentAction } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `React.ReactNode` | no | What it did, in plain words - not the tool's function name. |
+| `summary` | `React.ReactNode` | no | The outcome in one line: what was searched, what came back. |
+| `state` | `'running' \| 'done' \| 'error'` | no |  |
+| `stateLabel` | `React.ReactNode` | no |  |
+| `duration` | `React.ReactNode` | no |  |
+| `defaultOpen` | `boolean` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no | The detail, collapsed by default. |
+
+#### AgentTimeline
+
+What the agent is doing, in order, as it happens.
+
+An ordered list, so the sequence survives with the stylesheet off and is announced as a sequence. The step in progress carries `aria-current="step"`, which is what tells a screen reader where the run has got to rather than leaving it to the dot's colour.
+
+Import: `import { AgentTimeline } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `steps` | `AgentTimelineStep[]` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `AgentTimelineStep`.
+
+#### ApprovalStep
+
+The agent has stopped and is asking before it does something.
+
+Approve and Reject are both real buttons of the same size. Reject is not a link, not smaller, and not hidden behind the detail - a person who wants to say no should not have to look for how.
+
+`detail` carries the exact thing that will happen, because "run a command" is not a question anybody can answer responsibly. `onAlways` is separate from Approve so that widening permission is always a deliberate second act, never a side effect of saying yes once.
+
+Import: `import { ApprovalStep } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `React.ReactNode` | no | What is being asked for, as a question a person can answer. |
+| `description` | `React.ReactNode` | no | What will happen if approved. Concretely - which file, which account, what cost. |
+| `detail` | `React.ReactNode` | no | The exact command, diff or payload. |
+| `approveLabel` | `React.ReactNode` | no |  |
+| `rejectLabel` | `React.ReactNode` | no |  |
+| `alwaysLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onApprove` | `() => void` | no |  |
+| `onReject` | `() => void` | no |  |
+| `onAlways` | `() => void` | no | Offers to stop asking for this kind of action. Omit it and every instance is asked. |
+
+### Safeguards
+
+#### ProtectionStatus
+
+The one sentence a person needs about a protection, large, with whether it is running. Heads a panel or a page.
+
+The title says what IS, not what the feature is called: "Privacy protection is on: High" rather than "Privacy". A person checking whether they are protected should not have to interpret a label.
+
+`live` pairs a dot with text. The dot alone would be decoration, and a safeguard that signals only in colour is a safeguard some readers cannot verify.
+
+Import: `import { ProtectionStatus } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `React.ReactNode` | yes |  |
+| `icon` | `React.ReactNode` | no |  |
+| `tone` | `'safe' \| 'warn' \| 'brand' \| 'plain'` | no | `safe` on, `warn` off or degraded, `brand` a feature in force, `plain` neutral. |
+| `size` | `'md' \| 'lg'` | no |  |
+| `live` | `string` | no | Text beside a live dot: what is running right now. |
+| `as` | `keyof React.JSX.IntrinsicElements` | no | Element for the title, when the card opens a section. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### StatusCard
+
+@deprecated Renamed `ProtectionStatus` in the October 2026 delivery. Same markup; this forwards to it.
+
+Import: `import { StatusCard } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `tone` | `'safe' \| 'warn' \| 'brand' \| 'plain'` | no | `safe` on, `warn` off or degraded, `brand` a feature in force, `plain` neutral. |
+| `icon` | `React.ReactNode` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `as` | `keyof React.JSX.IntrinsicElements` | no | Element for the title, when the card opens a section. |
+| `size` | `'md' \| 'lg'` | no |  |
+| `live` | `string` | no | Text beside a live dot: what is running right now. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### PrivacyProtection
+
+Whether the privacy check is running, at what level, and what it does.
+
+The `off` state is the important one. Where the check is not running, this says so in plain words: what you send goes to the AI as written. A privacy panel that renders the same everywhere would be telling people they are protected where they are not, which is worse than having no panel.
+
+The defaults for `running`, `offTitle` and `offText` do not say where the check runs. Whether that is the person's laptop or the product's server differs per product, and a default that names the wrong one is a false privacy claim; a product that knows passes its own words.
+
+The explanation names where the work happens - a small model on the person's own laptop, swapping details for placeholders before Send and putting the real ones back in the answer. "Your data is protected" is not a claim anybody can check.
+
+Import: `import { PrivacyProtection } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `state` | `'on' \| 'off'` | no | `off` when the check is not running for what this person sends, for whatever reason the product has. |
+| `level` | `string` | no |  |
+| `levels` | `PrivacyLevel[]` | no |  |
+| `running` | `string` | no | What is running, beside the live dot. Default "Running". Name the place when the product knows it ("Running on this laptop"); the default does not, because the same panel ships where the check runs on a server. |
+| `summary` | `React.ReactNode` | no |  |
+| `lede` | `React.ReactNode \| false` | no | `false` hides the explanation. |
+| `card` | `boolean` | no | `false` hides the status card. |
+| `showLevels` | `boolean` | no | `false` hides the level list. |
+| `last` | `React.ReactNode` | no | What it caught last, and when. |
+| `onLabel` | `string` | no |  |
+| `offTitle` | `React.ReactNode` | no | Default "Privacy protection is off". |
+| `offText` | `React.ReactNode` | no | Default "What you send goes to the AI as written." Say why it is off and where it would work, when the product knows ("It runs on your laptop, so it only works in the desktop app."); the default cannot know, so it says only the consequence. |
+| `foot` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+#### MemoryScope
+
+Which memory this chat reads, including none.
+
+Off is a real option with its own card and its own sentence - every AI starts from nothing, and nothing new is saved. A memory control without an off switch is a setting, not a choice.
+
+The explanation is the product's actual argument: most apps keep what they learn inside one company's model, and this one keeps it separately so every AI reads the same notes. That is why switching model mid-chat costs nothing, and it is worth stating rather than leaving as a feature name.
+
+Import: `import { MemoryScope } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `options` | `MemoryScopeOption[]` | no |  |
+| `value` | `string` | no |  |
+| `defaultValue` | `string` | no |  |
+| `label` | `string` | no |  |
+| `onTitle` | `React.ReactNode` | no |  |
+| `offTitle` | `React.ReactNode` | no |  |
+| `offText` | `React.ReactNode` | no |  |
+| `summary` | `React.ReactNode` | no |  |
+| `lede` | `React.ReactNode \| false` | no |  |
+| `foot` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: string, option: MemoryScopeOption) => void` | no |  |
+
+Exported types: `MemoryScopeOption`.
+
+#### CrossCheckSetting
+
+The panel behind Cross-check in the status line: two checks, Fact check and Challenge, each Off, When it matters or Always.
+
+Each check says what it does and how long it takes, and "When it matters" is defined in a sentence under them: answers a person will rely on or pass on, never quick questions or drafts. A safeguard whose trigger is vague gets switched off the first time it fires on something trivial.
+
+The checkers are named in every result, so the setting never has to promise more than it does. `CrossCheckSetting.value(checks)` gives the status line's word for a value: the shared level, "On", "1 of 2 on" or "Off".
+
+Import: `import { CrossCheckSetting } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `CrossCheckValue` | no |  |
+| `defaultValue` | `CrossCheckValue` | no |  |
+| `onChange` | `(value: CrossCheckValue, changed: string) => void` | no |  |
+| `checks` | `CrossCheckDefinition[]` | no |  |
+| `levels` | `Array<{ value: string; label: string }>` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `lede` | `React.ReactNode` | no |  |
+| `whenItMatters` | `React.ReactNode` | no | What When it matters means, under the checks. |
+| `foot` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+#### SecondOpinionSetting
+
+@deprecated Replaced by `CrossCheckSetting` in the October 2026 delivery, which sets Fact check and Challenge separately; its old `rr-opset` styles are gone. This adapter keeps the one-value API: the value sets both checks, and changing either check reports that level as the new value.
+
+Import: `import { SecondOpinionSetting } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `options` | `OpinionMode[]` | no |  |
+| `value` | `string` | no |  |
+| `defaultValue` | `string` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `lede` | `React.ReactNode` | no |  |
+| `label` | `string` | no |  |
+| `foot` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(value: string, mode: OpinionMode) => void` | no |  |
+
+Exported types: `OpinionMode`.
+
+#### MemoryList
+
+Everything the product remembers, each entry editable or removable.
+
+The whole list, in the words it was saved in, with where it came from. Memory nobody can read is memory nobody consented to, and a summary would hide the entry that is wrong.
+
+Forget is on every row, at the same weight as Edit. A locked entry says who can change it rather than showing a disabled button with no explanation.
+
+Import: `import { MemoryList } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `MemoryItem[]` | no |  |
+| `readByLabel` | `string` | no |  |
+| `editLabel` | `React.ReactNode` | no |  |
+| `forgetLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onEdit` | `(item: MemoryItem, index: number) => void` | no |  |
+| `onForget` | `(item: MemoryItem, index: number) => void` | no |  |
+
+Exported types: `MemoryItem`.
+
+#### OpinionGrid
+
+Every point in an answer against the AI that wrote it and the two that reviewed it.
+
+A real table with `th scope="col"` and `scope="row"`, so a cell can be read as "this model, this point". A grid of divs would make the verdicts unreadable to anyone not seeing the layout - and the whole purpose of this component is to be checkable.
+
+"Didn't comment" is a stated verdict, not a blank cell. Silence from a reviewer is information, and leaving the cell empty invites it to be read as agreement.
+
+A row where anyone disagreed is marked on the row itself, so the disagreements are findable without reading every cell.
+
+Import: `import { OpinionGrid } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `columns` | `OpinionColumn[]` | no |  |
+| `rows` | `OpinionRow[]` | no |  |
+| `verdicts` | `Record<string, { label: string; icon?: string }>` | no | Replace or extend the verdict vocabulary. |
+| `pointLabel` | `React.ReactNode` | no |  |
+| `caption` | `React.ReactNode` | no | Names the table for a screen reader. Visually hidden. |
+| `className` | `string` | no |  |
+
+Exported types: `OpinionColumn`, `OpinionRow`.
+
+#### PlanQuestions
+
+What Plan asks before it writes: a few questions, each answered with a tap or in your own words.
+
+The options are buttons with `aria-pressed`, so a single tap answers, and the hint beside the submit button says a reply in the person's own words works too - the options are a shortcut, never a form to complete. Once answered it folds to a single line, so the thread reads as a conversation rather than a stack of forms.
+
+Import: `import { PlanQuestions } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `questions` | `PlanQuestion[]` | yes |  |
+| `value` | `PlanAnswers` | no |  |
+| `defaultValue` | `PlanAnswers` | no |  |
+| `onChange` | `(value: PlanAnswers) => void` | no |  |
+| `onSubmit` | `(value: PlanAnswers) => void` | no |  |
+| `done` | `boolean` | no | Folds to one line once answered. |
+| `summary` | `React.ReactNode` | no |  |
+| `submitLabel` | `string` | no |  |
+| `hint` | `React.ReactNode` | no |  |
+| `anyLabel` | `string` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `PlanQuestion`, `PlanAnswers`.
+
+#### PlanDocument
+
+The plan, written out as a document rather than a list of steps: what was asked, what is known, how, what you get, the assumptions and the risks, and a To do list that ticks as the run goes.
+
+Any paragraph can be changed in place until it runs, and the status line says so the moment it is: a draft becomes "Edited by you". Once running, the text locks, because a plan that changes under a run is no longer the plan that was approved.
+
+The status names who approved it. A plan that runs is one a person said yes to, and the document keeps that on its face.
+
+Import: `import { PlanDocument } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `file` | `React.ReactNode` | no | The plan's file name: "Plan · Ending the Seorin MSA.md". |
+| `title` | `React.ReactNode` | no |  |
+| `summary` | `React.ReactNode` | no |  |
+| `sections` | `PlanSection[]` | no |  |
+| `todo` | `PlanTodo[]` | no |  |
+| `done` | `number` | no | How many To do items are done; overrides each item's `done`. |
+| `status` | `PlanStatus` | no | draft and kept can be edited in place; running and done are locked. Draft shows as edited once changed. |
+| `statusLabels` | `Partial<Record<PlanStatus, React.ReactNode>>` | no |  |
+| `note` | `React.ReactNode` | no | Which checks will run after, and why. |
+| `onRun` | `() => void` | no |  |
+| `onKeep` | `() => void` | no |  |
+| `onEdit` | `(e: unknown) => void` | no |  |
+| `runLabel` | `string` | no |  |
+| `keepLabel` | `string` | no |  |
+| `hint` | `React.ReactNode` | no |  |
+| `todoLabel` | `string` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `PlanItem`, `PlanSection`, `PlanTodo`.
+
+#### FactCheckReport
+
+What Fact check found, in three parts: every cited source opened and judged, the reasoning read step by step, and what the answer missed. Named for the AI that ran it.
+
+Each source opens in place to the passage it was checked against, so a verdict of "Not in that source" can be verified by the reader rather than taken on trust. What the answer missed is added after it and marked as the checker's, never merged in.
+
+Fixing rewrites only the sentences flagged above, and says so beside the button.
+
+Import: `import { FactCheckReport } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `by` | `React.ReactNode` | no | The AI that ran the check. |
+| `took` | `React.ReactNode` | no |  |
+| `summary` | `React.ReactNode` | no |  |
+| `claims` | `FactClaim[]` | no |  |
+| `reasoning` | `FindingProps[]` | no |  |
+| `missed` | `Array<{ by?: string; label?: React.ReactNode; text: React.ReactNode }>` | no |  |
+| `fixed` | `boolean` | no |  |
+| `onFix` | `() => void` | no |  |
+| `onClose` | `() => void` | no |  |
+| `defaultOpen` | `string \| null` | no |  |
+| `verdicts` | `Partial<Record<FactVerdict, [NonNullable<BadgeProps['tone']> \| string, React.ReactNode]>>` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `label` | `string` | no |  |
+| `fixLabel` | `string` | no |  |
+| `fixHint` | `React.ReactNode` | no |  |
+| `claimLabel` | `string` | no |  |
+| `sourcesLabel` | `string` | no |  |
+| `reasoningLabel` | `string` | no |  |
+| `missedLabel` | `string` | no |  |
+| `missedItemLabel` | `string` | no |  |
+| `closeLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `FactClaim`.
+
+#### ChallengeReport
+
+The answer's conclusion under pressure: one AI argues for it, one against, for a few rounds, and a third says what held up.
+
+Each side is named, and the rounds are shown in full rather than summarised, so a reader can see how a point broke instead of being told that it did. What nobody settled is said plainly, for a person to decide: a check that always reaches a verdict is a check pretending to know more than it does.
+
+While running, the rounds arrive one at a time under a Streaming line that can stop it.
+
+Import: `import { ChallengeReport } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `claim` | `React.ReactNode` | no | The conclusion under challenge, in the answer's words. |
+| `sides` | `{ for?: React.ReactNode; against?: React.ReactNode; judge?: React.ReactNode }` | no |  |
+| `rounds` | `Array<{ for: React.ReactNode; against: React.ReactNode }>` | no |  |
+| `state` | `'running' \| 'done'` | no |  |
+| `shown` | `number` | no | Rounds shown so far while running. |
+| `of` | `number` | no |  |
+| `took` | `React.ReactNode` | no |  |
+| `verdict` | `Array<{ kind: 'broke' \| 'held' \| 'changed' \| string; text: React.ReactNode }>` | no |  |
+| `unsettled` | `React.ReactNode` | no |  |
+| `applied` | `boolean` | no |  |
+| `onApply` | `() => void` | no |  |
+| `onRerun` | `() => void` | no |  |
+| `onClose` | `() => void` | no |  |
+| `onStop` | `() => void` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `label` | `string` | no |  |
+| `claimLabel` | `string` | no |  |
+| `forLabel` | `string` | no |  |
+| `againstLabel` | `string` | no |  |
+| `judgeLabel` | `string` | no |  |
+| `roundLabel` | `string` | no |  |
+| `verdictLabel` | `string` | no |  |
+| `unsettledLabel` | `string` | no |  |
+| `applyLabel` | `string` | no |  |
+| `appliedLabel` | `string` | no |  |
+| `rerunLabel` | `string` | no |  |
+| `runningLabel` | `string` | no |  |
+| `progressLabel` | `string` | no |  |
+| `kindLabels` | `Record<string, string>` | no |  |
+| `className` | `string` | no |  |
+
+### Agent harness
+
+#### TaskStatus
+
+What a run is doing, in a word and a dot.
+
+`blocked` is called "Waiting on you", not "Blocked". The agent is not stuck - it is holding for an answer, and the label's job is to tell the person that the next move is theirs.
+
+`role="status"` so a change is announced, and the word is always present unless a caller explicitly passes an empty label because the surrounding row already says it.
+
+Import: `import { TaskStatus } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `state` | `'queued' \| 'running' \| 'blocked' \| 'done' \| 'failed' \| 'stopped'` | no |  |
+| `label` | `string` | no | Overrides the state's word. Pass `''` to show the dot alone, inside a row that names it already. |
+| `elapsed` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+#### AgentRoster
+
+Every agent working right now, what each is doing, and how to stop one.
+
+Stop appears only on running and queued agents, because stopping something already finished is a control that does nothing. Each row shows its current step rather than only its state - "Running" tells a person less than "Reading the third contract".
+
+Import: `import { AgentRoster } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `agents` | `RosterAgent[]` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onStop` | `(agent: RosterAgent) => void` | no | Offers Stop on running and queued agents. Omit it and nothing can be stopped from here. |
+
+Exported types: `RosterAgent`.
+
+#### AgentHandoff
+
+One agent passing work to another, and what went with it.
+
+`carried` is the point. A handoff without it is an org chart; with it, a person can see whether the second agent actually received what it needed, which is where multi-agent runs usually go wrong.
+
+The group's accessible name is composed from both names, so a screen reader announces "Research passed this to Drafting" rather than "group".
+
+Import: `import { AgentHandoff } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `from` | `React.ReactNode` | no |  |
+| `fromNote` | `React.ReactNode` | no |  |
+| `fromWhen` | `React.ReactNode` | no |  |
+| `to` | `React.ReactNode` | no |  |
+| `toNote` | `React.ReactNode` | no |  |
+| `toWhen` | `React.ReactNode` | no |  |
+| `passLabel` | `React.ReactNode` | no |  |
+| `carried` | `React.ReactNode[]` | no | What was passed along: findings, files, a decision. |
+| `carriedLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+#### AccessList
+
+Everything an agent can reach, and whether it can change it. List refusals as well as grants.
+
+The mode is spelled out - "Can read", "Can read and write" - because read and write are a developer's words for somebody else's files. A person granting access should not have to translate.
+
+Every scope is listed, including the ones that are read-only or refused. A list that showed only the powerful grants would make the total reach impossible to judge.
+
+Import: `import { AccessList } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `scopes` | `Array<{ /** The five things a person actually pictures. */ kind?: 'files' \| 'apps' \| 'web' \| 'computer' \| 'memory'; /** Name the thing, not the path: 'Your Contracts folder'. */ label: string; /** Rendered as 'Can read', 'Can read and write', 'No access'. */ mode?: 'read' \| 'write' \| 'none'; }>` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+#### ScopeBadge
+
+@deprecated Renamed `AccessList` in the October 2026 delivery. Same markup; this forwards to it.
+
+Import: `import { ScopeBadge } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `scopes` | `Scope[]` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `Scope`.
+
+#### Changes
+
+What an agent changed, before and after, with a way to undo it.
+
+"Was" and "Now" on every changed item. A list of new values alone cannot be checked: the reader has no way to know what was there, which is exactly what they need in order to accept or reject.
+
+Reject is labelled "Put it back" by default rather than "Cancel" - it undoes something that has already happened, and Cancel would suggest nothing has.
+
+The kind is inferred from which sides are present, so a caller cannot label an addition as a change.
+
+Import: `import { Changes } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `ChangeItem[]` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `summary` | `React.ReactNode` | no |  |
+| `acceptLabel` | `React.ReactNode` | no |  |
+| `rejectLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onAccept` | `() => void` | no |  |
+| `onReject` | `() => void` | no |  |
+
+Exported types: `ChangeItem`.
+
+#### Meter
+
+What has been used against what there is, in one component with two shapes.
+
+With `segments` it is the working-memory bar: shares of one whole, with the room left as a segment of its own. Without, it is spend against a budget, escalating its tone at 75% and 90% on its own. The shape follows the data, so a caller never chooses a meter that cannot show what it has.
+
+Import: `import { Meter } from '@redrob-labs/ui';`
+
+Declares no own props.
+
+Also accepts: `CostMeterProps`, `MemoryMeterProps`.
+
+#### CostMeter
+
+@deprecated Use Meter (without `segments`). Kept for 1.x.
+
+What a run has spent against what it was allowed.
+
+The tone escalates at 75% and 90% on its own, so a budget approaching its limit changes appearance without anybody remembering to set a flag. That is the whole value: a meter that only goes red when told will be green on the run that overspends.
+
+`breakdown` matters because a total nobody can decompose is a number nobody can act on - the question after "we spent this much" is always "on what".
+
+Import: `import { CostMeter } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `used` | `number` | no |  |
+| `budget` | `number` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `unit` | `string` | no |  |
+| `showBudget` | `boolean` | no | `false` hides the budget, for a spend with no ceiling. |
+| `tone` | `'default' \| 'warning' \| 'danger'` | no | Overrides the derived tone. Otherwise 75% is warning and 90% is danger. |
+| `breakdown` | `CostBreakdown[]` | no | Where it went. |
+| `format` | `(v: number) => string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `CostBreakdown`.
+
+#### MemoryMeter
+
+@deprecated Use Meter (with `segments`). Kept for 1.x.
+
+How full the working memory is, and what is taking up the room.
+
+"Room left" is a segment in the legend, not an absence. A meter that only shows what is used makes the reader do the subtraction, and running out of context is the thing they are trying to avoid.
+
+The accessible name carries the percentage in words, so the state is available without reading the bar.
+
+Import: `import { MemoryMeter } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `total` | `number` | no | The whole window. Segments are shares of this. |
+| `segments` | `MemorySegment[]` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `leftLabel` | `React.ReactNode` | no |  |
+| `format` | `(v: number) => string` | no | Defaults to a percentage. Pass a formatter to show tokens or words instead. |
+| `className` | `string` | no |  |
+
+Exported types: `MemorySegment`.
+
+#### ScheduleRow
+
+A recurring task: what it is, when it next runs, and how the last run went.
+
+A paused schedule stays visible and says "Paused". Hiding it would leave a task nobody remembers to turn back on, and the last run's state is what tells somebody whether the pause was deliberate.
+
+The switch's label names the task, so a page of schedules does not present a column of switches called "on".
+
+Import: `import { ScheduleRow } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string` | no |  |
+| `cadence` | `string` | no | How often, in words, with the timezone: "Every weekday at 9:00, Seoul time". |
+| `nextRun` | `string` | no |  |
+| `lastRun` | `{ state?: TaskStatusProps['state']; at?: string; label?: string }` | no |  |
+| `enabled` | `boolean` | no | `false` reads as Paused rather than hiding the row. |
+| `onToggle` | `(event: React.ChangeEvent<HTMLInputElement>) => void` | no | Omit it and the schedule cannot be paused from here. Wired to the switch's `onChange`, so it receives the change event; `event.target.checked` is the next state. |
+| `switchLabel` | `string` | no | The switch's label: what is switched, not its state. Default "Runs on schedule: <name>". |
+| `className` | `string` | no |  |
+
+#### Schedule
+
+@deprecated Use ScheduleRow. Kept for 1.x.
+
+One scheduled task: what it is, when it runs next, and how the last run went.
+
+A paused schedule stays visible and says "Paused". Hiding it would leave a task nobody remembers to turn back on, and the last run's state is what tells somebody whether the pause was deliberate.
+
+The switch's label names the task, so a page of schedules does not present a column of switches called "on".
+
+Import: `import { Schedule } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `React.ReactNode` | no |  |
+| `cadence` | `React.ReactNode` | no | How often, in words: "Every weekday". |
+| `nextRun` | `React.ReactNode` | no |  |
+| `lastRun` | `ScheduleLastRun` | no |  |
+| `enabled` | `boolean` | no | `false` reads as Paused rather than hiding the row. |
+| `switchLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onToggle` | `(event: React.ChangeEvent<HTMLInputElement>) => void` | no | Omit it and the schedule cannot be paused from here. |
+
+Exported types: `ScheduleLastRun`.
+
+#### SchedulePicker
+
+When something should run: once, on a repeat, or when a file arrives.
+
+The live sentence under the controls is the point. A schedule assembled from five controls cannot be checked before saving, so this states it back in words - the cadence, the time, the zone as a CITY, and the next run. It is in an `aria-live` region so the confirmation reaches somebody who cannot see it change.
+
+A one-off whose time has already passed says so rather than silently never running.
+
+The note about approval steps is on by default: a person scheduling something unattended needs to know it will still stop and wait at every step marked "Asks you first".
+
+Import: `import { SchedulePicker } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `ScheduleValue` | no |  |
+| `defaultValue` | `ScheduleValue` | no |  |
+| `now` | `Date` | no | The moment "next run" is computed against. Pass it in tests to keep the output stable. |
+| `modes` | `Array<[string, string]>` | no | `[value, label]` pairs. Defaults to once / repeats / on a new file. |
+| `where` | `string` | no | Where files arrive, for the event mode's sentence. |
+| `locale` | `string` | no |  |
+| `weekStart` | `number` | no |  |
+| `zones` | `Array<[string, string]>` | no |  |
+| `offices` | `Array<[string, string]> \| false` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `dateLabel` | `string` | no |  |
+| `repeatLabel` | `string` | no |  |
+| `dayOfMonthLabel` | `string` | no |  |
+| `timeLabel` | `string` | no |  |
+| `zoneLabel` | `string` | no |  |
+| `startLabel` | `string` | no |  |
+| `note` | `React.ReactNode \| false` | no | `false` hides the line about approval steps. |
+| `className` | `string` | no |  |
+| `onChange` | `(value: ScheduleValue) => void` | no |  |
+
+#### PlaybookRow
+
+One saved playbook, and how much of it runs without asking.
+
+The approval count is the row's most important number, so it is derived from the steps rather than declared: a playbook cannot claim it asks first if none of its steps do. "Runs straight through" is stated plainly when nothing asks, because that is the case a person needs to notice before scheduling it.
+
+The element follows the props - a link with `href`, a button with `onClick`, otherwise a plain div. A clickable div would be unreachable by keyboard.
+
+Import: `import { PlaybookRow } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `React.ReactNode` | no |  |
+| `summary` | `React.ReactNode` | no |  |
+| `icon` | `React.ReactNode` | no |  |
+| `steps` | `PlaybookStep[]` | no |  |
+| `stepCount` | `number` | no | Overrides the count derived from `steps`. |
+| `asks` | `number` | no | Overrides the derived number of approval points. |
+| `owner` | `React.ReactNode` | no |  |
+| `ownerPrefix` | `string` | no |  |
+| `highImpact` | `boolean` | no | Marks a playbook that does something consequential. |
+| `highImpactLabel` | `React.ReactNode` | no |  |
+| `impact` | `React.ReactNode[]` | no | `[value, note]` - what running it is worth. |
+| `asksLabel` | `string` | no |  |
+| `straightLabel` | `React.ReactNode` | no |  |
+| `href` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onClick` | `() => void` | no |  |
+
+Exported types: `PlaybookStep`.
+
+#### AppAccess
+
+What a playbook can reach: the project's files, its memory, and named apps with a read or write grant.
+
+Every app starts as "Can read", and widening it is a separate deliberate act. That ordering is the whole design: granting write access should never be something that happens as a side effect of adding an app.
+
+The files row is fixed and says "Always included" rather than being a switch that cannot move - a disabled control with no explanation reads as a bug.
+
+The summary line says what it reads and what it writes to, and then states where consequential actions stop. A permission list without that sentence describes capability and hides the constraint.
+
+Import: `import { AppAccess } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `apps` | `AccessApp[]` | no | Every app that could be added. |
+| `value` | `AccessGrant[]` | no |  |
+| `defaultValue` | `AccessGrant[]` | no |  |
+| `memory` | `boolean` | no | Whether the project's memory is readable. `undefined` hides the row entirely. |
+| `label` | `React.ReactNode` | no |  |
+| `filesLabel` | `React.ReactNode` | no |  |
+| `filesNote` | `React.ReactNode` | no |  |
+| `memoryLabel` | `string` | no |  |
+| `memoryOnNote` | `React.ReactNode` | no |  |
+| `memoryOffNote` | `React.ReactNode` | no |  |
+| `notConnectedLabel` | `string` | no |  |
+| `connectedLabel` | `string` | no |  |
+| `connectsLabel` | `string` | no |  |
+| `addLabel` | `React.ReactNode` | no |  |
+| `dialogTitle` | `string` | no |  |
+| `searchLabel` | `string` | no |  |
+| `searchPlaceholder` | `string` | no |  |
+| `emptyText` | `React.ReactNode` | no |  |
+| `startNote` | `React.ReactNode` | no |  |
+| `note` | `React.ReactNode` | no |  |
+| `accessLabels` | `Record<string, string>` | no |  |
+| `summary` | `(reach: number, write: number) => string` | no | Compose the summary line yourself, given the counts. |
+| `className` | `string` | no |  |
+| `onChange` | `(grants: AccessGrant[]) => void` | no |  |
+| `onConnect` | `(id: string) => void` | no |  |
+| `onMemoryChange` | `(on: boolean) => void` | no |  |
+
+Exported types: `AccessApp`, `AccessGrant`.
+
+#### ConnectorCard
+
+One app the agent can be connected to.
+
+The logo/icon split is a trademark rule, not a styling choice: another company's mark appears only where that company has approved it, and otherwise the card uses our own icon for the kind of app. The fallback is the default, so forgetting to check permission cannot ship someone else's logo.
+
+Disconnect sits beside Manage at the same weight. Connecting is easy everywhere; this is the component that makes leaving easy too.
+
+Import: `import { ConnectorCard } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `React.ReactNode` | no |  |
+| `maker` | `React.ReactNode` | no |  |
+| `category` | `React.ReactNode` | no |  |
+| `description` | `React.ReactNode` | no | What it lets the agent do, in one line. |
+| `logo` | `string` | no | The maker's own logo. Only where the maker has approved its use. |
+| `icon` | `React.ReactNode` | no | Our own icon for the KIND of app, used when there is no approved logo. |
+| `connected` | `boolean` | no |  |
+| `connectLabel` | `React.ReactNode` | no |  |
+| `manageLabel` | `React.ReactNode` | no |  |
+| `disconnectLabel` | `React.ReactNode` | no |  |
+| `connectedLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onConnect` | `() => void` | no |  |
+| `onManage` | `() => void` | no |  |
+| `onDisconnect` | `() => void` | no |  |
+
+#### CheckIn
+
+The agent has stopped and needs an answer before it goes on.
+
+"Nothing runs until you answer" is printed, not implied. The distinction between an agent that is waiting and one that is working is the thing a person most needs to know, and it is invisible unless the interface says it.
+
+`context` exists so the question can be answered on its own. Without it the reader has to reconstruct the run to work out what they are deciding.
+
+Import: `import { CheckIn } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `mark` | `React.ReactNode` | no |  |
+| `question` | `React.ReactNode` | no | What the agent needs decided, as a question. |
+| `context` | `React.ReactNode` | no | What it has found so far, so the question can be answered without reading the whole run. |
+| `options` | `Array<CheckInOption \| string>` | no |  |
+| `askedAt` | `string` | no | When it asked. Used to say nothing runs until it is answered. |
+| `className` | `string` | no |  |
+| `onAnswer` | `(option: CheckInOption \| string) => void` | no |  |
+
+Exported types: `CheckInOption`.
+
+### Evidence
+
+#### SourceSet
+
+What an answer actually read, and what it did not.
+
+The unread count is printed with the sentence that matters: the answer cannot speak for them. A source list that showed only what was read would let a reader take the answer as covering the whole set.
+
+Totals are derived from the sources when not given, and a `skipped` source contributes to the total but not to the read count - so skipping material makes the gap larger rather than making it disappear.
+
+Import: `import { SourceSet } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `sources` | `SourceItem[]` | no |  |
+| `read` | `number` | no | Overrides the derived totals. |
+| `total` | `number` | no |  |
+| `unit` | `string` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `updated` | `React.ReactNode` | no |  |
+| `missedNote` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `SourceItem`.
+
+#### Evidence
+
+A quotation put forward as proof of something, with its source.
+
+`passage` is the surrounding text and `quote` marks the part relied on, which is what lets a reader see whether the quote survives its context. A quote with the context stripped is the oldest way to misrepresent a source.
+
+Nothing is drawn when neither is present. A caller passing only `quote` used to get an empty bordered box; now the quote stands on its own.
+
+Import: `import { Evidence } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `claim` | `React.ReactNode` | no | What this passage is put forward as proving. |
+| `claimLabel` | `React.ReactNode` | no |  |
+| `passage` | `React.ReactNode` | no | The surrounding text. The quote is highlighted inside it. |
+| `quote` | `string` | no | The part actually relied on. |
+| `source` | `React.ReactNode` | no |  |
+| `href` | `string` | no |  |
+| `meta` | `React.ReactNode` | no |  |
+| `actions` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+#### Criteria
+
+What the agent is looking for, before it starts looking.
+
+Inferred conditions are marked "My assumption" with the reason in the title. That marking is the component's point: an agent that quietly adds a condition of its own is filtering on a rule nobody agreed to, and the person cannot correct what they cannot see.
+
+The request is quoted above the list, so the conditions can be read against the words that produced them.
+
+Import: `import { Criteria } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `CriteriaItem[]` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `request` | `string` | no | The person's request, quoted, so the conditions can be checked against it. |
+| `note` | `React.ReactNode` | no |  |
+| `addLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onAdd` | `() => void` | no |  |
+| `onRemove` | `(item: CriteriaItem, index: number) => void` | no |  |
+
+Exported types: `CriteriaItem`.
+
+#### MatchBreakdown
+
+How one candidate measures against each condition, with what the judgement rests on.
+
+`unknown` reads "No evidence either way" and is EXCLUDED from the denominator. Absence of evidence is not evidence of absence: counting a gap as a failure turns a missing document into a mark against a person, and that is the exact harm this component exists to prevent.
+
+Every row carries its evidence or states that nothing in the sources speaks to it. A verdict with no visible basis cannot be challenged by whoever it is about.
+
+Import: `import { MatchBreakdown } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `MatchItem[]` | no |  |
+| `name` | `React.ReactNode` | no |  |
+| `sub` | `React.ReactNode` | no |  |
+| `verdict` | `React.ReactNode` | no | Overrides the derived "Meets n of m". |
+| `className` | `string` | no |  |
+| `onOpen` | `(item: MatchItem, index: number) => void` | no | Opens the evidence. Without it the evidence is text, not a link. |
+
+Exported types: `MatchItem`.
+
+#### ReviewGrid
+
+A grid of extracted answers across many documents, with the uncertain ones counted.
+
+The count of cells needing a person is in the header. A bulk extraction whose uncertainty is only visible cell by cell will be treated as complete, and the whole reason to run one is to know which parts still need reading.
+
+A real table with `scope` on both axes, so a cell can be read as "this document, this question". Every cell carries its source, so an answer can be traced back rather than trusted.
+
+Import: `import { ReviewGrid } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `columns` | `ReviewColumn[]` | no |  |
+| `rows` | `ReviewRow[]` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `caption` | `React.ReactNode` | no |  |
+| `rowLabel` | `React.ReactNode` | no |  |
+| `footNote` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onOpenRow` | `(row: ReviewRow, index: number) => void` | no |  |
+| `onOpenCell` | `(row: ReviewRow, col: ReviewColumn, cell: ReviewCellValue) => void` | no |  |
+
+Exported types: `ReviewColumn`, `ReviewCellValue`, `ReviewRow`.
+
+#### Finding
+
+One thing found in the material, how serious it is, and what to do.
+
+The severity words are plain - "Serious", "Worth a look", "Minor" - rather than a numeric scale. A finding marked P2 tells a reader nothing until they learn somebody else's scale.
+
+A settled finding stays visible and says whether it was accepted or set aside. Removing it would lose the record that somebody looked at it and decided.
+
+Import: `import { Finding } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `severity` | `'high' \| 'medium' \| 'low' \| 'note'` | no |  |
+| `severityLabel` | `React.ReactNode` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `where` | `React.ReactNode` | no | Where in the material it is. A button when `onOpen` is given. |
+| `detail` | `React.ReactNode` | no |  |
+| `evidence` | `React.ReactNode` | no | An `Evidence` block: what this rests on. |
+| `suggestion` | `React.ReactNode` | no | What to do about it. |
+| `suggestionLabel` | `React.ReactNode` | no |  |
+| `state` | `'open' \| 'accepted' \| 'dismissed'` | no |  |
+| `actions` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onOpen` | `() => void` | no |  |
+
+#### Redline
+
+A proposed wording change, shown in the text itself.
+
+Removals are `del` and additions are `ins`, which is what makes the change survive as a change: a screen reader announces deleted and inserted text, and a copy-paste keeps the distinction. Styling spans in red and green would leave the diff invisible to anyone not seeing colour.
+
+`why` is next to the change rather than in a separate comment thread. A redline without its reason is an edit somebody has to accept on trust.
+
+Import: `import { Redline } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `parts` | `RedlinePart[]` | no |  |
+| `label` | `React.ReactNode` | no |  |
+| `source` | `React.ReactNode` | no |  |
+| `why` | `React.ReactNode` | no | Why the change is proposed. |
+| `state` | `'open' \| 'kept' \| 'reverted'` | no |  |
+| `stateLabel` | `React.ReactNode` | no |  |
+| `keepLabel` | `React.ReactNode` | no |  |
+| `revertLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onKeep` | `() => void` | no |  |
+| `onRevert` | `() => void` | no |  |
+
+Exported types: `RedlinePart`.
+
+#### Playbook
+
+A saved sequence, step by step, marking where it stops for a person.
+
+The footer counts the stops and says plainly when there are none: "Runs straight through without stopping". That sentence is the one somebody needs before pressing Run, and a count derived from the steps cannot disagree with them.
+
+An ordered list, so the sequence survives without the stylesheet and reads as a sequence to a screen reader.
+
+Import: `import { Playbook } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `React.ReactNode` | no |  |
+| `purpose` | `React.ReactNode` | no | What it is for, in one line. |
+| `steps` | `PlaybookRunStep[]` | no |  |
+| `owner` | `React.ReactNode` | no |  |
+| `runs` | `React.ReactNode` | no |  |
+| `lastRun` | `React.ReactNode` | no |  |
+| `runLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onRun` | `() => void` | no |  |
+
+Exported types: `PlaybookRunStep`.
+
+#### Shortlist
+
+What a person has kept for a second look.
+
+The empty state invites rather than reports: "Nothing on it yet. Add anything worth a second look." An empty panel saying "No items" tells somebody the feature is not working.
+
+Each remove button names what it removes, so a column of X buttons is not a row of identical unlabelled controls to a screen reader.
+
+Import: `import { Shortlist } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `ShortlistItem[]` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `limit` | `number` | no | A cap, shown as "3 of 5". |
+| `empty` | `React.ReactNode` | no |  |
+| `actions` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `onRemove` | `(item: ShortlistItem, index: number) => void` | no |  |
+
+Exported types: `ShortlistItem`.
+
+#### DecisionNotice
+
+How a decision about a person was reached, and what they can do about it.
+
+`notUsed` sits beside `used` deliberately. Naming what was excluded - age, photograph, name, school - is what makes the exclusion checkable, and it is the half that a notice written to look compliant always leaves out.
+
+`humanReview` and `rights` are separate fields rather than free prose, so a notice cannot be assembled without confronting whether a person reviewed it and what recourse exists.
+
+`auditHref` points at an independent audit of the tool, not at the company's own description of it.
+
+Import: `import { DecisionNotice } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `React.ReactNode` | no |  |
+| `decision` | `React.ReactNode` | no | The decision itself, stated plainly. |
+| `used` | `React.ReactNode[]` | no | What was taken into account. |
+| `usedLabel` | `React.ReactNode` | no |  |
+| `notUsed` | `React.ReactNode[]` | no | What was deliberately NOT taken into account. |
+| `notUsedLabel` | `React.ReactNode` | no |  |
+| `humanReview` | `React.ReactNode` | no | Who reviewed it, and when. |
+| `rights` | `React.ReactNode[]` | no | What the person can request: an explanation, a correction, a review. |
+| `rightsLabel` | `React.ReactNode` | no |  |
+| `auditHref` | `string` | no |  |
+| `auditLabel` | `React.ReactNode` | no |  |
+| `contact` | `React.ReactNode` | no |  |
+| `tone` | `'default' \| 'quiet'` | no |  |
+| `className` | `string` | no |  |
+
+### Marketing
+
+#### Hero
+
+The top of a page: one statement, one action, one second path.
+
+No alignment prop, by design. The statement sits on a wash, in nothing boxed, from the left rail - and `50-not-generated.md` names per-section alignment controls as the tell of a generated layout.
+
+The second path is a link, never a second button. Two equal buttons side by side is the generated hero's own signature, and the API refuses to produce it.
+
+The film never autoplays under reduced motion, on a metered connection, or on a phone. The pause control is an icon with a 44px hit area, so it is reachable without competing with the call to action.
+
+Import: `import { Hero } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `mark` | `React.ReactNode` | no | A `Mark`, above the statement. |
+| `lede` | `React.ReactNode` | no | A supporting paragraph under the statement. |
+| `action` | `React.ReactNode` | no | The one action. |
+| `secondary` | `React.ReactNode` | no | The second path. Rendered as a link, never a second button. |
+| `secondaryHref` | `string` | no |  |
+| `foot` | `React.ReactNode` | no |  |
+| `media` | `React.ReactNode` | no | A picture or figure beside the statement. Ignored when `film` is set. |
+| `film` | `HeroFilmSpec` | no | A background film. Autoplay is withheld on reduced motion, save-data and small screens. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no | The statement: a `Display` on the homepage, a `Statement` elsewhere. |
+
+Exported types: `HeroFilmSpec`.
+
+#### LogoRow
+
+Customer and partner marks, with the claim they are evidence for.
+
+The claim and the period it is measured against are what make this a statement rather than decoration. A row of marks with no number is the third beat of the tell `50-not-generated.md` names, and it invites a reader to infer a scale nobody stated.
+
+`scale` is a measured optical correction per mark, not a ranking: a compact symbol reads smaller than a long wordmark at the same height (`15-optical.md`). Using it to make a favoured logo bigger would be a lie about relative size.
+
+Import: `import { LogoRow } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `logos` | `LogoRowLogo[]` | no |  |
+| `claim` | `React.ReactNode` | no | The number the row is evidence for: "Used by 40 teams". |
+| `period` | `React.ReactNode` | no | The period the claim is measured over. |
+| `label` | `string` | no |  |
+| `note` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `LogoRowLogo`.
+
+#### FeatureRow
+
+One subject, with its picture: title, a paragraph, a few points, one action.
+
+ONE subject, not an array. An array becomes a three-up grid the first time somebody passes three items, and that grid is the tell `50-not-generated.md` names. Alternation comes from `index` rather than a `flip` prop, so a sequence of rows alternates because of where each sits rather than because somebody remembered.
+
+There is no alignment prop here either: the media side is decided by position.
+
+Import: `import { FeatureRow } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `index` | `number` | no | Position in the sequence. Odd indices mirror, so successive rows alternate. |
+| `mark` | `React.ReactNode` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `points` | `React.ReactNode[]` | no | Short bullets. Each gets a tick. |
+| `action` | `React.ReactNode` | no |  |
+| `media` | `React.ReactNode` | no | A `Figure`, usually. This row owns the bleed of its own media slot. |
+| `bleed` | `boolean` | no | Runs the media off the page edge. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### Figure
+
+A framed picture with a caption.
+
+There is deliberately no `bleed` prop. Running a picture off the page edge needs to know where that edge is, which is the row's business rather than the figure's - `FeatureRow` owns `--rail-inset` and bleeds its own media slot.
+
+Figure carried a `bleed` prop for months that emitted a class no stylesheet ever defined, so it silently did nothing. Better no prop than a prop that no-ops: the second kind cannot be noticed.
+
+Import: `import { Figure } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `src` | `string` | no |  |
+| `srcSet` | `string` | no |  |
+| `alt` | `string` | no |  |
+| `ratio` | `string` | no | CSS aspect ratio. `16 / 10` by default. |
+| `caption` | `React.ReactNode` | no |  |
+| `credit` | `React.ReactNode` | no | Who made it, or where it came from. |
+| `eager` | `boolean` | no | Loads immediately. For an image above the fold. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no | Replaces the image entirely - a chart, a diagram, an embed. |
+
+#### CustomerStory
+
+A customer result: who, the number, and what it is measured over.
+
+The figure carries the story, not the quote. That cap - one quote per page - is load-bearing rather than stylistic: an employer often will not consent to being named, and a candidate's words are personal data about the person the system made a decision about. A page built on quotes needs consent this product cannot assume.
+
+`period` is separate from the figure so a result cannot be stated without saying over what.
+
+Import: `import { CustomerStory } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `customer` | `React.ReactNode` | no |  |
+| `sector` | `React.ReactNode` | no |  |
+| `logo` | `React.ReactNode` | no |  |
+| `figure` | `React.ReactNode` | no | The number the story is about. |
+| `figureLabel` | `React.ReactNode` | no |  |
+| `period` | `React.ReactNode` | no | What the figure is measured over. |
+| `quote` | `React.ReactNode` | no | A `Quote`. At most one per page. |
+| `href` | `string` | no |  |
+| `moreLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### StoryHeader
+
+The top of a customer story: who it is about, the claim, and the figures behind it.
+
+The FIRST fact takes the display cut and nothing else does. That is one line per surface, set once, and at 52px it clears the face's 42px floor with room. The figures 0 4 6 8 9 are among the glyphs the cut opens, so the number the story is about carries the mark - the rest stay in Pretendard.
+
+A real `dl`, so each figure keeps its label structurally rather than by proximity.
+
+Import: `import { StoryHeader } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `customer` | `React.ReactNode` | no |  |
+| `sector` | `React.ReactNode` | no |  |
+| `logo` | `React.ReactNode` | no |  |
+| `claim` | `React.ReactNode` | no | The story's claim, as the page's `h1`. |
+| `facts` | `StoryFact[]` | no | The lead fact first - it takes the display cut. |
+| `className` | `string` | no |  |
+
+Exported types: `StoryFact`.
+
+#### PriceTable
+
+What each plan includes, and what it costs.
+
+One price per plan: the one set for the market this page is read in. Each market's number is set locally and never converted from another - a price converted from somewhere else is on this company's own list of borders, and it turns somebody's local cost into a rounding artefact of a rate they did not choose.
+
+Absence is drawn as a real "Not included" with an accessible label, not an empty cell. An empty cell is indistinguishable from data that failed to load.
+
+A real table with `scope` on both axes, and group rows use `scope="colgroup"` so the grouping is structural.
+
+Import: `import { PriceTable } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `plans` | `PricePlan[]` | no |  |
+| `rows` | `PriceRow[]` | no |  |
+| `rowLabel` | `React.ReactNode` | no |  |
+| `footNote` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `PricePlan`, `PriceRow`.
+
+#### NewsSection
+
+@deprecated Use PostList with `variant="section"`. Kept for 1.x.
+
+The newest few stories: one lead and up to three more.
+
+Three is a cap, and the list is sliced. A home page news block that grows with the feed pushes everything below it off the page, and the point of this section is a glance rather than an archive.
+
+The lead's picture goes through `pubPicture`, which labels a generated image unless told otherwise, and links the frame with `aria-hidden` so the headline stays the single announced link.
+
+Import: `import { NewsSection } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `lead` | `NewsItem` | no | The lead story. Its image, when present, sets the two-column layout. |
+| `items` | `NewsItem[]` | no | At most three are rendered. |
+| `title` | `React.ReactNode` | no |  |
+| `href` | `string` | no |  |
+| `allLabel` | `React.ReactNode` | no |  |
+| `lang` | `string` | no |  |
+| `id` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `NewsItem`.
+
+#### Milestones
+
+The company's own dates, in order.
+
+An ordered list with a real `time` element on each year, so the sequence and the dates survive without the stylesheet. The last item is marked as the present rather than the list ending in nothing.
+
+Renders null when empty, instead of an empty rail with a tick and no content.
+
+Import: `import { Milestones } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `items` | `Milestone[]` | no |  |
+| `lang` | `string` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `Milestone`.
+
+#### PeopleList
+
+The people, with their titles.
+
+Photographs appear only when EVERY person has one. A mixed list gives the people without a photograph a visibly lesser row, which is a decision about them made by whoever had the file to hand.
+
+The photographs carry an empty alt: the name is right beside them as text, so describing the picture would make a screen reader read each person twice.
+
+Import: `import { PeopleList } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `people` | `Person[]` | no |  |
+| `lang` | `string` | no |  |
+| `label` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `Person`.
+
+### Frames
+
+#### AppShell
+
+The product frame: sidebar, the work, an optional rail.
+
+The lockup goes through `Mark` rather than a bare `img`, so it follows the theme. A bare img here is how the first screen lost its wordmark in dark.
+
+`product` is validated against the eight real products and dropped otherwise. The component knows only the attribute; the colours are the `product-<p>-wash` tokens. An unrecognised name would set an attribute that matches no token and silently render no wash, so it is rejected instead.
+
+`main` holds the page heading, not just the body, so the skip link lands on the one `h1` rather than above it. `tabIndex={-1}` is what lets focus actually arrive.
+
+The folded state is remembered per browser when uncontrolled, and every `localStorage` call is wrapped because a private window throws.
+
+Import: `import { AppShell } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `product` | `string` | no | Product name, e.g. `Cowork`. Sets the product wash at the top of the sidebar. |
+| `mark` | `string` | no |  |
+| `markDark` | `string` | no |  |
+| `symbol` | `string` | no | The symbol alone, shown when the sidebar is folded. |
+| `nav` | `AppShellNavItem[]` | no |  |
+| `navLabel` | `string` | no |  |
+| `aside` | `React.ReactNode` | no | Extra content at the bottom of the sidebar. |
+| `asideFolded` | `React.ReactNode` | no | What stays at the bottom of the sidebar when it is folded (or the window is narrower than 900px), in place of `aside` - typically the account as an avatar-only button that opens the same menu. Without it the aside is hidden while folded, as before, and anything only it held is out of reach. |
+| `theme` | `React.ReactNode` | no |  |
+| `title` | `React.ReactNode` | no |  |
+| `meta` | `React.ReactNode` | no | A line under the title: what this screen is showing. |
+| `actions` | `React.ReactNode` | no |  |
+| `foot` | `React.ReactNode` | no |  |
+| `rail` | `React.ReactNode` | no | A right-hand panel about the current run. |
+| `railLabel` | `string` | no |  |
+| `measure` | `boolean` | no | `false` lets the work area run full width instead of holding a reading measure. |
+| `collapsible` | `boolean` | no |  |
+| `collapsed` | `boolean` | no |  |
+| `defaultCollapsed` | `boolean` | no |  |
+| `collapseLabel` | `string` | no |  |
+| `expandLabel` | `string` | no |  |
+| `skipLabel` | `React.ReactNode` | no |  |
+| `windowInset` | `{ top?: number; end?: number; endHeight?: number }` | no | Space the desktop window's own controls take over the page, for a frameless window. `top` is reserved above the sidebar brand (the macOS traffic lights of `titleBarStyle: 'hiddenInset'`); `end` is the width and `endHeight` (default 40) the height of the strip at the top-right corner (the Windows caption buttons of `titleBarOverlay`), kept clear in the header, or in the rail when there is one. Pixels. Omit in a browser. |
+| `dragRegion` | `boolean` | no | Makes the brand row and the header drag the window, for a frameless desktop window. Controls inside them stay clickable. Ignored by browsers, which have no `app-region`. |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onCollapsedChange` | `(collapsed: boolean) => void` | no |  |
+| `onNavigate` | `(href: string, event: React.MouseEvent<HTMLAnchorElement>) => void` | no | Called when a nav link is followed with a plain click, for an app with a client-side router. Call `event.preventDefault()` and route to `href` yourself; leave it alone and the browser navigates. A click with a modifier key or another button is never passed here, so "open in new tab" keeps working. |
+
+Exported types: `AppShellNavItem`.
+
+#### PageShell
+
+The frame of a public page: a skip link, the banner, the main region, the footer.
+
+The skip link is first in the DOM and it is not optional. Without it a keyboard user tabs through the whole header on every page before reaching the content.
+
+`main` carries `tabIndex={-1}` so the skip link can actually move focus there. A link to a container that cannot receive focus scrolls the page and leaves focus behind, which looks like it worked and is not.
+
+`lang` is written to the document element rather than this div, because the font stack, `keep-all` line breaking and a screen reader's pronunciation all read it from there.
+
+Import: `import { PageShell } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `lang` | `string` | no | The page's language. Written to `<html lang>`, which is what the font stack and line breaking read. |
+| `header` | `React.ReactNode` | no |  |
+| `footer` | `React.ReactNode` | no |  |
+| `mainId` | `string` | no | Id of the main region. The skip link points at it. |
+| `skipLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+#### SiteHeader
+
+The site's top bar: the mark, up to six sections, and the controls at the end.
+
+Six is a cap, not a suggestion - the list is sliced. A seventh section makes the bar wrap on a laptop, and a navigation that reflows is a navigation people stop trusting.
+
+A section with children opens on hover AND on click, and the trigger is a real button with `aria-expanded`. Hover alone is unreachable by keyboard and unusable on touch.
+
+Escape closes everything, from anywhere. The theme control travels into the mobile drawer, where the bar has no room for it - which is why ThemeSwitch keeps two instances in step.
+
+Import: `import { SiteHeader } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `mark` | `React.ReactNode` | no |  |
+| `homeHref` | `string` | no |  |
+| `homeLabel` | `string` | no |  |
+| `sections` | `SiteHeaderSection[]` | no | At most six are rendered; the rest are dropped rather than wrapped. |
+| `navLabel` | `string` | no |  |
+| `menuLabel` | `string` | no |  |
+| `themeLabel` | `React.ReactNode` | no |  |
+| `theme` | `React.ReactNode` | no |  |
+| `lang` | `React.ReactNode` | no |  |
+| `action` | `React.ReactNode` | no |  |
+| `stuck` | `boolean` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `SiteHeaderItem`, `SiteHeaderSection`.
+
+#### SiteFooter
+
+The site's footer: the mark, the columns, the legal line.
+
+External links carry a glyph with an accessible label rather than only a visual cue, so somebody using a screen reader is told they are about to leave before they follow it.
+
+A legal item with an `onClick` renders as a button, not a link - a cookie-settings control that looks like a link but goes nowhere is a link that lies about where it goes.
+
+Import: `import { SiteFooter } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `mark` | `React.ReactNode` | no |  |
+| `line` | `React.ReactNode` | no | One line about the company, beside the mark. |
+| `action` | `React.ReactNode` | no |  |
+| `columns` | `SiteFooterColumn[]` | no |  |
+| `copyright` | `React.ReactNode` | no | The copyright line. A legal identifier - quote it verbatim, do not translate it. |
+| `legal` | `SiteFooterLink[]` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `SiteFooterLink`, `SiteFooterColumn`.
+
+#### Band
+
+One horizontal stretch of a page: its ground, its texture, and the rail that holds the content to a readable measure.
+
+There is no centering prop and no alignment prop. That absence is deliberate - `50-not-generated.md` names per-section alignment controls as the tell of a generated layout, and a system that offers them gets pages that wander.
+
+The cut is drawn as its own layer rather than on the band, because the band's `::before` already carries the grain and one element cannot hold both.
+
+Import: `import { Band } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `ground` | `'base' \| 'raised' \| 'sunken' \| 'brand' \| 'wash' \| 'deep'` | no | Which ground this stretch of page sits on. |
+| `product` | `BandProduct` | no | Wears one product's grounds. Only meaningful on `base`, `wash` and `brand`. |
+| `threshold` | `boolean \| 'spectrum'` | no | The 40 degree cut along the band's edge. `spectrum` is for suite surfaces only. |
+| `size` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `grain` | `boolean` | no | `false` drops the grain on a non-base ground. |
+| `texture` | `'rake' \| 'threshold' \| 'weave' \| 'rule' \| 'grid'` | no | One of the five textures. Never behind body copy, one per page. |
+| `textureScale` | `'sm' \| 'md' \| 'lg'` | no |  |
+| `textureFade` | `boolean` | no | `false` keeps the texture at full strength to the band's edge. |
+| `wide` | `boolean` | no | Lets the rail run wider than the default measure. |
+| `as` | `keyof React.JSX.IntrinsicElements` | no | The element. `section` by default, because a band is usually a section of the page. |
+| `labelledBy` | `string` | no | Id of the heading that names this band. |
+| `id` | `string` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Exported types: `BandProduct`.
+
+#### LangSwitch
+
+Switches the page's language.
+
+`href` must be the SAME page in the other language. A switch that lands on the home page is the border this company is named after, reversed - it takes something away for choosing a language. So a language with no counterpart for this page renders as unavailable, with a reason, and never as a link home.
+
+Two languages fit on a line; twelve do not, and a site that will carry twelve should not be laid out as though it carries two. Past `inlineUpTo` this becomes a disclosure rather than wrapping.
+
+Each label is marked with its own `lang`, so the browser sets it in the right script, and RTL codes get `dir` without the consumer remembering to.
+
+Import: `import { LangSwitch } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `langs` | `LangOption[]` | no |  |
+| `current` | `string` | no |  |
+| `inlineUpTo` | `number` | no | Up to this many render inline; more become a disclosure. Three by default. |
+| `placement` | `'down' \| 'up'` | no | `up` opens the menu above the trigger, for a switch at the foot of a sidebar. Default `down`. |
+| `align` | `'left' \| 'right'` | no | Which edge the menu lines up with. Default `right`. |
+| `label` | `string` | no | Accessible name for the control. |
+| `missingLabel` | `string` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(lang: LangOption) => void` | no |  |
+
+Exported types: `LangOption`.
+
+#### ThemeSwitch
+
+System, light, dark - three options, not a toggle.
+
+A two-state toggle cannot say "follow my computer", which is what most people want and what a fresh visit should do. So `system` is a real choice that keeps following the OS while it is selected, and the component writes both `data-theme-mode` (what was chosen) and `data-theme` (what is rendered).
+
+A `radiogroup` with arrow-key movement and a roving tabindex, because these are three states of one setting rather than three independent buttons.
+
+The MutationObserver keeps two switches on one page in step - the header's and the one that travels into the mobile drawer. Without it, changing the theme in the drawer leaves the header's switch showing the old value.
+
+Every `localStorage` access is wrapped: in a private window it throws, and a theme switch that crashes the page is worse than one that forgets.
+
+Import: `import { ThemeSwitch } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `value` | `ThemeMode` | no |  |
+| `defaultValue` | `ThemeMode` | no |  |
+| `storageKey` | `string` | no | Where to persist the choice. Omit it and the choice lasts one page. |
+| `target` | `HTMLElement \| null` | no | Element the attributes are written to. Defaults to `<html>`. |
+| `label` | `string` | no |  |
+| `labels` | `Partial<Record<ThemeMode, string>>` | no |  |
+| `size` | `'sm' \| 'md'` | no |  |
+| `className` | `string` | no |  |
+| `onChange` | `(mode: ThemeMode) => void` | no |  |
+
+#### ConsentBar
+
+Asks about cookies, and takes no for an answer.
+
+Decline is FIRST and is a real button, the same size and weight as accepting. The common pattern - a bright "Accept all" beside a grey link in the small print - is a dark pattern, and this component is arranged so that version cannot be built with it.
+
+Required categories render as required with a label saying so, rather than as a checked box a person cannot move and is not told why.
+
+`role="dialog"` with the explanation wired through `aria-describedby`, so a screen reader is told what it is being asked before it reaches the buttons.
+
+Import: `import { ConsentBar } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `string` | no |  |
+| `categories` | `ConsentCategory[]` | no |  |
+| `declineLabel` | `React.ReactNode` | no |  |
+| `chooseLabel` | `React.ReactNode` | no |  |
+| `saveLabel` | `React.ReactNode` | no |  |
+| `acceptLabel` | `React.ReactNode` | no |  |
+| `requiredLabel` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+| `onDecide` | `(choice: Record<string, boolean>) => void` | no | Receives the decision as `{ [categoryId]: boolean }`. |
+
+Exported types: `ConsentCategory`.
+
+### Publishing
+
+#### IndexHeader
+
+The top of an index: what this collection is, and how to narrow it.
+
+The current topic carries `aria-current="page"` as well as its class, so somebody using a screen reader learns which filter is active. A highlight that exists only in colour tells them nothing.
+
+The image is eager here, unlike everywhere else in the system: it is the first thing on the page, so lazy loading would only delay what the reader is already looking at.
+
+Import: `import { IndexHeader } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `React.ReactNode` | no |  |
+| `lede` | `React.ReactNode` | no |  |
+| `topics` | `IndexTopic[]` | no |  |
+| `topicsLabel` | `string` | no |  |
+| `image` | `PubImage` | no | Loaded eagerly - it is the top of the page. |
+| `lang` | `string` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `IndexTopic`.
+
+#### PostList
+
+The list under an IndexHeader; `variant="section"` is the homepage's news band (a lead story, three headlines, a link to News), laid out across rather than down.
+
+Import: `import { PostList } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `variant` | `'index' \| 'section'` | no | `section` is the homepage's news band and takes NewsSectionProps: `lead` is then the newest story, `items` three headlines, `href` the News index. |
+| `items` | `PubStory[]` | no |  |
+| `lead` | `boolean \| PubStory` | no | Pass `false` on a page where the first item must not be promoted. With variant `section`, the lead story. |
+| `title` | `string` | no |  |
+| `href` | `string` | no |  |
+| `allLabel` | `string` | no |  |
+| `id` | `string` | no |  |
+| `lang` | `'en' \| 'ko'` | no |  |
+| `group` | `'year'` | no | `'year'` breaks the rest into year sections with real headings. |
+| `className` | `string` | no |  |
+
+#### ArticleLayout
+
+A published piece: kicker, title, standfirst, byline, contents, body, tags.
+
+`story` takes the same object `PostList` renders, so a post travels from the index to its own page without being reshaped. Direct props win, which is what lets one page override a single field without copying the whole story.
+
+Every author is named. There is no "et al." and no overflow count, because authorship is credit and a truncated list decides for the reader whose name was worth the space. With roles present, people are separated by a middot rather than "and" - "A, Researcher and B, Researcher" reads as three people.
+
+`titleAs` exists so this can sit under a page that already owns the `h1`. Two `h1`s on a page break the outline for anybody navigating by headings.
+
+The `paper` link is not decoration: a piece that states a finding has to say where the method and the data are, or the number cannot be checked.
+
+Import: `import { ArticleLayout } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `story` | `PubStory` | no | The same object the index lists take. Anything passed directly wins over it. |
+| `title` | `React.ReactNode` | no |  |
+| `titleAs` | `string` | no | `'h2'` where the page already has an `h1` above, such as a `StoryHeader` claim. |
+| `kicker` | `string` | no |  |
+| `standfirst` | `React.ReactNode` | no |  |
+| `authors` | `Array<PubAuthor \| string>` | no |  |
+| `author` | `string` | no | A single author, as a convenience. |
+| `avatar` | `string \| React.ReactNode` | no |  |
+| `date` | `string` | no |  |
+| `dateTime` | `string` | no |  |
+| `reading` | `string` | no |  |
+| `finding` | `PubFinding` | no | The headline number, shown above the byline. |
+| `paper` | `PubPaper` | no | Where the method and data are. |
+| `contents` | `ArticleTocEntry[]` | no |  |
+| `contentsLabel` | `string` | no |  |
+| `tags` | `ArticleTag[]` | no |  |
+| `className` | `string` | no |  |
+| `children` | `React.ReactNode` | no |  |
+
+Exported types: `ArticleTocEntry`, `ArticleTag`.
+
+#### LegalDoc
+
+A policy or terms document: summary, numbered sections, and what has changed.
+
+`history` is the reason this component exists rather than a page of prose. A policy that silently changes is one somebody agreed to under different terms, so the revisions are part of the document and not a changelog somewhere else. "Last changed" and "In force from" are separate fields for the same reason: the gap between them is when a reader can still object.
+
+The default labels are plain words - "Last changed", "In force from", "What has changed" - because a document nobody can read has consent in name only.
+
+Section numbers are rendered, not typed into the titles, so they cannot drift out of order.
+
+Import: `import { LegalDoc } from '@redrob-labs/ui';`
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `title` | `React.ReactNode` | no |  |
+| `entity` | `React.ReactNode` | no | The legal entity bound by this. |
+| `updated` | `React.ReactNode` | no |  |
+| `updatedLabel` | `string` | no |  |
+| `effective` | `React.ReactNode` | no |  |
+| `effectiveLabel` | `string` | no |  |
+| `summary` | `React.ReactNode` | no | The document in a few sentences, above the document. |
+| `sections` | `LegalSection[]` | no |  |
+| `contentsLabel` | `string` | no |  |
+| `history` | `LegalRevision[]` | no | Past revisions, newest first. |
+| `historyLabel` | `React.ReactNode` | no |  |
+| `contact` | `React.ReactNode` | no |  |
+| `className` | `string` | no |  |
+
+Exported types: `LegalSection`, `LegalRevision`.
+
+## Icons
+
+`icons` is a record of 252 components keyed by name, each rendering at `1em` in `currentColor`. `iconNames` is the sorted list of keys and `svg` returns the raw markup for a name.
+
+```tsx
+import { icons, iconNames } from '@redrob-labs/ui';
+const Search = icons.search;
+```

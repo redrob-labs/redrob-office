@@ -1,0 +1,52 @@
+<!-- @dsCard group="Foundations" height=1270 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary); display: flex; flex-direction: column; gap: 40px;"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  const RENEWAL = [
+    { label: 'Contract arrives', by: 'person', note: 'Uploaded by the account owner' },
+    { label: 'Clauses extracted', by: 'machine', note: '14 clauses, 2 unreadable' },
+    { label: 'Renewal terms read against the playbook', by: 'machine', note: 'Notice period, uplift cap, auto-renew' },
+    { label: 'Owner confirms or overrides', by: 'decision', note: 'Every override is kept with its reason' },
+    { label: 'Decision recorded', by: 'system', note: 'With the passage it was based on' },
+  ];
+
+  const HIRE = [
+    { label: 'Application received', by: 'person' },
+    { label: 'Criteria read back', by: 'machine', note: 'Before any screening runs' },
+    { label: 'Shortlist proposed', by: 'machine' },
+    { label: 'Recruiter decides', by: 'decision' },
+    { label: 'Candidate told, with criteria', by: 'person', note: 'PIPA: the right to an explanation' },
+  ];
+
+  function Demo() {
+    return h(React.Fragment, null, [
+      h('div', { key: 'a' }, [
+        h(R.SectionMark, { key: 'm', label: ['A flow'], trailing: 'five steps' }),
+        h('div', { key: 'd', style: { marginTop: '18px' } },
+          h(R.Diagram, {
+            title: 'How a renewal reaches a decision',
+            steps: RENEWAL,
+            source: 'Ground says who acted. The tick at each junction says which way to read. Nothing here has an arrowhead.',
+          })),
+      ]),
+      h('div', { key: 'b' }, [
+        h(R.SectionMark, { key: 'm', label: ['The same thing in lanes'], trailing: 'who acted' }),
+        h('div', { key: 'd', style: { marginTop: '18px' } },
+          h(R.Diagram, {
+            title: 'Hiring, with the human steps on their own row',
+            steps: HIRE, lanes: true,
+            laneLabels: ['A person', 'The machine'],
+            source: 'The gaps are the point: an empty cell on the top row is a stretch nobody was watching.',
+          })),
+      ]),
+      h('div', { key: 'c' }, [
+        h(R.SectionMark, { key: 'm', label: ['Stacked'], trailing: 'the narrow case' }),
+        h('div', { key: 'd', style: { marginTop: '18px', maxWidth: '460px' } },
+          h(R.Diagram, { steps: RENEWAL.slice(0, 3), orientation: 'stack' })),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

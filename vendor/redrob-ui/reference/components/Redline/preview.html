@@ -1,0 +1,27 @@
+<!-- @dsCard group="Evidence" height=495 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', { style:{ display:'flex', flexDirection:'column', gap:'20px' } }, [
+      h(R.Redline, { key:1, label:'Clause 11.2, notice to end it', source:'Master Services Agreement',
+        parts:[
+          { text:'Following the Initial Term, either party may terminate this Agreement for convenience upon ' },
+          { text:'thirty (30)', kind:'out' },
+          { text:'sixty (60)', kind:'in' },
+          { text:' days written notice to the other party' },
+          { text:', provided that all fees accrued through the effective date of termination remain payable', kind:'out' },
+          { text:'.' }
+        ],
+        why:'Thirty days is shorter than the notice you give your own suppliers, so an exit leaves a month of cost with nowhere to put it. The accrued-fees sentence is already covered by clause 6.',
+        onKeep:()=>{}, onRevert:()=>{} }),
+      h(R.Redline, { key:2, label:'Clause 4.1, the fee', state:'reverted',
+        parts:[ { text:'The Fees shall be ' }, { text:'reviewed annually', kind:'out' }, { text:'fixed for the Initial Term', kind:'in' }, { text:'.' } ],
+        why:'You asked for this one to stand as written.' })
+    ]);
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

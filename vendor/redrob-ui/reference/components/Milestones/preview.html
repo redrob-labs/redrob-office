@@ -1,0 +1,36 @@
+<!-- @dsCard group="Marketing" height=330 width=1280 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const MILESTONES = [
+    { year: 2018, text: 'Founded in Seoul, South Korea.' },
+    { year: 2019, text: 'Opens in New Delhi, India.' },
+    { year: 2020, text: 'Launches its recruitment and skills-testing platform.' },
+    { year: 2023, text: 'Raises its seed round.' },
+    { year: 2024, text: 'Opens in New York, U.S.' },
+    { year: 2025, text: 'Raises its Series A.' },
+    { year: 2026, text: 'Launches the Redrob suite: seven products for the whole job.' }
+  ];
+  const PEOPLE = [
+    { name: 'Felix Kim', title: 'Founder & CEO', photo: '/_blob/70df7900794a8d3f9136b3db4d675ed5' },
+    { name: 'Seunghyun Seok', title: 'Co-founder & CSO', photo: '/_blob/a0f7809e68d01abe473a00358bd92e26' },
+    { name: 'Janghoon Lee', title: 'Co-founder & CTO', photo: '/_blob/42ec0417e47405d01f82db02dfc2ca35' },
+    { name: 'Kartikey Handa', title: 'COO', photo: '/_blob/d66f9ad8a837016c2642c25d63e04efe' },
+    { name: 'Jae Gardner', title: 'Managing Director, U.S.', photo: '/_blob/a85fa607de6ac6f02f3eb91206a2ec67' }
+  ];
+  const INVESTORS = [
+    { name: 'Korea Investment Partners', src: '/_blob/8ccf338d2f7c4b1a4ae4cca5011c9045', scale: 1.2 },
+    { name: 'KB Investment',             src: '/_blob/74dd85926aff1c2a94b0c9c4631c7e25' },
+    { name: 'Kiwoom Investment',         src: '/_blob/289297c8231a6b5d5c7ed7eb232960bc' },
+    { name: 'KDB Capital',               src: '/_blob/b98a0ca083e16be74e1f95b1c58f264a' },
+    { name: 'DS & Partners',             src: '/_blob/39cdb2299b4e875a8d724e551ffee0a8', scale: 1.3 },
+    { name: 'Murex Partners',            src: '/_blob/d7042f77913a6ea67eb01bdb5bc4f49b', scale: 1.3 },
+    { name: 'Daekyo Investment',         src: '/_blob/eb5a2355b127796c0190cfbb3fc92a08' },
+    { name: 'Wanted Lab',                src: '/_blob/33869d1e8d046ff547cd187afd0f74ac' }
+  ];
+
+  /* The Company page's timeline: years on the raked tick, the last one where Redrob is now. */
+  function Screen() { return h(R.Band, { size:'sm' }, h(R.Milestones, { items: MILESTONES })); }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Screen));
+</script>

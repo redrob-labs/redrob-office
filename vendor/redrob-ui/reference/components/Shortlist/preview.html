@@ -1,0 +1,22 @@
+<!-- @dsCard group="Evidence" height=295 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    return h('div', { style:{ display:'flex', gap:'24px', flexWrap:'wrap', alignItems:'flex-start' } }, [
+      h(R.Shortlist, { key:1, limit:8,
+        items:[
+          { label:'Ji-won Seo', sub:'Danal Fintech, Seoul' },
+          { label:'Arjun Mehta', sub:'Razorpay, Bengaluru' },
+          { label:'Hyemin Park', sub:'Toss, Seoul' }
+        ],
+        onRemove:()=>{},
+        actions:[ h(R.Button,{key:'a',size:'sm'},'Compare the three'), h(R.Button,{key:'b',size:'sm',variant:'ghost'},'Start over') ] }),
+      h(R.Shortlist, { key:2, title:'Agreements to send back' })
+    ]);
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

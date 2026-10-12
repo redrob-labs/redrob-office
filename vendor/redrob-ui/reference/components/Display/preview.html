@@ -1,0 +1,40 @@
+<!-- @dsCard group="Type" height=1686 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '34px', padding: '28px' } }, [
+      h('div', { key: 'a' }, [
+        h(R.SectionMark, { key: 'm', label: ['The display cut'], trailing: '20 letters touched' }),
+        h(R.Display, { key: 'd', level: 1, style: {} }, 'Widening access across borders'),
+        h('p', { key: 'p', style: { fontSize: '14px', lineHeight: 1.65, color: 'var(--ink-secondary)', maxWidth: '58ch', marginTop: '14px' } },
+          'Redrob is Border spelled backwards, so the only letters this touches are the ones that enclose something. Every counter is opened on the 40 degree rake, in the direction the light travels. Every other letter is Pretendard, exactly as drawn.'),
+      ]),
+      h('div', { key: 'b' }, [
+        h(R.SectionMark, { key: 'm', label: ['The three sizes'], trailing: '42px and up' }),
+        h(R.Display, { key: '1', level: 1 }, 'Borders, reversed'),
+        h(R.Display, { key: '2', level: 2 }, 'Borders, reversed'),
+        h(R.Display, { key: '3', level: 3 }, 'Borders, reversed'),
+      ]),
+      h('div', { key: 'c' }, [
+        h(R.SectionMark, { key: 'm', label: ['What is opened'], trailing: 'A B D O P Q R a b d e g o p q 0 4 6 8 9' }),
+        h(R.Display, { key: 'x', level: 2, style: {} }, 'ABDOPQR abdegopq 04689'),
+        h(R.Display, { key: 'y', level: 3 }, 'CEFHIJKLMNSTUVWXYZ cfhijklmnrstuvwxyz 12357'),
+        h('p', { key: 'p', style: { fontSize: '14px', lineHeight: 1.65, color: 'var(--ink-secondary)', maxWidth: '58ch', marginTop: '12px' } },
+          'The second line has no enclosures, so nothing in it is cut. In the word Redrob, five of the six letters are opened.'),
+      ]),
+      /* The Korean cut: the throat opened, the mouth shut. It comes through the same
+         stack, so nothing switches - a mixed line is one face. */
+      h('div', { key: 'k' }, [
+        h(R.SectionMark, { key: 'm', label: ['The Korean cut'], trailing: 'the throat opens, the mouth stays shut' }),
+        h(R.Display, { key: 'a', level: 1, lang: 'ko' }, '경계를 넘어'),
+        h(R.Display, { key: 'b', level: 2 }, 'Border 경계'),
+        h(R.Display, { key: 'c', level: 3, lang: 'ko' }, '마음 · 흐름 · 않 · 융'),
+        h('p', { key: 'p', style: { fontSize: '14px', lineHeight: 1.65, color: 'var(--ink-secondary)', maxWidth: '58ch', marginTop: '12px' } },
+          'The Haerye draws \u3147 after the throat and \u3141 after the mouth. Every \u3147 and the ring of every \u314e is opened on the same rake, by the same knife; \u3141 is not, because an opened \u3141 reads as \u3137. In \ub9c8\uc74c the rule is visible in two syllables.'),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

@@ -1,0 +1,17 @@
+<!-- @dsCard group="Agent chat" height=210 -->
+<div id="root" style="padding: 32px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const I = R.icons;
+  const ic = (n, s) => h(I[n], { width: s || 15, height: s || 15 });
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { maxWidth: '760px' } }, [
+    h(R.Message, { key: 'u', role: 'user', author: 'Felix',
+      footer: h('span', { style: { display: 'inline-flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: 'var(--ink-secondary)' } }, [
+        h('span', { key: 'i', style: { display: 'inline-flex', color: 'var(--status-success)' } }, ic('shieldCheck', 14)), '5 private details were kept from the AI.',
+        h('a', { key: 'l', href: '#what-the-ai-saw', style: { fontWeight: 600, color: 'var(--ink-brand)', textDecoration: 'none' } }, 'What the AI saw')]) },
+      ['Send ', h(R.PrivateText, { key: 1, as: 'Person 1' }, 'Kim Minjun'), ' at ', h(R.PrivateText, { key: 2, as: 'Client 1' }, 'Seorin'), ' (', h(R.PrivateText, { key: 3, as: 'Phone 1' }, '010-4821-7730'),
+       ') a short update on where we are, and copy ', h(R.PrivateText, { key: 4, as: 'Person 2' }, 'Park Hyunjin'), '. Their fees go to ', h(R.PrivateText, { key: 5, out: true }, '110-234-567890'), '.'])
+  ]));
+</script>

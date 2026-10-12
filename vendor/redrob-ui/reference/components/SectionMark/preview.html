@@ -1,0 +1,22 @@
+<!-- @dsCard group="Type" height=235 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  function Demo() {
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '620px' } }, [
+      h('div', { key: 1, style: { display: 'flex', flexDirection: 'column', gap: '8px' } }, [
+        h(R.SectionMark, { label: 'Talent pool · Noida', trailing: '42 candidates' }),
+        h('h2', { style: { margin: 0, fontSize: '22px', lineHeight: '30px', fontWeight: 600 } }, 'Senior Backend Engineer'),
+        h('p', { style: { margin: 0, fontSize: '14px', lineHeight: '22px', color: 'var(--ink-secondary)' } },
+          'Six candidates are waiting on your review, the oldest since Tuesday.'),
+      ]),
+      h('div', { key: 2, style: { display: 'flex', flexDirection: 'column', gap: '8px' } }, [
+        h(R.SectionMark, { label: 'This week', tone: 'muted' }),
+        h('p', { style: { margin: 0, fontSize: '14px', lineHeight: '22px', color: 'var(--ink-secondary)' } },
+          'The tick is the logo’s own 40 degrees, and the label is Pretendard in sentence case - not an all-caps eyebrow.'),
+      ]),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

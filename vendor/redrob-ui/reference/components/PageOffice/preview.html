@@ -1,0 +1,473 @@
+<!-- @dsCard group="Pages" height=9036 width=1280 page -->
+<style>
+/* Screen-only composition. The parts are bundle components; this is how a page arranges them. */
+.ox-product { display: inline-flex; align-items: center; gap: 12px; font-size: 17px; line-height: 24px; font-weight: 700; letter-spacing: -.01em; color: var(--ink-primary); }
+.ox-product img { width: 40px; height: 40px; display: block; }
+.ox-split { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 64px; align-items: start; }
+.ox-side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 24px; }
+.ox-h2 { margin: 0; font-size: 40px; line-height: 46px; font-weight: 700; letter-spacing: -.025em; color: var(--ink-primary); text-wrap: balance; }
+.ox-intro { margin: 0; font-size: 16px; line-height: 26px; color: var(--ink-secondary); max-width: 34ch; }
+/* Pictures. Every picture is one feature on the same stage: 4:3, Office's wash in the top
+   corner, 32px in from every edge, and what is on it centered, at reading size, never cut off.
+   Close-ups are one or two cards drawn from bundle parts, sized to what they hold and aligned at
+   the top; screenshots are one component of the prototype, framed as a card (below). Floating things (the figure card, a thread, a callout)
+   take the one shadow; everything else is flat on hairlines (40-surfaces-and-motion.md). */
+.ox-shot .rr-figure__frame { border-radius: 16px; overflow: hidden; border: 1px solid var(--border-subtle); }
+.rr-band--sunken .ox-stage { background-color: var(--surface-base); }
+.ox-stage { position: relative; width: 100%; height: 100%; overflow: hidden; box-sizing: border-box; padding: 32px; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--product-office, #BA2F0C) 12%, transparent) 0%, transparent 55%), var(--surface-sunken);
+  font-family: var(--font-sans); color: var(--ink-primary); font-size: 13px; line-height: 20px; }
+.ox-card { background: var(--surface-base); border: 1px solid var(--border-subtle); border-radius: 12px; box-sizing: border-box; }
+/* Layouts. Everything sits inside the stage's 32px margin, on one grid: two parts share
+   the width with a 16px gutter and align at the top; a lifted part (a popover, a thread)
+   steps 24px down and 32px over its neighbour, the only overlap allowed. */
+.ox-stage > .ox-duo, .ox-stage > .ox-stack { width: 100%; }
+.ox-duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; position: relative; }
+.ox-duo > .ox-card { padding: 20px; overflow: hidden; min-width: 0; }
+.ox-duo--lift { align-items: start; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+.ox-duo--wide { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+.ox-lift { position: relative; z-index: 2; margin: 24px 0 0 -32px; box-shadow: var(--shadow-lg); }
+.ox-answer .rr-receipt { margin-top: 14px; }
+.ox-stage .rr-receipt__item { white-space: nowrap; }
+.ox-stack { display: flex; flex-direction: column; gap: 16px; }
+.ox-cap-row { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
+.ox-pill { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  background: var(--surface-raised); border: 1px solid var(--border-subtle); color: var(--ink-secondary); }
+.ox-pill--wait { color: var(--ink-brand); border-color: color-mix(in srgb, var(--ink-brand) 35%, transparent); background: color-mix(in srgb, var(--ink-brand) 7%, transparent); }
+.ox-pill--done { color: var(--status-success); border-color: color-mix(in srgb, var(--status-success) 35%, transparent); background: color-mix(in srgb, var(--status-success) 7%, transparent); }
+.ox-old { color: var(--ink-muted); text-decoration: line-through; text-decoration-thickness: 2px; }
+.ox-ins { color: var(--ink-brand); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; background: color-mix(in srgb, var(--ink-brand) 7%, transparent); }
+.ox-figline { border-bottom: 2px dotted var(--ink-brand); padding-bottom: 1px; }
+.ox-ficon { width: 26px; height: 26px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; flex: none; background: var(--surface-raised); border: 1px solid var(--border-subtle); color: var(--ink-secondary); }
+.ox-act { display: flex; align-items: center; gap: 6px; }
+/* Screenshots. Half the pictures are the prototype itself: one component, cut on its own
+   edges with no window around it, framed as a card and centered on the same stage as the
+   close-ups, never larger than it was drawn and never cut off (assets/Screens). */
+.ox-stage--cut { container-type: size; display: flex; align-items: center; justify-content: center; padding: 32px; }
+.ox-cut { width: min(var(--w), 100cqw, calc(100cqh * var(--r))); aspect-ratio: var(--r); flex: none; box-sizing: border-box; overflow: hidden;
+  border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--surface-base); }
+.ox-stage--cut > .ox-cut { height: auto; }
+.ox-cut img { display: block; width: 100%; height: 100%; }
+/* 2. The linked figure */
+.ox-doc { padding: 20px 44px 20px 20px; font-size: 14px; line-height: 23px; }
+.ox-doc h4 { margin: 0 0 2px; font-size: 11px; font-weight: 500; color: var(--ink-secondary); }
+.ox-doc h3 { margin: 0 0 12px; font-size: 18px; line-height: 24px; font-weight: 700; }
+.ox-doc p { margin: 0 0 10px; }
+.ox-pop { padding: 16px 18px; font-size: 12px; line-height: 17px; }
+.ox-pop__v { margin: 6px 0 10px; font-size: 24px; line-height: 28px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.ox-pop dl { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 5px 8px; margin: 0 0 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
+.ox-pop dt { color: var(--ink-secondary); } .ox-pop dd { margin: 0; }
+.ox-pop__form { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ox-pop__in { display: inline-flex; align-items: center; height: 30px; padding: 0 8px; min-width: 54px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13px; }
+/* 3. Working together */
+.ox-together { padding: 18px 44px 18px 20px; font-size: 14px; line-height: 34px; }
+.ox-together h5 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 700; }
+.ox-together p { margin: 0 0 10px; }
+.ox-faces { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; line-height: 20px; }
+.ox-faces__stack { display: flex; margin-left: auto; } .ox-faces__stack img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; border: 2px solid var(--surface-base); margin-left: -7px; }
+.ox-cursor { position: relative; display: inline-block; width: 2px; height: 18px; vertical-align: -4px; margin: 0 1px; }
+.ox-cursor i { position: absolute; left: 0; bottom: 100%; margin-bottom: 1px; padding: 0 5px; border-radius: 4px 4px 4px 0; font: 600 10px/15px var(--font-sans); font-style: normal; color: #fff; white-space: nowrap; }
+.ox-thread { padding: 14px 16px; font-size: 13px; line-height: 19px; }
+.ox-thread__q { margin: 0 0 4px; padding-left: 8px; border-left: 2px solid var(--border-subtle); font-size: 11px; color: var(--ink-secondary); }
+.ox-who { display: flex; align-items: center; gap: 7px; margin: 8px 0 2px; font-size: 12px; font-weight: 600; }
+.ox-who img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+.ox-who small { font-weight: 400; color: var(--ink-secondary); }
+.ox-thread p { margin: 0; } .ox-thread .rr-receipt { margin-top: 8px; }
+/* Two cards side by side: Memory, Cross-check, the Firewall */
+.ox-duo .rr-msg { max-width: none; }
+.ox-duo .rr-msg__content, .ox-duo .rr-msg__bubble { font-size: 13px; line-height: 20px; }
+.ox-reads { font-size: 12px; line-height: 17px; }
+.ox-reads__row { padding: 10px 0; border-bottom: 1px solid var(--border-subtle); } .ox-reads__row:last-of-type { border-bottom: 0; }
+.ox-reads__row b { display: block; font-size: 12px; margin-bottom: 2px; }
+/* Files */
+.ox-fmt { padding: 18px 20px; }
+.ox-fmt__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.ox-fmt__cell { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 10px; min-width: 0; }
+.ox-fmt__cell b { display: block; font-size: 13px; line-height: 18px; } .ox-fmt__cell code { font: 11px/15px var(--font-mono); color: var(--ink-secondary); white-space: nowrap; }
+.ox-legacy { padding: 14px 16px; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; font-size: 12px; line-height: 17px;
+  background: color-mix(in srgb, var(--status-warning) 9%, var(--surface-base)); border: 1px solid color-mix(in srgb, var(--status-warning) 30%, transparent); border-radius: 12px; }
+.ox-legacy svg { color: var(--status-warning); margin-top: 1px; }
+.ox-legacy b { display: block; font-size: 13px; }
+.ox-legacy .ox-act { margin-top: 8px; }
+.ox-off { display: inline-flex; margin-top: 12px; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-secondary); }
+.ox-off i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-muted); }
+@media (max-width: 860px) {
+  .ox-stage { padding: 16px; }
+}
+.ox-cap .ox-files { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* how it works */
+.ox-steps { list-style: none; margin: 0; padding: 0; counter-reset: st; border-top: 1px solid var(--border-strong); }
+.ox-steps li { counter-increment: st; display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; padding: 28px 0; border-bottom: 1px solid var(--border-subtle); }
+.ox-steps li::before { content: "0" counter(st); font-size: 28px; line-height: 32px; font-weight: 700; color: var(--ink-brand); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.ox-steps--in li { padding: 20px 0; grid-template-columns: 56px minmax(0, 1fr); }
+.ox-steps--in li::before { font-size: 22px; }
+.ox-steps b { display: block; font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -.015em; margin-bottom: 8px; }
+.ox-steps span { display: block; font-size: 16px; line-height: 26px; color: var(--ink-secondary); max-width: 58ch; }
+/* the three capabilities, each with room of its own */
+.ox-cap { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: 64px; align-items: center; }
+.ox-cap--flip > :first-child { order: 2; }
+.ox-cap__body { display: flex; flex-direction: column; gap: 20px; }
+.ox-cap__h { margin: 0; font-size: 44px; line-height: 50px; font-weight: 700; letter-spacing: -.028em; color: var(--ink-primary); text-wrap: balance; max-width: 16ch; }
+.ox-cap__p { margin: 0; font-size: 17px; line-height: 28px; color: var(--ink-secondary); max-width: 50ch; }
+.ox-cap__p b { color: var(--ink-primary); }
+.ox-cap__pts { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--border-subtle); max-width: 52ch; }
+.ox-cap__pts li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); font-size: 15px; line-height: 24px; color: var(--ink-primary); }
+.ox-cap__pts svg { margin-top: 4px; color: var(--ink-brand); }
+.ox-cap__in { font-size: 13px; font-weight: 600; color: var(--ink-secondary); margin: 8px 0 -8px; }
+@media (max-width: 860px) {
+  .ox-cap { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .ox-cap--flip > :first-child { order: 0; }
+  .ox-cap__h { font-size: 32px; line-height: 38px; }
+}
+/* files */
+.ox-files { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border-strong); }
+.ox-files li { padding: 20px 24px 20px 0; border-bottom: 1px solid var(--border-subtle); }
+.ox-files b { display: block; font-size: 17px; line-height: 24px; font-weight: 600; }
+.ox-files span { display: block; font-size: 14px; line-height: 22px; color: var(--ink-secondary); margin-top: 2px; }
+/* stories */
+.ox-head { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 48px; }
+.ox-stories { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: start; }
+.ox-stories__more { display: flex; flex-direction: column; gap: 40px; }
+.ox-stories__more > * + * { padding-top: 40px; border-top: 1px solid var(--border-subtle); }
+/* close */
+.ox-close { display: flex; flex-direction: column; align-items: flex-start; gap: 32px; max-width: 58%; color: #fff; }
+.ox-close h2 { margin: 0; font-size: 64px; line-height: 68px; font-weight: 700; letter-spacing: -.035em; color: #fff; text-wrap: balance; }
+.ox-close__row { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.ox-close__link { color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; }
+.ox-close__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 860px) {
+  .ox-split, .ox-stories { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .ox-side { position: static; }
+  .ox-h2 { font-size: 30px; line-height: 36px; }
+  .ox-files { grid-template-columns: minmax(0, 1fr); }
+  .ox-steps li { grid-template-columns: 48px minmax(0, 1fr); }
+  .ox-steps li::before { font-size: 20px; }
+  .ox-close { max-width: 78%; }
+  .ox-close h2 { font-size: 40px; line-height: 44px; }
+}
+/* A close-up is drawn once, 492px wide (the desktop stage less its margins), and zoomed to
+   fit smaller stages (the queries read the stage's inner width), so it looks the same on every screen and never spills out of its frame. */
+.ox-stage { container-type: size; }
+.ox-fit { width: 492px; flex: none; }
+.ox-fit > .ox-duo, .ox-fit > .ox-stack { width: 100%; }
+@container (max-width: 500px) { .ox-fit { zoom: 0.996; } }
+@container (max-width: 490px) { .ox-fit { zoom: 0.976; } }
+@container (max-width: 480px) { .ox-fit { zoom: 0.955; } }
+@container (max-width: 470px) { .ox-fit { zoom: 0.935; } }
+@container (max-width: 460px) { .ox-fit { zoom: 0.915; } }
+@container (max-width: 450px) { .ox-fit { zoom: 0.894; } }
+@container (max-width: 440px) { .ox-fit { zoom: 0.874; } }
+@container (max-width: 430px) { .ox-fit { zoom: 0.854; } }
+@container (max-width: 420px) { .ox-fit { zoom: 0.833; } }
+@container (max-width: 410px) { .ox-fit { zoom: 0.813; } }
+@container (max-width: 400px) { .ox-fit { zoom: 0.793; } }
+@container (max-width: 390px) { .ox-fit { zoom: 0.772; } }
+@container (max-width: 380px) { .ox-fit { zoom: 0.752; } }
+@container (max-width: 370px) { .ox-fit { zoom: 0.732; } }
+@container (max-width: 360px) { .ox-fit { zoom: 0.711; } }
+@container (max-width: 350px) { .ox-fit { zoom: 0.691; } }
+@container (max-width: 340px) { .ox-fit { zoom: 0.671; } }
+@container (max-width: 330px) { .ox-fit { zoom: 0.650; } }
+@container (max-width: 320px) { .ox-fit { zoom: 0.630; } }
+@container (max-width: 310px) { .ox-fit { zoom: 0.610; } }
+@container (max-width: 300px) { .ox-fit { zoom: 0.589; } }
+@container (max-width: 290px) { .ox-fit { zoom: 0.569; } }
+@container (max-width: 280px) { .ox-fit { zoom: 0.549; } }
+@container (max-width: 270px) { .ox-fit { zoom: 0.528; } }
+@container (max-width: 260px) { .ox-fit { zoom: 0.508; } }
+@container (max-width: 250px) { .ox-fit { zoom: 0.488; } }
+@container (max-width: 240px) { .ox-fit { zoom: 0.467; } }
+@container (max-width: 230px) { .ox-fit { zoom: 0.447; } }
+</style>
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  /* The site's one navigation (90-web.md, One navigation): the same on every page. */
+  const NAV = [
+    { label:'Products', items:[
+      { label:'Redrob Chat',     href:'#', detail:'A conversation, with each question sent to the model that answers it best' },
+      { label:'Redrob Cowork',   href:'#', detail:'The agent that works beside you, in your own files and apps' },
+      { label:'Redrob Browser',  href:'#', detail:'A browser that finishes the task you give it' },
+      { label:'Redrob Console',  href:'#', detail:'Where a team sees its AI: usage, spend, models and results' },
+      { label:'Redrob Office',   href:'#', detail:'Documents, sheets and decks that update when a fact changes' },
+      { label:'Redrob Design',   href:'#', detail:'Designs the whole product as one system, in the file' },
+      { label:'Redrob Code',     href:'#', detail:'An agent that writes and fixes code in your terminal' } ] },
+    { label:'Solutions', items:['For founders','For small teams','For engineers','For designers','For product managers','For marketers','For sales teams','For recruiters','For HR teams','For lawyers','For accountants','For consultants','For investors'].map(l => ({ label:l, href:'#' })) },
+    { label:'Research', href:'#' },
+    { label:'News', href:'#' },
+    { label:'Blog', href:'#' },
+    { label:'Company', href:'#' }
+  ];
+  /* English, Korean and Hindi first (the three markets), then the world's most spoken
+     languages. Native names; Arabic sets right to left. A language with no version of this
+     page renders as unavailable, never as a link home (LangSwitch). */
+  const LANGS = [
+    {code:'en',label:'English',href:'#'}, {code:'ko',label:'\ud55c\uad6d\uc5b4',href:'#'}, {code:'hi',label:'\u0939\u093f\u0928\u094d\u0926\u0940',href:'#'},
+    {code:'zh-Hans',label:'\u7b80\u4f53\u4e2d\u6587',href:'#'}, {code:'es',label:'Espa\u00f1ol',href:'#'}, {code:'fr',label:'Fran\u00e7ais',href:'#'},
+    {code:'ar',label:'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',href:'#'}, {code:'bn',label:'\u09ac\u09be\u0982\u09b2\u09be',href:'#'},
+    {code:'pt',label:'Portugu\u00eas',href:'#'}, {code:'ja',label:'\u65e5\u672c\u8a9e',href:'#'} ];
+  const LANG = h(R.LangSwitch, { current:'en', langs: LANGS });
+  /* System, Light, Dark: in the bar on every page, in the drawer on a phone. */
+  const THEME = h(R.ThemeSwitch);
+  const MARK_L = '/_blob/ed76761a1e006c91b7a77078f8d82da9';
+  const MARK_D = '/_blob/290f8c4ecd34da668364dc8794df0e45';
+  const mark = (px) => h('span', { className:'rr-mark' }, [
+    h('img', { key:'l', className:'rr-mark__light', src:MARK_L, alt:'Redrob', style:{ height:px+'px' } }),
+    h('img', { key:'d', className:'rr-mark__dark',  src:MARK_D, alt:'',       style:{ height:px+'px' } })
+  ]);
+  const HEADER = h(R.SiteHeader, { key:'hd', mark: mark(24), homeLabel:'Redrob',
+    sections: NAV, lang: LANG, theme: THEME,
+    action: h(R.Button, { size:'sm', shape:'pill' }, 'Start free') });
+  const FOOTER = h(R.SiteFooter, { key:'ft', mark: mark(24),
+    line: "The last mile of AI: the world's best models, across every border of language, place, background and technical skill.",
+    columns: [
+      { title:'Products', items:[
+        {label:'Redrob Chat',href:'#'},{label:'Redrob Cowork',href:'#'},{label:'Redrob Browser',href:'#'},{label:'Redrob Console',href:'#'},
+        {label:'Redrob Office',href:'#'},{label:'Redrob Design',href:'#'},{label:'Redrob Code',href:'#'},
+        {label:'Luma, by Redrob',href:'#',divider:true,external:true},{label:'Signal, by Redrob',href:'#',external:true},{label:'Kaabil, by Redrob',href:'#',external:true},{label:'Crew, by Redrob',href:'#',external:true}] },
+      { title:'Solutions', items:[{label:'For founders',href:'#'},{label:'For small teams',href:'#'},{label:'For engineers',href:'#'},{label:'For designers',href:'#'},{label:'For product managers',href:'#'},{label:'For marketers',href:'#'},{label:'For sales teams',href:'#'},{label:'For recruiters',href:'#'},{label:'For HR teams',href:'#'},{label:'For lawyers',href:'#'},{label:'For accountants',href:'#'},{label:'For consultants',href:'#'},{label:'For investors',href:'#'}] },
+      { title:'Company', items:[{label:'About Redrob',href:'#'},{label:'Research',href:'#'},{label:'News',href:'#'},{label:'Blog',href:'#'}] }
+    ],
+    copyright: '© 2026 Redrob Inc.',
+    legal: [ {label:'Privacy',href:'#'}, {label:'Terms',href:'#'}, {label:'Cookies',onClick:()=>{}}, {label:'Accessibility',href:'#'}, {label:'Company details',href:'#'} ] });
+
+  const OFFICE_ICON = '/_blob/14ac1d8d7434e80578b423a4d0f5704a';
+  const SYMBOL = '/_blob/a35853f38695b112ff00dae9ab62fdce';
+  const FACE = { felix:'/_blob/70df7900794a8d3f9136b3db4d675ed5', jae:'/_blob/a85fa607de6ac6f02f3eb91206a2ec67', seunghyun:'/_blob/a0f7809e68d01abe473a00358bd92e26' };
+  const ic = (n, s) => h(R.icons[n], { width: s || 16, height: s || 16, 'aria-hidden': 'true' });
+  const TICK = () => ic('check');
+  const pts = (list) => h('ul', { className:'ox-cap__pts' }, list.map(pt => h('li', { key:pt }, [h('span', { key:'i' }, TICK()), h('span', { key:'t' }, pt)])));
+  const btn = (label, variant) => h(R.Button, { size:'sm', variant: variant || 'primary', tabIndex: -1 }, label);
+  /* A close-up: Office drawn at reading size on a stage, credited as designed. Square or
+     taller than wide; the frame crops the card, as if the camera moved in on the app. */
+  const closeup = (ratio, alt, caption, kids, layout) => h(R.Figure, { className:'ox-shot', ratio, caption, credit:'Redrob Office, as designed' },
+    h('div', { className:'ox-stage', role:'img', 'aria-label': alt }, h('div', { className: 'ox-fit' + (layout ? ' ' + layout : '') }, kids)));
+  const receipt = (items) => h(R.AnswerReceipt, { items });
+  /* A screenshot of the prototype (assets/Screens): a whole small window fills the frame; the
+     Redrob panel stands on the stage instead, docked, cut off by the frame's bottom edge. */
+  const SHOT = { updates:['/_blob/edf05aa4cac5dc891f0d3a18880832b8', 608, 406], plan:['/_blob/31552f134af6df1a2b482af22b7b7be3', 565, 348], memory:['/_blob/69f690301dd81c4846d839e8316c3419', 525, 269], privacy:['/_blob/2116fe828bc6e39b797ca63f99cb0f16', 571, 403] };
+  const cut = (shot, alt, caption) => h(R.Figure, { className:'ox-shot', ratio:'4 / 3', caption, credit:'Redrob Office prototype, as designed' },
+    h('div', { className:'ox-stage ox-stage--cut' }, h('div', { className:'ox-cut', style:{ '--w': shot[1] + 'px', '--r': shot[1] + ' / ' + shot[2] } },
+      h('img', { src: shot[0], alt, width: shot[1], height: shot[2], loading:'lazy', decoding:'async' }))));
+
+  /* 1. Updates, the screenshot: one change, every file that uses it, each kept by a person. */
+  const UPDATES = cut(SHOT.updates, 'Redrob Office, Updates: Q3 revenue changed from ₩3.86bn to ₩4.12bn in the board memo. forecast.xlsx waits with four figures, old values struck through beside the new, and Keep the 4 figures.',
+    'Q3 revenue changed once, in the board memo. Updates lists every file that uses it, old beside new, until someone keeps each change.');
+
+  /* 2. A linked figure, opened: where it came from and everywhere it is used. */
+  const FIGURE = closeup('4 / 3', 'A board memo in Redrob Office with its Q3 revenue figure, ₩3.86bn, opened: the source cell, when it last changed, the four files that use it, and a field to change it everywhere.',
+    'Every figure opens at its source: the cell, who changed it last, and every other file that uses it.', [
+    h('div', { key:'d', className:'ox-card ox-doc' }, [
+      h('h4', { key:'m' }, 'Board of directors · 7 October 2026'),
+      h('h3', { key:'t' }, 'Q3 2026: board memo'),
+      h('p', { key:'p' }, ['Q3 revenue was ', h('span', { key:'f', className:'ox-figline' }, '₩3.86bn'), ' (', h('span', { key:'u', className:'ox-figline' }, '$2.78m'), ' at ₩1,387.97 per $1, Federal Reserve H.10, 18 Sep 2026), up ', h('span', { key:'g', className:'ox-figline' }, '20.6%'), ' on Q2.']),
+      h('p', { key:'q' }, 'Revenue grew by about a fifth, led by the Seorin renewal and the first three enterprise Cowork customers.'),
+      h('p', { key:'r' }, 'Gross margin held at 61%. Cash runway is 26 months at the current burn.')
+    ]),
+    h('div', { key:'p', className:'ox-card ox-lift ox-pop' }, [
+      h('div', { key:'h', className:'ox-cap-row', style:{ justifyContent:'space-between' } }, [h('span', { key:'a', style:{ display:'inline-flex', gap:'6px', alignItems:'center', color:'var(--ink-primary)' } }, [ic('link', 13), 'Q3 revenue']), h('span', { key:'s', className:'ox-pill ox-pill--done' }, 'Up to date')]),
+      h('div', { key:'v', className:'ox-pop__v' }, '₩3.86bn'),
+      h('dl', { key:'d' }, [h('dt', { key:1 }, 'Source'), h('dd', { key:2 }, 'forecast.xlsx, Summary!C2'), h('dt', { key:3 }, 'Changed'), h('dd', { key:4 }, 'Felix Kim, Fri 25 Sep, 17:10'),
+        h('dt', { key:5 }, 'Used in'), h('dd', { key:6 }, '4 files: forecast.xlsx, this memo, the board pack, the investor update')]),
+      h('div', { key:'f', className:'ox-pop__form' }, [h('span', { key:'w' }, '₩'), h('span', { key:'i', className:'ox-pop__in' }, '4.12'), h('span', { key:'b' }, 'bn'), btn('Update everywhere')])
+    ])
+  ], 'ox-duo ox-duo--lift');
+
+  /* 3. Working together: two people in the file, a suggestion, and @Redrob in the margin. */
+  const cursor = (name, color) => h('span', { className:'ox-cursor', style:{ background: color } }, h('i', { style:{ background: color } }, name));
+  const TOGETHER_FIG = closeup('4 / 3', 'The NDA in Redrob Office with Jae and Seunghyun in it: a suggested change from New York to Delaware law, named cursors, and a comment thread in which Redrob answers a question.',
+    'Jae suggests Delaware law, Seunghyun reads along, and @Redrob answers in the thread.', [
+    h('div', { key:'d', className:'ox-card ox-together' }, [
+      h('div', { key:'f', className:'ox-faces' }, [h('span', { key:'s', className:'ox-pill' }, [ic('edit', 11), 'Suggesting']),
+        h('span', { key:'a', className:'ox-faces__stack' }, [h('img', { key:1, src: FACE.jae, alt:'Jae Gardner' }), h('img', { key:2, src: FACE.seunghyun, alt:'Seunghyun Seok' }), h('img', { key:3, src: FACE.felix, alt:'Felix Kim' })])]),
+      h('h5', { key:'a' }, '5. Term'),
+      h('p', { key:'b' }, ['This Agreement', cursor('Seunghyun', 'var(--accent-violet-5, #8944FF)'), ' lasts two (2) years from the Effective Date.']),
+      h('h5', { key:'c' }, '8. Governing law'),
+      h('p', { key:'d' }, ['This Agreement is governed by the laws of the State of ', h('span', { key:'o', className:'ox-old' }, 'New York'), ' ', h('span', { key:'n', className:'ox-ins' }, 'Delaware'), cursor('Jae', 'var(--accent-teal-5, #006A7A)'), '.'])
+    ]),
+    h('div', { key:'t', className:'ox-card ox-lift ox-thread' }, [
+      h('p', { key:'q', className:'ox-thread__q' }, '“the laws of the State of Delaware”'),
+      h('div', { key:'f', className:'ox-who' }, [h('img', { key:'i', src: FACE.felix, alt:'' }), 'Felix Kim', h('small', { key:'t' }, 'Just now')]),
+      h('p', { key:'fq' }, 'Is Delaware usual for this? @Redrob'),
+      h('div', { key:'r', className:'ox-who' }, [h('img', { key:'i', src: SYMBOL, alt:'' }), 'Redrob', h('small', { key:'t' }, 'Just now')]),
+      h('p', { key:'ra' }, 'Yes, for a US investor. Name the Delaware courts too, or the clause picks a law and no court.'),
+      receipt([{ id:'m', icon: ic('sparkle', 13), label:'Claude Opus 5.5', sub:'by Redrob Auto' }])
+    ])
+  ], 'ox-duo ox-duo--lift');
+
+  /* 3b. Plan, the screenshot: the plan written out in the Redrob panel, nothing changed yet. */
+  const PLAN_FIG = cut(SHOT.plan, 'The Redrob panel with Plan on: Plan, Check it for risks.md, draft, not run yet. How I will do it: read all eight clauses, compare them with your standard NDA terms in Memory, list what to look at before you send it. What you will get: an answer, with each change marked in the document.',
+    'With Plan on, Redrob writes out how it will check the NDA, and what you will get, before anything in the file changes.');
+
+  /* 4. Memory, the screenshot: the parties filled in from your notes and the web, each a change you keep. */
+  const MEMORY_FIG = cut(SHOT.memory, 'The Redrob panel after "Fill in the parties and look up the addresses": read this document, looked up Redrob Inc. in your company notes, searched the web for Sequoia Capital’s US address, proposed the three blanks as tracked changes, waiting for you.',
+    'Your company’s details come from your notes, not a guess. Each fill-in is a tracked change, and says where it came from.');
+
+  /* 5. Cross-check: the answer with its marked sentence and receipt, and what Fact check found. */
+  const CHECK_FIG = closeup('4 / 3', 'The Redrob panel after checking a board memo: Fact check opened the source of all 12 figures, 11 hold up, the headcount sentence is marked, and a callout shows each verdict with its source.',
+    'Fact check, by an AI from another company, opens every figure\'s source. The one it reads differently is marked in the answer.',
+    h('div', { className:'ox-duo ox-duo--wide' }, [
+      h('div', { key:'m', className:'ox-card ox-answer' }, [
+        h('div', { key:'c', className:'ox-cap-row', style:{ marginBottom:'10px' } }, [h('img', { key:'i', src: SYMBOL, alt:'', style:{ width:'16px', height:'16px' } }), 'Redrob']),
+        h('p', { key:1, style:{ margin:'0 0 10px', fontSize:'14px', lineHeight:'22px' } }, 'Fact check opened the source of all 12 figures: 11 hold up, 1 is read differently.'),
+        h('p', { key:2, style:{ margin:'0 0 14px', fontSize:'14px', lineHeight:'22px' } }, h(R.Opinion, { n:1, title:'Read differently', views:[
+          { who:'Claude Opus 5.5', said:'Headcount 212, from the HR sheet of 25 Sep.' },
+          { who:'Gemini 3.1 Pro, Fact check', said:'Headcount 208, from the older HR export of 1 Sep.' }] }, 'Headcount: 212, in the memo’s first section.')),
+        receipt([{ id:'c', icon: ic('scan', 13), tone:'differ', label:'Fact check: 1 to fix', sub:'Gemini 3.1 Pro' }])
+      ]),
+      h('div', { key:'r', className:'ox-card ox-reads' }, [
+        h('div', { key:'c', className:'ox-cap-row' }, [ic('scan', 13), 'Fact check · Gemini 3.1 Pro']),
+        h('div', { key:'a', className:'ox-reads__row' }, [h('b', { key:'b' }, [h(R.Badge, { key:'v', tone:'success', dot:true, size:'sm' }, 'Holds up'), ' 11 figures']), 'Each matches its cell in forecast.xlsx.']),
+        h('div', { key:'b', className:'ox-reads__row' }, [h('b', { key:'b' }, [h(R.Badge, { key:'v', tone:'warning', dot:true, size:'sm' }, 'Read differently'), ' Headcount']), 'The HR export of 1 Sep says 208. Four people joined after it.'])
+      ])
+    ]));
+
+  /* 6. The Firewall, the screenshot: privacy protection on, at High, running on this laptop. */
+  const FIREWALL_FIG = cut(SHOT.privacy, 'The Redrob panel with privacy protection open: on, at High, running on this laptop. In this file, names, addresses and account numbers stay on this computer as placeholders. The three levels: Standard, High, your level, and Strict.',
+    'Privacy protection at High, running on this laptop: names, addresses and account numbers in the file stay on it as placeholders.');
+
+  /* 7. Files: the formats, newest first, and an older file opened as it is. */
+  const FILES_FIG = closeup('4 / 3', 'The file types Redrob Office opens, newest format first, and an older .doc file opened as it is, with an offer to save a .docx copy.',
+    'Each format opens as itself. An older file stays as it is until you save a newer copy.', [
+    h('div', { key:'g', className:'ox-card ox-fmt' }, [
+      h('div', { key:'c', className:'ox-cap-row' }, [ic('fileText', 13), 'Open or start']),
+      h('div', { key:'l', className:'ox-fmt__grid' }, [
+        ['fileText', 'Document', '.docx .doc'], ['fileSheet', 'Spreadsheet', '.xlsx .xls'], ['presentation', 'Presentation', '.pptx .ppt'],
+        ['fileCode', 'Hangul', '.hwpx .hwp'], ['hash', 'Markdown', '.md'], ['filePdf', 'PDF', '.pdf']
+      ].map(f => h('div', { key:f[1], className:'ox-fmt__cell' }, [h('span', { key:'i', className:'ox-ficon' }, ic(f[0], 14)), h('span', { key:'t', style:{ minWidth:0 } }, [h('b', { key:'b' }, f[1]), h('code', { key:'c' }, f[2])])]))),
+      h('div', { key:'o', className:'ox-off' }, [h('i', { key:'d' }), 'Offline. Saving on this computer'])
+    ]),
+    h('div', { key:'b', className:'ox-legacy' }, [ic('warning', 16), h('div', { key:'t' }, [h('b', { key:'b' }, 'An older .doc file'),
+      'Opened exactly as written. A .docx copy keeps the layout; the .doc stays where it is.',
+      h('div', { key:'a', className:'ox-act' }, [btn('Save a .docx copy'), btn('Keep .doc', 'ghost')])])])
+  ], 'ox-stack');
+
+  /* 90-web.md, The headline features: the headline and its copy verbatim; the steps are how it works. */
+  const STEPS = [
+    ['Change it where it lives', 'Edit a figure in the sheet, the memo or the deck. The file you are in changes at once.'],
+    ['Every file that uses it waits', 'Office lists each document, sheet and deck that used the old figure, old value struck through beside the new. A sentence the new figure makes untrue is rewritten as a suggestion. A person keeps each change.'],
+    ['Every figure keeps its source.', 'Open any figure to see the cell it comes from, who changed it last, and where else it is used.']
+  ];
+  const TOGETHER = [
+    'Editing, Suggesting or Viewing. In Suggesting, your edits become tracked changes.',
+    'Comments sit beside the words they are about, with @mentions, owners and resolve.',
+    'Open a file and see what changed since you last looked, then any version before it.',
+    'Ask @Redrob in a comment and it answers in the thread, with its receipt.'
+  ];
+
+  /* 05-mission.md, verbatim; no Expert Match (Console and Code only; here it is Redrob Auto). Each capability keeps its beat. */
+  const CAPS = [
+    { key:'memory', name:'Multi-Model Memory', head:'Your work, remembered across every AI.',
+      copy:'Every AI you switch to starts from zero. Memory carries one professional context across Claude, GPT, Gemini and specialized models, and across your projects, files and conversations.', beat:'Switch models, not context.',
+      points:['Your company’s own details come from your notes, and Redrob says which note.',
+              'Switch models halfway through a document and it keeps the same figures and terms.',
+              'Memory can be turned off for any one file.'], fig: MEMORY_FIG },
+    { key:'crosscheck', name:'Multi-Model Crosscheck', head:"Don't rely on one AI for important work.",
+      copy:'One model is a single point of failure. Crosscheck runs the work past several models independently and shows you where they agree, where they disagree, what one of them missed and what evidence is still missing.', beat:'Fact check, then Challenge.',
+      points:['Fact check opens the source of every figure and clause an answer cites, and says whether it holds up.',
+              'Where it reads something differently, the sentence is marked and both readings open in place.',
+              'Challenge argues for and against a conclusion, and says what held up, before you act on it.',
+              'Both run when it matters: a number, a claim about a rule, or anything you will send.',
+              'Every answer ends with a receipt: which AI answered, what stayed private, what memory it used, who checked it.'], fig: CHECK_FIG },
+    { key:'firewall', name:'AI Firewall', head:'Protect your work before AI sees it.',
+      copy:'Whatever reaches a model can leave your company. The Firewall finds sensitive information, applies your policies, sends only the context the task needs and controls what reaches an outside model.', beat:'Before, not after.',
+      points:['A small AI on your laptop swaps names, companies, addresses and account numbers for placeholders, and puts them back in the answer.',
+              'Your company sets the level, Standard, High or Strict, and every file shows it.',
+              'ID and bank numbers are never sent at all.'], fig: FIREWALL_FIG }
+  ];
+  const FILES = [
+    ['Word', '.docx and .doc, styles and tracked changes kept'],
+    ['Excel', '.xlsx and .xls, formulas and all'],
+    ['PowerPoint', '.pptx and .ppt, on your own template'],
+    ['Hangul', '.hwpx and .hwp, the Korean public-sector format'],
+    ['Markdown', '.md, for notes and updates'],
+    ['PDF', '.pdf, to read, check and comment on']
+  ];
+  const PLAN = [
+    'Plan writes the steps, what it will read and what you will get. Nothing in the file changes until you run it.',
+    'Click any line of the plan to change it, or keep the plan for later.',
+    'Run starts at once, for the small things.',
+    'Either way, each change waits in the document for you to keep or undo.'
+  ];
+  const band = (key, ground, flip, mark, head, body, fig) => h(R.Band, { key, product:'office', ground }, h('div', { className:'ox-cap' + (flip ? ' ox-cap--flip' : '') }, [
+    h('div', { key:'b', className:'ox-cap__body' }, [h(R.SectionMark, { key:'m', label: mark }), h('h2', { key:'h', className:'ox-cap__h' }, head)].concat(body)),
+    h('div', { key:'f' }, fig)
+  ]));
+
+  /* The Redrob Office landing page. Its own grounds: the hero on Office's light ground, the
+     close on its brand ground, section ticks in its mark (20-color.md). One argument: the
+     headline shown working, how it works, Plan and Run, working together, Memory, Cross-check
+     and the Firewall a band each, the files it opens, what changed for the people using it, the
+     close. One feature per picture, alternating: a screenshot of the prototype (Updates, Plan,
+     Memory, the Firewall), then a close-up drawn from bundle parts (the figure, working
+     together, Cross-check, files). Never a shrunk full window. Customer
+     stories are sample content: fictional companies and people, to be replaced before launch. */
+  function Screen() {
+    /* One PageShell per page: the skip link, the landmarks and lang (PageShell). */
+    return h(R.PageShell, { lang:'en', header: HEADER, footer: FOOTER }, [
+      h(R.Band, { key:'hero', product:'office', threshold:true }, h(R.Hero, {
+        mark: h('span', { className:'ox-product' }, [h('img', { key:'i', src: OFFICE_ICON, alt:'' }), h('span', { key:'n' }, 'Redrob Office')]),
+        lede: 'Change one number and every document, sheet and deck that used it is out of date. Edit a fact, a decision or an assumption, and Office finds everything that depends on it, recalculates the figures, rewrites the documents and updates the decks.',
+        action: h(R.Button, { size:'lg', shape:'pill', emphasis:true }, 'Try Office free'),
+        secondary: 'See how it works', secondaryHref: '#how',
+        foot: 'Free to start. Opens the Word, Excel, PowerPoint and Hangul files you already have, online or off.',
+        media: UPDATES
+      }, h(R.Display, { level:2, as:'h1', lang:'en' }, 'Your work updates itself.'))),
+
+      band('how', 'sunken', false, 'How it works', 'Change it once.',
+        [h('ol', { key:'l', className:'ox-steps ox-steps--in' }, STEPS.map(s => h('li', { key:s[0] }, h('div', null, [h('b', { key:'t' }, s[0]), h('span', { key:'d' }, s[1])]))))], FIGURE),
+
+      band('plan', 'base', true, 'Plan and Run', 'See the plan before anything changes.',
+        [h('p', { key:'p', className:'ox-cap__p' }, ['Ask for something big, a risk review of a contract or a board pack from a forecast, and Plan writes out what Redrob will do in this file before it touches a word. ', h('b', { key:'b' }, 'Change a line, then run it.')]), pts(PLAN)],
+        PLAN_FIG),
+
+      band('together', 'sunken', false, 'Working together', 'Write it together, in the file.',
+        [h('p', { key:'p', className:'ox-cap__p' }, ['Everyone in the file is on the page with you: their cursors, their suggestions and their comments, beside the words they are about. Redrob works in the same file, and ', h('b', { key:'b' }, 'its changes stay yours until you keep them.')]), pts(TOGETHER)],
+        TOGETHER_FIG),
+
+      ...CAPS.map((c, i) => band(c.key, i % 2 ? 'sunken' : 'base', i % 2 === 0, [c.name, 'Under every Redrob product'], c.head, [
+        h('p', { key:'p', className:'ox-cap__p' }, [c.copy + ' ', h('b', { key:'b' }, c.beat)]),
+        h('p', { key:'i', className:'ox-cap__in' }, 'In Office'), pts(c.points)], c.fig)),
+
+      band('files', 'sunken', false, 'Your files', 'Opens the files you already have.', [
+        h('p', { key:'p', className:'ox-cap__p' }, ['No import and no new format. Office reads and writes each file as itself, newest format first, and ', h('b', { key:'b' }, 'keeps working when you are offline.')]),
+        h('ul', { key:'l', className:'ox-files' }, FILES.map(f => h('li', { key:f[0] }, [h('b', { key:'n' }, f[0]), h('span', { key:'d' }, f[1])]))),
+        pts(['An older file opens as it is. A newer copy is one click, and the original is never overwritten.',
+             'Offline, files open and save on your computer and sync when you are back.'])
+      ], FILES_FIG),
+
+      h(R.Band, { key:'stories', ground:'base', product:'office' }, [
+        h(R.SectionMark, { key:'m', label:'Customer stories' }),
+        h('div', { key:'h', className:'ox-head', style:{ marginTop:'24px' } }, h('h2', { className:'ox-h2' }, 'What changes when the work updates itself')),
+        h('div', { key:'g', className:'ox-stories' }, [
+          h(R.CustomerStory, { key:'a', customer:'Tidewell Freight', sector:'Logistics, Busan',
+          figure:'2 hours', figureLabel:'to reissue the quarterly pack after a forecast changed, across 38 files',
+          period:'Measured over the second quarter of 2026, against 3 days for the same work in 2025.',
+          quote: h(R.Quote, { cite:'Jiwon Seo', role:'Head of Finance, Tidewell Freight' },
+            'We changed the fuel assumption at four and the board had a correct pack by six.'),
+          href:'#' }, h('p', null, 'One forecast feeds thirty-eight sheets, memos and decks. When fuel prices moved, Office found every file that used the old figure and lined up each change for review the same afternoon.')),
+          h('div', { key:'m', className:'ox-stories__more' }, [
+          h(R.CustomerStory, { key:'b', customer:'Orrin & Vale', sector:'Accounting, Noida',
+            figure:'0', figureLabel:'stale figures found in client reports at year-end review, from 14 the year before',
+            period:'Year-end close 2025, across 212 client reports.', href:'#' },
+            h('p', null, 'Rates and thresholds changed twice during the close. Each change reached every report that used it, with the source on every number.')),
+          h(R.CustomerStory, { key:'c', customer:'Kestrelmark Capital', sector:'Investment, New York',
+            figure:'11 decks', figureLabel:'brought up to date from one change to a valuation model',
+            period:'Measured on one fund update in August 2026, against five days of checking by hand for the same update in March.', href:'#' },
+            h('p', null, 'A revised discount rate used to mean a week of checking decks by hand. Office listed the eleven that used it and redrew the charts in each.'))
+          ])
+        ])
+      ]),
+
+      h(R.Band, { key:'close', ground:'brand', product:'office' }, h('div', { className:'ox-close' }, [
+        h('h2', { key:'h' }, 'Stop updating the same number twice.'),
+        h('div', { key:'r', className:'ox-close__row' }, [
+          h(R.Button, { key:'b', size:'lg', shape:'pill', emphasis:true }, 'Try Office free'),
+          h('a', { key:'a', className:'ox-close__link', href:'#' }, 'See pricing →')
+        ])
+      ]))
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Screen));
+</script>

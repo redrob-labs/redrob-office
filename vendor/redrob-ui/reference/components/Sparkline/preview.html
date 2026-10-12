@@ -1,0 +1,20 @@
+<!-- @dsCard group="Data display" height=200 width=820 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  const row = (label, vals, note) => h('tr', { key:label }, [
+    h('td',{key:'a',style:{padding:'10px 20px 10px 0',fontSize:'13px'}},label),
+    h('td',{key:'b',style:{padding:'10px 20px 10px 0',fontSize:'15px',fontWeight:600,fontVariantNumeric:'tabular-nums'}},
+      vals.filter(v=>v!=null).slice(-1)[0]),
+    h('td',{key:'c',style:{padding:'10px 20px 10px 0'}}, h(R.Sparkline,{ values:vals, alt:note })),
+    h('td',{key:'d',style:{padding:'10px 0',fontSize:'12px',color:'var(--ink-secondary)'}},note)
+  ]);
+  function Demo() {
+    return h('table',{style:{borderCollapse:'collapse'}}, h('tbody',null,[
+      row('Rotterdam', [540,505,480,null,62,40], 'The gap is the changeover quarter, not a zero'),
+      row('Antwerp', [612,590,566,540,71,48], 'Six quarters, no holes'),
+      row('Gdansk', [480,470,455,440,430,425], 'Flat, which is also a shape')
+    ]));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

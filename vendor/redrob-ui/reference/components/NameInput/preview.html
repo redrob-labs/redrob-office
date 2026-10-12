@@ -1,0 +1,23 @@
+<!-- @dsCard group="Local formats" height=445 width=820 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  function Demo() {
+    const [a, setA] = React.useState({ full: '김민준', second: 'Minjun Kim', preferred: '민준' });
+    const [b, setB] = React.useState({ full: 'R. Shalini' });
+    return h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'start' } }, [
+      h('div', { key:'a' }, [
+        h('p', { key:'h', style:{ margin:'0 0 16px', fontSize:'12px', fontWeight:600, color:'var(--ink-muted)' } },
+          'Family name first, and a second script'),
+        h(R.NameInput, { key:'n', value:a, onChange:setA, second:true, preferred:true })
+      ]),
+      h('div', { key:'b' }, [
+        h('p', { key:'h', style:{ margin:'0 0 16px', fontSize:'12px', fontWeight:600, color:'var(--ink-muted)' } },
+          'An initial and a given name, and no family name at all'),
+        h(R.NameInput, { key:'n', value:b, onChange:setB,
+          hint:'One field. A split field would ask her for a surname she does not have.' })
+      ])
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

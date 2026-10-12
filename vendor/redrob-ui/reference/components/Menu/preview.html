@@ -1,0 +1,26 @@
+<!-- @dsCard group="Actions" height=260 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const row = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }, extra) }, kids);
+  const col = (kids, extra) => h('div', { style: Object.assign({ display: 'flex', flexDirection: 'column', gap: '16px' }, extra) }, kids);
+
+  function Demo() {
+    const items = [
+      { id: 'edit', label: 'Edit role', shortcut: 'E' },
+      { id: 'duplicate', label: 'Duplicate' },
+      { id: 'share', label: 'Share with team' },
+      { type: 'separator' },
+      { id: 'archive', label: 'Archive role', tone: 'danger' },
+    ];
+    return row([
+      h(R.Menu, { key: 1, label: 'Actions', items: items, defaultOpen: true, onSelect: () => {} }),
+      h(R.Menu, { key: 2, label: 'Export', variant: 'ghost', size: 'sm', items: [
+        { id: 'csv', label: 'CSV' }, { id: 'xlsx', label: 'Excel' }, { id: 'pdf', label: 'PDF' },
+      ] }),
+      h(R.Menu, { key: 3, icon: h(R.icons.more, { width: 18, height: 18 }), ariaLabel: 'More actions for this role', items: items.slice(0, 3) }),
+    ], { alignItems: 'flex-start' });
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

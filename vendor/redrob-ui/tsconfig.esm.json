@@ -1,0 +1,20 @@
+{
+  // The ESM half of the dual build. `tsconfig.json` stays the CommonJS one, because `main` and the
+  // `require` condition must keep resolving exactly what they resolved before this file existed.
+  //
+  // Why a second output at all: without it a bundler cannot tree-shake. A CommonJS module's exports
+  // are decided at runtime, so Next, Vite and webpack must keep every one of the 123 components a
+  // barrel file names, and a site that imports `Button` alone ships all of them. With an ESM build
+  // behind the `import` condition the same import graph is statically analysable and the unused ones
+  // are dropped.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ES2020",
+    "moduleResolution": "Bundler",
+    "outDir": "./dist/esm",
+
+    // No second copy of the declarations. `types` in package.json points at the CommonJS ones and the
+    // shapes are identical - emitting them twice invites the two to disagree.
+    "declaration": false
+  }
+}

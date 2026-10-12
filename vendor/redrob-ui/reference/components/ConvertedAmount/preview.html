@@ -1,0 +1,20 @@
+<!-- @dsCard group="Local formats" height=210 width=820 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  function Demo() {
+    return h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px' } }, [
+      h(R.ConvertedAmount, { key:'a', locale:'ko-KR',
+        amount: 412800000, currency:'KRW',
+        converted: { amount: 298120, currency:'USD' },
+        rate: 0.000722, benchmark:'Bank of Korea reference rate', at:'24 September 2026', decimals:false,
+        note:'The contract is in won. The dollar figure is for the group accounts and is not what anybody pays.' }),
+      h(R.ConvertedAmount, { key:'b', locale:'en-IN',
+        amount: 28400000, currency:'INR',
+        converted: { amount: 340800, currency:'USD' },
+        rate: 0.012, benchmark:'RBI reference rate', markup: 0.02, at:'24 September 2026', decimals:false,
+        note:'Two percent over the benchmark, which is the bank’s, not ours.' })
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

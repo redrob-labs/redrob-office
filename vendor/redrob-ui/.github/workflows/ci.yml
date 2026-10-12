@@ -1,0 +1,169 @@
+name: ci
+
+# Runs on every pull request so branch protection has a check that actually reports.
+# A required check must be one that runs on a pull request: requiring a `workflow_dispatch`-only
+# workflow leaves every pull request waiting forever.
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: typecheck and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # `noEmitOnError` is on and `build` deletes `dist/` first, so a failing build cannot leave a
+      # stale-but-valid tree for a later step to read as a pass. That happened three times during
+      # this port before both guards were in place, so the build's exit code is the gate here.
+      - name: Build the package
+        run: yarn build
+
+      - name: Assert the published surface exists
+        run: |
+          set -euo pipefail
+          for f in dist/index.js dist/index.d.ts dist/icons/index.js dist/esm/index.js dist/esm/package.json; do
+            [ -s "$f" ] || { echo "::error::$f is missing or empty after build"; exit 1; }
+          done
+          for d in dist/styles dist/fonts dist/native; do
+            [ -d "$d" ] && [ -n "$(ls -A "$d")" ] || { echo "::error::$d is missing or empty after build"; exit 1; }
+          done
+          echo "dist entry, esm entry, types, styles, fonts and native headers present"
+
+      # The icon module is generated from the delivery's own table. A hand-edit would be silently
+      # overwritten by the next `yarn icons`, so the checked-in file must match the generator.
+      - name: Assert the generated icons are up to date
+        run: yarn icons:check
+
+      # `tokens.json` is committed and is what a consumer in another repository reads, so a change to
+      # `tokens.css` that is not regenerated leaves the browser's C++ chrome and an Android app on the
+      # old colours while the web moves. Nothing else can see that, because CSS still resolves fine.
+      - name: Assert the generated tokens are up to date
+        run: yarn tokens:check
+
+      # A stylesheet path that does not resolve is invisible to every other gate: the markup is
+      # identical, so parity passes, and the browser silently falls back to a system font. This
+      # caught 14 `@font-face` rules that had been wrong since the port began.
+      - name: Assert every stylesheet url resolves
+        run: yarn assets:check
+
+      # Loads both halves of the dual build in separate Node processes and compares their export
+      # lists. A bundler papers over a bad ESM specifier and Node does not, so this is the only place
+      # the difference shows before a consumer hits ERR_MODULE_NOT_FOUND on a published version.
+      - name: Assert the package entry points resolve
+        run: yarn exports:check
+      - name: Assert the deprecated 1.x names still export and render
+        run: yarn aliases:check
+
+      # The parity gate compares against the reference delivery's preview, which passes none of the
+      # ModelGuide language/chain/evidence props. So parity is blind to them in both directions: it
+      # cannot see them work, and it cannot see them break. This renders them and asserts their
+      # markup, plus that a guide given none of them renders none of it.
+      - name: Assert the ModelGuide language, chain and evidence props render
+        run: yarn guide:check
+
+      # Parity renders AppShell open and without a product, so it cannot see the folded state, the
+      # window insets, onNavigate or the product wash. This renders those and asserts their markup.
+      - name: Assert the AppShell states parity cannot see
+        run: yarn shell:check
+
+      # The insight charts (MixBar, BarList, HeatCell, ...) have no case in the reference delivery.
+      # This asserts what they exist for: every figure in text as well as in a mark, no number for a
+      # group under the privacy floor, heat bands that follow the measure's direction.
+      - name: Assert the insight charts keep their figures readable and their floors
+        run: yarn insights:check
+
+      # Parity normalises generated ids and loads a fresh build per case, so it cannot see an id that
+      # depends on how many renders the process has done. A Next.js server is one long process, and a
+      # module-level counter there meant server and browser disagreed on every generated id, so React
+      # reported a hydration mismatch. This renders ThemeSwitch twice in one process and wants the
+      # same bytes.
+      - name: Assert generated ids are the same on every server render
+        run: yarn ids:check
+
+      # CSS has no compiler. `var(--x)` naming a property nothing declares is not a parse error - it
+      # invalidates its own declaration at computed-value time and the cascade moves on. This caught 28
+      # of them: the delivery's tokens.json defines 119 product tokens and its tokens.css declared
+      # none, so every AppShell product rail lost its identity wash on every consumer, with the sheet
+      # loading, the rail rendering, tsc passing and parity passing (both sides read the same broken
+      # sheet and agreed).
+      - name: Assert every var() reference resolves
+        run: yarn references:check
+
+      # One release ships the same colours twice - tokens.css for the web, dist/native for C++ and
+      # Kotlin - and the native header is generated from tokens.css alone. When system.css redeclared
+      # --ink-muted and --surface-sunken at root scope, the release shipped two different answers nine
+      # points per channel apart, and only a consumer painting from BOTH could see it.
+      - name: Assert the two sheets do not disagree on a token
+        run: yarn supersession:check
+
+  parity:
+    name: parity against the reference bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build the package
+        run: yarn build
+
+      # Renders every component twice against the delivery's own preview case - once from the
+      # reference bundle, once from our `dist` - and compares the markup. The test cases belong to
+      # the design system delivery, so they cannot drift toward the implementation they check.
+      #
+      # `reference/` is a vendored 2 MB slice of the delivery, committed so this job runs at all. A
+      # parity job that skips for want of the reference reports green for having checked nothing.
+      - name: Run the parity harness
+        run: yarn test
+
+      # Renders the reference against itself. If this fails the harness is broken, not the port -
+      # without it, a harness that silently compares nothing would look like 123 passes.
+      - name: Harness self-check
+        run: yarn test:self
+
+  docs:
+    name: docs are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # `llms.txt` and `llms-full.txt` are generated from the types and the JSDoc, and are committed
+      # so an agent reading the repository sees the same reference as one reading the site. A stale
+      # committed copy is worse than a missing one: it states props the code no longer has, and
+      # nothing else in the pipeline would notice. This regenerates them and fails on any difference.
+      - name: Assert the committed agent reference matches the code
+        run: yarn docs:check

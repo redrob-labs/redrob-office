@@ -1,0 +1,48 @@
+<!-- @dsCard group="Foundations" height=855 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  // The logo files are uploads in this system's asset store, so a preview
+  // references them as /_blob/<id> - not as a path. In your app pass `src` a
+  // path to your own copy of the file; nothing here modifies the artwork.
+  const LOCK   = "/_blob/ed76761a1e006c91b7a77078f8d82da9";
+  const LOCK_W = "/_blob/290f8c4ecd34da668364dc8794df0e45";
+  const SYM    = "/_blob/a35853f38695b112ff00dae9ab62fdce";
+
+  const h = React.createElement;
+  const R = window.Redrob;
+  const cap = (t) => h('div', {
+    style: { fontSize: '11px', fontWeight: 500, color: 'var(--ink-muted)', padding: '10px 4px 24px' },
+  }, t);
+
+  function Demo() {
+    const [n, setN] = React.useState(0);
+    return h('div', { style: { padding: '24px 28px' } }, [
+      h(R.SectionMark, { key: 'm1', label: ['Splash'], trailing: 'arrives once, then settles' }),
+      h('div', { key: 'a', style: { marginTop: '14px' } }, [
+        h(R.MarkReveal, { key: 's' + n, src: LOCK, height: 190 }),
+        cap('mode splash, size md - the arrival runs 1400ms and stops'),
+      ]),
+
+      h(R.SectionMark, { key: 'm2', label: ['Hand-off'], trailing: 'one quiet pass every 4.2s' }),
+      h('div', { key: 'b', style: { marginTop: '14px' } }, [
+        h(R.MarkReveal, { key: 'h' + n, src: LOCK, mode: 'handoff', height: 190 }),
+        cap('mode handoff - for a wait long enough that a loader would nag'),
+      ]),
+
+      h(R.SectionMark, { key: 'm3', label: ['On the near side'], trailing: 'and square' }),
+      h('div', { key: 'c', style: { display: 'flex', gap: '16px', marginTop: '14px', flexWrap: 'wrap' } }, [
+        h('div', { key: 1, style: { flex: '1 1 320px' } }, [
+          h(R.MarkReveal, { key: 'd' + n, src: LOCK_W, tone: 'dark', size: 'sm', height: 160, ground: false }),
+          cap('tone dark, the white lockup, no ground'),
+        ]),
+        h('div', { key: 2, style: { flex: '0 0 220px' } }, [
+          h(R.MarkReveal, { key: 'y' + n, src: SYM, symbol: true, height: 160 }),
+          cap('symbol only, for a square launch screen'),
+        ]),
+      ]),
+
+      h(R.Button, { key: 'r', variant: 'secondary', size: 'sm', onClick: () => setN(n + 1) }, 'Replay'),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

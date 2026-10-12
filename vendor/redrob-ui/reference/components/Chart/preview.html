@@ -1,0 +1,34 @@
+<!-- @dsCard group="Data display" height=435 width=1180 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  function Demo() {
+    return h('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'40px', alignItems:'start' } }, [
+      h(R.Chart, { key:'a', kind:'bar',
+        title:'Agent hours a month, by what they were spent on',
+        labels:['Apr','May','Jun','Jul','Aug','Sep'],
+        series:[
+          { name:'Reading', values:[8.1, 9.4, 11.2, 10.8, 12.6, 11.2] },
+          { name:'Checking', values:[3.2, 3.9, 4.4, null, 5.8, 5.1] },
+          { name:'Writing', values:[1.1, 1.4, 1.9, 2.2, 2.4, 2.1], estimatedFrom:5 }
+        ],
+        measuredAt:'24 September 2026',
+        missingNote:'the June deploy lost the checking log for July',
+        excluded:'the Noida workspace, which moved mid-quarter' }),
+      h(R.Chart, { key:'b', kind:'line', height:220,
+        title:'Minutes to produce a handover pack',
+        labels:['Q1 25','Q2 25','Q3 25','Q4 25','Q1 26','Q2 26'],
+        series:[{ name:'Rotterdam', values:[540, 505, 480, null, 62, 40] }],
+        measuredAt:'18 September 2026',
+        missingNote:'Q4 was the changeover and nothing was comparable',
+        alt:'Time to produce a handover pack fell from 540 minutes to 40 over six quarters.' }),
+      h('div', { key:'c', style:{ gridColumn:'1 / -1', display:'flex', gap:'28px', alignItems:'center',
+        paddingTop:'8px', borderTop:'1px solid var(--border-subtle)' } }, [
+        h('span', { key:'l', style:{ fontSize:'12px', color:'var(--ink-muted)' } }, 'Sparkline, for a figure in a row:'),
+        h('span', { key:'s', style:{ fontSize:'15px', fontWeight:600 } }, '40 min'),
+        h(R.Sparkline, { key:'k', values:[540,505,480,null,62,40], alt:'Falling over six quarters' })
+      ])
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

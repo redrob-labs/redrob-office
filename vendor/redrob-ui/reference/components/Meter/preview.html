@@ -1,0 +1,21 @@
+<!-- @dsCard group="Agent harness" height=500 -->
+<div id="root" style="padding: 28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+
+  function Demo() {
+    const pct = (v)=>v+'%';
+    return h('div', { style:{ display:'flex', flexDirection:'column', gap:'30px', maxWidth:'520px' } }, [
+      h(R.Meter, { key:1, label:'How much of this job is done', used:46, budget:100, format:pct, showBudget:false,
+        breakdown:[{label:'Reading',value:24},{label:'Thinking',value:18},{label:'Writing',value:4}] }),
+      h(R.Meter, { key:2, label:'Spent today', used:7.4, budget:9,
+        format:(v)=>'$'+v.toFixed(2) }),
+      h(R.Meter, { key:3, label:'Tasks used this month', used:4820, budget:5000, unit:'tasks' }),
+      h(R.Meter, { key:4, label:'What it is holding in mind', total:200000, segments:[
+        { label:'Its instructions', value:12000 }, { label:'What it has read', value:141000 },
+        { label:'Your conversation', value:38000 } ] }),
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

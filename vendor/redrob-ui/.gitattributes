@@ -1,0 +1,8 @@
+# LF in every working copy, whatever core.autocrlf says. The parity harness reads the reference
+# bundle's first line as JSON and the icon generator matches its lines exactly, so a CRLF checkout
+# on Windows broke both, and the generated tokens.json differed only in line endings.
+* text=auto eol=lf
+*.woff2 binary
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,0 +1,21 @@
+<!-- @dsCard group="Foundations" height=450 width=1180 -->
+<div id="root" style="padding:28px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement, R = window.Redrob;
+  const CON = ['threshold','layers','opening','reach'];
+  const OBJ = ['door','waiting','unreadable','nothingYet'];
+  const cell = n => h('figure',{key:n,style:{margin:0,display:'flex',flexDirection:'column',gap:'10px',alignItems:'flex-start'}},[
+    h(R.Illustration,{key:'i',name:n,size:'md'}),
+    h('figcaption',{key:'c',style:{fontSize:'12px',color:'var(--ink-muted)'}}, n)
+  ]);
+  const head = t => h('p',{style:{margin:'0 0 16px',fontSize:'12px',fontWeight:600,color:'var(--ink-muted)'}},t);
+  function Demo(){
+    return h('div',null,[
+      h('div',{key:'a'},[head('Constructions - the mark’s own geometry. Section openers, covers, campaign.'),
+        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'28px'}},CON.map(cell))]),
+      h('div',{key:'b',style:{marginTop:'36px'}},[head('Objects - the icon vocabulary, drawn large. Empty states, failures, the first time.'),
+        h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'28px'}},OBJ.map(cell))])
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

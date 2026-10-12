@@ -1,0 +1,21 @@
+<!-- @dsCard group="Forms" height=425 width=1180 -->
+<div id="root" style="padding: 24px; font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  function Demo() {
+    return h('div', { style: { display: 'flex', gap: '32px', alignItems: 'flex-start', flexWrap: 'wrap' } }, [
+      h('div', { key: 1, style: { width: '270px' } },
+        h(R.DatePicker, { label: 'Closing date', locale: 'en-US', defaultValue: '2026-10-08', defaultOpen: true,
+          hint: 'Sunday first, which is what the United States, India and Korea all do.' })),
+      h('div', { key: 2, style: { width: '270px' } },
+        h(R.DatePicker, { label: '마감일', locale: 'ko-KR', defaultValue: '2026-10-08', defaultOpen: true,
+          hint: '같은 컴포넌트, 한국어 달 이름과 요일.' })),
+      h('div', { key: 3, style: { width: '270px' } }, [
+        h(R.DatePicker, { key: 'a', label: 'Or just type it', locale: 'en-GB',
+          hint: 'The field takes 4 Mar 2026, 2026-03-04 or 4/3/2026. The calendar is the second way in, never the only one.' })
+      ])
+    ]);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>

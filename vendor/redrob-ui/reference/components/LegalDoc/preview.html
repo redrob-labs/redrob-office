@@ -1,0 +1,44 @@
+<!-- @dsCard group="Publishing" height=1310 width=820 -->
+<div id="root" style="font-family: var(--font-sans); color: var(--ink-primary);"></div>
+<script>
+  const h = React.createElement;
+  const R = window.Redrob;
+  const SHOT = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500"><rect width="800" height="500" fill="#EFF1F4"/>' +
+    '<rect x="40" y="40" width="300" height="16" rx="3" fill="#CBCFD7"/>' +
+    '<rect x="40" y="76" width="720" height="1" fill="#DFE2E8"/>' +
+    '<rect x="40" y="104" width="180" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="260" y="104" width="120" height="12" rx="3" fill="#2B52FF" opacity=".5"/>' +
+    '<rect x="420" y="104" width="150" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="40" y="150" width="720" height="1" fill="#EFF1F4"/>' +
+    '<rect x="40" y="178" width="200" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="260" y="178" width="90"  height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="420" y="178" width="170" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="40" y="224" width="720" height="1" fill="#EFF1F4"/>' +
+    '<rect x="40" y="252" width="160" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<rect x="260" y="252" width="140" height="12" rx="3" fill="#AAB0BB"/>' +
+    '<text x="40" y="440" font-family="sans-serif" font-size="15" fill="#7C8390">a real screenshot goes here</text></svg>');
+  const LOGO = (n) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40"><text x="0" y="28" font-family="sans-serif" font-size="24" font-weight="700" fill="#0A0B0C">' + n + '</text></svg>');
+ 
+  function Demo() {
+    return h(R.Band, { size:'sm' }, h(R.LegalDoc, {
+      title:'Privacy notice', entity:'Redrob Inc.', updated:'18 March 2026', effective:'1 April 2026',
+      summary:'We hold what you send us to answer you, and nothing else. We do not sell it, and we do not use anything you upload to train a model.',
+      sections:[
+        { id:'who', title:'Who this is from', body: h('p',null,['Redrob Inc., a Delaware corporation at 1 Penn Plaza, Suite 1423, New York, NY 10119, is the controller for this website. Where you deal with our Korean or Indian company instead, their own notice applies: ', h('a',{key:'k',href:'#'},'the Korean notice'),' and ', h('a',{key:'i',href:'#'},'the Indian notice'),'.']) },
+        { id:'what', title:'What we hold', body: [h('p',{key:1},'What you type into a form on this site, and what a cookie records once you have said it may.'),
+          h('ul',{key:2},[h('li',{key:'a'},'Your name, your work email, and the company you named'),h('li',{key:'b'},'Which pages you read, once you have allowed it')])] },
+        { id:'why', title:'Why we hold it', body: h('p',null,'To answer you. A record of the exchange is kept for as long as the conversation is live, and for one year afterwards.') },
+        { id:'rights', title:'What you can ask for', body: h('p',null,[
+            'A copy of what we hold, a correction, or its deletion. Write to ',
+            h('a',{key:'a',href:'mailto:privacy@redrob.io'},'privacy@redrob.io'),
+            '. If a machine took part in a decision about you, you may also ask how it was made and ask a person to look again.']) }
+      ],
+      history:[{date:'18 March 2026',what:'Named the US entity as the controller for this site.'},
+               {date:'2 January 2026',what:'Added the automated decision paragraph.'}],
+      contact:'Questions go to privacy@redrob.io, and are answered by a person.' }));
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
