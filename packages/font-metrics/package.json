@@ -1,0 +1,11 @@
+{
+  "name": "@genoffice/font-metrics",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "UI-only slice of the former font-metrics package: the browser-safe FaceVerticalMetrics type referenced by the docs IPC contract. The node:fs font location/metrics implementation was removed with the backend.",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit", "test": "vitest run" },
+  "devDependencies": { "typescript": "^5.9.3", "vitest": "^4.1.0" }
+}
