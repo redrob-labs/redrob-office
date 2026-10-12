@@ -1,0 +1,39 @@
+{
+  "name": "@genoffice/pdf",
+  "productName": "Redrob PDF",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "PDF viewer module (UI only): PDF.js render + text layer + thumbnails + annotation overlays, rendered standalone in the browser. The Electron main process, preload bridge and file I/O / page-editing engine are removed; backend seams are stubbed via src/renderer/ui-stubs.ts (the viewer renders client-side, so it works; save/edit/OCR/convert are no-ops).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@embedpdf/pdfium": "^2.15.0",
+    "@genoffice/agent-core": "workspace:*",
+    "@genoffice/ai-provider": "workspace:*",
+    "@genoffice/electron-utils": "workspace:*",
+    "@genoffice/i18n": "workspace:*",
+    "@genoffice/ui": "workspace:*",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.2.108",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.4",
+    "jsdom": "^28.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-static-copy": "^3.0.0",
+    "vitest": "^4.1.10"
+  },
+  "author": "Redrob"
+}
