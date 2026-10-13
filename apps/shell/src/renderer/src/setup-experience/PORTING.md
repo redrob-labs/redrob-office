@@ -52,21 +52,30 @@ design-system files, copied verbatim.
 real splash is a window the Electron main process shows before the renderer is
 ready; it is NOT part of the NSIS/DMG installer. It ports onto the desktop app's
 own splash (`office-src/apps/shell` main-process splash / `BrowserWindow`), built
-as a Lottie or Android animated-vector per `40-surfaces-and-motion.md`. The
-reveal here is **Splash A** — the brand-legal reading of the "Redrob logo →
-Office logo → wordmark" idea:
+as a Lottie or Android animated-vector per `40-surfaces-and-motion.md`. Two
+frames (Felix's spec):
 
-- the GROUP symbol (`redrob-symbol-solid.png` / `-mono-white.png`) uncovers once
-  along a 40° clip-path edge — the only permitted logo animation;
-- a hard cut to the composed Office **lockup** (`redrob-office-lockup*.png`,
-  symbol + wordmark) — type never animates in, no second mark animates beside
-  the group mark;
-- reduced motion skips the arrival and shows the lockup.
+- **Frame 1** — the FULL official Redrob logo (`redrob-logo-primary.png` /
+  `-white`, symbol + "Redrob" wordmark) uncovers once along a 40° clip-path
+  edge.
+- **Frame 2** — the Redrob Office ICON (`redrob-office-icon.svg` / `-dark`)
+  settles in, with "Redrob Office" beside it as PLAIN STATIC TEXT (a `<span>` in
+  the brand display cut, not animated, not a baked image).
 
-When porting, keep these constraints: they are the design system's motion law,
-not prototype choices. The timers (`1250`/`2550`/`2850` ms) map to the launch
-spec's "settles in from 90% over 0.6s, then one 1.6s pass of light, once per
-session".
+**DOCUMENTED DEPARTURE:** animating the Office mark and swapping the Redrob logo
+for it bends the motion law (one logo animation per splash; type never animates
+in; the lockup never swaps for another mark). This is intentional, by Felix's
+direction. The "Redrob Office" text is kept STATIC to stay as close to the law
+as the brief allows. When porting, reproduce the two frames but know the real
+splash may be held to the strict law instead — ask before shipping. Both visuals
+are ~30% smaller than the first build (Redrob lockup 130px, Office icon 50px,
+wordmark 26px).
+
+**Progress / removing lines.** On both the install progress step and the
+uninstall removing step the status is a SINGLE line that changes in place (not a
+stacked checklist), swapping through `progress.steps[]` / `removingSteps[]` as
+the bar advances. These lines are cosmetic flavour; see §3/§4 for how (and
+whether) they port to NSIS `DetailPrint`.
 
 ## 3. Windows — NSIS pages
 
