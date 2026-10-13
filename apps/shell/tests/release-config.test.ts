@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -209,6 +209,52 @@ describe('the launcher release manifest (redrob-launcher.json)', () => {
     }
   })
 
+  it('--no-config checks a release directory without loading electron-builder.cjs', () => {
+    // The publish job downloads the signed assets into a clean checkout: no
+    // node_modules, no electron dist, no built module trees. electron-builder.cjs
+    // asserts all of those at load, so the check must not require() it there.
+    // Run from a copy of the script in a bare tree: there is no apps/shell/
+    // electron-builder.cjs beside it, so loading the config would throw.
+    const bare = mkdtempSync(join(tmpdir(), 'office-bare-'))
+    const dir = releaseDir({
+      'redrob-office-0.0.0-macos-aarch64.dmg': '',
+      'redrob-office-0.0.0-macos-aarch64.zip': '',
+      'redrob-office-0.0.0-windows-x64-setup.exe': '',
+      'redrob-office-0.0.0-windows-x64-portable.zip': '',
+      'latest.yml': '',
+      'latest-mac.yml': '',
+    })
+    try {
+      mkdirSync(join(bare, 'scripts'))
+      copyFileSync(CHECK, join(bare, 'scripts/check-release-asset-names.mjs'))
+      copyFileSync(WRITER, join(bare, 'scripts/write-launcher-manifest.mjs'))
+      spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
+      const bareCheck = join(bare, 'scripts/check-release-asset-names.mjs')
+      const withConfig = spawnSync(process.execPath, [bareCheck, dir], { encoding: 'utf8' })
+      expect(withConfig.status, 'the bare tree must fail when the config is loaded').not.toBe(0)
+      const noConfig = spawnSync(process.execPath, [bareCheck, '--no-config', dir], { encoding: 'utf8' })
+      expect(noConfig.status, noConfig.stderr).toBe(0)
+      expect(noConfig.stdout).toContain('redrob-office-0.0.0-windows-x64-portable.zip ok')
+      expect(noConfig.stdout).toContain('redrob-launcher.json ok')
+      expect(noConfig.stdout).not.toContain('mac dmg')
+      // and it still fails on a bad name / missing manifest
+      const bad = releaseDir({ 'Redrob-Office-Setup-0.0.0.exe': '' })
+      try {
+        const r = spawnSync(process.execPath, [bareCheck, '--no-config', bad], { encoding: 'utf8' })
+        expect(r.status).toBe(1)
+        expect(r.stderr).toContain('not a name the launcher reads')
+        expect(r.stderr).toContain('redrob-launcher.json is missing')
+      } finally {
+        rmSync(bad, { recursive: true, force: true })
+      }
+      // --no-config without a dir is a usage error, not a silent pass
+      expect(spawnSync(process.execPath, [bareCheck, '--no-config'], { encoding: 'utf8' }).status).toBe(2)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+      rmSync(bare, { recursive: true, force: true })
+    }
+  })
+
   it('every release job writes the manifest before its asset-name check, and the uploads carry it', () => {
     const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
     const linux = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'), 'utf8')
@@ -233,8 +279,10 @@ describe('the launcher release manifest (redrob-launcher.json)', () => {
     // the platform artifacts carry it into the release job, which publishes release-assets/*
     expect(desktop.match(/apps\/shell\/release\/redrob-launcher\.json/g)).toHaveLength(2)
     expect(desktop).toContain(`${WRITE} release-assets`)
-    expect(desktop).toContain(`${CHECK_STEP} release-assets`)
-    expect(desktop.indexOf(`${CHECK_STEP} release-assets`)).toBeLessThan(desktop.indexOf('softprops/action-gh-release@v2'))
+    // the publish job has no build, so it must not load electron-builder.cjs
+    expect(desktop).toContain(`${CHECK_STEP} --no-config release-assets`)
+    expect(desktop.indexOf(`${CHECK_STEP} --no-config release-assets`)).toBeLessThan(desktop.indexOf('softprops/action-gh-release@v2'))
+    expect(jobBody('release')).not.toContain('pnpm install')
     // linux: written into the staged dir, before the check, uploaded by release-assets/*
     expect(linux).toContain(`${WRITE} "$OUT"`)
     expect(linux.indexOf(`${WRITE} "$OUT"`)).toBeLessThan(linux.indexOf(`${CHECK_STEP} release-assets`))
