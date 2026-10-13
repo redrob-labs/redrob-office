@@ -7,6 +7,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  DIRECTORY_HEADER,
   EngineIntegrationClient,
   EngineIntegrationError,
   toEngineIntegration,
@@ -91,12 +92,17 @@ describe('EngineIntegrationClient.list', () => {
     expect((init.headers as Record<string, string>).authorization).toBe(
       `Basic ${Buffer.from('user:pass').toString('base64')}`,
     )
+    // The shared daemon serves every project of every app; each request names its own
+    // working directory in this header as well as the query.
+    expect((init.headers as Record<string, string>)[DIRECTORY_HEADER]).toBe('/home/someone/project')
   })
 
-  it('omits the directory param when none is configured', async () => {
+  it('omits the directory param and header when none is configured', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(ok([]))
     await new EngineIntegrationClient({ ...target, directory: undefined }, fetchImpl).list()
-    expect(fetchImpl.mock.calls[0]![0]).toBe('http://127.0.0.1:41234/api/integration')
+    const [url, init] = fetchImpl.mock.calls[0]!
+    expect(url).toBe('http://127.0.0.1:41234/api/integration')
+    expect(init.headers).not.toHaveProperty(DIRECTORY_HEADER)
   })
 
   it('accepts both a bare array and a location-wrapped payload', async () => {
