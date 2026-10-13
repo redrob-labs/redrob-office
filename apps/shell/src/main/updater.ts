@@ -369,9 +369,11 @@ function manualDownloadUrlFor(info: UpdateInfo): string | null {
     basenames.find(match) ?? null
   let chosen: string | null
   if (process.platform === 'darwin') {
+    // release assets are named <stem>-<version>-macos-aarch64.dmg (the launcher's
+    // token); older feeds spelled the arch arm64, and a universal dmg serves both
     const arm =
-      pick((name) => name.endsWith('-arm64.dmg')) ?? pick((name) => name.endsWith('-universal.dmg'))
-    const x64 = pick((name) => name.endsWith('.dmg') && !/-(arm64|universal)\.dmg$/.test(name))
+      pick((name) => /-(aarch64|arm64)\.dmg$/.test(name)) ?? pick((name) => name.endsWith('-universal.dmg'))
+    const x64 = pick((name) => name.endsWith('.dmg') && !/-(aarch64|arm64|universal)\.dmg$/.test(name))
     chosen = process.arch === 'arm64' ? (arm ?? x64) : (x64 ?? arm)
   } else if (process.platform === 'win32') {
     chosen = pick((name) => name.endsWith('.exe'))

@@ -197,13 +197,21 @@ jobs:
       - name: Generate third-party notices
         run: pnpm --filter @genoffice/shell run notices
 
+      # nsis is the installer people download; zip is the same signed win-unpacked
+      # tree as redrob-office-<v>-windows-x64-portable.zip, which is what Redrob
+      # Launcher installs (it cannot run an exe installer).
       - name: Sign and package Redrob Office (shell)
-        run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis --x64 --publish never
+        run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis zip --x64 --publish never
+
+      # Asset names are the launcher's <stem>-<version>-<os>-<arch>[-portable].<ext>;
+      # a drift here ships a release the launcher silently cannot install.
+      - name: Check release asset names
+        run: node scripts/check-release-asset-names.mjs apps/shell/release
 
       - name: Verify Authenticode signatures
         shell: pwsh
         run: |
-          $installer = Get-ChildItem "apps/shell/release/*Setup*.exe" | Select-Object -First 1
+          $installer = Get-ChildItem "apps/shell/release/*-setup.exe" | Select-Object -First 1
           if (-not $installer) { throw "Signed installer was not produced" }
           $sidecar = "apps/shell/release/win-unpacked/resources/native/redrob-code.exe"
           if (-not (Test-Path $sidecar)) { throw "Packaged Redrob Code sidecar was not produced" }
@@ -226,7 +234,8 @@ jobs:
         with:
           name: signed-windows
           path: |
-            apps/shell/release/*Setup*.exe
+            apps/shell/release/*-setup.exe
+            apps/shell/release/*-portable.zip
             apps/shell/release/*.blockmap
             apps/shell/release/latest.yml
           if-no-files-found: error
@@ -325,6 +334,10 @@ jobs:
           GENOFFICE_MAC_X64: '0'
           GENOFFICE_UPDATE_REPO: ${{ github.repository }}
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --mac dmg zip --arm64 --publish never
+
+      # Same gate as the Windows job: the dmg must carry a name the launcher reads.
+      - name: Check release asset names
+        run: node scripts/check-release-asset-names.mjs apps/shell/release
 
       - name: Verify signatures and notarization tickets
         shell: bash
