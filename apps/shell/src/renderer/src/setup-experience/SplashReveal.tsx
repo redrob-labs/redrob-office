@@ -20,29 +20,14 @@
  *
  * Presentation only — no backend, no persistence.
  */
-import { useEffect, useReducer, type ReactElement } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 import logoLight from '../assets/splash/redrob-logo-primary.png'
 import logoDark from '../assets/splash/redrob-logo-primary-white.png'
 import { OfficeMark } from './OfficeMark'
+import { isDark, prefersReducedMotion } from './setup-env'
 
 /** The two held frames of the reveal. */
 type Phase = 'redrob' | 'office'
-
-function prefersReducedMotion(): boolean {
-  try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  } catch {
-    return false
-  }
-}
-
-function isDark(): boolean {
-  return (
-    document.documentElement.getAttribute('data-theme') === 'dark' ||
-    (!document.documentElement.getAttribute('data-theme') &&
-      !!window.matchMedia?.('(prefers-color-scheme: dark)').matches)
-  )
-}
 
 export interface SplashRevealProps {
   /** Fired when the reveal has settled; the host then shows the flow. */
@@ -50,26 +35,21 @@ export interface SplashRevealProps {
 }
 
 export function SplashReveal({ onDone }: SplashRevealProps): ReactElement {
-  // Reduced motion: skip straight to the Office frame (no arrival), present it,
-  // then hand off. Otherwise play Frame 1 (Redrob) then cut to Frame 2 (Office).
-  const [phase, next] = useReducer(
-    (p: Phase): Phase => (p === 'redrob' ? 'office' : 'office'),
-    prefersReducedMotion() ? 'office' : 'redrob',
-  )
-
+  // Reduced motion: start on the Office frame (no arrival), present it, then
+  // hand off. Otherwise start on Frame 1 (Redrob) and advance to Frame 2.
+  const [phase, setPhase] = useState<Phase>(prefersReducedMotion() ? 'office' : 'redrob')
   const dark = isDark()
 
   useEffect(() => {
-    const reduce = prefersReducedMotion()
     const timers: number[] = []
-    if (reduce) {
+    if (prefersReducedMotion()) {
       timers.push(window.setTimeout(onDone, 900))
       return () => timers.forEach(window.clearTimeout)
     }
-    timers.push(window.setTimeout(next, 1250)) // Redrob -> Office
+    timers.push(window.setTimeout(() => setPhase('office'), 1250)) // Redrob -> Office
     timers.push(window.setTimeout(onDone, 2850)) // hand off to the flow
     return () => timers.forEach(window.clearTimeout)
-    // onDone/next are stable; run once on mount.
+    // onDone is stable; run once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
