@@ -1,13 +1,17 @@
 /**
  * Tests for the engine lifecycle.
  *
- * `electron` is mocked, so these run in the normal shell suite with no Electron
- * process. The point is the single-flight and teardown behaviour, which is where an
- * orphaned engine comes from.
+ * `electron` and the daemon client are mocked, so these run in the normal shell suite
+ * with no Electron process and no daemon. The point is which binary is chosen, that
+ * Office attaches rather than spawns, the single-flight, and that teardown detaches
+ * without ever stopping the daemon.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const startEngine = vi.fn()
+const connectOrStart = vi.fn()
+const attach = vi.fn()
+const resolveSharedRedrobBin = vi.fn()
+const daemonHealthy = vi.fn()
 
 vi.mock('electron', () => ({
   app: {
@@ -17,27 +21,38 @@ vi.mock('electron', () => ({
   },
   ipcMain: { handle: vi.fn() },
 }))
-vi.mock('../src/main/managed-engine', () => ({ startEngine }))
+vi.mock('../src/main/engine-daemon', () => ({
+  DAEMON_USERNAME: 'redrob',
+  connectOrStart,
+  attach,
+  resolveSharedRedrobBin,
+  daemonHealthy,
+}))
 
-const { ensureEngine, engineStatus, resetEngineStateForTests, teardownEngine, engineBinaryPath } = await import(
-  '../src/main/engine-lifecycle'
-)
+const { ensureEngine, engineStatus, resetEngineStateForTests, teardownEngine, engineBinaryPath, connectSharedEngine } =
+  await import('../src/main/engine-lifecycle')
 
-function fakeEngine(alive = true) {
-  return {
-    baseUrl: 'http://127.0.0.1:41234',
-    username: 'u',
-    password: 'p',
-    pid: 123,
-    isAlive: () => alive,
-    close: vi.fn().mockResolvedValue(undefined),
-  }
+const record = { id: 'd1', version: '0.6.0', url: 'http://127.0.0.1:41234', port: 41234, pid: 4242, secret: 's3cret' }
+
+function connection(started = false) {
+  return { url: record.url, headers: { Authorization: 'Basic x' }, record, started }
+}
+
+function attachment() {
+  return { id: 'c1', detach: vi.fn().mockResolvedValue(undefined) }
 }
 
 describe('engine lifecycle', () => {
   beforeEach(() => {
     resetEngineStateForTests()
-    startEngine.mockReset()
+    connectOrStart.mockReset()
+    attach.mockReset()
+    resolveSharedRedrobBin.mockReset()
+    daemonHealthy.mockReset()
+    resolveSharedRedrobBin.mockResolvedValue('/home/u/.redrob/bin/redrob')
+    connectOrStart.mockResolvedValue(connection())
+    attach.mockResolvedValue(attachment())
+    daemonHealthy.mockResolvedValue(true)
   })
 
   afterEach(() => {
@@ -46,93 +61,136 @@ describe('engine lifecycle', () => {
 
   it('starts stopped, so app launch pays nothing', () => {
     // Lazy on purpose: Office opens documents, and a user who never touches AI should
-    // not pay the spawn.
+    // not pay a daemon start.
     expect(engineStatus()).toEqual({ status: 'stopped' })
-    expect(startEngine).not.toHaveBeenCalled()
+    expect(connectOrStart).not.toHaveBeenCalled()
   })
 
-  it('starts once and reuses the running engine', async () => {
-    startEngine.mockResolvedValue(fakeEngine())
-    await ensureEngine('/proj')
-    await ensureEngine('/proj')
-    expect(startEngine).toHaveBeenCalledTimes(1)
-    expect(engineStatus()).toEqual({ status: 'running', baseUrl: 'http://127.0.0.1:41234' })
+  it('attaches to the shared daemon as office and exposes its credentials', async () => {
+    const engine = await ensureEngine('/proj')
+    expect(connectOrStart).toHaveBeenCalledWith('/home/u/.redrob/bin/redrob', expect.anything())
+    expect(attach).toHaveBeenCalledWith(expect.objectContaining({ url: record.url }), 'office', expect.objectContaining({ pid: process.pid }))
+    expect(engine).toMatchObject({ baseUrl: record.url, username: 'redrob', password: 's3cret', pid: 4242 })
+    expect(engine.isAlive()).toBe(true)
+    expect(engineStatus()).toEqual({ status: 'running', baseUrl: record.url })
   })
 
-  it('is single-flight: concurrent callers do not spawn two engines', async () => {
-    // Without this, opening two editor windows at once spawns two engines on two ports
-    // and the second leaks.
+  it('falls back to the bundled binary when no shared redrob is installed', async () => {
+    resolveSharedRedrobBin.mockResolvedValue(undefined)
+    await ensureEngine('/proj')
+    // The bundled binary starts the SHARED daemon (via `service start`), never `serve`.
+    expect(connectOrStart).toHaveBeenCalledWith('/app/build/redrob-code', expect.anything())
+  })
+
+  it('prefers an explicit bundled override in connectSharedEngine', async () => {
+    resolveSharedRedrobBin.mockResolvedValue(undefined)
+    const engine = await connectSharedEngine({ bundledBin: '/custom/redrob-code' })
+    expect(connectOrStart).toHaveBeenCalledWith('/custom/redrob-code', expect.anything())
+    await engine.close()
+  })
+
+  it('connects once and reuses the attachment', async () => {
+    await ensureEngine('/proj')
+    await ensureEngine('/other')
+    expect(connectOrStart).toHaveBeenCalledTimes(1)
+    expect(attach).toHaveBeenCalledTimes(1)
+  })
+
+  it('is single-flight: concurrent callers do not start two daemons', async () => {
     let release: (value: unknown) => void = () => {}
-    startEngine.mockReturnValue(new Promise((resolve) => (release = resolve)))
+    connectOrStart.mockReturnValue(new Promise((resolve) => (release = resolve)))
 
     const a = ensureEngine('/proj')
     const b = ensureEngine('/proj')
     expect(engineStatus()).toEqual({ status: 'starting' })
-    release(fakeEngine())
+    release(connection())
     await Promise.all([a, b])
 
-    expect(startEngine).toHaveBeenCalledTimes(1)
+    expect(connectOrStart).toHaveBeenCalledTimes(1)
+    expect(attach).toHaveBeenCalledTimes(1)
   })
 
   it('reports a failure without caching it as permanent', async () => {
-    // The user may install the runtime or free the port and retry; a cached failure
-    // would make the app need a restart to notice.
-    startEngine.mockRejectedValueOnce(new Error('engine binary not found at /app/build/redrob-code'))
-    await expect(ensureEngine('/proj')).rejects.toThrow(/not found/)
-    expect(engineStatus()).toEqual({
-      status: 'failed',
-      error: 'engine binary not found at /app/build/redrob-code',
-    })
+    connectOrStart.mockRejectedValueOnce(new Error('could not run redrob: ENOENT'))
+    await expect(ensureEngine('/proj')).rejects.toThrow(/could not run/)
+    expect(engineStatus()).toEqual({ status: 'failed', error: 'could not run redrob: ENOENT' })
 
-    startEngine.mockResolvedValueOnce(fakeEngine())
+    connectOrStart.mockResolvedValueOnce(connection(true))
     await ensureEngine('/proj')
     expect(engineStatus().status).toBe('running')
   })
 
-  it('restarts when the running engine has died', async () => {
-    startEngine.mockResolvedValueOnce(fakeEngine(false))
-    await ensureEngine('/proj')
-    startEngine.mockResolvedValueOnce(fakeEngine(true))
-    await ensureEngine('/proj')
-    expect(startEngine).toHaveBeenCalledTimes(2)
+  it('isAlive is a cached health check, and a dead daemon is reconnected', async () => {
+    vi.useFakeTimers()
+    try {
+      const engine = await connectSharedEngine({ healthMs: 1000 })
+      expect(engine.isAlive()).toBe(true)
+      expect(daemonHealthy).not.toHaveBeenCalled()
+      daemonHealthy.mockResolvedValue(false)
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(daemonHealthy).toHaveBeenCalledWith(record, undefined)
+      expect(engine.isAlive()).toBe(false)
+      await engine.close()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
-  it('never exposes the engine credentials to the renderer', () => {
-    // A renderer that could read the password could drive the engine directly, and the
-    // engine holds the API keys.
-    startEngine.mockResolvedValue(fakeEngine())
-    return ensureEngine('/proj').then(() => {
-      const status = engineStatus()
-      expect(JSON.stringify(status)).not.toContain('password')
-      expect(JSON.stringify(status)).not.toContain('"p"')
-    })
+  it('reconnects when the attached daemon has stopped answering', async () => {
+    const first = attachment()
+    attach.mockResolvedValueOnce(first)
+    const a = await ensureEngine('/proj')
+    // Simulate the health probe having failed.
+    ;(a as { isAlive: () => boolean }).isAlive = () => false
+    await ensureEngine('/proj')
+    expect(connectOrStart).toHaveBeenCalledTimes(2)
+    // The stale attachment is let go before the new one is made.
+    expect(first.detach).toHaveBeenCalled()
   })
 
-  it('teardown closes a running engine', async () => {
-    const engine = fakeEngine()
-    startEngine.mockResolvedValue(engine)
+  it('never exposes the engine credentials to the renderer', async () => {
+    await ensureEngine('/proj')
+    const status = JSON.stringify(engineStatus())
+    expect(status).not.toContain('password')
+    expect(status).not.toContain('s3cret')
+  })
+
+  it('teardown detaches and never stops the daemon', async () => {
+    const att = attachment()
+    attach.mockResolvedValue(att)
     await ensureEngine('/proj')
     await teardownEngine()
-    expect(engine.close).toHaveBeenCalled()
+    expect(att.detach).toHaveBeenCalledTimes(1)
     expect(engineStatus()).toEqual({ status: 'stopped' })
+    // Nothing in the lifecycle knows how to kill: the daemon's exit is its idle timer's job.
+    expect(Object.keys(await import('../src/main/engine-lifecycle'))).not.toContain('stopDaemon')
   })
 
-  it('teardown waits for a start in flight instead of orphaning it', async () => {
-    // Dropping the in-flight promise here is exactly how an orphan process is created:
-    // the spawn completes after the app has quit and nothing ever closes it.
-    const engine = fakeEngine()
+  it('close is idempotent', async () => {
+    const att = attachment()
+    attach.mockResolvedValue(att)
+    const engine = await ensureEngine('/proj')
+    await engine.close()
+    await engine.close()
+    expect(att.detach).toHaveBeenCalledTimes(1)
+    expect(engine.isAlive()).toBe(false)
+  })
+
+  it('teardown waits for a connect in flight instead of leaving the attachment behind', async () => {
+    const att = attachment()
+    attach.mockResolvedValue(att)
     let release: (value: unknown) => void = () => {}
-    startEngine.mockReturnValue(new Promise((resolve) => (release = resolve)))
+    connectOrStart.mockReturnValue(new Promise((resolve) => (release = resolve)))
 
     const pending = ensureEngine('/proj')
     const stopping = teardownEngine()
-    release(engine)
+    release(connection())
     await Promise.all([pending, stopping])
 
-    expect(engine.close).toHaveBeenCalled()
+    expect(att.detach).toHaveBeenCalled()
   })
 
-  it('teardown is safe when nothing is running', async () => {
+  it('teardown is safe when nothing is attached', async () => {
     await expect(teardownEngine()).resolves.toBeUndefined()
   })
 
