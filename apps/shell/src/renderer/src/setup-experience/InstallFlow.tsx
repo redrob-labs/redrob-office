@@ -15,7 +15,7 @@
 import { useState, type ReactElement } from 'react'
 import { Button, Checkbox, Progress } from '@genoffice/ui'
 import { LICENSE_EXCERPT } from './license-excerpt'
-import { OfficeMark } from './OfficeMark'
+import { SetupWindow } from './SetupWindow'
 import { useFakeProgress } from './useFakeProgress'
 import { copy, type Lang } from './setup-copy'
 
@@ -28,16 +28,6 @@ function isMac(): boolean {
   } catch {
     return false
   }
-}
-
-function BrandBar(): ReactElement {
-  // Same Office identity as the splash frame 2: the Office icon + "Redrob
-  // Office" text — never the Redrob group logo, never just "Office".
-  return (
-    <div className="setup-window__brand">
-      <OfficeMark size={30} />
-    </div>
-  )
 }
 
 export interface InstallFlowProps {
@@ -57,114 +47,106 @@ export function InstallFlow({ lang }: InstallFlowProps): ReactElement {
 
   const stepIndex = Math.min(t.progress.steps.length - 1, Math.floor((progress / 100) * t.progress.steps.length))
 
-  return (
-    <div className="setup-window">
-      <BrandBar />
-      <div className="setup-window__body">
-        {step === 'welcome' && (
-          <>
-            <span className="setup-window__eyebrow">{t.welcome.eyebrow}</span>
-            <h1 className="setup-window__title setup-window__title--lg">{t.welcome.title}</h1>
-            <p className="setup-window__text">{t.welcome.body}</p>
-            <ul className="setup-window__features">
-              {t.welcome.features.map((f) => (
-                <li key={f.title} className="setup-window__feature">
-                  <span className="setup-window__feature-title">{f.title}</span>
-                  <span className="setup-window__feature-body">{f.body}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        {step === 'license' && (
-          <>
-            <h1 className="setup-window__title">{t.license.title}</h1>
-            <p className="setup-window__text">{t.license.intro}</p>
-            <div className="setup-window__license">{LICENSE_EXCERPT}</div>
-            <Checkbox
-              checked={agreed}
-              onChange={(e) => setAgreed(e.currentTarget.checked)}
-              label={t.license.agree}
-            />
-          </>
-        )}
-
-        {step === 'location' && (
-          <>
-            <h1 className="setup-window__title">{t.location.title}</h1>
-            <p className="setup-window__text">{t.location.body}</p>
-            <div className="setup-window__path">
-              {isMac() ? t.location.defaultHintMac : t.location.defaultHintWin}
-            </div>
-          </>
-        )}
-
-        {step === 'progress' && (
-          <>
-            <h1 className="setup-window__title">{t.progress.title}</h1>
-            <Progress value={progress} max={100} />
-            {/* One line that changes in place as the bar advances. */}
-            <p className="setup-window__line" key={stepIndex}>
-              {t.progress.steps[stepIndex]}
-            </p>
-          </>
-        )}
-
-        {step === 'finish' && (
-          <div className="setup-window__center">
-            <h1 className="setup-window__title setup-window__title--lg">{t.finish.title}</h1>
-            <p className="setup-window__text">{t.finish.body}</p>
-          </div>
-        )}
+  const footer: ReactElement | null =
+    step === 'welcome' ? (
+      <div className="setup-window__footer">
+        <Button variant="primary" onClick={() => setStep('license')}>
+          {t.welcome.cta}
+        </Button>
       </div>
-
-      {step === 'welcome' && (
-        <div className="setup-window__footer">
-          <Button variant="primary" onClick={() => setStep('license')}>
-            {t.welcome.cta}
+    ) : step === 'license' ? (
+      <div className="setup-window__footer setup-window__footer--split">
+        <Button variant="ghost" onClick={() => setStep('welcome')}>
+          {t.license.back}
+        </Button>
+        <Button variant="primary" disabled={!agreed} onClick={() => setStep('location')}>
+          {t.license.next}
+        </Button>
+      </div>
+    ) : step === 'location' ? (
+      <div className="setup-window__footer setup-window__footer--split">
+        <Button variant="ghost" onClick={() => setStep('license')}>
+          {t.location.back}
+        </Button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {/* Cosmetic: the real page opens a folder picker; here it is inert. */}
+          <Button variant="secondary" disabled>
+            {t.location.change}
+          </Button>
+          <Button variant="primary" onClick={() => setStep('progress')}>
+            {t.location.install}
           </Button>
         </div>
+      </div>
+    ) : step === 'finish' ? (
+      <div className="setup-window__footer setup-window__footer--split">
+        <Button variant="ghost" onClick={() => window.close()}>
+          {t.finish.close}
+        </Button>
+        <Button variant="primary" onClick={() => window.close()}>
+          {t.finish.runApp}
+        </Button>
+      </div>
+    ) : null // progress step has no footer
+
+  return (
+    <SetupWindow footer={footer}>
+      {step === 'welcome' && (
+        <>
+          <span className="setup-window__eyebrow">{t.welcome.eyebrow}</span>
+          <h1 className="setup-window__title setup-window__title--lg">{t.welcome.title}</h1>
+          <p className="setup-window__text">{t.welcome.body}</p>
+          <ul className="setup-window__features">
+            {t.welcome.features.map((f) => (
+              <li key={f.title} className="setup-window__feature">
+                <span className="setup-window__feature-title">{f.title}</span>
+                <span className="setup-window__feature-body">{f.body}</span>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {step === 'license' && (
-        <div className="setup-window__footer setup-window__footer--split">
-          <Button variant="ghost" onClick={() => setStep('welcome')}>
-            {t.license.back}
-          </Button>
-          <Button variant="primary" disabled={!agreed} onClick={() => setStep('location')}>
-            {t.license.next}
-          </Button>
-        </div>
+        <>
+          <h1 className="setup-window__title">{t.license.title}</h1>
+          <p className="setup-window__text">{t.license.intro}</p>
+          <div className="setup-window__license">{LICENSE_EXCERPT}</div>
+          <Checkbox
+            checked={agreed}
+            onChange={(e) => setAgreed(e.currentTarget.checked)}
+            label={t.license.agree}
+          />
+        </>
       )}
 
       {step === 'location' && (
-        <div className="setup-window__footer setup-window__footer--split">
-          <Button variant="ghost" onClick={() => setStep('license')}>
-            {t.location.back}
-          </Button>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {/* Cosmetic: the real page opens a folder picker; here it is inert. */}
-            <Button variant="secondary" disabled>
-              {t.location.change}
-            </Button>
-            <Button variant="primary" onClick={() => setStep('progress')}>
-              {t.location.install}
-            </Button>
+        <>
+          <h1 className="setup-window__title">{t.location.title}</h1>
+          <p className="setup-window__text">{t.location.body}</p>
+          <div className="setup-window__path">
+            {isMac() ? t.location.defaultHintMac : t.location.defaultHintWin}
           </div>
-        </div>
+        </>
+      )}
+
+      {step === 'progress' && (
+        <>
+          <h1 className="setup-window__title">{t.progress.title}</h1>
+          <Progress value={progress} max={100} />
+          {/* One line that changes in place as the bar advances. */}
+          <p className="setup-window__line" key={stepIndex}>
+            {t.progress.steps[stepIndex]}
+          </p>
+        </>
       )}
 
       {step === 'finish' && (
-        <div className="setup-window__footer setup-window__footer--split">
-          <Button variant="ghost" onClick={() => window.close()}>
-            {t.finish.close}
-          </Button>
-          <Button variant="primary" onClick={() => window.close()}>
-            {t.finish.runApp}
-          </Button>
+        <div className="setup-window__center">
+          <h1 className="setup-window__title setup-window__title--lg">{t.finish.title}</h1>
+          <p className="setup-window__text">{t.finish.body}</p>
         </div>
       )}
-    </div>
+    </SetupWindow>
   )
 }
