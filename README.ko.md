@@ -27,10 +27,10 @@ Console 전송 계층을 사용합니다. 다른 벤더 키를 쓰거나 임의�
 
 | 시스템 | 파일 |
 | --- | --- |
-| Windows x64 | [`Redrob-Setup-<version>.exe`](https://github.com/redrob-labs/redrob-office/releases/latest) |
-| Linux AppImage | [`Redrob-<version>.AppImage`](https://github.com/redrob-labs/redrob-office/releases/latest) |
-| Linux deb | [`redrob_<version>_amd64.deb`](https://github.com/redrob-labs/redrob-office/releases/latest) |
-| Linux rpm | [`redrob-<version>.x86_64.rpm`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Windows x64 | [`redrob-office-<version>-windows-x64-setup.exe`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux AppImage | [`redrob-office-<version>-linux-x86_64.AppImage`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux deb | [`redrob-office-<version>-linux-x86_64.deb`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux rpm | [`redrob-office-<version>-linux-x86_64.rpm`](https://github.com/redrob-labs/redrob-office/releases/latest) |
 
 Linux 패키지에는 릴리즈에 `.sha256`이 함께 올라갑니다. macOS 빌드는 없습니다. 앱의 자동
 업데이트도 같은 릴리즈를 읽습니다.

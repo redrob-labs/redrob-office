@@ -197,13 +197,26 @@ jobs:
       - name: Generate third-party notices
         run: pnpm --filter @genoffice/shell run notices
 
+      # nsis is the installer people download; zip is the same signed win-unpacked
+      # tree as redrob-office-<v>-windows-x64-portable.zip, which is what Redrob
+      # Launcher installs (it cannot run an exe installer).
       - name: Sign and package Redrob Office (shell)
-        run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis --x64 --publish never
+        run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis zip --x64 --publish never
+
+      # Asset names are the launcher's <stem>-<version>-<os>-<arch>[-portable].<ext>;
+      # a drift here ships a release the launcher silently cannot install. The
+      # release manifest (redrob-launcher.json) tells the launcher this release reads
+      # the shared account file; the check refuses a release dir without it.
+      - name: Write the launcher release manifest
+        run: node scripts/write-launcher-manifest.mjs apps/shell/release
+
+      - name: Check release asset names
+        run: node scripts/check-release-asset-names.mjs apps/shell/release
 
       - name: Verify Authenticode signatures
         shell: pwsh
         run: |
-          $installer = Get-ChildItem "apps/shell/release/*Setup*.exe" | Select-Object -First 1
+          $installer = Get-ChildItem "apps/shell/release/*-setup.exe" | Select-Object -First 1
           if (-not $installer) { throw "Signed installer was not produced" }
           $sidecar = "apps/shell/release/win-unpacked/resources/native/redrob-code.exe"
           if (-not (Test-Path $sidecar)) { throw "Packaged Redrob Code sidecar was not produced" }
@@ -226,9 +239,11 @@ jobs:
         with:
           name: signed-windows
           path: |
-            apps/shell/release/*Setup*.exe
+            apps/shell/release/*-setup.exe
+            apps/shell/release/*-portable.zip
             apps/shell/release/*.blockmap
             apps/shell/release/latest.yml
+            apps/shell/release/redrob-launcher.json
           if-no-files-found: error
           compression-level: 0
 
@@ -326,6 +341,14 @@ jobs:
           GENOFFICE_UPDATE_REPO: ${{ github.repository }}
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --mac dmg zip --arm64 --publish never
 
+      # Same gate as the Windows job: the dmg must carry a name the launcher reads,
+      # and the release manifest must be beside it.
+      - name: Write the launcher release manifest
+        run: node scripts/write-launcher-manifest.mjs apps/shell/release
+
+      - name: Check release asset names
+        run: node scripts/check-release-asset-names.mjs apps/shell/release
+
       - name: Verify signatures and notarization tickets
         shell: bash
         run: |
@@ -359,6 +382,7 @@ jobs:
             apps/shell/release/*.dmg
             apps/shell/release/*.zip
             apps/shell/release/latest-mac.yml
+            apps/shell/release/redrob-launcher.json
           if-no-files-found: error
           compression-level: 0
 
@@ -394,6 +418,15 @@ jobs:
           pattern: signed-*
           path: release-assets
           merge-multiple: true
+
+      # The platform jobs each carried a copy; this one is the authoritative write so
+      # the published release holds the manifest even if an artifact set is rebuilt
+      # by hand. The check then refuses to publish a set without it.
+      - name: Write the launcher release manifest
+        run: node scripts/write-launcher-manifest.mjs release-assets
+
+      - name: Check release asset names
+        run: node scripts/check-release-asset-names.mjs release-assets
 
       - name: Publish signed release and update metadata
         uses: softprops/action-gh-release@v2

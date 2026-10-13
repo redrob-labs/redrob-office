@@ -63,7 +63,7 @@ Linux packages carry a `.sha256` sidecar because a release asset has no checksum
 its own. Verify with:
 
 ```bash
-sha256sum -c redrob_0.8.3_amd64.deb.sha256
+sha256sum -c redrob-office-0.9.1-linux-x86_64.deb.sha256
 ```
 
 Windows installers are Authenticode-signed; the signature is the integrity check

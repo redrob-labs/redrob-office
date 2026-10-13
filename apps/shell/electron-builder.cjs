@@ -302,6 +302,21 @@ function assertThirdPartyNoticesPresent() {
   }
 }
 
+// Release asset names: <stem>-<version>-<os>-<arch>[-portable].<ext>, which is what
+// Redrob Launcher parses to install this app (redrob-launcher
+// crates/core/src/platform.rs parse_asset_name). stem is the repository name,
+// the os-arch tokens are the launcher's (linux-x86_64, macos-aarch64,
+// windows-x64), never electron-builder's own ${arch} spellings (amd64 / x64 /
+// arm64 differ per target). scripts/check-release-asset-names.mjs asserts every
+// name below against the launcher's grammar.
+//
+// electron-updater keys on the file names written into latest*.yml at the same
+// build, not on any historic name, so already-installed builds follow a rename:
+// their next feed read names the new files. The names are spelled per target
+// because each pipeline builds one arch per OS; a second arch needs its own
+// literal, not ${arch}.
+const ASSET_STEM = 'redrob-office'
+
 /** @type {import('electron-builder').Configuration} */
 const config = {
   appId: 'com.redrob.app',
@@ -477,12 +492,14 @@ const config = {
       { target: 'dmg', arch: includeMacX64 ? ['arm64', 'x64'] : ['arm64'] },
       { target: 'zip', arch: includeMacX64 ? ['arm64', 'x64'] : ['arm64'] },
     ],
-    // Pin the artifact/feed filename to the historic "Redrob-<v>-<arch>" that
-    // the default `${productName}-${version}-${arch}` produced when productName
-    // was "Redrob" — NOT the new "Redrob Office" productName. electron-updater
-    // matches feed entries by filename, so pinning this preserves auto-update
-    // for already-installed builds across the display rename.
-    artifactName: 'Redrob-${version}-${arch}.${ext}',
+    // dmg is what people and Redrob Launcher install; zip is the electron-updater
+    // payload (latest-mac.yml). The default pipeline is arm64-only, so the token
+    // is the launcher's macos-aarch64; with GENOFFICE_MAC_X64=1 the two arches
+    // must not collide, so electron-builder's ${arch} (arm64 / x64) is used
+    // instead -- the launcher also accepts macos-arm64.
+    artifactName: includeMacX64
+      ? `${ASSET_STEM}-\${version}-macos-\${arch}.\${ext}`
+      : `${ASSET_STEM}-\${version}-macos-aarch64.\${ext}`,
     category: 'public.app-category.productivity',
     hardenedRuntime: true,
     gatekeeperAssess: false,
@@ -507,12 +524,16 @@ const config = {
     ],
   },
   win: {
+    // nsis is the signed installer people download and the electron-updater
+    // payload (latest.yml). zip is the same signed win-unpacked tree as a
+    // portable archive: Redrob Launcher cannot run an exe installer, it installs
+    // -portable.zip (or .msi, which this toolchain does not make).
     target: [
-      {
-        target: 'nsis',
-        arch: ['x64'],
-      },
+      { target: 'nsis', arch: ['x64'] },
+      { target: 'zip', arch: ['x64'] },
     ],
+    // Applies to the zip target; nsis names its installer in the nsis block.
+    artifactName: `${ASSET_STEM}-\${version}-windows-x64-portable.\${ext}`,
     extraResources: [
       {
         from: REDROB_CODE_BINARY,
@@ -548,11 +569,9 @@ const config = {
       { target: 'deb', arch: ['x64'] },
       { target: 'rpm', arch: ['x64'] },
     ],
-    // Pin the AppImage feed filename to the historic "Redrob-<v>.AppImage"
-    // (default was "${productName}-${version}.AppImage" when productName was
-    // "Redrob"); the "Redrob Office" display rename must not change the
-    // latest-linux.yml entry. deb/rpm names are pinned in their own blocks.
-    artifactName: 'Redrob-${version}.${ext}',
+    // AppImage (the electron-updater payload on Linux, latest-linux.yml, and
+    // what Redrob Launcher installs). deb/rpm names are in their own blocks.
+    artifactName: `${ASSET_STEM}-\${version}-linux-x86_64.\${ext}`,
     // deb/rpm control metadata. Homepage comes from package.json "homepage";
     // the Package field is pinned in the deb/rpm blocks below (packageName is a
     // per-target option, rejected here by the schema).
@@ -608,7 +627,8 @@ const config = {
   // Package name would be seen as an unrelated install). Without it, fpm would
   // derive the name from the "Redrob Office" productName.
   deb: {
-    artifactName: 'redrob_${version}_${arch}.deb',
+    // electron-builder's ${arch} is amd64 for deb; the launcher reads x86_64.
+    artifactName: `${ASSET_STEM}-\${version}-linux-x86_64.deb`,
     packageName: 'redrob',
   },
   // Same "@genoffice/shell" naming problem as deb: spell the artifact name
@@ -623,18 +643,17 @@ const config = {
   // latest-linux.yml keeps listing exactly what the CDN pipeline uploads
   // (AppImage + deb) and the promote workflow needs no rpm alias.
   rpm: {
-    artifactName: 'redrob-${version}.${arch}.rpm',
+    artifactName: `${ASSET_STEM}-\${version}-linux-x86_64.rpm`,
     packageName: 'redrob',
     publish: null,
   },
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
-    // Pin the installer filename (default is "${productName} Setup ${version}",
-    // which the "Redrob Office" rename would turn into a space-heavy
-    // "Redrob Office Setup ...exe"). A stable, space-free name keeps the win
-    // update feed and the release workflow's *Setup*.exe matcher predictable.
-    artifactName: 'Redrob-Setup-${version}.${ext}',
+    // The installer. Same grammar as every other asset with a -setup marker, so
+    // a person can tell it from the -portable.zip; release-desktop.yml matches
+    // it as *-setup.exe. Not launcher-installable (an exe installer never is).
+    artifactName: `${ASSET_STEM}-\${version}-windows-x64-setup.\${ext}`,
   },
   beforePack: async (context) => {
     assertModuleTreesPresent()

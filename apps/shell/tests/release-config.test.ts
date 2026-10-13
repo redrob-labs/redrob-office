@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 /**
  * Release/packaging contract for the Redrob Office suite shell (@genoffice/shell).
@@ -79,17 +81,143 @@ describe('packaged product identity', () => {
     expect((c.linux as { executableName?: string }).executableName).toBe('redrob')
   })
 
-  it('pins artifact/update-feed filenames to the historic "Redrob-" base (not productName)', () => {
+  it('names every asset the way Redrob Launcher reads it: <stem>-<version>-<os>-<arch>[-portable].<ext>', () => {
     const c = loadBuilderConfig()
-    // If these keyed off productName they would become "Redrob Office-…", a new
-    // filename electron-updater would not recognize as the same lineage.
-    expect((c.mac as { artifactName: string }).artifactName).toBe('Redrob-${version}-${arch}.${ext}')
-    expect((c.nsis as { artifactName: string }).artifactName).toBe('Redrob-Setup-${version}.${ext}')
-    expect((c.linux as { artifactName: string }).artifactName).toBe('Redrob-${version}.${ext}')
-    // deb/rpm keep their pinned package + artifact names (apt/dnf upgrade lineage)
+    // The launcher (redrob-launcher crates/core/src/platform.rs parse_asset_name)
+    // installs only names in this grammar, with its own os-arch tokens -- never
+    // electron-builder's ${arch} (amd64 / x64 / arm64 differ per target) and
+    // never productName. scripts/check-release-asset-names.mjs is the same rule
+    // run over the built release dir in the release workflows.
+    expect((c.mac as { artifactName: string }).artifactName).toBe('redrob-office-${version}-macos-aarch64.${ext}')
+    expect((c.nsis as { artifactName: string }).artifactName).toBe('redrob-office-${version}-windows-x64-setup.${ext}')
+    expect((c.win as { artifactName: string }).artifactName).toBe('redrob-office-${version}-windows-x64-portable.${ext}')
+    expect((c.linux as { artifactName: string }).artifactName).toBe('redrob-office-${version}-linux-x86_64.${ext}')
+    expect((c.deb as { artifactName: string }).artifactName).toBe('redrob-office-${version}-linux-x86_64.deb')
+    expect((c.rpm as { artifactName: string }).artifactName).toBe('redrob-office-${version}-linux-x86_64.rpm')
+    // deb/rpm keep their pinned package names (apt/dnf upgrade lineage)
     expect((c.deb as { packageName: string }).packageName).toBe('redrob')
     expect((c.rpm as { packageName: string }).packageName).toBe('redrob')
-    expect((c.deb as { artifactName: string }).artifactName).toBe('redrob_${version}_${arch}.deb')
+  })
+
+  it('ships a Windows portable zip, because the launcher cannot run an exe installer', () => {
+    const c = loadBuilderConfig()
+    const targets = (c.win as { target: Array<{ target: string }> }).target.map((t) => t.target)
+    expect(targets).toEqual(['nsis', 'zip'])
+  })
+
+  it('passes the asset-name check script over its own templates', () => {
+    const result = spawnSync(process.execPath, [resolve(REPO_ROOT, 'scripts/check-release-asset-names.mjs')], {
+      encoding: 'utf8',
+    })
+    expect(result.status, result.stderr).toBe(0)
+  })
+})
+
+describe('the launcher release manifest (redrob-launcher.json)', () => {
+  // Redrob Launcher reads this one asset from every GitHub Release to learn that the
+  // release reads its shared account file (redrob-launcher docs/release-manifest.md).
+  const WRITER = resolve(REPO_ROOT, 'scripts/write-launcher-manifest.mjs')
+  const CHECK = resolve(REPO_ROOT, 'scripts/check-release-asset-names.mjs')
+  const PACKAGE = 'redrob-office-0.0.0-linux-x86_64.AppImage'
+
+  function releaseDir(files: Record<string, string>): string {
+    const dir = mkdtempSync(join(tmpdir(), 'office-release-'))
+    for (const [name, body] of Object.entries(files)) writeFileSync(join(dir, name), body)
+    return dir
+  }
+  function check(dir: string) {
+    return spawnSync(process.execPath, [CHECK, dir], { encoding: 'utf8' })
+  }
+
+  it('the writer emits exactly the contract: valid JSON, schema 1, sharedAccount true, newline-terminated', () => {
+    const dir = releaseDir({})
+    try {
+      const result = spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
+      expect(result.status, result.stderr).toBe(0)
+      const text = readFileSync(join(dir, 'redrob-launcher.json'), 'utf8')
+      expect(text).toBe('{ "schema": 1, "sharedAccount": true }\n')
+      const parsed = JSON.parse(text) as { schema: number; sharedAccount: boolean }
+      expect(parsed.schema).toBe(1)
+      // develop carries the shared-account change (#154 / #158), so the release reads it
+      expect(parsed.sharedAccount).toBe(true)
+      expect(Object.keys(parsed).sort()).toEqual(['schema', 'sharedAccount'])
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('the asset-name check FAILS a release directory without the manifest', () => {
+    const dir = releaseDir({ [PACKAGE]: '' })
+    try {
+      const result = check(dir)
+      expect(result.status).toBe(1)
+      expect(result.stderr).toContain('redrob-launcher.json is missing')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('the asset-name check FAILS a manifest that is not schema 1 / sharedAccount true / JSON', () => {
+    for (const [body, message] of [
+      ['{ "schema": 1, "sharedAccount": false }\n', '"sharedAccount" must be true'],
+      ['{ "schema": 2, "sharedAccount": true }\n', '"schema" must be 1'],
+      ['{ schema: 1 }\n', 'not valid JSON'],
+      ['[1]\n', 'must be a JSON object'],
+    ]) {
+      const dir = releaseDir({ [PACKAGE]: '', 'redrob-launcher.json': body })
+      try {
+        const result = check(dir)
+        expect(result.status, body).toBe(1)
+        expect(result.stderr, body).toContain(message)
+      } finally {
+        rmSync(dir, { recursive: true, force: true })
+      }
+    }
+  })
+
+  it('the asset-name check PASSES the directory the writer produced, and does not read the manifest as a package name', () => {
+    const dir = releaseDir({ [PACKAGE]: '', [`${PACKAGE}.sha256`]: '', 'latest-linux.yml': '' })
+    try {
+      spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
+      const result = check(dir)
+      expect(result.status, result.stderr).toBe(0)
+      expect(result.stdout).toContain('redrob-launcher.json ok')
+      expect(result.stdout).toContain(`${PACKAGE} ok`)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('every release job writes the manifest before its asset-name check, and the uploads carry it', () => {
+    const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
+    const linux = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'), 'utf8')
+    const WRITE = 'node scripts/write-launcher-manifest.mjs'
+    const CHECK_STEP = 'node scripts/check-release-asset-names.mjs'
+    // desktop: windows, macos, release -- three writes, each before a check
+    const jobBody = (name: string) => {
+      const start = desktop.indexOf(`\n  ${name}:\n`)
+      expect(start, name).toBeGreaterThan(-1)
+      const next = desktop.slice(start + 1).search(/\n  [a-z-]+:\n/)
+      return next === -1 ? desktop.slice(start) : desktop.slice(start, start + 1 + next)
+    }
+    for (const job of ['windows', 'macos', 'release']) {
+      const body = jobBody(job)
+      const writeIdx = body.indexOf(WRITE)
+      const checkIdx = body.indexOf(CHECK_STEP)
+      expect(writeIdx, `${job} writes the manifest`).toBeGreaterThan(-1)
+      expect(checkIdx, `${job} checks the release dir`).toBeGreaterThan(-1)
+      expect(writeIdx, `${job} writes before it checks`).toBeLessThan(checkIdx)
+    }
+    expect(desktop.match(new RegExp(WRITE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'))).toHaveLength(3)
+    // the platform artifacts carry it into the release job, which publishes release-assets/*
+    expect(desktop.match(/apps\/shell\/release\/redrob-launcher\.json/g)).toHaveLength(2)
+    expect(desktop).toContain(`${WRITE} release-assets`)
+    expect(desktop).toContain(`${CHECK_STEP} release-assets`)
+    expect(desktop.indexOf(`${CHECK_STEP} release-assets`)).toBeLessThan(desktop.indexOf('softprops/action-gh-release@v2'))
+    // linux: written into the staged dir, before the check, uploaded by release-assets/*
+    expect(linux).toContain(`${WRITE} "$OUT"`)
+    expect(linux.indexOf(`${WRITE} "$OUT"`)).toBeLessThan(linux.indexOf(`${CHECK_STEP} release-assets`))
+    expect(linux.indexOf(`${CHECK_STEP} release-assets`)).toBeLessThan(linux.indexOf('gh release upload "$RELEASE_TAG" release-assets/* --clobber'))
   })
 })
 
@@ -301,7 +429,10 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).toContain('SignerCertificate')
     expect(workflow).toContain('win-unpacked/resources/native/redrob-code.exe')
     expect(workflow).toContain('apps/shell/release/latest.yml')
-    expect(workflow).toContain('*Setup*.exe')
+    expect(workflow).toContain('*-setup.exe')
+    expect(workflow).toContain('*-portable.zip')
+    expect(workflow).toContain('--win nsis zip --x64')
+    expect(workflow).toContain('node scripts/check-release-asset-names.mjs apps/shell/release')
   })
 
   it('generates THIRD-PARTY-NOTICES before packaging (beforePack asserts it exists)', () => {
@@ -368,9 +499,10 @@ describe('Linux release workflow attaches to the GitHub Release', () => {
   })
 
   it('stages exactly the three artifacts named by electron-builder.cjs, with sha256 sidecars', () => {
-    expect(workflow).toContain('stage "Redrob-${APP_VERSION}.AppImage"')
-    expect(workflow).toContain('stage "redrob_${APP_VERSION}_amd64.deb"')
-    expect(workflow).toContain('stage "redrob-${APP_VERSION}.x86_64.rpm"')
+    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.AppImage"')
+    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.deb"')
+    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.rpm"')
+    expect(workflow).toContain('node scripts/check-release-asset-names.mjs release-assets')
     expect(workflow).toContain('sha256sum "$1" > "$1.sha256"')
   })
 

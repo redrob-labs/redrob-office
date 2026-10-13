@@ -35,6 +35,10 @@ bench-results/
 *.gguf
 *.bin
 *.onnx
+# ...but the Hangul engine's fallback OLE streams are source: include_bytes!'d by
+# engines/rhwp/src/parser/hwpx/contract_streams.rs, so the wasm cannot be rebuilt
+# without them (hwp-core reproducible was red for as long as they were ignored).
+!engines/rhwp/src/parser/hwpx/blank2010_assets/*.bin
 
 # Runtime binaries. llama.cpp backends are fetched per host at onboarding.
 *.exe

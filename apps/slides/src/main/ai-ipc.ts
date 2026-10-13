@@ -35,6 +35,11 @@ import {
   type GenSparkAccountStatus,
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
+import {
+  resolveRedrobKey,
+  stripLauncherKey,
+  withSharedAccountFallback,
+} from '@genoffice/ai-provider/shared-account'
 import { fetchRemoteImage } from '@genoffice/electron-utils'
 import {
   webSearch,
@@ -115,7 +120,9 @@ export function registerAiIpc(): void {
     const settings = resolveAiSettings(stored, defaultAiSettings())
     // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
     settings.provider = activeProvider(settings)
-    return settings
+    // No key of its own: fall back to Redrob Launcher's shared sign-in, read now, and
+    // flagged so the settings pane can say where the key came from.
+    return withSharedAccountFallback(settings)
   })
 
   // Redrob account (gsk login state): the auth source for AI features; when logged out the frontend uses this to guide login
@@ -134,7 +141,9 @@ export function registerAiIpc(): void {
   })
 
   ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
-    writeJson(AI_SETTINGS_PATH(), settings)
+    // The launcher's shared key must not become this app's own key by round-tripping
+    // through the settings pane; only a key the person entered or connected is stored.
+    writeJson(AI_SETTINGS_PATH(), stripLauncherKey(settings))
   })
 
   ipcMain.handle('ai:log-run-failure', (_event, entry: AiRunFailure) => {
@@ -149,7 +158,7 @@ export function registerAiIpc(): void {
     let config = settings.providers?.[provider]
     // The genspark key never enters the settings file; it is fetched from the gsk login state per request
     if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
+      config = { ...config, apiKey: resolveRedrobKey(config.apiKey).apiKey || gskApiKey() }
     }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
