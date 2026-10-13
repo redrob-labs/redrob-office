@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.1 -- 2026-10-13
+
+- **The macOS and Windows installers of 0.10.0 did not ship.** The release
+  asset-name check rejected electron-builder's own `builder-debug.yml` in the
+  build output, so the desktop publish job never ran and only the Linux packages
+  were attached (fixed in #162). This release carries the same changes as 0.10.0
+  with all three platforms.
+
 ## 0.10.0 -- 2026-10-13
 
 ### Releases Redrob Launcher can install
