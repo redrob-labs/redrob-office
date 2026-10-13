@@ -440,6 +440,8 @@ export const strings = {
     palettePlaceholder: 'Search recent files…',
     paletteEmpty: 'No matching files',
     paletteOpen: 'Open',
+    paletteNav: 'Arrow keys to navigate',
+    paletteFootKeys: 'Enter to open · Esc to close',
     // Home refresh: short tile labels, dynamic greeting, AI disclaimer
     openFileShort: 'Open File',
     starredSub: 'Files you starred for quick access.',
@@ -780,6 +782,8 @@ export const strings = {
     palettePlaceholder: '최근 파일 검색…',
     paletteEmpty: '일치하는 파일이 없습니다',
     paletteOpen: '열기',
+    paletteNav: '화살표 키로 이동',
+    paletteFootKeys: 'Enter로 열기 · Esc로 닫기',
     // Home refresh: short tile labels, dynamic greeting, AI disclaimer
     openFileShort: '파일 열기',
     starredSub: '빠르게 열 수 있도록 즐겨찾기한 파일입니다.',
