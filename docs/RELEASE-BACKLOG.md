@@ -1,8 +1,14 @@
 # Release backlog — redrob-office integration (chore/ui-hangul-integration)
 
-Two checks are knowingly red at the time of the 0.9.0 integration merge.
-Both are tracked here and were merged via admin bypass with the owner's
-authorization. Neither is a code regression introduced by the integration.
+Two checks were knowingly red at the time of the 0.9.0 integration merge.
+Both were merged via admin bypass with the owner's authorization.
+
+**Resolved (October 2026, fix/develop-ci-red):** the pagination test now types
+into a 40-paragraph document (the 300-paragraph one took 85 s on the CI runner
+and no longer even crossed a page break); the six `blank2010_assets/*.bin`
+are committed through a `.gitignore` negation and the wasm plus
+`provenance.json` were regenerated from the committed source with
+`scripts/build-hwp-core.sh`. The record below is kept as history.
 
 ## 1. `build & test` — flaky timing test (required check)
 

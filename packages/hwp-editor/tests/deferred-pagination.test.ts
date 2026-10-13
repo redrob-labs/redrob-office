@@ -28,12 +28,19 @@ const paint = (s: Session) => Array.from({ length: s.doc.pageCount() }, (_, p) =
 
 describe('deferred pagination while typing (task 1.9)', () => {
   it('defers during user typing and settles to the same pages as typing without deferral', () => {
-    const bytes = longDoc()
+    // Session b never defers, so it pays a whole-section repagination on every
+    // one of the ~100 keystrokes below. That cost grows with the document: at
+    // 300 paragraphs it was 5 s here and 85 s on a shared CI runner (the 30 s
+    // test timeout), and the typed text no longer even reached a page break
+    // (8 -> 8 pages). 40 paragraphs is the smallest document where the typing
+    // adds a page, which is what the comparison needs.
+    const bytes = longDoc(40)
     const a = session(bytes, 20)
     const b = session(bytes, 20)
+    const pagesBefore = b.doc.pageCount()
     const busA = new CommandBus(a)
     const busB = new CommandBus(b)
-    const text = '추가되는 문장이 여러 줄로 넘어가 쪽 나눔을 바꿀 만큼 길다. '.repeat(6)
+    const text = '추가되는 문장이 여러 줄로 넘어가 쪽 나눔을 바꿀 만큼 길다. '.repeat(3)
     for (const ch of text) {
       busA.run('edit:insert-text', { text: ch })
       busB.run('edit:insert-text', { text: ch }, 'ai') // 'ai' never defers
@@ -46,6 +53,9 @@ describe('deferred pagination while typing (task 1.9)', () => {
     expect(b.layoutPending).toBe(false)
     a.settle()
     expect(a.layoutPending).toBe(false)
+    // The typing must have moved a page break, or the two sessions agreeing
+    // proves nothing about deferred pagination.
+    expect(b.doc.pageCount()).toBeGreaterThan(pagesBefore)
     expect(a.doc.pageCount()).toBe(b.doc.pageCount())
     expect(paint(a)).toEqual(paint(b))
   })
