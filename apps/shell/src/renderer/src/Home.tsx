@@ -1040,6 +1040,9 @@ export function Home() {
   const [view, setView] = useState<'recent' | 'starred'>('recent')
   // Genspark web projects take over the content area (like a selected project)
   const [cloudMode, setCloudMode] = useState(false)
+  // The chrome's sidebar toggle (dispatched as a window event by the TabBar)
+  // hides/shows the Home sidebar; the frosted panel collapses off to the left.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // Updates and Shared with you take over the content area like a selected project
   const [pane, setPane] = useState<'updates' | 'shared' | null>(null)
   const updatesMode = pane === 'updates'
@@ -1149,6 +1152,14 @@ export function Home() {
     }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
+  // The app chrome's sidebar toggle is a sibling of this view, so it reaches us
+  // as a window event rather than a prop. Flip the frosted sidebar in/out.
+  useEffect(() => {
+    const toggle = () => setSidebarCollapsed((v) => !v)
+    window.addEventListener('shell:toggle-sidebar', toggle)
+    return () => window.removeEventListener('shell:toggle-sidebar', toggle)
   }, [])
 
   const hasMore = entries.length < listTotal
@@ -1886,6 +1897,7 @@ export function Home() {
         {view === 'recent' && (
           <HomeHero
             name={accountName || undefined}
+            lastFile={entries[0] ? baseName(entries[0]) : undefined}
             onAsk={(prompt) => void window.aiOffice.ask(prompt)}
             onStart={startBlank}
             onOpenFile={() => void window.aiOffice.browse()}
@@ -1995,7 +2007,7 @@ export function Home() {
 
   return (
     <div className="home">
-      <aside className="sidebar">
+      <aside className={`sidebar${sidebarCollapsed ? ' sidebar--collapsed' : ''}`}>
         <div className="sidebar-logo">
           {/* Two theme variants of the Redrob wordmark: the light one has dark
               text, the dark one has light text (the gradient mark is identical).

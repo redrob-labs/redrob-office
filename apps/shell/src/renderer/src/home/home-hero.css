@@ -1,104 +1,290 @@
-/* Home, composer first (handoff 01-home): greeting, the serif ask, one
- * composer, three starters, then "Or start blank". The Office wash is
- * location only and fades into the content ground; every control is blue. */
+/* Home, composer first: the ask headline, one composer, the three capability
+ * signals, then the format tiles — centered in the content area. */
 
-.content .home-hero {
-  margin: -28px -36px 8px;
-  padding: 36px 36px 28px;
-  background: linear-gradient(
-    180deg,
-    var(--product-office-wash) 0%,
-    var(--surface-raised) 100%
-  );
-}
-
-.home-hero__hi {
+/* Center the whole home view vertically + horizontally. */
+.content--home {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin: 0;
-  font-size: 15px;
-  line-height: 22px;
-  color: var(--ink-secondary);
+  justify-content: center;
+  min-height: 100%;
 }
 
-.home-hero__hi svg {
-  color: var(--action-primary);
+/* AI disclaimer, stuck to the bottom edge of the main hero view, centered. */
+.home-hero__disclaimer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--space-4);
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.content .home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 36px;
+  background: none;
 }
 
 /* the one spoken sentence on the surface: the serif voice */
 .home-hero__ask {
-  margin: var(--space-1) 0 var(--space-5);
+  margin: 0 0 var(--space-5);
   font-family: var(--font-serif);
-  font-size: 34px;
-  line-height: 42px;
+  font-size: 40px;
+  line-height: 48px;
   font-weight: 400;
   letter-spacing: -0.01em;
   color: var(--ink-primary);
 }
 
 .home-hero__compose {
+  width: 100%;
   max-width: 760px;
 }
 
-.home-hero__try {
-  max-width: 760px;
-  margin-top: var(--space-3);
+/* ---- Claude/Kiro-style composer (home layer override, kit untouched) ----
+ * The kit composer is a flat rounded box that only swaps a dim border on
+ * focus. On Home we give it the modern chat-input feel: a larger pill, roomy
+ * padding, a soft resting shadow, and a clear focus ring + lift when the
+ * caret is in it. Scoped to .home-hero__compose so only Home's composer
+ * changes — the editors' composers keep the kit default. */
+.home-hero__compose .rr-composer {
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  /* content is now white (base); lift the composer with the raised tone */
+  background: var(--surface-raised);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #000 6%, transparent),
+    0 8px 24px color-mix(in srgb, #000 8%, transparent);
+  transition:
+    border-color var(--duration-fast, 140ms) ease,
+    box-shadow var(--duration-fast, 140ms) ease,
+    transform var(--duration-fast, 140ms) ease;
 }
 
-.home-blank {
+.home-hero__compose .rr-composer:hover {
+  border-color: var(--border-strong);
+}
+
+/* the modern focus affordance: a soft brand ring + a gentle lift */
+.home-hero__compose .rr-composer:focus-within {
+  border-color: var(--action-primary);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--action-primary) 22%, transparent),
+    0 10px 30px color-mix(in srgb, #000 12%, transparent);
+}
+
+/* a roomier, calmer input than the kit's cramped default */
+.home-hero__compose .rr-composer__input {
+  min-height: 32px;
+  max-height: 220px;
+  padding: var(--space-2) var(--space-2);
+  font-size: 16px;
+  line-height: 26px;
+}
+/* no hard native focus box on the inner field — the container shows the ring */
+.home-hero__compose .rr-composer__input:focus,
+.home-hero__compose .rr-composer__input:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.home-hero__caps {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-6);
+  justify-content: center;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
 }
 
-.home-blank__label {
-  margin-right: var(--space-1);
+.home-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 14px;
   color: var(--ink-secondary);
 }
 
-.home-blank__btn {
+.home-cap__icon--privacy {
+  color: var(--success, #2f9e63);
+}
+.home-cap__icon--memory,
+.home-cap__icon--crosscheck {
+  color: var(--action-primary);
+}
+
+.home-cap__label {
+  color: var(--ink-secondary);
+}
+
+.home-cap__state {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+/* ---- Apple-style format tiles: icon on top, name below (above composer) ---- */
+.home-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
+}
+
+/* In the Projects quick-start the tiles align left under the section heading
+ * rather than centering like the home hero. */
+.home-tiles--project {
+  justify-content: flex-start;
+  margin: 0;
+}
+
+/* The "open a file" tile's folder glyph, sized to sit like a format icon. */
+.home-tile__open {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  color: var(--ink-secondary);
+}
+
+/* Apple "Liquid Glass" tiles: a subtly frosted translucent surface with a
+ * light top highlight and a specular sheen that lifts on hover. Built on the
+ * design system's own material recipe (saturate + blur) so it stays
+ * theme-correct; the @supports / reduced-transparency fallbacks below swap in
+ * a solid raised surface where backdrop-filter is unavailable or unwanted. */
+.home-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: var(--space-2);
-  height: 36px;
-  padding: 0 var(--space-3) 0 var(--space-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--surface-base);
+  width: 96px;
+  padding: var(--space-4) var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+  border-radius: var(--radius-lg);
+  /* translucent frosted glass, subtle */
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-raised) 72%, transparent),
+      color-mix(in srgb, var(--surface-base) 58%, transparent)
+    );
+  backdrop-filter: var(--frost-tile);
+  -webkit-backdrop-filter: var(--frost-tile);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent),
+    0 1px 2px color-mix(in srgb, #000 10%, transparent);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--ink-primary);
   cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform var(--duration-fast, 140ms) ease,
+    box-shadow var(--duration-fast, 140ms) ease,
+    border-color var(--duration-fast, 140ms) ease;
 }
 
-.home-blank__btn:hover {
-  border-color: var(--border-strong);
+/* a soft diagonal specular highlight across the top of the glass */
+.home-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, #fff 28%, transparent) 0%,
+    transparent 42%
+  );
+  opacity: 0.65;
+  transition: opacity var(--duration-fast, 140ms) ease;
 }
 
-.home-blank__btn:focus-visible {
+.home-tile:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--border-strong) 60%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent),
+    0 6px 18px color-mix(in srgb, #000 16%, transparent);
+}
+.home-tile:hover::before {
+  opacity: 0.9;
+}
+
+.home-tile:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 0 1px 2px color-mix(in srgb, #000 14%, transparent);
+}
+
+.home-tile:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: 2px;
 }
 
+/* keep the icon/label above the specular layer */
+.home-tile > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fallbacks: no backdrop-filter, or the user asked for less transparency.
+ * Drop the frost and sheen, use a plain raised surface. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .home-tile {
+    background: var(--surface-raised);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .home-tile::before {
+    display: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .home-tile {
+    background: var(--surface-raised);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .home-tile::before {
+    display: none;
+  }
+}
+
+.home-tile__name {
+  font-size: 13px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+/* The tile's icon badge: larger than the old inline one. */
+.home-tile .home-fmt-icon {
+  width: 56px;
+  height: 56px;
+}
+
+/* No grey wrapper box: the format icon (a colored rounded badge) sits free. */
 .home-fmt-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-sunken);
+  background: none;
   color: var(--ink-secondary);
-}
-
-.home-blank__ext {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--ink-muted);
 }
 
 /* ---- Recent: heading, count, search ---- */
@@ -172,39 +358,43 @@
   align-items: flex-start;
   gap: var(--space-2);
   margin-top: auto;
-  padding: var(--space-3) var(--space-3) 0;
+  /* bottom padding lifts the theme switch off the account row below it */
+  padding: var(--space-3) var(--space-3) var(--space-4);
 }
 
 .home-foot__lang {
   width: 100%;
 }
 
-/* the foot takes the free space above itself; Settings follows directly */
+/* the foot takes the free space above itself; the account row follows with a
+   clear gap so the theme switch does not crowd "Login or signup" */
 .home-foot + .account-entry {
-  margin-top: 0;
+  margin-top: var(--space-2);
 }
 
 /* ---- Updates ---- */
 
 .updates-head {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  padding-bottom: var(--space-4);
+  flex-direction: column;
+  gap: 2px;
+  max-width: 880px;
+  padding: var(--space-2) 0 var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .updates-title {
   margin: 0;
-  font-size: 17px;
-  line-height: 24px;
-  font-weight: 600;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--ink-primary);
 }
 
 .updates-sub {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ink-secondary);
 }
 
@@ -215,59 +405,96 @@
 .updates-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
   max-width: 880px;
-  margin-top: var(--space-6);
+  margin-top: var(--space-5);
 }
 
 .upd {
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--surface-base);
+  border-radius: var(--radius-xl, 16px);
+  /* content is now white (base); cards use the raised tone to lift off it */
+  background: var(--surface-raised);
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 5%, transparent);
   overflow: hidden;
+  transition:
+    box-shadow var(--duration-fast, 140ms) ease,
+    border-color var(--duration-fast, 140ms) ease;
 }
 
+.upd:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 16px color-mix(in srgb, #000 8%, transparent);
+}
+
+/* a settled (older) update reads quieter, not boxed-in grey */
 .upd--old {
   background: var(--surface-raised);
+  opacity: 0.82;
 }
 
 .upd__h {
-  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
 }
 
+/* the fact label as a quiet eyebrow with its link glyph */
 .upd__k {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--ink-secondary);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
+.upd__k svg {
+  color: var(--ink-brand, var(--action-primary));
+}
+
+/* old -> new figure: muted struck-through old, arrow, emphasised new value */
 .upd__t {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin: 4px 0;
-  font-size: 22px;
-  line-height: 30px;
-  font-weight: 600;
+  gap: var(--space-3);
+  margin: 2px 0 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
   color: var(--ink-primary);
   font-variant-numeric: tabular-nums;
 }
 
+.upd__t svg {
+  color: var(--ink-muted);
+}
+
 .upd del,
 .updf del {
-  color: var(--ink-secondary);
+  text-decoration-color: color-mix(in srgb, var(--ink-muted) 70%, transparent);
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+/* the new value gets a soft brand chip so the change is the hero */
+.upd__t ins {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--surface-brand-subtle, color-mix(in srgb, var(--action-primary) 12%, transparent));
+  color: var(--ink-brand, var(--action-primary));
 }
 
 .upd ins,
 .updf ins {
   text-decoration: none;
   color: var(--ink-primary);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .upd__m {
@@ -287,7 +514,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: 14px 20px;
+  padding: var(--space-4) var(--space-5);
 }
 
 .updf + .updf {
@@ -313,13 +540,17 @@
 
 .updf__dir {
   font-size: 13px;
-  color: var(--ink-secondary);
+  color: var(--ink-muted);
   white-space: nowrap;
 }
 
+/* status pill: a dot + label, calmer than a solid block */
 .updf__s {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-left: auto;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
@@ -328,26 +559,46 @@
   color: var(--ink-secondary);
 }
 
-.updf__s--wait {
-  background: var(--surface-brand-subtle);
-  color: var(--ink-brand);
+.updf__s::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
+.updf__s--wait {
+  background: var(--surface-brand-subtle, color-mix(in srgb, var(--action-primary) 12%, transparent));
+  color: var(--ink-brand, var(--action-primary));
+}
+
+.updf__s--done {
+  background: color-mix(in srgb, var(--success, #2f9e63) 14%, transparent);
+  color: var(--success, #2f9e63);
+}
+
+/* the per-file figure table sits in a soft sunken well */
 .updf__tbl {
   width: 100%;
   border-collapse: collapse;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-sunken);
   font-size: 13px;
 }
 
 .updf__tbl th {
-  padding: 4px 0;
+  padding: 8px 12px;
   text-align: left;
   font-weight: 600;
-  color: var(--ink-secondary);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
 .updf__tbl td {
-  padding: 4px 0;
+  padding: 8px 12px;
   border-top: 1px solid var(--border-subtle);
   color: var(--ink-primary);
 }
@@ -379,7 +630,9 @@
   list-style: none;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--surface-base);
+  /* content is now white (base); lift with the raised tone */
+  background: var(--surface-raised);
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 5%, transparent);
 }
 
 .shared-row {
