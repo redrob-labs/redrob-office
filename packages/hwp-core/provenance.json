@@ -19,7 +19,7 @@
   "artifacts": {
     "rhwp.js": "3d078e180cd3d86096f1f459b8179fdd7d318c33b3fe1bf5a1cbc8aaaeb9592d",
     "rhwp.d.ts": "665e79bfee9e44d7a7359b598b625e7234a5f92046876d2c330c9c005a527052",
-    "rhwp_bg.wasm": "e9de3998cb97379c943e746a50eb0bda5c7f46cb060061daddb369e2cd5a4cb3",
+    "rhwp_bg.wasm": "44795ef58afda21b02bdd166a7b031e63ee62c7c5fb52df08cc609693da9431e",
     "rhwp_bg.wasm.d.ts": "f01aab57e0247f42fee2dad8d61bb85770a7b6cd0b89b170306ac0ba437fd75b"
   }
 }

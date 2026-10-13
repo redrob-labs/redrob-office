@@ -115,6 +115,33 @@ touching product behavior.
 
 ## Unreleased
 
+### One shared Redrob Code daemon
+
+- **Office attaches to the shared engine instead of running its own.** The shell
+  no longer spawns `redrob serve` per app. `apps/shell/src/main/engine-daemon.ts`
+  reads the daemon record at `~/.redrob/run/server.json` (`REDROB_RUN_DIR`
+  overrides the folder), reuses the registered daemon when `GET /api/health`
+  answers, and otherwise runs `redrob service start --json --idle-exit 10` so
+  the start logic lives in one place: the CLI. A user-installed `redrob`
+  (`REDROB_CODE_BIN`, `~/.redrob/bin/redrob`, PATH) is preferred; without one,
+  Office's bundled binary starts the SHARED daemon the same way, so a later
+  Redrob Code install or another app finds it rather than starting a second
+  engine.
+- **Attach, heartbeat, detach.** Office registers as app `office` with its pid
+  (`POST /api/clients`), renews the attachment every 30s, re-attaches when a
+  heartbeat answers 404 (the daemon restarted), and detaches on quit. It never
+  stops the daemon: the daemon exits on its own once no app has been attached
+  for its idle window. `REDROB_APP=office` is set only on the `service start`
+  child Office itself launches.
+- **Every engine request names its working directory.** The daemon serves every
+  project of every app, so `EngineIntegrationClient` sends `x-redrob-directory`
+  alongside the `directory` query it already used.
+- `managed-engine.ts` and its test are removed; `engine-lifecycle.ts` keeps the
+  same `ensureEngine`/`teardownEngine`/IPC surface and the lazy, single-flight,
+  failure-not-cached behaviour, with `close()` now meaning detach. Covered by
+  `apps/shell/tests/engine-daemon.test.ts` (fake `redrob` binary + fake daemon
+  HTTP) and `engine-lifecycle.test.ts`.
+
 ### Naming and cloud-account honesty
 
 - The suite product name is **Redrob Office** (not bare "Redrob"): window title,

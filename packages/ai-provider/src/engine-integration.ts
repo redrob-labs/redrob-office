@@ -58,6 +58,9 @@ export type EngineTarget = {
   directory?: string
 }
 
+/** Header the shared daemon reads for the per-request working directory. */
+export const DIRECTORY_HEADER = 'x-redrob-directory'
+
 export class EngineIntegrationError extends Error {
   readonly status: number
   constructor(status: number, message: string) {
@@ -140,6 +143,10 @@ export class EngineIntegrationClient {
         ...(init.headers as Record<string, string> | undefined),
         authorization: authHeader(this.target),
         'content-type': 'application/json',
+        // The shared daemon serves every project of every app, so each request names
+        // its own working directory. Header and query both, because the daemon reads
+        // either and a proxy in front of it may keep only one.
+        ...(this.target.directory ? { [DIRECTORY_HEADER]: this.target.directory } : {}),
       },
     })
     if (!response.ok) {

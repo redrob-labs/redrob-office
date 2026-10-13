@@ -78,6 +78,7 @@ export {
 } from './watchdog'
 export type { StreamWatchdog } from './watchdog'
 export {
+  DIRECTORY_HEADER,
   EngineIntegrationClient,
   EngineIntegrationError,
   toEngineIntegration,
