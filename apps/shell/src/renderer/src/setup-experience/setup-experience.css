@@ -130,6 +130,67 @@
   opacity: 0.85;
 }
 
+/* Welcome feature list — the real Office capabilities, one line each. */
+.setup-window__features {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+}
+
+.setup-window__feature {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 12px;
+  /* the section-mark tick in the product color, per the brand tier rule */
+  border-left: 2px solid var(--rds-color-accent, var(--rds-color-brand, #c6312f));
+}
+
+.setup-window__feature-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rds-color-text, #f5f5f5);
+}
+
+.setup-window__feature-body {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--rds-color-text-muted, #c9c9c9);
+}
+
+/* Uninstall reason chips — mock, local-only (no transport on this branch). */
+.setup-window__reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.setup-window__reason {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  color: var(--rds-color-text, #f5f5f5);
+  background: var(--rds-color-sunken, rgba(0, 0, 0, 0.2));
+  border: 1px solid var(--rds-color-border, rgba(255, 255, 255, 0.12));
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.setup-window__reason:hover {
+  border-color: var(--rds-color-accent, var(--rds-color-brand, #c6312f));
+}
+
+.setup-window__reason--on {
+  color: #fff;
+  background: var(--rds-color-accent, var(--rds-color-brand, #c6312f));
+  border-color: var(--rds-color-accent, var(--rds-color-brand, #c6312f));
+}
+
 .setup-window__step--done {
   opacity: 0.5;
 }

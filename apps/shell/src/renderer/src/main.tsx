@@ -26,7 +26,17 @@ if (setupScreen) {
     .getLanguage()
     .catch(() => 'en' as const)
     .then((lang) => {
-      const resolved = lang === 'zh' ? 'zh' : 'en'
+      // Setup prototype supports en / zh / ko; anything else falls back to en.
+      // A ?lang= query param overrides the stored language FOR THE PROTOTYPE
+      // ONLY, so copy can be previewed in any locale without changing settings.
+      let pref = lang as string
+      try {
+        const q = new URLSearchParams(window.location.search).get('lang')
+        if (q) pref = q
+      } catch {
+        /* no query override */
+      }
+      const resolved = pref === 'zh' ? 'zh' : pref === 'ko' ? 'ko' : 'en'
       document.documentElement.lang = resolved
       void window.aiOffice
         .getTheme()

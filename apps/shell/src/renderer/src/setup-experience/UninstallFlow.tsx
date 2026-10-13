@@ -36,6 +36,7 @@ export function UninstallFlow({ lang }: UninstallFlowProps): ReactElement {
   const t = copy[lang]
   const [step, setStep] = useState<Step>('confirm')
   const [feedback, setFeedback] = useState('')
+  const [reason, setReason] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
@@ -60,8 +61,14 @@ export function UninstallFlow({ lang }: UninstallFlowProps): ReactElement {
     return () => window.clearInterval(id)
   }, [step])
 
-  // MOCK: feedback is intentionally discarded (no transport on this branch).
-  const dropFeedback = () => void feedback
+  // MOCK: feedback + reason are intentionally discarded (no transport on this
+  // branch). Referenced so the lint/types see them as read, never sent.
+  const dropFeedback = () => void `${reason ?? ''}:${feedback}`
+
+  const removeIndex = Math.min(
+    t.uninstall.removingSteps.length - 1,
+    Math.floor((progress / 100) * t.uninstall.removingSteps.length),
+  )
 
   return (
     <div className="setup-window">
@@ -79,11 +86,28 @@ export function UninstallFlow({ lang }: UninstallFlowProps): ReactElement {
           <>
             <h1 className="setup-window__title">{t.uninstall.feedbackTitle}</h1>
             <p className="setup-window__text">{t.uninstall.feedbackBody}</p>
+            <div className="setup-window__reasons">
+              {t.uninstall.feedbackReasons.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  className={
+                    reason === r
+                      ? 'setup-window__reason setup-window__reason--on'
+                      : 'setup-window__reason'
+                  }
+                  aria-pressed={reason === r}
+                  onClick={() => setReason((cur) => (cur === r ? null : r))}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
             <Textarea
               value={feedback}
               onChange={(e) => setFeedback(e.currentTarget.value)}
               placeholder={t.uninstall.feedbackPlaceholder}
-              rows={4}
+              rows={3}
             />
           </>
         )}
@@ -92,6 +116,13 @@ export function UninstallFlow({ lang }: UninstallFlowProps): ReactElement {
           <>
             <h1 className="setup-window__title">{t.uninstall.removingTitle}</h1>
             <Progress value={progress} max={100} />
+            <div className="setup-window__steps">
+              {t.uninstall.removingSteps.map((label, i) => (
+                <span key={label} className={i < removeIndex ? 'setup-window__step--done' : undefined}>
+                  {label}
+                </span>
+              ))}
+            </div>
           </>
         )}
 

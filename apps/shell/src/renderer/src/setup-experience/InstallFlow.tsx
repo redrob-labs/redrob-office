@@ -86,6 +86,14 @@ export function InstallFlow({ lang }: InstallFlowProps): ReactElement {
             <span className="setup-window__eyebrow">{t.welcome.eyebrow}</span>
             <h1 className="setup-window__title setup-window__title--lg">{t.welcome.title}</h1>
             <p className="setup-window__text">{t.welcome.body}</p>
+            <ul className="setup-window__features">
+              {t.welcome.features.map((f) => (
+                <li key={f.title} className="setup-window__feature">
+                  <span className="setup-window__feature-title">{f.title}</span>
+                  <span className="setup-window__feature-body">{f.body}</span>
+                </li>
+              ))}
+            </ul>
           </>
         )}
 
