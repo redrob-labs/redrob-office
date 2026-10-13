@@ -43,6 +43,11 @@ const INSTALLABLE = ['-portable.zip', '.msi', '.dmg', '.AppImage', '.deb', '.rpm
 const COMPANIONS = ['-setup.exe', '.zip']
 // Not packages: feed files, differential maps, checksums, the launcher manifest.
 const SIDE_FILES = /^(latest(-mac|-linux)?\.yml|.*\.blockmap|.*\.sha256|redrob-launcher\.json)$/
+// electron-builder's own notes, written into the output directory beside the packages.
+// The desktop jobs check apps/shell/release as built (the Linux job stages into
+// release-assets, which is why only they saw it): v0.10.0's macOS and Windows jobs
+// failed on builder-debug.yml. Never uploaded, so never a name the launcher sees.
+const BUILDER_FILES = /^builder-(debug\.yml|effective-config\.yaml)$/
 
 const VERSION = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/
 
@@ -109,7 +114,7 @@ if (dir) {
     process.exit(2)
   }
   for (const name of readdirSync(dir).sort()) {
-    if (statSync(join(dir, name)).isDirectory() || SIDE_FILES.test(name)) continue
+    if (statSync(join(dir, name)).isDirectory() || SIDE_FILES.test(name) || BUILDER_FILES.test(name)) continue
     seen.push(name)
     if (!parseAssetName(name)) problems.push(`${name}: not a name the launcher reads (dir ${dir})`)
   }
