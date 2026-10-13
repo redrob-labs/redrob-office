@@ -1,14 +1,29 @@
-import { useEffect, useRef, type ReactElement } from 'react'
-import { MarkReveal } from '@genoffice/ui'
-import logoLockup from './assets/redrob-logo.svg'
-import { useI18n } from './locale'
+/**
+ * Launch.tsx — the app launch splash.
+ *
+ * A brief brand reveal shown once per app session, above the shell, before any
+ * editor tab exists. Two frames: the Redrob GROUP mark eases in, then it yields
+ * to the Redrob OFFICE mark with the "Redrob Office" wordmark below it. The
+ * timeline lives entirely here (SWAP_MS -> office frame, TOTAL_MS -> onDone);
+ * it is deliberately NOT skippable (no click/key handler) and respects
+ * prefers-reduced-motion by cross-fading with no movement.
+ *
+ * The once-per-session decision is the main process's (takeLaunch); AppFrame
+ * only mounts this while `showLaunch && homeActive`, and calls back via onDone
+ * when the splash hands off. The brand assets are the 2026 masked web icons,
+ * light/dark aware.
+ */
+import { useEffect, useState, type ReactElement } from 'react'
+import groupLogo from './assets/redrob-group-web.svg'
+import groupLogoDark from './assets/redrob-group-web-dark.svg'
+import officeLogo from './assets/redrob-office-web.svg'
+import officeLogoDark from './assets/redrob-office-web-dark.svg'
 import './launch.css'
 
-/** how long the line holds after the mark lands, and the longest the screen may stay */
-const HOLD_MS = 700
-const MAX_MS = 2600
-/** with reduced motion the mark does not move: a short, still hold instead */
-const STILL_MS = 900
+/** Total splash budget (1.5s), then hand off. Not skippable by click/key. */
+const TOTAL_MS = 1500
+/** when the Group frame yields to the Office frame */
+const SWAP_MS = 750
 
 export interface LaunchProps {
   onDone: () => void
@@ -24,54 +39,53 @@ export function prefersReducedMotion(): boolean {
   }
 }
 
+function isDark(): boolean {
+  try {
+    return (
+      document.documentElement.getAttribute('data-theme') === 'dark' ||
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    )
+  } catch {
+    return false
+  }
+}
+
 /**
- * The launch screen, once a session: the lockup arriving on the Office ground
- * and the one spoken line. It hands over on its own, and any key or click
- * skips it. Under reduced motion the mark is shown still.
+ * The launch screen, once a session: a subtle two-frame brand reveal —
+ * Frame 1 the Redrob GROUP logo eases in, then Frame 2 the Redrob OFFICE logo
+ * eases in with "Redrob Office" beside it. Tasteful and brief (1.5s), and NOT
+ * skippable. Under reduced motion the frames simply cross-fade with no motion.
  */
 export function Launch({ onDone, reducedMotion }: LaunchProps): ReactElement {
-  const { t } = useI18n()
   const still = reducedMotion ?? prefersReducedMotion()
-  const done = useRef(false)
-  const finish = useRef(() => {})
-  finish.current = () => {
-    if (done.current) return
-    done.current = true
-    onDone()
-  }
+  const dark = isDark()
+  const [phase, setPhase] = useState<'group' | 'office'>('group')
 
   useEffect(() => {
-    const cap = window.setTimeout(() => finish.current(), still ? STILL_MS : MAX_MS)
-    const skip = () => finish.current()
-    window.addEventListener('keydown', skip)
-    return () => {
-      window.clearTimeout(cap)
-      window.removeEventListener('keydown', skip)
-    }
-  }, [still])
+    const timers: number[] = []
+    timers.push(window.setTimeout(() => setPhase('office'), SWAP_MS))
+    timers.push(window.setTimeout(onDone, TOTAL_MS))
+    return () => timers.forEach(window.clearTimeout)
+    // onDone is stable; run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div
       className={`launch${still ? ' launch--still' : ''}`}
-      role="status"
-      aria-live="polite"
+      data-phase={phase}
       data-testid="launch"
-      onClick={() => finish.current()}
+      aria-hidden="true"
     >
-      {still ? (
-        <img className="launch__mark" src={logoLockup} alt="Redrob Office" />
-      ) : (
-        <MarkReveal
-          className="launch__mark"
-          src={logoLockup}
-          alt="Redrob Office"
-          size="lg"
-          tone="light"
-          ground={false}
-          onDone={() => window.setTimeout(() => finish.current(), HOLD_MS)}
-        />
-      )}
-      <p className="launch__line">{t('launchLine')}</p>
+      {/* Frame 1: the Redrob group mark */}
+      <div className="launch__frame launch__frame--group">
+        <img className="launch__mark" src={dark ? groupLogoDark : groupLogo} alt="" draggable={false} />
+      </div>
+      {/* Frame 2: the Office mark + "Redrob Office" wordmark */}
+      <div className="launch__frame launch__frame--office">
+        <img className="launch__mark" src={dark ? officeLogoDark : officeLogo} alt="" draggable={false} />
+        <span className="launch__word">Redrob Office</span>
+      </div>
     </div>
   )
 }
