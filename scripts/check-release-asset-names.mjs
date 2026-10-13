@@ -6,7 +6,9 @@
 //   node scripts/check-release-asset-names.mjs <dir>      also check every package file in
 //                                                         <dir> (apps/shell/release after
 //                                                         electron-builder, or a release's
-//                                                         downloaded assets)
+//                                                         downloaded assets). The dir must
+//                                                         also hold redrob-launcher.json,
+//                                                         the launcher's release manifest.
 //
 // The launcher installs an asset only when its name is
 //     <stem>-<version>-<os>-<arch>[-portable].<ext>
@@ -15,9 +17,10 @@
 // the launcher looks for, and the extension is one it installs. electron-builder's own
 // ${arch} spelling differs per target (amd64 / x64 / arm64), so the names are spelled
 // out in the config and this script is what keeps them from drifting.
-import { existsSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { LAUNCHER_MANIFEST_NAME, launcherManifestProblems } from './write-launcher-manifest.mjs'
 
 const STEM = 'redrob-office'
 const OS_ARCH = new Set([
@@ -38,8 +41,8 @@ const INSTALLABLE = ['-portable.zip', '.msi', '.dmg', '.AppImage', '.deb', '.rpm
 // Published beside the installable ones, in the same grammar, but not installed by the
 // launcher: the Windows installer (an exe installer never is) and the mac updater zip.
 const COMPANIONS = ['-setup.exe', '.zip']
-// Not packages: feed files, differential maps, checksums.
-const SIDE_FILES = /^(latest(-mac|-linux)?\.yml|.*\.blockmap|.*\.sha256)$/
+// Not packages: feed files, differential maps, checksums, the launcher manifest.
+const SIDE_FILES = /^(latest(-mac|-linux)?\.yml|.*\.blockmap|.*\.sha256|redrob-launcher\.json)$/
 
 const VERSION = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/
 
@@ -114,6 +117,15 @@ if (dir) {
   // The platform the dir holds must have at least one launcher-installable package.
   const installable = seen.filter((n) => parseAssetName(n)?.installable)
   if (seen.length && installable.length === 0) problems.push(`${dir}: no launcher-installable package among ${seen.join(', ')}`)
+  // 3. The launcher's release manifest must travel with the packages: without it the
+  //    launcher falls back to its built-in table and cannot tell this release reads
+  //    the shared account file. Written by scripts/write-launcher-manifest.mjs.
+  const manifestPath = join(dir, LAUNCHER_MANIFEST_NAME)
+  if (!existsSync(manifestPath)) {
+    problems.push(`${dir}: ${LAUNCHER_MANIFEST_NAME} is missing -- run node scripts/write-launcher-manifest.mjs ${dir} before the upload`)
+  } else {
+    for (const p of launcherManifestProblems(readFileSync(manifestPath, 'utf8'))) problems.push(`${dir}: ${p}`)
+  }
 }
 
 if (problems.length) {
@@ -122,4 +134,5 @@ if (problems.length) {
 }
 for (const [target, name] of templateNames) console.log(`  ${target.padEnd(16)} ${name}`)
 if (dir) for (const n of seen) console.log(`  ${dir}: ${n} ok`)
+if (dir) console.log(`  ${dir}: ${LAUNCHER_MANIFEST_NAME} ok (${readFileSync(join(dir, LAUNCHER_MANIFEST_NAME), 'utf8').trimEnd()})`)
 console.log('check-release-asset-names: ok')
