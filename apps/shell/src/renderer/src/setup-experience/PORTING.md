@@ -44,9 +44,15 @@ design-system files, copied verbatim.
 | prototype asset | real installer destination |
 |---|---|
 | `assets/redrob-office-favicon.svg` (via `index.html` `<link rel="icon">`) | the app window icon is set from the packaged icon, not a favicon; this is the in-app/dev-tab equivalent only |
-| `assets/redrob-office-icon-1024.png` | `config.win.icon` (becomes the `.ico`) and the source for `config.mac.icon` (`.icns`); also `config.nsis.installerIcon` / `uninstallerIcon` |
-| `assets/redrob-office-icon-dark.svg` / `-16` / `-32` | per-size tab/menu icons; on the real build these are rasterised into the `.ico`/`.icns` icon sets |
+| `assets/splash/redrob-office-icon-1024.png` | the reliable raster used by the shared **OfficeMark** (splash frame 2 + both header brand bars). Also `config.win.icon` (`.ico`), the source for `config.mac.icon` (`.icns`), and `config.nsis.installerIcon` / `uninstallerIcon` |
+| `assets/redrob-office-icon.svg` / `-dark` / `-16` / `-32` | the vector icons; NOTE the masked-gradient SVG renders faint at small sizes via `<img>`, so the prototype UI uses the raster above. On the real build these vectors are rasterised into the `.ico`/`.icns` sets |
 | `assets/redrob-office-icon-small.svg` | the tab-bar product icon inside the running app (`TabBar.tsx`) — ships as-is, not an installer field |
+
+**OfficeMark (`OfficeMark.tsx`).** The single Office identity — the Office icon
+raster + "Redrob Office" as plain text — reused by splash frame 2 AND both
+flows' header brand bar, so nothing shows the Redrob group logo or the baked
+lockup image. On porting, the installer's branding image is generated from the
+same icon + wordmark (see §3).
 
 **Splash (`SplashReveal.tsx` + `setup-experience.css` `.setup-splash*`).** The
 real splash is a window the Electron main process shows before the renderer is
@@ -56,20 +62,21 @@ as a Lottie or Android animated-vector per `40-surfaces-and-motion.md`. Two
 frames (Felix's spec):
 
 - **Frame 1** — the FULL official Redrob logo (`redrob-logo-primary.png` /
-  `-white`, symbol + "Redrob" wordmark) uncovers once along a 40° clip-path
-  edge.
-- **Frame 2** — the Redrob Office ICON (`redrob-office-icon.svg` / `-dark`)
-  settles in, with "Redrob Office" beside it as PLAIN STATIC TEXT (a `<span>` in
-  the brand display cut, not animated, not a baked image).
+  `-white`, 1080×216 symbol + "Redrob" wordmark) uncovers once along a 40° edge.
+  The uncover is a **masked linear-gradient sweep at 130°** (not a clip-path):
+  a mask only controls alpha, so the wide lockup is never geometrically clipped
+  — fixing the earlier cut-off.
+- **Frame 2** — the Redrob Office ICON (the `redrob-office-icon-1024.png`
+  raster, via OfficeMark) settles in, with "Redrob Office" beside it as PLAIN
+  STATIC TEXT (not animated, not a baked image).
 
 **DOCUMENTED DEPARTURE:** animating the Office mark and swapping the Redrob logo
 for it bends the motion law (one logo animation per splash; type never animates
 in; the lockup never swaps for another mark). This is intentional, by Felix's
 direction. The "Redrob Office" text is kept STATIC to stay as close to the law
 as the brief allows. When porting, reproduce the two frames but know the real
-splash may be held to the strict law instead — ask before shipping. Both visuals
-are ~30% smaller than the first build (Redrob lockup 130px, Office icon 50px,
-wordmark 26px).
+splash may be held to the strict law instead — ask before shipping. The Redrob
+lockup shows at 200px wide, the Office icon at 64px.
 
 **Progress / removing lines.** On both the install progress step and the
 uninstall removing step the status is a SINGLE line that changes in place (not a
