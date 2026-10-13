@@ -240,23 +240,36 @@
   gap: 16px;
 }
 
-/* Frame 1 — the full Redrob lockup. Was ~185px wide; −30% ≈ 130px. The 40°
- * uncover is a clip-path sweep; the artwork never changes opacity. */
+/* Frame 1 — the full Redrob lockup (1080×216, a 5:1 wide mark). Sized by WIDTH
+ * so the whole wordmark fits; height follows the aspect and is never cropped. */
 .setup-splash__logo {
-  width: 130px;
+  width: 200px;
   height: auto;
-  clip-path: polygon(-30% 130%, -30% 130%, -30% 130%, -30% 130%);
+  display: block;
+  /* The 40° uncover as a MASK sweep (not a clip-path): a linear-gradient mask
+   * at 130° (≈ a 40° edge from the horizontal) travels across the mark. A mask
+   * only controls alpha, so the artwork is NEVER geometrically clipped — it
+   * simply uncovers along a raked edge, which is exactly the brand's permitted
+   * "uncovered along a 40° edge, with light riding on that edge". The previous
+   * clip-path polygon was tuned for a square symbol and cut off the wide
+   * lockup; this cannot. */
+  -webkit-mask: linear-gradient(130deg, #000 0 40%, #0000 60% 100%) 0 0 / 300% 100% no-repeat;
+  mask: linear-gradient(130deg, #000 0 40%, #0000 60% 100%) 0 0 / 300% 100% no-repeat;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
   animation: splash-uncover 1150ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes splash-uncover {
-  /* The traveling 40° edge: corner pairs advance along the rake so the revealed
-   * region is bounded by a line at ~40° to the horizontal. */
+  /* Slide the raked mask so the opaque band crosses the whole mark, left→right,
+   * leaving it fully visible at the end. */
   from {
-    clip-path: polygon(-60% 160%, -20% 100%, -60% 160%, -100% 220%);
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
   }
   to {
-    clip-path: polygon(-60% 160%, 160% -60%, 220% 0%, -100% 220%);
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
   }
 }
 
@@ -275,10 +288,9 @@
   visibility: visible;
 }
 
-/* Frame 2 — the Office icon settles in (−30%: was 72px → ~50px). */
-.setup-splash__office-icon {
-  width: 50px;
-  height: 50px;
+/* Frame 2 — the Office icon settles in (the shared OfficeMark). The text is
+ * static; only the icon animates. */
+.setup-splash[data-phase='office'] .setup-splash__office .office-mark__icon {
   animation: splash-settle 600ms cubic-bezier(0.45, 0, 0.25, 1);
 }
 
@@ -291,15 +303,27 @@
   }
 }
 
-/* "Redrob Office" as plain, STATIC typed text beside the icon. Uses the brand
- * display cut where available (Rake Display), else the system sans. The product
- * word may take the display cut per 10-logo.md ("Cowork on a hero, one line").
- * −30% from the previous lockup size → ~26px. */
-.setup-splash__office-text {
+/* ----------------------------------------------------------------------------
+ * OfficeMark — the shared Office identity (icon + "Redrob Office" text),
+ * used by the splash frame 2 AND the setup header brand bar.
+ * ------------------------------------------------------------------------- */
+.office-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.office-mark__icon {
+  display: block;
+  border-radius: 22%; /* the Office tile is a superellipse; a soft radius reads right */
+  flex: none;
+}
+
+.office-mark__text {
   font-family: 'Redrob Rake Display', var(--rds-font-display, var(--rds-font-sans)), system-ui, sans-serif;
-  font-size: 26px;
   font-weight: 600;
   letter-spacing: -0.01em;
+  line-height: 1;
   color: var(--rds-color-text, var(--color-fg, #f5f5f5));
 }
 
@@ -308,9 +332,10 @@
 @media (prefers-reduced-motion: reduce) {
   .setup-splash__logo {
     animation: none;
-    clip-path: none;
+    -webkit-mask: none;
+    mask: none;
   }
-  .setup-splash__office-icon {
+  .setup-splash[data-phase='office'] .setup-splash__office .office-mark__icon {
     animation: none;
   }
 }

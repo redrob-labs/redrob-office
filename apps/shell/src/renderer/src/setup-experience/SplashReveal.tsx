@@ -23,9 +23,7 @@
 import { useEffect, useReducer, type ReactElement } from 'react'
 import logoLight from '../assets/splash/redrob-logo-primary.png'
 import logoDark from '../assets/splash/redrob-logo-primary-white.png'
-import officeIcon from '../assets/redrob-office-icon.svg'
-import officeIconDark from '../assets/redrob-office-icon-dark.svg'
-import { PRODUCT } from './setup-copy'
+import { OfficeMark } from './OfficeMark'
 
 /** The two held frames of the reveal. */
 type Phase = 'redrob' | 'office'
@@ -88,15 +86,10 @@ export function SplashReveal({ onDone }: SplashRevealProps): ReactElement {
       </div>
 
       {/* Frame 2: the Office icon (animated) + "Redrob Office" as plain, static
-          typed text to its right. */}
+          typed text to its right — the shared OfficeMark, so this matches the
+          header brand bar exactly. */}
       <div className="setup-splash__frame setup-splash__frame--office">
-        <img
-          className="setup-splash__office-icon"
-          src={dark ? officeIconDark : officeIcon}
-          alt=""
-          draggable={false}
-        />
-        <span className="setup-splash__office-text">{PRODUCT.displayName}</span>
+        <OfficeMark size={64} className="setup-splash__office" />
       </div>
     </div>
   )
