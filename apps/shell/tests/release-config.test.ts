@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -79,17 +80,35 @@ describe('packaged product identity', () => {
     expect((c.linux as { executableName?: string }).executableName).toBe('redrob')
   })
 
-  it('pins artifact/update-feed filenames to the historic "Redrob-" base (not productName)', () => {
+  it('names every asset the way Redrob Launcher reads it: <stem>-<version>-<os>-<arch>[-portable].<ext>', () => {
     const c = loadBuilderConfig()
-    // If these keyed off productName they would become "Redrob Office-…", a new
-    // filename electron-updater would not recognize as the same lineage.
-    expect((c.mac as { artifactName: string }).artifactName).toBe('Redrob-${version}-${arch}.${ext}')
-    expect((c.nsis as { artifactName: string }).artifactName).toBe('Redrob-Setup-${version}.${ext}')
-    expect((c.linux as { artifactName: string }).artifactName).toBe('Redrob-${version}.${ext}')
-    // deb/rpm keep their pinned package + artifact names (apt/dnf upgrade lineage)
+    // The launcher (redrob-launcher crates/core/src/platform.rs parse_asset_name)
+    // installs only names in this grammar, with its own os-arch tokens -- never
+    // electron-builder's ${arch} (amd64 / x64 / arm64 differ per target) and
+    // never productName. scripts/check-release-asset-names.mjs is the same rule
+    // run over the built release dir in the release workflows.
+    expect((c.mac as { artifactName: string }).artifactName).toBe('redrob-office-${version}-macos-aarch64.${ext}')
+    expect((c.nsis as { artifactName: string }).artifactName).toBe('redrob-office-${version}-windows-x64-setup.${ext}')
+    expect((c.win as { artifactName: string }).artifactName).toBe('redrob-office-${version}-windows-x64-portable.${ext}')
+    expect((c.linux as { artifactName: string }).artifactName).toBe('redrob-office-${version}-linux-x86_64.${ext}')
+    expect((c.deb as { artifactName: string }).artifactName).toBe('redrob-office-${version}-linux-x86_64.deb')
+    expect((c.rpm as { artifactName: string }).artifactName).toBe('redrob-office-${version}-linux-x86_64.rpm')
+    // deb/rpm keep their pinned package names (apt/dnf upgrade lineage)
     expect((c.deb as { packageName: string }).packageName).toBe('redrob')
     expect((c.rpm as { packageName: string }).packageName).toBe('redrob')
-    expect((c.deb as { artifactName: string }).artifactName).toBe('redrob_${version}_${arch}.deb')
+  })
+
+  it('ships a Windows portable zip, because the launcher cannot run an exe installer', () => {
+    const c = loadBuilderConfig()
+    const targets = (c.win as { target: Array<{ target: string }> }).target.map((t) => t.target)
+    expect(targets).toEqual(['nsis', 'zip'])
+  })
+
+  it('passes the asset-name check script over its own templates', () => {
+    const result = spawnSync(process.execPath, [resolve(REPO_ROOT, 'scripts/check-release-asset-names.mjs')], {
+      encoding: 'utf8',
+    })
+    expect(result.status, result.stderr).toBe(0)
   })
 })
 
@@ -301,7 +320,10 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).toContain('SignerCertificate')
     expect(workflow).toContain('win-unpacked/resources/native/redrob-code.exe')
     expect(workflow).toContain('apps/shell/release/latest.yml')
-    expect(workflow).toContain('*Setup*.exe')
+    expect(workflow).toContain('*-setup.exe')
+    expect(workflow).toContain('*-portable.zip')
+    expect(workflow).toContain('--win nsis zip --x64')
+    expect(workflow).toContain('node scripts/check-release-asset-names.mjs apps/shell/release')
   })
 
   it('generates THIRD-PARTY-NOTICES before packaging (beforePack asserts it exists)', () => {
@@ -368,9 +390,10 @@ describe('Linux release workflow attaches to the GitHub Release', () => {
   })
 
   it('stages exactly the three artifacts named by electron-builder.cjs, with sha256 sidecars', () => {
-    expect(workflow).toContain('stage "Redrob-${APP_VERSION}.AppImage"')
-    expect(workflow).toContain('stage "redrob_${APP_VERSION}_amd64.deb"')
-    expect(workflow).toContain('stage "redrob-${APP_VERSION}.x86_64.rpm"')
+    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.AppImage"')
+    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.deb"')
+    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.rpm"')
+    expect(workflow).toContain('node scripts/check-release-asset-names.mjs release-assets')
     expect(workflow).toContain('sha256sum "$1" > "$1.sha256"')
   })
 

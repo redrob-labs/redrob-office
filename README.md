@@ -26,10 +26,10 @@ Download a build for your system:
 
 | System | File |
 | --- | --- |
-| Windows x64 | [`Redrob-Setup-<version>.exe`](https://github.com/redrob-labs/redrob-office/releases/latest) |
-| Linux AppImage | [`Redrob-<version>.AppImage`](https://github.com/redrob-labs/redrob-office/releases/latest) |
-| Linux deb | [`redrob_<version>_amd64.deb`](https://github.com/redrob-labs/redrob-office/releases/latest) |
-| Linux rpm | [`redrob-<version>.x86_64.rpm`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Windows x64 | [`redrob-office-<version>-windows-x64-setup.exe`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux AppImage | [`redrob-office-<version>-linux-x86_64.AppImage`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux deb | [`redrob-office-<version>-linux-x86_64.deb`](https://github.com/redrob-labs/redrob-office/releases/latest) |
+| Linux rpm | [`redrob-office-<version>-linux-x86_64.rpm`](https://github.com/redrob-labs/redrob-office/releases/latest) |
 
 Every Linux package has a `.sha256` beside it on the release. There is no macOS
 build. The app updates itself from these same releases.
