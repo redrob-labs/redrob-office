@@ -164,6 +164,9 @@ jobs:
           else
             echo "::warning::latest-linux.yml was not produced; this build will not feed the updater"
           fi
+          # The launcher's release manifest, uploaded beside the packages (the desktop
+          # workflow uploads the same bytes; --clobber below makes the duplicate harmless).
+          node scripts/write-launcher-manifest.mjs "$OUT"
           ls -la "$OUT"
 
       # Asset names are the launcher's <stem>-<version>-<os>-<arch>[-portable].<ext>;

@@ -204,7 +204,12 @@ jobs:
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis zip --x64 --publish never
 
       # Asset names are the launcher's <stem>-<version>-<os>-<arch>[-portable].<ext>;
-      # a drift here ships a release the launcher silently cannot install.
+      # a drift here ships a release the launcher silently cannot install. The
+      # release manifest (redrob-launcher.json) tells the launcher this release reads
+      # the shared account file; the check refuses a release dir without it.
+      - name: Write the launcher release manifest
+        run: node scripts/write-launcher-manifest.mjs apps/shell/release
+
       - name: Check release asset names
         run: node scripts/check-release-asset-names.mjs apps/shell/release
 
@@ -238,6 +243,7 @@ jobs:
             apps/shell/release/*-portable.zip
             apps/shell/release/*.blockmap
             apps/shell/release/latest.yml
+            apps/shell/release/redrob-launcher.json
           if-no-files-found: error
           compression-level: 0
 
@@ -335,7 +341,11 @@ jobs:
           GENOFFICE_UPDATE_REPO: ${{ github.repository }}
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --mac dmg zip --arm64 --publish never
 
-      # Same gate as the Windows job: the dmg must carry a name the launcher reads.
+      # Same gate as the Windows job: the dmg must carry a name the launcher reads,
+      # and the release manifest must be beside it.
+      - name: Write the launcher release manifest
+        run: node scripts/write-launcher-manifest.mjs apps/shell/release
+
       - name: Check release asset names
         run: node scripts/check-release-asset-names.mjs apps/shell/release
 
@@ -372,6 +382,7 @@ jobs:
             apps/shell/release/*.dmg
             apps/shell/release/*.zip
             apps/shell/release/latest-mac.yml
+            apps/shell/release/redrob-launcher.json
           if-no-files-found: error
           compression-level: 0
 
@@ -407,6 +418,15 @@ jobs:
           pattern: signed-*
           path: release-assets
           merge-multiple: true
+
+      # The platform jobs each carried a copy; this one is the authoritative write so
+      # the published release holds the manifest even if an artifact set is rebuilt
+      # by hand. The check then refuses to publish a set without it.
+      - name: Write the launcher release manifest
+        run: node scripts/write-launcher-manifest.mjs release-assets
+
+      - name: Check release asset names
+        run: node scripts/check-release-asset-names.mjs release-assets
 
       - name: Publish signed release and update metadata
         uses: softprops/action-gh-release@v2
