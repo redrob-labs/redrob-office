@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { DocTabs, Icon, IconButton } from '@genoffice/ui'
+import { DocTabs, Icon, IconButton, frameCopy } from '@genoffice/ui'
 import type { TabsApi, TabSummary } from '../../shared/tabs-api'
+// The two chrome marks: the Redrob GROUP logo (opens the Redrob Console) and
+// the Redrob OFFICE logo (goes home). Masked web SVGs, each with a
+// dark-appearance variant; the light/dark swap is CSS-driven.
+import groupLogo from './assets/redrob-group-web.svg'
+import groupLogoDark from './assets/redrob-group-web-dark.svg'
+import officeLogo from './assets/redrob-office-web.svg'
+import officeLogoDark from './assets/redrob-office-web-dark.svg'
 import { useI18n } from './locale'
+import { SearchPalette } from './SearchPalette'
 
 declare global {
   interface Window {
@@ -109,14 +117,39 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
 }
 
 /**
- * The shell's tab strip: the shared DocTabs composite, fed by the main
- * process's tab list. Home is pinned at index 0. The "+" and tab-list buttons
- * open native menus, because the editor views below the strip are
- * WebContentsViews that would cover any DOM popover the shell drew.
+ * The shell's app chrome: the shared DocTabs composite, fed by the main
+ * process's tab list, plus the controls laid out around it.
+ *
+ * Layout (DocTabs renders `start`, then a scrolling tab strip, then `end`):
+ *   start — the left nav cluster. Its first button is context-aware: the
+ *           sidebar-toggle on the Home view, swapped to a Home button while an
+ *           editor tab is active (`editorActive`), since the Home sidebar is
+ *           not visible over a native editor view. Back/forward are deferred
+ *           disabled placeholders (no main-process navigation API yet). On
+ *           macOS a spacer keeps the traffic lights clear (titleBarStyle:
+ *           hiddenInset).
+ *   strip — the open editor tabs. Home is pinned but its chip is filtered out
+ *           (the sidebar + the Office logo already reach Home). Tabs shrink to
+ *           a min width then scroll; start/end are siblings of the strip, so
+ *           they stay pinned and never overlap.
+ *   end   — the Redrob GROUP logo (opens console.redrob.ai), the Redrob OFFICE
+ *           logo (goes home), and the search box. Both logos use a right-placed
+ *           custom tooltip (`data-tip-place="right"`) so it stays within the
+ *           chrome band rather than dropping into the region a native editor
+ *           view covers. On Windows/Linux the native window frame draws the
+ *           caption buttons, so the shell renders none itself.
+ *
+ * Native-view constraint: editor tabs render as WebContentsViews below the
+ * strip that paint ABOVE all shell DOM regardless of z-index. So a DOM overlay
+ * (the search command palette) can only show over an editor if the main
+ * process first parks that view off-screen — see openPalette/closePalette,
+ * which toggle `tabs.setChromeOverlay`.
  */
 export function TabBar() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [tabs, setTabs] = useState<TabSummary[]>([])
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const isMac = navigator.platform.toLowerCase().includes('mac')
 
   useEffect(() => {
     void window.aiOfficeTabs.list().then(setTabs)
@@ -146,50 +179,123 @@ export function TabBar() {
     void window.aiOfficeTabs.reorder(id, toIndex)
   }
 
-  const anchorOf = (el: HTMLElement): [number, number] => {
-    const rect = el.getBoundingClientRect()
-    return [Math.round(rect.left), Math.round(rect.bottom)]
+  // An editor tab (not Home) is the active view: the Home sidebar isn't visible
+  // over the native editor WebContentsView, so the sidebar-toggle is pointless
+  // there — swap it for a Home button that returns to the app home.
+  const editorActive = tabs.some((tab) => tab.active && tab.kind !== 'home')
+
+  // Opening the palette parks the active editor view off-screen so the DOM
+  // palette can paint over the whole window; closing restores it.
+  const openPalette = (): void => {
+    void window.aiOfficeTabs.setChromeOverlay?.(true)
+    setPaletteOpen(true)
+  }
+  const closePalette = (): void => {
+    setPaletteOpen(false)
+    void window.aiOfficeTabs.setChromeOverlay?.(false)
   }
 
+  const search = frameCopy(lang).search
+
   return (
-    <DocTabs
-      className="tab-bar"
-      tabs={tabs.map((tab) => ({
-        id: tab.id,
-        title: tab.title,
-        icon: KIND_ICON[tab.kind],
-        closable: tab.closable,
-      }))}
-      activeId={tabs.find((tab) => tab.active)?.id ?? null}
-      pinned={1}
-      strings={{ label: t('tabList'), close: t('closeTab') }}
-      onActivate={(id) => void window.aiOfficeTabs.activate(id)}
-      onClose={(id) => void window.aiOfficeTabs.close(id)}
-      onReorder={reorder}
-      // room for the macOS traffic lights (titleBarStyle: hiddenInset)
-      start={<div className="tab-bar-drag-spacer" />}
-      trailing={
-        <IconButton
-          className="tab-new-btn"
-          label={t('newTab')}
-          size="sm"
-          onClick={(event) =>
-            void window.aiOfficeTabs.showNewMenu(...anchorOf(event.currentTarget))
-          }
-        >
-          <Icon name="plus" size={16} />
-        </IconButton>
-      }
-      end={
-        <IconButton
-          className="tab-overflow-btn"
-          label={t('tabList')}
-          size="sm"
-          onClick={(event) => void window.aiOfficeTabs.showMenu(...anchorOf(event.currentTarget))}
-        >
-          <Icon name="stack" size={16} />
-        </IconButton>
-      }
-    />
+    <>
+      <DocTabs
+        className="tab-bar"
+        tabs={tabs
+          .filter((tab) => tab.kind !== 'home')
+          .map((tab) => ({
+            id: tab.id,
+            title: tab.title,
+            icon: KIND_ICON[tab.kind],
+            closable: tab.closable,
+          }))}
+        activeId={tabs.find((tab) => tab.active && tab.kind !== 'home')?.id ?? null}
+        pinned={0}
+        strings={{ label: t('tabList'), close: t('closeTab') }}
+        onActivate={(id) => void window.aiOfficeTabs.activate(id)}
+        onClose={(id) => void window.aiOfficeTabs.close(id)}
+        onReorder={reorder}
+        start={
+          <>
+            {/* Left chrome nav cluster. Back/forward are deferred placeholders:
+                there is no main-process navigation API yet, so they are present
+                but disabled. The sidebar toggle hides/shows the Home sidebar
+                (DOM) via a window event the Home listens for; while an editor
+                tab is active it becomes a Home button (the Office logo also
+                goes home). */}
+            <div className="tab-nav-cluster">
+              {editorActive ? (
+                <IconButton
+                  className="tab-nav-btn"
+                  label={t('navHome')}
+                  size="md"
+                  onClick={() => void window.aiOfficeTabs.activate('home')}
+                >
+                  <Icon name="home" size={20} />
+                </IconButton>
+              ) : (
+                <IconButton
+                  className="tab-nav-btn"
+                  label={t('sidebarToggle')}
+                  size="md"
+                  onClick={() => window.dispatchEvent(new CustomEvent('shell:toggle-sidebar'))}
+                >
+                  <Icon name="sidebar" size={20} />
+                </IconButton>
+              )}
+              <IconButton className="tab-nav-btn" label={t('navBack')} size="md" disabled>
+                <Icon name="chevronRight" size={20} className="tab-nav-btn__back" />
+              </IconButton>
+              <IconButton className="tab-nav-btn" label={t('navForward')} size="md" disabled>
+                <Icon name="chevronRight" size={20} />
+              </IconButton>
+            </div>
+            {/* room for the macOS traffic lights (titleBarStyle: hiddenInset) */}
+            {isMac ? <div className="tab-bar-drag-spacer" /> : null}
+          </>
+        }
+        end={
+          <>
+            {/* The Redrob GROUP logo: opens the Redrob Console in the browser,
+                with a hover tooltip. Light/dark variants swap via CSS. */}
+            <button
+              type="button"
+              className="tab-redrob-mark tab-group-btn"
+              aria-label={t('openConsole')}
+              title={t('openConsole')}
+              data-tip={t('openConsole')}
+              data-tip-place="right"
+              onClick={() => void window.aiOffice?.openConsole?.()}
+            >
+              <img className="tab-logo-light" src={groupLogo} alt="" width={28} height={28} aria-hidden="true" />
+              <img className="tab-logo-dark" src={groupLogoDark} alt="" width={28} height={28} aria-hidden="true" />
+            </button>
+            {/* The Redrob OFFICE logo: goes to the app home (no app-menu
+                dropdown), with a hover tooltip. */}
+            <button
+              type="button"
+              className="tab-app-menu-btn tab-office-btn"
+              aria-label={t('redrobOffice')}
+              title={t('redrobOffice')}
+              data-tip={t('redrobOffice')}
+              data-tip-place="right"
+              onClick={() => void window.aiOfficeTabs.activate('home')}
+            >
+              <img className="tab-logo-light" src={officeLogo} alt="" width={28} height={28} aria-hidden="true" />
+              <img className="tab-logo-dark" src={officeLogoDark} alt="" width={28} height={28} aria-hidden="true" />
+            </button>
+            {/* Search box opens the DOM command palette. Inside an editor the
+                palette would render under the native WebContentsView, so opening
+                it parks the active editor view off-screen (setChromeOverlay) and
+                closing it restores the view. */}
+            <button type="button" className="tab-search-box" onClick={() => openPalette()}>
+              <Icon name="search" size={15} />
+              <span className="tab-search-box__label">{search.placeholder}</span>
+            </button>
+          </>
+        }
+      />
+      {paletteOpen && <SearchPalette onClose={closePalette} />}
+    </>
   )
 }
