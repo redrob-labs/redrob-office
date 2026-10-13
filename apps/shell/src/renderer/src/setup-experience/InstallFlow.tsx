@@ -14,10 +14,9 @@
  */
 import { useEffect, useState, type ReactElement } from 'react'
 import { Button, Checkbox, Progress } from '@genoffice/ui'
-import logoDark from '../assets/splash/redrob-office-lockup-white.png'
-import logoLight from '../assets/splash/redrob-office-lockup.png'
 import { LICENSE_EXCERPT } from './license-excerpt'
-import { copy, PRODUCT, type Lang } from './setup-copy'
+import { OfficeMark } from './OfficeMark'
+import { copy, type Lang } from './setup-copy'
 
 type Step = 'welcome' | 'license' | 'location' | 'progress' | 'finish'
 
@@ -31,13 +30,11 @@ function isMac(): boolean {
 }
 
 function BrandBar(): ReactElement {
-  // Primary lockup on light, Primary White on dark — matches Launch.tsx.
-  const dark =
-    document.documentElement.getAttribute('data-theme') === 'dark' ||
-    window.matchMedia?.('(prefers-color-scheme: dark)').matches
+  // Same Office identity as the splash frame 2: the Office icon + "Redrob
+  // Office" text — never the Redrob group logo, never just "Office".
   return (
     <div className="setup-window__brand">
-      <img src={dark ? logoDark : logoLight} alt={PRODUCT.displayName} />
+      <OfficeMark size={22} />
     </div>
   )
 }

@@ -11,19 +11,16 @@
  */
 import { useEffect, useState, type ReactElement } from 'react'
 import { Alert, Button, Progress, Textarea } from '@genoffice/ui'
-import logoDark from '../assets/splash/redrob-office-lockup-white.png'
-import logoLight from '../assets/splash/redrob-office-lockup.png'
-import { copy, PRODUCT, type Lang } from './setup-copy'
+import { OfficeMark } from './OfficeMark'
+import { copy, type Lang } from './setup-copy'
 
 type Step = 'confirm' | 'feedback' | 'removing' | 'done'
 
 function BrandBar(): ReactElement {
-  const dark =
-    document.documentElement.getAttribute('data-theme') === 'dark' ||
-    window.matchMedia?.('(prefers-color-scheme: dark)').matches
+  // Same Office identity as the splash frame 2 (icon + "Redrob Office" text).
   return (
     <div className="setup-window__brand">
-      <img src={dark ? logoDark : logoLight} alt={PRODUCT.displayName} />
+      <OfficeMark size={22} />
     </div>
   )
 }
