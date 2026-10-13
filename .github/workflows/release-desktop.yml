@@ -425,8 +425,12 @@ jobs:
       - name: Write the launcher release manifest
         run: node scripts/write-launcher-manifest.mjs release-assets
 
+      # --no-config: this job holds downloaded assets and no build, and
+      # apps/shell/electron-builder.cjs asserts the electron dist, built module trees
+      # and sidecars at load. The platform jobs verified the artifactName templates
+      # against a full build; here only the names and the manifest are checked.
       - name: Check release asset names
-        run: node scripts/check-release-asset-names.mjs release-assets
+        run: node scripts/check-release-asset-names.mjs --no-config release-assets
 
       - name: Publish signed release and update metadata
         uses: softprops/action-gh-release@v2
