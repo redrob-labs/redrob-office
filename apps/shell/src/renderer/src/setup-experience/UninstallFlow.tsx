@@ -116,13 +116,10 @@ export function UninstallFlow({ lang }: UninstallFlowProps): ReactElement {
           <>
             <h1 className="setup-window__title">{t.uninstall.removingTitle}</h1>
             <Progress value={progress} max={100} />
-            <div className="setup-window__steps">
-              {t.uninstall.removingSteps.map((label, i) => (
-                <span key={label} className={i < removeIndex ? 'setup-window__step--done' : undefined}>
-                  {label}
-                </span>
-              ))}
-            </div>
+            {/* One line that changes in place as the bar advances. */}
+            <p className="setup-window__line" key={removeIndex}>
+              {t.uninstall.removingSteps[removeIndex]}
+            </p>
           </>
         )}
 

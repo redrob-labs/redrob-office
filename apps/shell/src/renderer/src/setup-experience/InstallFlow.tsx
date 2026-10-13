@@ -124,13 +124,10 @@ export function InstallFlow({ lang }: InstallFlowProps): ReactElement {
           <>
             <h1 className="setup-window__title">{t.progress.title}</h1>
             <Progress value={progress} max={100} />
-            <div className="setup-window__steps">
-              {t.progress.steps.map((label, i) => (
-                <span key={label} className={i < stepIndex ? 'setup-window__step--done' : undefined}>
-                  {label}
-                </span>
-              ))}
-            </div>
+            {/* One line that changes in place as the bar advances. */}
+            <p className="setup-window__line" key={stepIndex}>
+              {t.progress.steps[stepIndex]}
+            </p>
           </>
         )}
 

@@ -122,12 +122,23 @@
   justify-content: space-between;
 }
 
-.setup-window__steps {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Single progress/removing line that changes IN PLACE (not a stacked list).
+ * Re-mounting with a changing React key triggers a gentle fade on each swap. */
+.setup-window__line {
+  margin: 0;
   font-size: 13px;
-  opacity: 0.85;
+  line-height: 1.5;
+  color: var(--rds-color-text-muted, #c9c9c9);
+  animation: line-swap 220ms ease;
+}
+
+@keyframes line-swap {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Welcome feature list — the real Office capabilities, one line each. */
@@ -189,10 +200,6 @@
   color: #fff;
   background: var(--rds-color-accent, var(--rds-color-brand, #c6312f));
   border-color: var(--rds-color-accent, var(--rds-color-brand, #c6312f));
-}
-
-.setup-window__step--done {
-  opacity: 0.5;
 }
 
 .setup-window__center {
