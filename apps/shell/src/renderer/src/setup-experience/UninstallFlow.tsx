@@ -20,7 +20,7 @@ function BrandBar(): ReactElement {
   // Same Office identity as the splash frame 2 (icon + "Redrob Office" text).
   return (
     <div className="setup-window__brand">
-      <OfficeMark size={22} />
+      <OfficeMark size={30} />
     </div>
   )
 }

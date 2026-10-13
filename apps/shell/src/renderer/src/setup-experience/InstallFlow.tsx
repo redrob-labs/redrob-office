@@ -34,7 +34,7 @@ function BrandBar(): ReactElement {
   // Office" text — never the Redrob group logo, never just "Office".
   return (
     <div className="setup-window__brand">
-      <OfficeMark size={22} />
+      <OfficeMark size={30} />
     </div>
   )
 }
