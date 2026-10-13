@@ -70,6 +70,11 @@ import {
   type LegacyAiSettings,
 } from '@genoffice/ai-provider'
 import {
+  resolveRedrobKey,
+  stripLauncherKey,
+  withSharedAccountFallback,
+} from '@genoffice/ai-provider/shared-account'
+import {
   ensureGenofficeLogin,
   gskApiKey,
   gskGenerateImage,
@@ -2645,7 +2650,9 @@ export function registerAiIpc(): void {
     const settings = resolveAiSettings(stored, defaultAiSettings())
     // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
     settings.provider = activeProvider(settings)
-    return settings
+    // No key of its own: fall back to Redrob Launcher's shared sign-in, read now, and
+    // flagged so the settings pane can say where the key came from.
+    return withSharedAccountFallback(settings)
   })
 
   // Redrob account (gsk login state): auth source for AI features; the frontend uses it to prompt login when logged out
@@ -2664,7 +2671,9 @@ export function registerAiIpc(): void {
   })
 
   ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
-    writeJson(SETTINGS_PATH(), settings)
+    // The launcher's shared key must not become this app's own key by round-tripping
+    // through the settings pane; only a key the person entered or connected is stored.
+    writeJson(SETTINGS_PATH(), stripLauncherKey(settings))
   })
 
   ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
@@ -2675,7 +2684,7 @@ export function registerAiIpc(): void {
     let config = settings.providers?.[provider]
     // the genspark key never enters the settings file; requests take it from the gsk login state
     if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
+      config = { ...config, apiKey: resolveRedrobKey(config.apiKey).apiKey || gskApiKey() }
     }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
@@ -2825,7 +2834,7 @@ export function registerAiIpc(): void {
     const provider = settings.provider
     let config = settings.providers?.[provider]
     if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
+      config = { ...config, apiKey: resolveRedrobKey(config.apiKey).apiKey || gskApiKey() }
     }
     if (!config?.apiKey) {
       return {

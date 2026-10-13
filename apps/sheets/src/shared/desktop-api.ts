@@ -2389,6 +2389,10 @@ export const aiSettingsInputSchema = z
     // rejects nonsense (this object is .strict(), so an omitted key here would
     // make the whole settings save fail)
     maxOutputTokens: z.number().int().positive().optional(),
+    // derived by the main process on read (Redrob Launcher shared sign-in fallback);
+    // the renderer echoes settings back, so a strict schema must know them
+    redrobKeySource: z.enum(['own', 'launcher', 'none']).optional(),
+    launcherAccountName: z.string().optional(),
   })
   .strict()
 
