@@ -55,9 +55,11 @@
 }
 
 .setup-window__eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 12px;
+  /* Sentence case, not all-caps (Felix; also the brand voice rules out all-caps
+   * labels). The copy already supplies "Welcome" / "欢迎" / "환영해요". */
+  letter-spacing: 0.01em;
+  font-size: 13px;
+  font-weight: 600;
   opacity: 0.6;
 }
 
@@ -161,14 +163,14 @@
 }
 
 .setup-window__feature-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--rds-color-text, #f5f5f5);
 }
 
 .setup-window__feature-body {
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.6;
   color: var(--rds-color-text-muted, #c9c9c9);
 }
 
