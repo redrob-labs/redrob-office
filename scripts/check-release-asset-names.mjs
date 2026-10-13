@@ -9,6 +9,16 @@
 //                                                         downloaded assets). The dir must
 //                                                         also hold redrob-launcher.json,
 //                                                         the launcher's release manifest.
+//   node scripts/check-release-asset-names.mjs --no-config <dir>
+//                                                         only the directory + manifest
+//                                                         checks. electron-builder.cjs has
+//                                                         top-level asserts (electron dist,
+//                                                         built module trees, sidecars), so
+//                                                         it can only be loaded where a full
+//                                                         build happened. The publish job
+//                                                         has downloaded assets and nothing
+//                                                         else; the platform jobs already
+//                                                         verified the templates.
 //
 // The launcher installs an asset only when its name is
 //     <stem>-<version>-<os>-<arch>[-portable].<ext>
@@ -74,8 +84,20 @@ export function parseAssetName(name) {
 const root = fileURLToPath(new URL('..', import.meta.url))
 const problems = []
 
+const args = process.argv.slice(2)
+const noConfig = args.includes('--no-config')
+const dirArg = args.find((a) => !a.startsWith('--'))
+if (noConfig && !dirArg) {
+  console.error('check-release-asset-names: --no-config needs a <dir> to check')
+  process.exit(2)
+}
+
 // 1. The templates. Expanded with a sample version and the ${arch} / ${ext} values
-//    electron-builder substitutes for the targets the config declares.
+//    electron-builder substitutes for the targets the config declares. Skipped with
+//    --no-config: v0.10.1's publish job failed twice trying to load the config in a
+//    job that has no build (missing electron, then missing LICENSES.chromium.html).
+const templateNames = []
+if (!noConfig) {
 const { createRequire } = await import('node:module')
 const config = createRequire(join(root, 'apps/shell/package.json'))('./electron-builder.cjs')
 const expand = (template, vars) => template.replace(/\$\{(\w+)\}/g, (_, k) => vars[k] ?? `\${${k}}`)
@@ -90,7 +112,6 @@ const expected = [
   ['linux deb', config.deb.artifactName, 'amd64', 'deb', true],
   ['linux rpm', config.rpm.artifactName, 'x86_64', 'rpm', true],
 ]
-const templateNames = []
 for (const [target, template, arch, ext, mustInstall] of expected) {
   if (typeof template !== 'string') {
     problems.push(`${target}: no artifactName in electron-builder.cjs`)
@@ -104,9 +125,10 @@ for (const [target, template, arch, ext, mustInstall] of expected) {
 }
 const winTargets = (config.win.target ?? []).map((t) => (typeof t === 'string' ? t : t.target))
 if (!winTargets.includes('zip')) problems.push('win: no zip target -- the launcher cannot install an exe installer, it needs -portable.zip')
+}
 
 // 2. A directory of built or downloaded assets.
-const dir = process.argv[2] ? resolve(process.argv[2]) : null
+const dir = dirArg ? resolve(dirArg) : null
 const seen = []
 if (dir) {
   if (!existsSync(dir)) {
