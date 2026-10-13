@@ -205,14 +205,16 @@
 }
 
 /* ----------------------------------------------------------------------------
- * SplashReveal — the Splash A staged brand reveal.
+ * SplashReveal — two-frame staged reveal (Felix's spec).
  *
- * Brand law (10-logo.md, 40-surfaces-and-motion.md): the group mark may only be
- * "uncovered along a 40° edge" with light riding on it, once; the artwork is
- * never faded or altered; type never animates in; a second mark never animates
- * beside the group mark. So frame 1 is a clip-path WIPE at 40° over the symbol
- * (never an opacity fade of the symbol), and the Office wordmark arrives already
- * composed inside the product lockup as a held frame — nothing letter-by-letter.
+ * Frame 1: the full official Redrob logo (symbol + "Redrob" wordmark lockup),
+ *          uncovered once along a 40° edge (a clip-path WIPE, never a fade).
+ * Frame 2: the Redrob Office icon settles in, with "Redrob Office" beside it as
+ *          PLAIN STATIC TEXT (not animated).
+ *
+ * DOCUMENTED DEPARTURE from the motion law (see SplashReveal.tsx / PORTING.md):
+ * animating the Office mark and swapping logos is intentional, by direction.
+ * Both visuals are ~30% smaller than the previous build.
  * ------------------------------------------------------------------------- */
 .setup-splash {
   position: absolute;
@@ -225,23 +227,24 @@
 
 .setup-splash__frame {
   grid-area: 1 / 1; /* stack both frames in the same cell */
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
-/* Frame 1 — the group symbol, MODEST size (Felix: "not too large"). The 40°
- * uncover is a clip-path sweep; the symbol itself never changes opacity. */
-.setup-splash__symbol {
-  width: 72px;
+/* Frame 1 — the full Redrob lockup. Was ~185px wide; −30% ≈ 130px. The 40°
+ * uncover is a clip-path sweep; the artwork never changes opacity. */
+.setup-splash__logo {
+  width: 130px;
   height: auto;
-  /* 40° edge: light end leads, uncovering up-and-to-the-right. */
   clip-path: polygon(-30% 130%, -30% 130%, -30% 130%, -30% 130%);
   animation: splash-uncover 1150ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes splash-uncover {
-  /* The traveling 40° edge: each corner pair advances along the rake so the
-   * revealed region is bounded by a line at ~40° to the horizontal. */
+  /* The traveling 40° edge: corner pairs advance along the rake so the revealed
+   * region is bounded by a line at ~40° to the horizontal. */
   from {
     clip-path: polygon(-60% 160%, -20% 100%, -60% 160%, -100% 220%);
   }
@@ -251,21 +254,24 @@
 }
 
 /* Frames arrive by a hard-edged CUT (visibility), never a cross-fade of art. */
-.setup-splash__frame--symbol {
+.setup-splash__frame--redrob {
   visibility: hidden;
 }
-.setup-splash[data-phase='symbol'] .setup-splash__frame--symbol {
+.setup-splash[data-phase='redrob'] .setup-splash__frame--redrob {
   visibility: visible;
 }
 
-.setup-splash__frame--lockup {
+.setup-splash__frame--office {
   visibility: hidden;
 }
-.setup-splash[data-phase='lockup'] .setup-splash__frame--lockup,
-.setup-splash[data-phase='done'] .setup-splash__frame--lockup {
+.setup-splash[data-phase='office'] .setup-splash__frame--office {
   visibility: visible;
-  /* "Resolution is a settle, not a bounce": the composed lockup settles in from
-   * 90% over ~0.6s, as the launch spec allows for the product splash. */
+}
+
+/* Frame 2 — the Office icon settles in (−30%: was 72px → ~50px). */
+.setup-splash__office-icon {
+  width: 50px;
+  height: 50px;
   animation: splash-settle 600ms cubic-bezier(0.45, 0, 0.25, 1);
 }
 
@@ -278,22 +284,26 @@
   }
 }
 
-/* The composed product lockup (symbol + "Redrob Office" wordmark). Minimum
- * screen size for a lockup is 18px height; we show it comfortably larger. */
-.setup-splash__lockup {
-  width: min(320px, 70vw);
-  height: auto;
+/* "Redrob Office" as plain, STATIC typed text beside the icon. Uses the brand
+ * display cut where available (Rake Display), else the system sans. The product
+ * word may take the display cut per 10-logo.md ("Cowork on a hero, one line").
+ * −30% from the previous lockup size → ~26px. */
+.setup-splash__office-text {
+  font-family: 'Redrob Rake Display', var(--rds-font-display, var(--rds-font-sans)), system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--rds-color-text, var(--color-fg, #f5f5f5));
 }
 
-/* Reduced motion: "no arrival, the lockup is present." No symbol frame, no
- * uncover, no settle — the lockup simply shows and the host hands off. */
+/* Reduced motion: no arrival. Show the Office frame (icon + text), no wipe, no
+ * settle; the host hands off. */
 @media (prefers-reduced-motion: reduce) {
-  .setup-splash__symbol {
+  .setup-splash__logo {
     animation: none;
     clip-path: none;
   }
-  .setup-splash[data-phase='lockup'] .setup-splash__frame--lockup,
-  .setup-splash[data-phase='done'] .setup-splash__frame--lockup {
+  .setup-splash__office-icon {
     animation: none;
   }
 }
