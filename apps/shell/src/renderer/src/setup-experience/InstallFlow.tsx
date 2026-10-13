@@ -6,11 +6,13 @@
  *   Welcome -> License -> Choose Location -> Installing -> Finish.
  *
  * This is a DESIGN PROTOTYPE: every "action" is local state only. "Install"
- * animates a fake progress bar; "Launch" / "Finish" just close the window.
- * No files are written, no process is spawned, nothing backend is touched.
+ * fills a cosmetic progress bar (useFakeProgress); "Launch" / "Finish" just
+ * close the window. No files are written, no process is spawned, nothing
+ * backend is touched.
  *
- * The copy and step list come from setup-copy.ts, keyed to the real NSIS fields
- * so this ports onto the installer later (see PORTING.md).
+ * Chrome (card, Office brand bar, body, footer) comes from <SetupWindow>; the
+ * copy and step list come from setup-copy.ts, keyed to the real NSIS fields so
+ * this ports onto the installer later (see PORTING.md).
  */
 import { useState, type ReactElement } from 'react'
 import { Button, Checkbox, Progress } from '@genoffice/ui'

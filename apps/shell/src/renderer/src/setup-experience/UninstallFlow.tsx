@@ -2,12 +2,15 @@
  * UninstallFlow — branded uninstaller PROTOTYPE.
  *
  * Mirrors the pages the real NSIS uninstaller shows (confirm removal ->
- * removing -> done), plus an OPTIONAL feedback step that is a MOCK ONLY: the
- * real installer has no telemetry here and all transport is stubbed on this
- * branch, so the feedback control collects text locally and discards it. It is
- * kept to try the look of a goodbye flow; see PORTING.md -> uninstall.feedback.
+ * removing -> done), plus an OPTIONAL feedback step (reason chips + free text)
+ * that is a MOCK ONLY: the real installer has no telemetry here and all
+ * transport is stubbed on this branch, so the controls collect input locally
+ * and discard it (dropFeedback). It is kept to try the look of a goodbye flow;
+ * see PORTING.md -> §5.
  *
- * Pure local state. Nothing is removed, nothing backend is touched.
+ * Chrome comes from <SetupWindow>; the cosmetic removal bar from
+ * useFakeProgress. Pure local state — nothing is removed, nothing backend is
+ * touched.
  */
 import { useState, type ReactElement } from 'react'
 import { Alert, Button, Progress, Textarea } from '@genoffice/ui'
