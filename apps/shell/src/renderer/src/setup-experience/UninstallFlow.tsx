@@ -11,8 +11,8 @@
  */
 import { useEffect, useState, type ReactElement } from 'react'
 import { Alert, Button, Progress, Textarea } from '@genoffice/ui'
-import logoDark from '../assets/splash/redrob-logo-primary-white.png'
-import logoLight from '../assets/splash/redrob-logo-primary.png'
+import logoDark from '../assets/splash/redrob-office-lockup-white.png'
+import logoLight from '../assets/splash/redrob-office-lockup.png'
 import { copy, PRODUCT, type Lang } from './setup-copy'
 
 type Step = 'confirm' | 'feedback' | 'removing' | 'done'

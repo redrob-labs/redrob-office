@@ -14,8 +14,8 @@
  */
 import { useEffect, useState, type ReactElement } from 'react'
 import { Button, Checkbox, Progress } from '@genoffice/ui'
-import logoDark from '../assets/splash/redrob-logo-primary-white.png'
-import logoLight from '../assets/splash/redrob-logo-primary.png'
+import logoDark from '../assets/splash/redrob-office-lockup-white.png'
+import logoLight from '../assets/splash/redrob-office-lockup.png'
 import { LICENSE_EXCERPT } from './license-excerpt'
 import { copy, PRODUCT, type Lang } from './setup-copy'
 

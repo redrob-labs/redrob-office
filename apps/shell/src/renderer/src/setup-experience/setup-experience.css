@@ -143,6 +143,100 @@
   padding-top: 12px;
 }
 
+/* ----------------------------------------------------------------------------
+ * SplashReveal — the Splash A staged brand reveal.
+ *
+ * Brand law (10-logo.md, 40-surfaces-and-motion.md): the group mark may only be
+ * "uncovered along a 40° edge" with light riding on it, once; the artwork is
+ * never faded or altered; type never animates in; a second mark never animates
+ * beside the group mark. So frame 1 is a clip-path WIPE at 40° over the symbol
+ * (never an opacity fade of the symbol), and the Office wordmark arrives already
+ * composed inside the product lockup as a held frame — nothing letter-by-letter.
+ * ------------------------------------------------------------------------- */
+.setup-splash {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--rds-color-surface, var(--color-bg, #0b0b0c));
+  z-index: 2;
+}
+
+.setup-splash__frame {
+  grid-area: 1 / 1; /* stack both frames in the same cell */
+  display: grid;
+  place-items: center;
+}
+
+/* Frame 1 — the group symbol, MODEST size (Felix: "not too large"). The 40°
+ * uncover is a clip-path sweep; the symbol itself never changes opacity. */
+.setup-splash__symbol {
+  width: 72px;
+  height: auto;
+  /* 40° edge: light end leads, uncovering up-and-to-the-right. */
+  clip-path: polygon(-30% 130%, -30% 130%, -30% 130%, -30% 130%);
+  animation: splash-uncover 1150ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes splash-uncover {
+  /* The traveling 40° edge: each corner pair advances along the rake so the
+   * revealed region is bounded by a line at ~40° to the horizontal. */
+  from {
+    clip-path: polygon(-60% 160%, -20% 100%, -60% 160%, -100% 220%);
+  }
+  to {
+    clip-path: polygon(-60% 160%, 160% -60%, 220% 0%, -100% 220%);
+  }
+}
+
+/* Frames arrive by a hard-edged CUT (visibility), never a cross-fade of art. */
+.setup-splash__frame--symbol {
+  visibility: hidden;
+}
+.setup-splash[data-phase='symbol'] .setup-splash__frame--symbol {
+  visibility: visible;
+}
+
+.setup-splash__frame--lockup {
+  visibility: hidden;
+}
+.setup-splash[data-phase='lockup'] .setup-splash__frame--lockup,
+.setup-splash[data-phase='done'] .setup-splash__frame--lockup {
+  visibility: visible;
+  /* "Resolution is a settle, not a bounce": the composed lockup settles in from
+   * 90% over ~0.6s, as the launch spec allows for the product splash. */
+  animation: splash-settle 600ms cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+@keyframes splash-settle {
+  from {
+    transform: scale(0.9);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* The composed product lockup (symbol + "Redrob Office" wordmark). Minimum
+ * screen size for a lockup is 18px height; we show it comfortably larger. */
+.setup-splash__lockup {
+  width: min(320px, 70vw);
+  height: auto;
+}
+
+/* Reduced motion: "no arrival, the lockup is present." No symbol frame, no
+ * uncover, no settle — the lockup simply shows and the host hands off. */
+@media (prefers-reduced-motion: reduce) {
+  .setup-splash__symbol {
+    animation: none;
+    clip-path: none;
+  }
+  .setup-splash[data-phase='lockup'] .setup-splash__frame--lockup,
+  .setup-splash[data-phase='done'] .setup-splash__frame--lockup {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .setup-window,
   .setup-window * {

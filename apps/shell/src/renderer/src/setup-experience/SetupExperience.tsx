@@ -10,9 +10,10 @@
  * such param, `pickSetupScreen()` returns null and main.tsx boots Home exactly
  * as before — nothing about the shipped experience changes.
  */
-import type { ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 import { InstallFlow } from './InstallFlow'
 import { UninstallFlow } from './UninstallFlow'
+import { SplashReveal } from './SplashReveal'
 import type { Lang } from './setup-copy'
 import './setup-experience.css'
 
@@ -37,9 +38,21 @@ export interface SetupExperienceProps {
 }
 
 export function SetupExperience({ screen, lang }: SetupExperienceProps): ReactElement {
+  // The Splash A staged reveal plays once, then hands off to the flow. Allow
+  // skipping it with ?nosplash for quick copy review of a specific step.
+  const skipSplash = (() => {
+    try {
+      return new URLSearchParams(window.location.search).get('nosplash') != null
+    } catch {
+      return false
+    }
+  })()
+  const [revealed, setRevealed] = useState(skipSplash)
+
   return (
     <div className="setup-root" data-testid="setup-experience" data-screen={screen}>
-      {screen === 'setup' ? <InstallFlow lang={lang} /> : <UninstallFlow lang={lang} />}
+      {!revealed && <SplashReveal onDone={() => setRevealed(true)} />}
+      {revealed && (screen === 'setup' ? <InstallFlow lang={lang} /> : <UninstallFlow lang={lang} />)}
     </div>
   )
 }
