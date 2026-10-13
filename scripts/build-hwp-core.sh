@@ -40,6 +40,14 @@ exec "${HWP_CORE_REAL_CARGO}" "$@"
 EOF
 chmod +x "${shim_dir}/cargo"
 
+# rustc embeds source paths (panic locations, debug names) into the wasm, and
+# registry crates live under the builder's cargo home: /root/.cargo on one
+# machine, /home/runner/.cargo on CI. Two correct builds then differ by those
+# bytes alone and the reproducibility check fails. Remap both roots to fixed
+# names so the output does not depend on who built it or where.
+cargo_home="${CARGO_HOME:-${HOME}/.cargo}"
+export RUSTFLAGS="--remap-path-prefix=${cargo_home}=/cargo --remap-path-prefix=${engine}=/rhwp ${RUSTFLAGS:-}"
+
 rm -rf "${out}"
 cd "${engine}"
 PATH="${shim_dir}:${PATH}" HWP_CORE_REAL_CARGO="${real_cargo}" \
