@@ -9,9 +9,10 @@
  *
  * Pure local state. Nothing is removed, nothing backend is touched.
  */
-import { useEffect, useState, type ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 import { Alert, Button, Progress, Textarea } from '@genoffice/ui'
 import { OfficeMark } from './OfficeMark'
+import { useFakeProgress } from './useFakeProgress'
 import { copy, type Lang } from './setup-copy'
 
 type Step = 'confirm' | 'feedback' | 'removing' | 'done'
@@ -34,29 +35,12 @@ export function UninstallFlow({ lang }: UninstallFlowProps): ReactElement {
   const [step, setStep] = useState<Step>('confirm')
   const [feedback, setFeedback] = useState('')
   const [reason, setReason] = useState<string | null>(null)
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    if (step !== 'removing') return
-    setProgress(0)
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    if (reduce) {
-      setProgress(100)
-      const to = window.setTimeout(() => setStep('done'), 400)
-      return () => window.clearTimeout(to)
-    }
-    const id = window.setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          window.clearInterval(id)
-          window.setTimeout(() => setStep('done'), 450)
-          return 100
-        }
-        return Math.min(100, p + 5)
-      })
-    }, 80)
-    return () => window.clearInterval(id)
-  }, [step])
+  // Cosmetic removal bar; fills on the "removing" step, then advances to done.
+  const progress = useFakeProgress(step === 'removing', {
+    step: 5,
+    intervalMs: 80,
+    onDone: () => setStep('done'),
+  })
 
   // MOCK: feedback + reason are intentionally discarded (no transport on this
   // branch). Referenced so the lint/types see them as read, never sent.

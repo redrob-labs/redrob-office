@@ -12,10 +12,11 @@
  * The copy and step list come from setup-copy.ts, keyed to the real NSIS fields
  * so this ports onto the installer later (see PORTING.md).
  */
-import { useEffect, useState, type ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 import { Button, Checkbox, Progress } from '@genoffice/ui'
 import { LICENSE_EXCERPT } from './license-excerpt'
 import { OfficeMark } from './OfficeMark'
+import { useFakeProgress } from './useFakeProgress'
 import { copy, type Lang } from './setup-copy'
 
 type Step = 'welcome' | 'license' | 'location' | 'progress' | 'finish'
@@ -47,30 +48,12 @@ export function InstallFlow({ lang }: InstallFlowProps): ReactElement {
   const t = copy[lang]
   const [step, setStep] = useState<Step>('welcome')
   const [agreed, setAgreed] = useState(false)
-  const [progress, setProgress] = useState(0)
-
-  // Drive the fake install progress once we land on the progress step.
-  useEffect(() => {
-    if (step !== 'progress') return
-    setProgress(0)
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    if (reduce) {
-      setProgress(100)
-      const to = window.setTimeout(() => setStep('finish'), 400)
-      return () => window.clearTimeout(to)
-    }
-    const id = window.setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          window.clearInterval(id)
-          window.setTimeout(() => setStep('finish'), 450)
-          return 100
-        }
-        return Math.min(100, p + 4)
-      })
-    }, 90)
-    return () => window.clearInterval(id)
-  }, [step])
+  // Cosmetic install bar; fills on the "progress" step, then advances to finish.
+  const progress = useFakeProgress(step === 'progress', {
+    step: 4,
+    intervalMs: 90,
+    onDone: () => setStep('finish'),
+  })
 
   const stepIndex = Math.min(t.progress.steps.length - 1, Math.floor((progress / 100) * t.progress.steps.length))
 
