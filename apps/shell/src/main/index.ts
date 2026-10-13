@@ -516,6 +516,10 @@ const GENTEAM_URL = GITHUB_REPO_URL
 // Kept main-side so the renderer never supplies the URL.
 const CREDIT_USAGE_URL = 'https://www.genspark.ai/credit-usage'
 
+// Redrob Console, opened from the Redrob GROUP logo in the app chrome.
+// Kept main-side so the renderer never supplies the URL.
+const REDROB_CONSOLE_URL = 'https://console.redrob.ai'
+
 // ---- "star us on GitHub" prompt (see star-prompt.ts for the rules) ----
 
 const readStarPrompt = () =>
@@ -2546,6 +2550,14 @@ function createShellWindow(): void {
     ...(process.platform === 'darwin'
       ? { titleBarStyle: 'hiddenInset' as const, vibrancy: 'sidebar' as const }
       : {}),
+    // Windows: a translucent acrylic backdrop behind the frosted app chrome.
+    ...(process.platform === 'win32' ? { backgroundMaterial: 'acrylic' as const } : {}),
+    // In a packaged build the OS uses the exe's embedded icon; in dev there is
+    // no exe, so point the window at the source icon so the taskbar/alt-tab
+    // entry is the Office mark rather than the default Electron logo.
+    ...(process.platform === 'win32' && !app.isPackaged
+      ? { icon: join(__dirname, '../../build/icon.ico') }
+      : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -3377,6 +3389,12 @@ function registerHomeIpc(): void {
     })
   })
 
+  ipcMain.handle(HOME_CHANNELS.openConsole, () => {
+    shell.openExternal(REDROB_CONSOLE_URL).catch(() => {
+      // no browser handler available; nothing actionable for the user here
+    })
+  })
+
   ipcMain.handle(HOME_CHANNELS.openCreditUsage, () => {
     shell.openExternal(CREDIT_USAGE_URL).catch(() => {
       // no browser handler available; nothing actionable for the user here
@@ -3506,6 +3524,12 @@ function registerTabsIpc(): void {
   ipcMain.handle(TABS_CHANNELS.close, (_event, id: string) => tabManager?.closeTab(id))
   ipcMain.handle(TABS_CHANNELS.reorder, (_event, id: string, toIndex: number) => {
     if (typeof id === 'string' && Number.isInteger(toIndex)) tabManager?.reorderTab(id, toIndex)
+  })
+  // Park/restore the active editor view while the shell-DOM command palette is
+  // open: a WebContentsView always paints above shell DOM, so the palette can
+  // only show over an editor if its view is moved off-screen first.
+  ipcMain.handle(TABS_CHANNELS.setChromeOverlay, (_event, on: unknown) => {
+    tabManager?.setChromeOverlay(on === true)
   })
   // "all tabs" overflow menu — native popup because the editors' WebContentsView
   // would cover any DOM dropdown the shell renderer draws below the tab strip
@@ -4620,6 +4644,9 @@ setSessionPathResolver(resolveSheetsSessionPath)
 const devPidFile = () => join(app.getPath('userData'), 'dev-instance.pid')
 
 app.whenReady().then(async () => {
+  // Windows: a stable Application User Model ID so the taskbar groups the app
+  // under one pinned entry and toast notifications are attributed to it.
+  if (process.platform === 'win32') app.setAppUserModelId('ai.redrob.office')
   const lockData = () => (pendingLaunchPath ? { launchPath: pendingLaunchPath } : {})
   let hasLock = app.requestSingleInstanceLock(lockData())
   if (!hasLock && !app.isPackaged) {

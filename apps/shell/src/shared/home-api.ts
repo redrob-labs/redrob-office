@@ -152,6 +152,8 @@ export interface HomeApi {
   onThemeChanged(handler: (theme: UiTheme) => void): () => void
   /** open the GenTeam community page in the default browser */
   openGenTeam(): Promise<void>
+  /** open the Redrob Console (console.redrob.ai) in the default browser */
+  openConsole(): Promise<void>
   /** open the Genspark credit-usage page in the default browser */
   openCreditUsage(): Promise<void>
   /** open the public GitHub repository in the default browser */
@@ -353,6 +355,7 @@ export const HOME_CHANNELS = {
   getDefaultSaveDir: 'home:get-default-save-dir',
   pickDefaultSaveDir: 'home:pick-default-save-dir',
   openGenTeam: 'home:open-genteam',
+  openConsole: 'home:open-console',
   openCreditUsage: 'home:open-credit-usage',
   openGitHubRepo: 'home:open-github-repo',
   githubStars: 'home:github-stars',

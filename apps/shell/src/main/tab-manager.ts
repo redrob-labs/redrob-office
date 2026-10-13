@@ -54,7 +54,7 @@ interface TabRecord {
 }
 
 /** must match the tab strip's rendered height (apps/shell/src/renderer/src/TabBar.tsx) */
-const TAB_STRIP_HEIGHT = 40
+const TAB_STRIP_HEIGHT = 62
 const HOME_ID = 'home'
 
 /**
@@ -77,6 +77,10 @@ export class TabManager {
   private readonly bleedWcIds = new Set<number>()
   /** tabs mid unsaved-changes prompt, so a second close click doesn't stack dialogs */
   private readonly closingIds = new Set<string>()
+  /** a shell-DOM overlay (the command palette) is open: park the active editor
+   *  view off-screen so the DOM overlay can paint over the whole window
+   *  (a WebContentsView always paints above shell DOM) */
+  private chromeOverlay = false
 
   constructor(
     private readonly shellWindow: BrowserWindow,
@@ -102,6 +106,11 @@ export class TabManager {
 
   private contentBounds(): Rectangle {
     const { width, height } = this.shellWindow.getContentBounds()
+    // The command palette (shell DOM) is open: park the active editor view
+    // off-screen so it stops covering the DOM. Restored when the palette closes.
+    if (this.chromeOverlay) {
+      return { x: 0, y: height, width, height }
+    }
     if (this.htmlFullScreenId !== null && this.htmlFullScreenId === this.activeId) {
       return { x: 0, y: 0, width, height }
     }
@@ -116,6 +125,18 @@ export class TabManager {
   setContentBleed(wc: WebContents, on: boolean): void {
     if (on) this.bleedWcIds.add(wc.id)
     else this.bleedWcIds.delete(wc.id)
+    this.layout()
+  }
+
+  /**
+   * Park the active editor view off-screen (on=true) while a shell-DOM overlay
+   * such as the command palette is open, and restore it (on=false) when it
+   * closes. A WebContentsView always paints above shell DOM, so the overlay can
+   * only show over an editor if its view is moved out of the way first.
+   */
+  setChromeOverlay(on: boolean): void {
+    if (this.chromeOverlay === on) return
+    this.chromeOverlay = on
     this.layout()
   }
 
