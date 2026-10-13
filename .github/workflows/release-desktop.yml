@@ -419,6 +419,24 @@ jobs:
           path: release-assets
           merge-multiple: true
 
+      # scripts/check-release-asset-names.mjs loads apps/shell/electron-builder.cjs,
+      # which resolves electron and other packages from node_modules. v0.10.1's
+      # publish job had no install and failed on "Cannot find module
+      # 'electron/package.json'" after both signing jobs had succeeded.
+      # --ignore-scripts skips the Electron binary download the postinstall does;
+      # only the package metadata is read here.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
       # The platform jobs each carried a copy; this one is the authoritative write so
       # the published release holds the manifest even if an artifact set is rebuilt
       # by hand. The check then refuses to publish a set without it.
