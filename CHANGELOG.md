@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.2 -- 2026-10-13
+
+- 0.10.1's macOS and Windows installers did not publish (release tooling);
+  same contents, all three platforms.
+
 ## 0.10.1 -- 2026-10-13
 
 - **The macOS and Windows installers of 0.10.0 did not ship.** The release
