@@ -188,6 +188,27 @@ describe('the launcher release manifest (redrob-launcher.json)', () => {
     }
   })
 
+  it("the asset-name check ignores electron-builder's own files in a built release directory", () => {
+    // The desktop jobs run the check over apps/shell/release as electron-builder left it,
+    // which holds builder-debug.yml (and builder-effective-config.yaml) beside the
+    // packages. v0.10.0's macOS and Windows jobs failed on exactly that.
+    const dir = releaseDir({
+      [PACKAGE]: '',
+      'latest-linux.yml': '',
+      'builder-debug.yml': '',
+      'builder-effective-config.yaml': '',
+    })
+    try {
+      spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
+      const result = check(dir)
+      expect(result.status, result.stderr).toBe(0)
+      expect(result.stdout).not.toContain('builder-debug.yml')
+      expect(result.stdout).toContain(`${PACKAGE} ok`)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
   it('every release job writes the manifest before its asset-name check, and the uploads carry it', () => {
     const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
     const linux = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'), 'utf8')
