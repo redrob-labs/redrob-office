@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- The release legs bundle the Redrob Code sidecar from the engine's own GitHub release (tag pinned in `apps/shell/redrob-code.version`, downloaded and checked against the release's SHA256SUMS by `scripts/fetch-redrob-code.sh`) instead of building it from source on every leg, which cost about 3.5 minutes each and shipped untested bytes. Bump the pin in a pull request like any dependency.
+- CI no longer runs on pull requests into `main`: they only promote commits that already passed on `develop` (or a hotfix that releases on its own run), so the re-run was a seven-minute wait before every release.
 ## 0.10.6 -- 2026-10-15
 
 ### Fixed
