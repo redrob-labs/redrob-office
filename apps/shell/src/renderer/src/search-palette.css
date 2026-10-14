@@ -1,0 +1,139 @@
+/* Command-palette search popup: a centered card over a dimmed scrim, opened
+ * from the chrome search box. Lists recent files to open. */
+
+.palette-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  background: color-mix(in srgb, #000 38%, transparent);
+  -webkit-app-region: no-drag;
+}
+
+.palette {
+  display: flex;
+  flex-direction: column;
+  width: min(680px, calc(100vw - 48px));
+  max-height: 70vh;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface-base);
+  box-shadow: 0 24px 64px color-mix(in srgb, #000 28%, transparent);
+  overflow: hidden;
+}
+
+.palette__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--ink-muted);
+}
+
+.palette__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font: inherit;
+  font-size: 18px;
+  color: var(--ink-primary);
+}
+.palette__input:focus,
+.palette__input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.palette__input::placeholder {
+  color: var(--ink-muted);
+}
+
+.palette__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.palette__empty {
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
+.palette__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.palette__row.active {
+  background: var(--surface-sunken);
+}
+
+.palette__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.palette__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+.palette__name {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palette__dir {
+  font-size: 12px;
+  color: var(--ink-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette__hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.palette__row:not(.active) .palette__hint {
+  visibility: hidden;
+}
+
+.palette__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12px;
+  color: var(--ink-muted);
+}

@@ -306,3 +306,51 @@
   display: flex;
   gap: var(--space-2);
 }
+
+/* ---- Settings as a main-content PANE (variant="pane") ----
+ * Opens in the right content column instead of a modal popover. The shared
+ * .set-body / .set-nav / .set-pane layout is reused; this only frames it. */
+.settings-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-pane__head {
+  /* reuse .updates-head rhythm, but let the close button sit on the right */
+  display: block;
+}
+
+.settings-pane__headrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.settings-pane__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+.settings-pane__close:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+
+/* in pane mode the body fills the remaining content height and scrolls */
+.settings-pane .set-body {
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  overflow: hidden;
+}

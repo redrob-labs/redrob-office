@@ -229,6 +229,9 @@ const homeApi: HomeApi = {
   async openGenTeam() {
     await ipcRenderer.invoke(HOME_CHANNELS.openGenTeam)
   },
+  async openConsole() {
+    await ipcRenderer.invoke(HOME_CHANNELS.openConsole)
+  },
   async openCreditUsage() {
     await ipcRenderer.invoke(HOME_CHANNELS.openCreditUsage)
   },
@@ -380,6 +383,9 @@ const tabsApi: TabsApi = {
   },
   async reorder(id, toIndex) {
     await ipcRenderer.invoke(TABS_CHANNELS.reorder, id, toIndex)
+  },
+  async setChromeOverlay(on) {
+    await ipcRenderer.invoke(TABS_CHANNELS.setChromeOverlay, on)
   },
   onChanged(handler) {
     const listener = (_event: IpcRendererEvent, tabs: TabSummary[]) => handler(tabs)

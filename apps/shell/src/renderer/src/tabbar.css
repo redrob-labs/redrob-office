@@ -2,6 +2,39 @@
  * plates, feet, drag to reorder, close buttons) is @genoffice/ui's DocTabs,
  * styled by @genoffice/ui/doctabs.css on the design system's tokens. */
 
+/* Thicker chrome: raise the DocTabs strip height to 62px (~+30% over the
+ * previous 40). The matching editor-view offset is TAB_STRIP_HEIGHT in the
+ * main process (tab-manager.ts), raised to 62 in lockstep so the native views
+ * do not overlap the taller strip; .app-frame-content padding matches below. */
+.tab-bar {
+  --go-doctabs-height: 62px;
+}
+
+/* Slightly shorter tab plates inside the taller (62px) strip: push the plate
+ * down from the top so the tab chip reads shorter, without changing the strip
+ * height (the editor-view offset depends on it).
+ *
+ * Overflow is already handled by the kit and needs no change: the scrolling
+ * .go-doctabs__strip is flex:1 / min-width:0 / overflow-x:auto, and the nav
+ * cluster (start) + the logos/search (end) are its SIBLINGS, so they stay
+ * pinned while tabs shrink to their min-width and then scroll — tabs never
+ * overlap the logos or the search box. */
+.tab-bar .go-doctabs__tab {
+  /* a fixed, shorter chip centered in the 62px strip; the icon + title sit on
+   * the chip's own center line so they align cleanly */
+  height: 34px;
+  margin-top: 14px;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-items: center;
+}
+/* the plate follows the shorter chip (it is absolutely inset to the tab box) */
+.tab-bar .go-doctabs__icon,
+.tab-bar .go-doctabs__title {
+  display: flex;
+  align-items: center;
+}
+
 /* While a Home popover is open the strip must deliver presses (drag regions
    swallow them), so outside-press dismissal can see presses on the blank band */
 html.genoffice-popover-open .tab-bar {
@@ -14,17 +47,128 @@ html.genoffice-popover-open .tab-bar {
   flex-shrink: 0;
 }
 
-/* "+" hugs the last tab, Chrome style */
-.tab-new-btn {
+/* Left chrome nav cluster: sidebar toggle (or Home button inside an editor) +
+ * (deferred) back/forward. Back/forward are disabled placeholders — no
+ * main-process navigation API exists yet. */
+.tab-nav-cluster {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 2px;
   margin-left: var(--space-1);
+  -webkit-app-region: no-drag;
+}
+.tab-nav-btn {
+  color: var(--ink-secondary);
+}
+.tab-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+/* the back glyph is the forward chevron, mirrored */
+.tab-nav-btn__back {
+  transform: scaleX(-1);
 }
 
-.tab-overflow-btn {
-  margin: 0 var(--space-2) 0 var(--space-1);
+/* The Redrob OFFICE logo button, centred in the strip's band */
+.tab-app-menu-btn {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+  margin-left: var(--space-1);
+  padding: 0 var(--space-2) 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.tab-app-menu-btn:hover {
+  background: var(--surface-sunken);
+  color: var(--ink-primary);
+}
+.tab-app-menu-btn:focus-visible,
+.tab-search-box:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
 }
 
-/* the editor WebContentsViews are laid out below the 40px strip by the main
- * process (TAB_STRIP_HEIGHT); Home's own content starts at the same line */
+/* The square Redrob GROUP symbol beside the Office logo. */
+.tab-redrob-mark {
+  align-self: center;
+  display: block;
+  margin-left: var(--space-1);
+  margin-right: var(--space-1);
+  border-radius: var(--radius-sm);
+  -webkit-app-region: no-drag;
+}
+
+/* The group mark is a button (opens Redrob Console): strip button chrome so
+ * it reads as the bare logo, with a subtle hover. */
+.tab-group-btn {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.tab-group-btn:hover {
+  opacity: 0.82;
+}
+.tab-group-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+
+/* Chrome logo light/dark swap: show the light-appearance asset by default,
+ * the dark-appearance one under explicit or system dark. */
+.tab-logo-dark {
+  display: none;
+}
+[data-theme='dark'] .tab-logo-light {
+  display: none;
+}
+[data-theme='dark'] .tab-logo-dark {
+  display: block;
+}
+
+/* The search box lives in the chrome, left of the native caption buttons. It
+ * opens the command palette over the recent files. */
+.tab-search-box {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 420px;
+  height: 40px;
+  margin-right: var(--space-2);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-base);
+  color: var(--ink-muted);
+  font: var(--text-body-sm);
+  text-align: left;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.tab-search-box:hover {
+  border-color: var(--border-strong);
+}
+.tab-search-box__label {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* the editor WebContentsViews are laid out below the strip by the main
+ * process (TAB_STRIP_HEIGHT = 62); Home's own content starts at the same line */
 .app-frame-content {
-  padding-top: 40px;
+  padding-top: 62px;
 }
