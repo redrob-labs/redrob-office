@@ -638,10 +638,14 @@ describe('Linux release workflow attaches to the GitHub Release', () => {
     expect(workflow).toContain("node-version: \"24\"")
   })
 
-  it('builds the Redrob Code sidecar, which beforePack refuses to package without', () => {
-    expect(workflow).toContain('repository: redrob-labs/redrob-code')
-    expect(workflow).toContain('redrob-linux-x64/bin/redrob')
-    expect(workflow).toContain('../apps/shell/build/redrob-code')
+  it('fetches the pinned Redrob Code release as the sidecar, which beforePack refuses to package without', () => {
+    expect(workflow).toContain('scripts/fetch-redrob-code.sh linux-x64')
+    expect(workflow).not.toContain('repository: redrob-labs/redrob-code')
+    const pin = readFileSync(resolve(REPO_ROOT, 'apps/shell/redrob-code.version'), 'utf8').trim()
+    expect(pin).toMatch(/^v\d+\.\d+\.\d+$/)
+    const script = readFileSync(resolve(REPO_ROOT, 'scripts/fetch-redrob-code.sh'), 'utf8')
+    expect(script).toContain('sha256sum -c -')
+    expect(script).toContain('apps/shell/build/$target')
   })
 
   it('builds the unsigned Linux AppImage/deb/rpm for the shell', () => {
@@ -736,12 +740,13 @@ describe('Redrob Code sidecar packaging', () => {
 
 
 describe('Redrob Code release workflow wiring', () => {
-  it('builds and stages the Code sidecar for Windows, macOS, and Linux', () => {
+  it('fetches and stages the released Code sidecar for Windows, macOS, and Linux', () => {
     const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
     const linux = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'), 'utf8')
-    expect(desktop).toContain('redrob-windows-x64/bin/redrob.exe')
-    expect(desktop).toContain('redrob-darwin-arm64/bin/redrob')
-    expect(linux).toContain('redrob-linux-x64/bin/redrob')
+    expect(desktop).toContain('scripts/fetch-redrob-code.sh windows-x64')
+    expect(desktop).toContain('scripts/fetch-redrob-code.sh darwin-arm64')
+    expect(linux).toContain('scripts/fetch-redrob-code.sh linux-x64')
+    expect(desktop).not.toContain('oven-sh/setup-bun')
     expect(desktop).toContain('APPLE_CODESIGN_CERT_P12_BASE64')
     expect(desktop).toContain('APPLE_NOTARY_API_KEY_P8_BASE64')
     expect(desktop).toContain('xcrun stapler validate')

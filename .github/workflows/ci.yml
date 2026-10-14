@@ -4,6 +4,10 @@ on:
   push:
     branches: [main, master]
   pull_request:
+    # A pull request into main only promotes commits that already passed here on develop
+    # (or a hotfix that releases on its own run); re-running CI there bought nothing but a
+    # ~7-minute wait before every release. Every other pull request still runs.
+    branches-ignore: [main, master]
   # Full native matrix is expensive; keep it to a weekly check + manual runs.
   schedule:
     - cron: '0 6 * * 1'
