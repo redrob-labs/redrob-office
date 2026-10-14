@@ -91,8 +91,8 @@ jobs:
       # repository's `release` environment. No certificate file and no client
       # secret exist anywhere. scripts/win-sign.ps1 reads the three ARTIFACT_*
       # values; electron-builder calls it through scripts/win-sign.cjs for every
-      # PE it packages (GENOFFICE_WIN_SIGN_MODE=production), and the sidecar step
-      # below calls it directly.
+      # PE it packages (GENOFFICE_WIN_SIGN_MODE=production). The login itself is
+      # the step right before packaging, because the OIDC token lives minutes.
       #
       # All of these are redrob-labs organization secrets, plain IDs rather than
       # credentials. A repository secret of the same name overrides the org
@@ -120,13 +120,6 @@ jobs:
             if (-not [Environment]::GetEnvironmentVariable($name)) { throw "Missing $name organization secret" }
           }
 
-      - name: Log in to Azure (OIDC)
-        uses: azure/login@v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Check out the Redrob Code sidecar source
         uses: actions/checkout@v4
         with:
@@ -148,18 +141,6 @@ jobs:
           if (-not (Test-Path $source)) { throw "Redrob Code Windows sidecar was not produced" }
           New-Item -ItemType Directory -Force "../apps/shell/build" | Out-Null
           Copy-Item $source "../apps/shell/build/redrob-code.exe"
-
-      # electron-builder re-signs every PE it packages, redrob-code.exe included
-      # (static extraResources go through the same hook). Signing the sidecar
-      # here first makes an Artifact Signing failure fail the job in seconds,
-      # before the suite build, and proves the credential before it is needed
-      # dozens of times.
-      - name: Sign the Redrob Code sidecar
-        shell: pwsh
-        run: |
-          $sidecar = "apps/shell/build/redrob-code.exe"
-          if (-not (Test-Path $sidecar)) { throw "Redrob Code sidecar is missing before signing: $sidecar" }
-          pwsh -NoProfile -File scripts/win-sign.ps1 $sidecar
 
       - uses: pnpm/action-setup@v4
         with:
@@ -186,9 +167,27 @@ jobs:
       - name: Generate third-party notices
         run: pnpm --filter @genoffice/shell run notices
 
+      # The login comes AFTER the build and right BEFORE signing: GitHub's OIDC
+      # token lives minutes, and a login done before the ~12-minute suite build
+      # left signtool without a usable credential (it fell back to a browser
+      # prompt nobody sees and the job hung). The build above is packaging-free;
+      # electron-builder's sign hook (scripts/win-sign.cjs -> win-sign.ps1) runs
+      # only in the package step below, so every signtool call happens within
+      # minutes of this login. The federated credential accepts this repository's
+      # `release` environment; no client secret exists anywhere.
+      - name: Log in to Azure (OIDC)
+        if: env.AZURE_CLIENT_ID != ''
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       # nsis is the installer people download; zip is the same signed win-unpacked
       # tree as redrob-office-<v>-windows-x64-portable.zip, which is what Redrob
-      # Launcher installs (it cannot run an exe installer).
+      # Launcher installs (it cannot run an exe installer). electron-builder signs
+      # every PE it packages through the hook, redrob-code.exe included (static
+      # extraResources go through the same hook).
       - name: Sign and package Redrob Office (shell)
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis zip --x64 --publish never
 
@@ -210,8 +209,10 @@ jobs:
           $sidecar = "apps/shell/release/win-unpacked/resources/native/redrob-code.exe"
           if (-not (Test-Path $sidecar)) { throw "Packaged Redrob Code sidecar was not produced" }
           # The Artifact Signing certificate chains to a Microsoft root every
-          # Windows trusts, so the full Authenticode check must pass: Valid, not
-          # the UnknownError/NotTrusted the old organization certificate reported.
+          # Windows trusts, so the full Authenticode check must pass: Valid, and
+          # nothing less. The signer must be the organization's Public Trust
+          # certificate, not whatever certificate a misconfigured profile serves.
+          $expectedSigner = "CN=McKinley Rice, Inc."
           $signtool = Get-ChildItem "C:/Program Files (x86)/Windows Kits/10/bin/*/x64/signtool.exe" |
             Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw "signtool.exe was not found in the Windows 10 SDK" }
@@ -225,7 +226,11 @@ jobs:
             if ($signature.Status -ne "Valid") {
               throw "Invalid Authenticode signature for ${artifact}: $($signature.Status) ($($signature.StatusMessage))"
             }
-            Write-Host "$artifact signed by: $($signature.SignerCertificate.Subject) status=$($signature.Status)"
+            $subject = $signature.SignerCertificate.Subject
+            if (-not $subject.StartsWith($expectedSigner)) {
+              throw "$artifact is signed by '$subject', expected '$expectedSigner'"
+            }
+            Write-Host "$artifact signed by $subject"
           }
 
       - name: Upload signed Windows package

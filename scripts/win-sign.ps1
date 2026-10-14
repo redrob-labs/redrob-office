@@ -87,6 +87,14 @@ try {
     Endpoint               = $env:ARTIFACT_SIGNING_ENDPOINT.TrimEnd('/')
     CodeSigningAccountName = $env:ARTIFACT_SIGNING_ACCOUNT
     CertificateProfileName = $env:ARTIFACT_SIGNING_CERT_PROFILE
+    # Only the credentials a CI runner or a developer shell can satisfy. Without this list a
+    # missing or expired login falls through to InteractiveBrowserCredential, which opens a browser
+    # nobody sees and waits forever (one release hung 30 minutes on it). Now it fails in seconds.
+    ExcludeCredentials     = @(
+      'InteractiveBrowserCredential', 'ManagedIdentityCredential', 'SharedTokenCacheCredential',
+      'VisualStudioCredential', 'VisualStudioCodeCredential', 'AzurePowerShellCredential',
+      'AzureDeveloperCliCredential', 'WorkloadIdentityCredential'
+    )
   } | ConvertTo-Json | Set-Content -Path $metadata -Encoding utf8
   $ts = if ($env:WINDOWS_TIMESTAMP_URL) { $env:WINDOWS_TIMESTAMP_URL } else { 'http://timestamp.acs.microsoft.com' }
   $common = @('sign', '/v', '/fd', 'SHA256', '/td', 'SHA256', '/d', 'Redrob Office', '/du', 'https://github.com/redrob-labs/redrob-office')
