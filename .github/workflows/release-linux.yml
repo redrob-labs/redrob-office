@@ -72,29 +72,13 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       # The shell packages a native Redrob Code binary, and electron-builder's
-      # beforePack refuses to package without it (assertRedrobCodeBinaryPresent), so
-      # the sidecar is built from its own repository before packaging.
-      - name: Check out the Redrob Code sidecar source
-        uses: actions/checkout@v4
-        with:
-          repository: redrob-labs/redrob-code
-          ref: ${{ vars.REDROB_CODE_REF || 'main' }}
-          path: redrob-code
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-
-      - name: Build the native Redrob Code sidecar
-        working-directory: redrob-code
-        run: |
-          set -euo pipefail
-          bun install --frozen-lockfile
-          bun run --cwd packages/redrob build --single
-          test -x packages/redrob/dist/redrob-linux-x64/bin/redrob
-          mkdir -p ../apps/shell/build
-          cp packages/redrob/dist/redrob-linux-x64/bin/redrob ../apps/shell/build/redrob-code
-          chmod 755 ../apps/shell/build/redrob-code
+      # beforePack refuses to package without it (assertRedrobCodeBinaryPresent). It is the
+      # engine's own released binary (apps/shell/redrob-code.version pins the tag), downloaded
+      # and checksum-verified by scripts/fetch-redrob-code.sh.
+      - name: Fetch the Redrob Code sidecar from its release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/fetch-redrob-code.sh linux-x64
 
       - name: Verify the tag matches the application version
         run: |

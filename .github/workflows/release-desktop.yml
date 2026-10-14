@@ -120,27 +120,14 @@ jobs:
             if (-not [Environment]::GetEnvironmentVariable($name)) { throw "Missing $name organization secret" }
           }
 
-      - name: Check out the Redrob Code sidecar source
-        uses: actions/checkout@v4
-        with:
-          repository: redrob-labs/redrob-code
-          ref: ${{ vars.REDROB_CODE_REF || 'main' }}
-          path: redrob-code
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-
-      - name: Build the native Redrob Code sidecar
-        shell: pwsh
-        working-directory: redrob-code
-        run: |
-          bun install --frozen-lockfile
-          bun run --cwd packages/redrob build --single
-          $source = "packages/redrob/dist/redrob-windows-x64/bin/redrob.exe"
-          if (-not (Test-Path $source)) { throw "Redrob Code Windows sidecar was not produced" }
-          New-Item -ItemType Directory -Force "../apps/shell/build" | Out-Null
-          Copy-Item $source "../apps/shell/build/redrob-code.exe"
+      # The sidecar is the engine's own released binary (apps/shell/redrob-code.version pins the
+      # tag), downloaded and checksum-verified by scripts/fetch-redrob-code.sh. Building it here
+      # cost ~3.5 minutes per leg and bundled bytes nobody had tested.
+      - name: Fetch the Redrob Code sidecar from its release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/fetch-redrob-code.sh windows-x64
 
       - uses: pnpm/action-setup@v4
         with:
@@ -280,27 +267,10 @@ jobs:
           # checkout here is what let develop's bytes ship as v0.8.3.
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
-      - name: Check out the Redrob Code sidecar source
-        uses: actions/checkout@v4
-        with:
-          repository: redrob-labs/redrob-code
-          ref: ${{ vars.REDROB_CODE_REF || 'main' }}
-          path: redrob-code
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-
-      - name: Build the native Redrob Code sidecar
-        working-directory: redrob-code
-        run: |
-          set -euo pipefail
-          bun install --frozen-lockfile
-          bun run --cwd packages/redrob build --single
-          test -x packages/redrob/dist/redrob-darwin-arm64/bin/redrob
-          mkdir -p ../apps/shell/build
-          cp packages/redrob/dist/redrob-darwin-arm64/bin/redrob ../apps/shell/build/redrob-code
-          chmod 755 ../apps/shell/build/redrob-code
+      - name: Fetch the Redrob Code sidecar from its release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/fetch-redrob-code.sh darwin-arm64
 
       - uses: pnpm/action-setup@v4
         with:
