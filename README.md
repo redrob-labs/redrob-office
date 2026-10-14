@@ -78,13 +78,12 @@ surface, and renaming them would rewrite every import for no user-visible gain.
 
 ## Releases
 
-Pushing a `v*` tag runs two workflows from the same tag, both attaching to the same
-GitHub Release: `release-desktop.yml` signs and attaches the Windows installer (and
-notarises macOS when that build is enabled), and `release-linux.yml` builds the
-unsigned Linux packages and attaches them with their checksums. The tag must match
-the version in `apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`).
+Pushing a `v*` tag runs `release-desktop.yml`: it signs the Windows installer,
+notarises the macOS build, builds the unsigned Linux packages, and publishes them all
+on one GitHub Release with `SHA256SUMS.txt` through the organization's shared publish
+job. The tag must match the version in `apps/shell/package.json` (`v0.8.3` ↔ `0.8.3`).
 
-The release is also the update feed: `latest.yml` and `latest-linux.yml` ride along
+The release is also the update feed: `latest.yml`, `latest-mac.yml` and `latest-linux.yml` ride along
 with the installers, and the app reads them through electron-updater's GitHub
 provider. Details, including what a fork build does instead, are in
 [docs/RELEASE.md](./docs/RELEASE.md).
