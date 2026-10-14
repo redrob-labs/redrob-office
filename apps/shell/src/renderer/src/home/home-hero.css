@@ -117,7 +117,7 @@
 }
 
 .home-cap__icon--privacy {
-  color: var(--success, #2f9e63);
+  color: var(--status-success, #2f9e63);
 }
 .home-cap__icon--memory,
 .home-cap__icon--crosscheck {
@@ -573,8 +573,8 @@
 }
 
 .updf__s--done {
-  background: color-mix(in srgb, var(--success, #2f9e63) 14%, transparent);
-  color: var(--success, #2f9e63);
+  background: color-mix(in srgb, var(--status-success, #2f9e63) 14%, transparent);
+  color: var(--status-success, #2f9e63);
 }
 
 /* the per-file figure table sits in a soft sunken well */
