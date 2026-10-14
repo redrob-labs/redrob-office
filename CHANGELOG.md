@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.5 -- 2026-10-14
+
+### Fixed
+
+- The Windows release leg signed every artifact with the organization's Public Trust certificate, then refused its own result: the signer check compared the whole subject to `CN=McKinley Rice, Inc.`, but Windows renders a CN that contains a comma as `CN="McKinley Rice, Inc.", O=...`. The check now matches the CN in either form. No application change; 0.10.4 shipped Linux and macOS only.
+
 ## 0.10.4 -- 2026-10-14
 
 ### Windows and Linux: the chrome is the title bar (#176)

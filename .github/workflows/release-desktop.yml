@@ -212,7 +212,10 @@ jobs:
           # Windows trusts, so the full Authenticode check must pass: Valid, and
           # nothing less. The signer must be the organization's Public Trust
           # certificate, not whatever certificate a misconfigured profile serves.
+          # Windows renders a CN that contains a comma in quotes:
+          # CN="McKinley Rice, Inc.", O=..., so match the quoted form too.
           $expectedSigner = "CN=McKinley Rice, Inc."
+          $expectedSignerPattern = '^CN="?McKinley Rice, Inc\."?(,|$)'
           $signtool = Get-ChildItem "C:/Program Files (x86)/Windows Kits/10/bin/*/x64/signtool.exe" |
             Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw "signtool.exe was not found in the Windows 10 SDK" }
@@ -227,7 +230,7 @@ jobs:
               throw "Invalid Authenticode signature for ${artifact}: $($signature.Status) ($($signature.StatusMessage))"
             }
             $subject = $signature.SignerCertificate.Subject
-            if (-not $subject.StartsWith($expectedSigner)) {
+            if ($subject -notmatch $expectedSignerPattern) {
               throw "$artifact is signed by '$subject', expected '$expectedSigner'"
             }
             Write-Host "$artifact signed by $subject"
