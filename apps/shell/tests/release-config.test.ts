@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -491,9 +491,93 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).not.toContain("require('./office/package.json')")
   })
 
+  it('signs Windows through Azure Artifact Signing over OIDC, never a certificate file', () => {
+    // The federated credential accepts repo:redrob-labs/*:environment:release
+    // only, so the job must run in that environment and mint an id-token.
+    const windowsJob = workflow.slice(workflow.indexOf('\n  windows:\n'), workflow.indexOf('\n  macos:\n'))
+    expect(windowsJob).toContain('environment: release')
+    expect(windowsJob).toContain('id-token: write')
+    expect(windowsJob).toContain('uses: azure/login@v3')
+    expect(windowsJob).toContain('GENOFFICE_WIN_SIGN_MODE: production')
+    for (const name of ['ARTIFACT_SIGNING_ENDPOINT', 'ARTIFACT_SIGNING_ACCOUNT', 'ARTIFACT_SIGNING_CERT_PROFILE']) {
+      expect(windowsJob).toContain(`${name}: \${{ secrets.${name} }}`)
+    }
+    expect(windowsJob).toContain('scripts/win-sign.ps1')
+    // the old organization certificate, its PFX, and its UnknownError/NotTrusted allowance are gone
+    for (const gone of ['WIN_CSC_LINK', 'WIN_CSC_KEY_PASSWORD', '.pfx', 'AZURE_CLIENT_SECRET', 'NotTrusted', 'UnknownError']) {
+      expect(workflow).not.toContain(gone)
+    }
+    expect(windowsJob).toContain('verify /pa /v')
+    expect(windowsJob).toContain('-ne "Valid"')
+    // the signer must be the organization's Public Trust certificate, and the log says so per file
+    expect(windowsJob).toContain('$expectedSigner = "CN=McKinley Rice, Inc."')
+    expect(windowsJob).toContain('Write-Host "$artifact signed by $subject"')
+  })
+
+  it('logs in to Azure after the build and immediately before signing', () => {
+    // GitHub's OIDC token lives minutes. A login before the ~12-minute suite build
+    // left signtool without a usable credential (it fell back to a browser prompt
+    // and hung), so the order must be: build, login, sign+package.
+    const windowsJob = workflow.slice(workflow.indexOf('\n  windows:\n'), workflow.indexOf('\n  macos:\n'))
+    const build = windowsJob.indexOf('run: pnpm build')
+    const login = windowsJob.indexOf('uses: azure/login@v3')
+    const pack = windowsJob.indexOf('exec electron-builder --config electron-builder.cjs --win')
+    expect(build).toBeGreaterThan(-1)
+    expect(login).toBeGreaterThan(build)
+    expect(pack).toBeGreaterThan(login)
+    // nothing that could sign or build runs between the login and the package step
+    const packStep = windowsJob.lastIndexOf('- name:', pack)
+    const between = windowsJob.slice(login, packStep)
+    expect(between).not.toContain('win-sign.ps1')
+    expect(between).not.toContain('run: pnpm')
+    // the login is skipped when signing is not configured, and takes only the plain IDs
+    const loginStep = windowsJob.slice(windowsJob.lastIndexOf('- name:', login), pack)
+    expect(loginStep).toContain("if: env.AZURE_CLIENT_ID != ''")
+    for (const name of ['AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_SUBSCRIPTION_ID']) {
+      expect(loginStep).toContain(`\${{ secrets.${name} }}`)
+    }
+    // the build step itself does not package (packaging is where the sign hook runs)
+    expect(windowsJob.slice(0, login)).not.toContain('electron-builder --config')
+  })
+
+  it('wires the electron-builder signing hook to the Artifact Signing script', () => {
+    const builder = readFileSync(resolve(REPO_ROOT, 'apps/shell/electron-builder.cjs'), 'utf8')
+    expect(builder).toContain("'../../scripts/win-sign.cjs'")
+    expect(existsSync(resolve(REPO_ROOT, 'scripts/win-sign.cjs'))).toBe(true)
+    expect(existsSync(resolve(REPO_ROOT, 'scripts/win-sign.ps1'))).toBe(true)
+    const hook = readFileSync(resolve(REPO_ROOT, 'scripts/win-sign.cjs'), 'utf8')
+    expect(hook).toContain("'win-sign.ps1'")
+    expect(hook).not.toContain('WIN_CSC')
+    const script = readFileSync(resolve(REPO_ROOT, 'scripts/win-sign.ps1'), 'utf8')
+    expect(script).toContain('Microsoft.ArtifactSigning.Client')
+    expect(script).toContain("/dlib")
+    for (const name of ['ARTIFACT_SIGNING_ENDPOINT', 'ARTIFACT_SIGNING_ACCOUNT', 'ARTIFACT_SIGNING_CERT_PROFILE']) {
+      expect(script).toContain(`$env:${name}`)
+    }
+    expect(script).toContain("Invoke-SignTool @('verify', '/pa', '/v', $file)")
+    expect(script).toContain("if ($signature.Status -ne 'Valid')")
+    expect(script).toContain('Write-Output "$file signed by $($signature.SignerCertificate.Subject)"')
+    for (const gone of ['WIN_CSC', '.pfx', 'NotTrusted', 'UnknownError', 'AZURE_CLIENT_SECRET']) {
+      expect(script).not.toContain(gone)
+    }
+    // Without this list a missing login falls through to InteractiveBrowserCredential
+    // and signtool waits forever on a browser nobody sees.
+    for (const excluded of [
+      'InteractiveBrowserCredential',
+      'ManagedIdentityCredential',
+      'SharedTokenCacheCredential',
+      'VisualStudioCredential',
+      'VisualStudioCodeCredential',
+      'AzurePowerShellCredential',
+      'AzureDeveloperCliCredential',
+      'WorkloadIdentityCredential',
+    ]) {
+      expect(script).toContain(`'${excluded}'`)
+    }
+    expect(script).toContain('ExcludeCredentials')
+  })
+
   it('preserves Authenticode verification for the installer and bundled Code sidecar', () => {
-    expect(workflow).toContain('WIN_CSC_LINK')
-    expect(workflow).toContain('WIN_CSC_KEY_PASSWORD')
     expect(workflow).toContain('Get-AuthenticodeSignature')
     expect(workflow).toContain('SignerCertificate')
     expect(workflow).toContain('win-unpacked/resources/native/redrob-code.exe')

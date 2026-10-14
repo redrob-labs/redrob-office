@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.10.4 -- 2026-10-14
+
+### Windows and Linux: the chrome is the title bar (#176)
+
+- 0.10.3 showed the 62px app chrome **under** the OS title bar and menu bar on
+  Windows and Linux. The window is now frameless there: Windows keeps its own
+  caption buttons over the strip (`titleBarOverlay`, Snap Layouts intact), Linux
+  draws minimise / maximise / close in the chrome. macOS is unchanged.
+- The OS menu bar is gone off macOS; a menu button at the left of the chrome
+  pops up the active tab's File / Edit / View menu. Accelerators still work.
+
+### Windows installer signed with Azure Artifact Signing (#177, #179)
+
+- The installer, `Redrob Office.exe`, the uninstaller and the bundled Redrob
+  Code sidecar are signed through Azure Artifact Signing (publicly trusted
+  root) instead of the organisation's own certificate, so the signature
+  verifies as `Valid` on every Windows. SmartScreen reputation still builds up
+  per publisher over time.
+- The release job logs in to Azure right before signing (not before the long
+  build; the OpenID Connect token lives minutes), the signtool dlib excludes
+  interactive credentials so a missing login fails in seconds, and the verify
+  step requires the signer to be `CN=McKinley Rice, Inc.`.
+
 ## 0.10.3 -- 2026-10-14
 
 ### Office UI/UX refresh (#171)

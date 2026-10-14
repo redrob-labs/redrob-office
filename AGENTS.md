@@ -219,9 +219,20 @@ The Hangul editor is being rebuilt on an engine we build ourselves. The plan is 
 - There is no CDN. Downloads and the updater feed are the same release assets. The feed target is
   baked in from `GENOFFICE_UPDATE_REPO` (`owner/repo`); unset means no publish config and no
   in-app auto-update, which is what a fork or a local build gets.
-- `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` must be visible to this repository; the Windows job fails
-  fast when either is unset. A self-signed certificate has an
-  Authenticode signer but may report `UnknownError`/`NotTrusted` and still trigger SmartScreen.
+- Windows signing is Azure Artifact Signing over OpenID Connect: the Windows job runs in the
+  `release` environment with `permissions: id-token: write`, builds the suite first, then logs in
+  with `azure/login@v3` **immediately before** the sign-and-package step (the OIDC token lives
+  minutes; a login before the long build left signtool with no usable credential), and
+  `scripts/win-sign.ps1` signs through the signtool dlib from the `Microsoft.ArtifactSigning.Client`
+  NuGet package (electron-builder calls it per packaged PE via `scripts/win-sign.cjs`,
+  `GENOFFICE_WIN_SIGN_MODE=production`). The dlib metadata lists `ExcludeCredentials` so a missing
+  login fails in seconds instead of waiting on an interactive browser prompt. The organization
+  secrets `AZURE_TENANT_ID` / `AZURE_CLIENT_ID` / `AZURE_SUBSCRIPTION_ID` /
+  `ARTIFACT_SIGNING_ENDPOINT` / `ARTIFACT_SIGNING_ACCOUNT` / `ARTIFACT_SIGNING_CERT_PROFILE` are
+  plain IDs; there is no certificate file and no client secret anywhere. The certificate chains to a
+  Microsoft root, so the verify step requires `signtool verify /pa /v` to pass, `Status` to be
+  `Valid`, and the signer to be `CN=McKinley Rice, Inc.`; it prints `<file> signed by <Subject>`
+  (SmartScreen reputation still builds up per publisher over time).
 
 ### Design system
 

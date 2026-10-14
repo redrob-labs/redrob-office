@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { DocTabs, Icon, IconButton, frameCopy } from '@genoffice/ui'
+import { DocTabs, Icon, IconButton, WindowControls, frameCopy } from '@genoffice/ui'
 import type { TabsApi, TabSummary } from '../../shared/tabs-api'
+import type { WindowApi } from '../../shared/window-api'
 // The two chrome marks: the Redrob GROUP logo (opens the Redrob Console) and
 // the Redrob OFFICE logo (goes home). Masked web SVGs, each with a
 // dark-appearance variant; the light/dark swap is CSS-driven.
@@ -15,6 +16,7 @@ import { SearchPalette } from './SearchPalette'
 declare global {
   interface Window {
     aiOfficeTabs: TabsApi
+    aiOfficeWindow: WindowApi
   }
 }
 
@@ -127,7 +129,8 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
  *           not visible over a native editor view. Back/forward are deferred
  *           disabled placeholders (no main-process navigation API yet). On
  *           macOS a spacer keeps the traffic lights clear (titleBarStyle:
- *           hiddenInset).
+ *           hiddenInset). On Windows and Linux there is no OS menu bar, so a
+ *           menu button pops up the active tab's native application menu.
  *   strip — the open editor tabs. Home is pinned but its chip is filtered out
  *           (the sidebar + the Office logo already reach Home). Tabs shrink to
  *           a min width then scroll; start/end are siblings of the strip, so
@@ -136,8 +139,10 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
  *           logo (goes home), and the search box. Both logos use a right-placed
  *           custom tooltip (`data-tip-place="right"`) so it stays within the
  *           chrome band rather than dropping into the region a native editor
- *           view covers. On Windows/Linux the native window frame draws the
- *           caption buttons, so the shell renders none itself.
+ *           view covers. The window has no OS title bar on Windows and Linux
+ *           (the chrome is the title bar): Windows draws its caption buttons
+ *           over the strip's right end (titleBarOverlay, a spacer keeps that
+ *           room clear); Linux has no overlay, so WindowControls draws them.
  *
  * Native-view constraint: editor tabs render as WebContentsViews below the
  * strip that paint ABOVE all shell DOM regardless of z-index. So a DOM overlay
@@ -149,7 +154,14 @@ export function TabBar() {
   const { t, lang } = useI18n()
   const [tabs, setTabs] = useState<TabSummary[]>([])
   const [paletteOpen, setPaletteOpen] = useState(false)
-  const isMac = navigator.platform.toLowerCase().includes('mac')
+  const platform = window.aiOfficeWindow.platform
+  const isMac = platform === 'darwin'
+  const [maximized, setMaximized] = useState(false)
+  useEffect(() => {
+    if (platform === 'darwin') return
+    void window.aiOfficeWindow.state().then((state) => setMaximized(state.maximized))
+    return window.aiOfficeWindow.onStateChanged((state) => setMaximized(state.maximized))
+  }, [platform])
 
   useEffect(() => {
     void window.aiOfficeTabs.list().then(setTabs)
@@ -197,6 +209,12 @@ export function TabBar() {
 
   const search = frameCopy(lang).search
 
+  // where a native popup menu opens: under the control's bottom-left corner
+  const anchorOf = (el: HTMLElement): [number, number] => {
+    const rect = el.getBoundingClientRect()
+    return [Math.round(rect.left), Math.round(rect.bottom)]
+  }
+
   return (
     <>
       <DocTabs
@@ -224,6 +242,17 @@ export function TabBar() {
                 tab is active it becomes a Home button (the Office logo also
                 goes home). */}
             <div className="tab-nav-cluster">
+              {!isMac ? (
+                <IconButton
+                  className="tab-nav-btn"
+                  label={t('appMenu')}
+                  size="md"
+                  aria-haspopup="menu"
+                  onClick={(event) => void window.aiOfficeWindow.showAppMenu(...anchorOf(event.currentTarget))}
+                >
+                  <Icon name="menu" size={20} />
+                </IconButton>
+              ) : null}
               {editorActive ? (
                 <IconButton
                   className="tab-nav-btn"
@@ -292,6 +321,22 @@ export function TabBar() {
               <Icon name="search" size={15} />
               <span className="tab-search-box__label">{search.placeholder}</span>
             </button>
+            {platform === 'linux' ? (
+              <WindowControls
+                maximized={maximized}
+                strings={{
+                  minimize: t('minimizeWindow'),
+                  maximize: t('maximizeWindow'),
+                  restore: t('restoreWindow'),
+                  close: t('closeWindow'),
+                }}
+                onMinimize={() => void window.aiOfficeWindow.minimize()}
+                onToggleMaximize={() => void window.aiOfficeWindow.toggleMaximize()}
+                onClose={() => void window.aiOfficeWindow.close()}
+              />
+            ) : null}
+            {/* Windows draws its caption buttons here (titleBarOverlay) */}
+            {platform === 'win32' ? <div className="tab-bar-caption-space" /> : null}
           </>
         }
       />
