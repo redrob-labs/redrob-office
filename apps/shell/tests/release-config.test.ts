@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -113,10 +113,7 @@ describe('packaged product identity', () => {
   })
 })
 
-describe('the launcher release manifest (redrob-launcher.json)', () => {
-  // Redrob Launcher reads this one asset from every GitHub Release to learn that the
-  // release reads its shared account file (redrob-launcher docs/release-manifest.md).
-  const WRITER = resolve(REPO_ROOT, 'scripts/write-launcher-manifest.mjs')
+describe('the asset-name check over a built release directory', () => {
   const CHECK = resolve(REPO_ROOT, 'scripts/check-release-asset-names.mjs')
   const PACKAGE = 'redrob-office-0.0.0-linux-x86_64.AppImage'
 
@@ -129,67 +126,23 @@ describe('the launcher release manifest (redrob-launcher.json)', () => {
     return spawnSync(process.execPath, [CHECK, dir], { encoding: 'utf8' })
   }
 
-  it('the writer emits exactly the contract: valid JSON, schema 1, sharedAccount true, newline-terminated', () => {
-    const dir = releaseDir({})
-    try {
-      const result = spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
-      expect(result.status, result.stderr).toBe(0)
-      const text = readFileSync(join(dir, 'redrob-launcher.json'), 'utf8')
-      expect(text).toBe('{ "schema": 1, "sharedAccount": true }\n')
-      const parsed = JSON.parse(text) as { schema: number; sharedAccount: boolean }
-      expect(parsed.schema).toBe(1)
-      // develop carries the shared-account change (#154 / #158), so the release reads it
-      expect(parsed.sharedAccount).toBe(true)
-      expect(Object.keys(parsed).sort()).toEqual(['schema', 'sharedAccount'])
-    } finally {
-      rmSync(dir, { recursive: true, force: true })
-    }
-  })
-
-  it('the asset-name check FAILS a release directory without the manifest', () => {
-    const dir = releaseDir({ [PACKAGE]: '' })
+  it('PASSES a directory of launcher-named packages and feed files, without a manifest or checksums', () => {
+    // redrob-launcher.json and SHA256SUMS.txt are written by the shared publish job
+    // (redrob-labs/.github release-publish.yml) over the downloaded artifacts; the build
+    // jobs check apps/shell/release before that, so neither may be required here.
+    const dir = releaseDir({ [PACKAGE]: '', 'latest-linux.yml': '' })
     try {
       const result = check(dir)
-      expect(result.status).toBe(1)
-      expect(result.stderr).toContain('redrob-launcher.json is missing')
-    } finally {
-      rmSync(dir, { recursive: true, force: true })
-    }
-  })
-
-  it('the asset-name check FAILS a manifest that is not schema 1 / sharedAccount true / JSON', () => {
-    for (const [body, message] of [
-      ['{ "schema": 1, "sharedAccount": false }\n', '"sharedAccount" must be true'],
-      ['{ "schema": 2, "sharedAccount": true }\n', '"schema" must be 1'],
-      ['{ schema: 1 }\n', 'not valid JSON'],
-      ['[1]\n', 'must be a JSON object'],
-    ]) {
-      const dir = releaseDir({ [PACKAGE]: '', 'redrob-launcher.json': body })
-      try {
-        const result = check(dir)
-        expect(result.status, body).toBe(1)
-        expect(result.stderr, body).toContain(message)
-      } finally {
-        rmSync(dir, { recursive: true, force: true })
-      }
-    }
-  })
-
-  it('the asset-name check PASSES the directory the writer produced, and does not read the manifest as a package name', () => {
-    const dir = releaseDir({ [PACKAGE]: '', [`${PACKAGE}.sha256`]: '', 'latest-linux.yml': '' })
-    try {
-      spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
-      const result = check(dir)
       expect(result.status, result.stderr).toBe(0)
-      expect(result.stdout).toContain('redrob-launcher.json ok')
       expect(result.stdout).toContain(`${PACKAGE} ok`)
+      expect(result.stdout).not.toContain('redrob-launcher.json')
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
   })
 
-  it("the asset-name check ignores electron-builder's own files in a built release directory", () => {
-    // The desktop jobs run the check over apps/shell/release as electron-builder left it,
+  it("ignores electron-builder's own files and the publish job's side files", () => {
+    // The build jobs run the check over apps/shell/release as electron-builder left it,
     // which holds builder-debug.yml (and builder-effective-config.yaml) beside the
     // packages. v0.10.0's macOS and Windows jobs failed on exactly that.
     const dir = releaseDir({
@@ -197,9 +150,9 @@ describe('the launcher release manifest (redrob-launcher.json)', () => {
       'latest-linux.yml': '',
       'builder-debug.yml': '',
       'builder-effective-config.yaml': '',
+      'redrob-launcher.json': '{ "schema": 1, "sharedAccount": true }\n',
     })
     try {
-      spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
       const result = check(dir)
       expect(result.status, result.stderr).toBe(0)
       expect(result.stdout).not.toContain('builder-debug.yml')
@@ -209,84 +162,25 @@ describe('the launcher release manifest (redrob-launcher.json)', () => {
     }
   })
 
-  it('--no-config checks a release directory without loading electron-builder.cjs', () => {
-    // The publish job downloads the signed assets into a clean checkout: no
-    // node_modules, no electron dist, no built module trees. electron-builder.cjs
-    // asserts all of those at load, so the check must not require() it there.
-    // Run from a copy of the script in a bare tree: there is no apps/shell/
-    // electron-builder.cjs beside it, so loading the config would throw.
-    const bare = mkdtempSync(join(tmpdir(), 'office-bare-'))
-    const dir = releaseDir({
-      'redrob-office-0.0.0-macos-aarch64.dmg': '',
-      'redrob-office-0.0.0-macos-aarch64.zip': '',
-      'redrob-office-0.0.0-windows-x64-setup.exe': '',
-      'redrob-office-0.0.0-windows-x64-portable.zip': '',
-      'latest.yml': '',
-      'latest-mac.yml': '',
-    })
+  it('FAILS a name the launcher does not read', () => {
+    const dir = releaseDir({ 'Redrob-Office-Setup-0.0.0.exe': '' })
     try {
-      mkdirSync(join(bare, 'scripts'))
-      copyFileSync(CHECK, join(bare, 'scripts/check-release-asset-names.mjs'))
-      copyFileSync(WRITER, join(bare, 'scripts/write-launcher-manifest.mjs'))
-      spawnSync(process.execPath, [WRITER, dir], { encoding: 'utf8' })
-      const bareCheck = join(bare, 'scripts/check-release-asset-names.mjs')
-      const withConfig = spawnSync(process.execPath, [bareCheck, dir], { encoding: 'utf8' })
-      expect(withConfig.status, 'the bare tree must fail when the config is loaded').not.toBe(0)
-      const noConfig = spawnSync(process.execPath, [bareCheck, '--no-config', dir], { encoding: 'utf8' })
-      expect(noConfig.status, noConfig.stderr).toBe(0)
-      expect(noConfig.stdout).toContain('redrob-office-0.0.0-windows-x64-portable.zip ok')
-      expect(noConfig.stdout).toContain('redrob-launcher.json ok')
-      expect(noConfig.stdout).not.toContain('mac dmg')
-      // and it still fails on a bad name / missing manifest
-      const bad = releaseDir({ 'Redrob-Office-Setup-0.0.0.exe': '' })
-      try {
-        const r = spawnSync(process.execPath, [bareCheck, '--no-config', bad], { encoding: 'utf8' })
-        expect(r.status).toBe(1)
-        expect(r.stderr).toContain('not a name the launcher reads')
-        expect(r.stderr).toContain('redrob-launcher.json is missing')
-      } finally {
-        rmSync(bad, { recursive: true, force: true })
-      }
-      // --no-config without a dir is a usage error, not a silent pass
-      expect(spawnSync(process.execPath, [bareCheck, '--no-config'], { encoding: 'utf8' }).status).toBe(2)
+      const result = check(dir)
+      expect(result.status).toBe(1)
+      expect(result.stderr).toContain('not a name the launcher reads')
     } finally {
       rmSync(dir, { recursive: true, force: true })
-      rmSync(bare, { recursive: true, force: true })
     }
   })
 
-  it('every release job writes the manifest before its asset-name check, and the uploads carry it', () => {
+  it('the repository carries no manifest writer, checksum step or release-create of its own', () => {
+    // Those are the shared publish job's. A second copy here would drift from it.
+    expect(existsSync(resolve(REPO_ROOT, 'scripts/write-launcher-manifest.mjs'))).toBe(false)
     const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
-    const linux = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'), 'utf8')
-    const WRITE = 'node scripts/write-launcher-manifest.mjs'
-    const CHECK_STEP = 'node scripts/check-release-asset-names.mjs'
-    // desktop: windows, macos, release -- three writes, each before a check
-    const jobBody = (name: string) => {
-      const start = desktop.indexOf(`\n  ${name}:\n`)
-      expect(start, name).toBeGreaterThan(-1)
-      const next = desktop.slice(start + 1).search(/\n  [a-z-]+:\n/)
-      return next === -1 ? desktop.slice(start) : desktop.slice(start, start + 1 + next)
-    }
-    for (const job of ['windows', 'macos', 'release']) {
-      const body = jobBody(job)
-      const writeIdx = body.indexOf(WRITE)
-      const checkIdx = body.indexOf(CHECK_STEP)
-      expect(writeIdx, `${job} writes the manifest`).toBeGreaterThan(-1)
-      expect(checkIdx, `${job} checks the release dir`).toBeGreaterThan(-1)
-      expect(writeIdx, `${job} writes before it checks`).toBeLessThan(checkIdx)
-    }
-    expect(desktop.match(new RegExp(WRITE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'))).toHaveLength(3)
-    // the platform artifacts carry it into the release job, which publishes release-assets/*
-    expect(desktop.match(/apps\/shell\/release\/redrob-launcher\.json/g)).toHaveLength(2)
-    expect(desktop).toContain(`${WRITE} release-assets`)
-    // the publish job has no build, so it must not load electron-builder.cjs
-    expect(desktop).toContain(`${CHECK_STEP} --no-config release-assets`)
-    expect(desktop.indexOf(`${CHECK_STEP} --no-config release-assets`)).toBeLessThan(desktop.indexOf('softprops/action-gh-release@v2'))
-    expect(jobBody('release')).not.toContain('pnpm install')
-    // linux: written into the staged dir, before the check, uploaded by release-assets/*
-    expect(linux).toContain(`${WRITE} "$OUT"`)
-    expect(linux.indexOf(`${WRITE} "$OUT"`)).toBeLessThan(linux.indexOf(`${CHECK_STEP} release-assets`))
-    expect(linux.indexOf(`${CHECK_STEP} release-assets`)).toBeLessThan(linux.indexOf('gh release upload "$RELEASE_TAG" release-assets/* --clobber'))
+    expect(desktop).not.toContain('write-launcher-manifest')
+    expect(desktop).not.toContain('softprops/action-gh-release')
+    expect(desktop).not.toContain('gh release')
+    expect(desktop).not.toContain('sha256sum')
   })
 })
 
@@ -471,11 +365,25 @@ describe('THIRD-PARTY-NOTICES packaging contract', () => {
   })
 })
 
-describe('desktop release workflow targets @genoffice/shell', () => {
+describe('the release workflow (release-desktop.yml) targets @genoffice/shell', () => {
   const workflow = readFileSync(
     resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'),
     'utf8',
   )
+  const job = (name: string) => {
+    const start = workflow.indexOf(`\n  ${name}:\n`)
+    expect(start, name).toBeGreaterThan(-1)
+    const next = workflow.slice(start + 1).search(/\n  [a-z-]+:\n/)
+    return next === -1 ? workflow.slice(start) : workflow.slice(start, start + 1 + next)
+  }
+
+  it('is the one release workflow: Windows, macOS and Linux from one tag, then one publish', () => {
+    expect(existsSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'))).toBe(false)
+    expect(workflow).toContain('"v*"')
+    for (const name of ['version', 'windows', 'macos', 'linux', 'publish']) expect(job(name)).toBeTruthy()
+    for (const name of ['windows', 'macos', 'linux']) expect(job(name)).toContain('needs: version')
+    expect(job('publish')).toContain('needs: [version, windows, macos, linux]')
+  })
 
   it('builds/signs/packages the shell, not the legacy office app', () => {
     expect(workflow).toContain('@genoffice/shell')
@@ -491,10 +399,33 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).not.toContain("require('./office/package.json')")
   })
 
-  it('signs Windows through Azure Artifact Signing over OIDC, never a certificate file', () => {
+  it('resolves one commit for the tag and builds exactly that commit on every leg', () => {
+    // v0.8.3 was dispatched with --ref develop while the tag pointed at main: the build jobs
+    // did a bare checkout and published develop's bytes under main's version number.
+    const version = job('version')
+    expect(version).toContain('git merge-base --is-ancestor "$TAG_SHA" origin/main')
+    expect(version).toContain('does not match Redrob Office (apps/shell) version')
+    expect(version).toContain('echo "sha=$TAG_SHA"')
+    for (const name of ['windows', 'macos', 'linux']) {
+      expect(job(name), name).toContain('ref: ${{ needs.version.outputs.sha }}')
+    }
+    expect(workflow).not.toContain("inputs.tag || github.ref")
+  })
+
+  it('has a dry run: workflow_dispatch with dry_run builds the dispatched ref and publishes nothing', () => {
+    expect(workflow).toContain('dry_run:')
+    expect(workflow).toContain('type: boolean')
+    const version = job('version')
+    expect(version).toContain('if [ "$DRY_RUN" = true ]; then')
+    expect(version).toContain('echo "sha=$GITHUB_SHA"')
+    expect(version).toContain('echo "publish=false"')
+    expect(job('publish')).toContain("needs.version.outputs.publish == 'true'")
+  })
+
+  it('signs Windows through the shared sign-windows recipe over OIDC, never a certificate file', () => {
     // The federated credential accepts repo:redrob-labs/*:environment:release
     // only, so the job must run in that environment and mint an id-token.
-    const windowsJob = workflow.slice(workflow.indexOf('\n  windows:\n'), workflow.indexOf('\n  macos:\n'))
+    const windowsJob = job('windows')
     expect(windowsJob).toContain('environment: release')
     expect(windowsJob).toContain('id-token: write')
     expect(windowsJob).toContain('uses: azure/login@v3')
@@ -502,42 +433,45 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     for (const name of ['ARTIFACT_SIGNING_ENDPOINT', 'ARTIFACT_SIGNING_ACCOUNT', 'ARTIFACT_SIGNING_CERT_PROFILE']) {
       expect(windowsJob).toContain(`${name}: \${{ secrets.${name} }}`)
     }
-    expect(windowsJob).toContain('scripts/win-sign.ps1')
-    // the old organization certificate, its PFX, and its UnknownError/NotTrusted allowance are gone
-    for (const gone of ['WIN_CSC_LINK', 'WIN_CSC_KEY_PASSWORD', '.pfx', 'AZURE_CLIENT_SECRET', 'NotTrusted', 'UnknownError']) {
+    // the shared recipe: checked out for the electron-builder hook, called as a step for the sidecar
+    expect(windowsJob).toContain('repository: redrob-labs/.github')
+    expect(windowsJob).toContain('path: .redrob-shared')
+    expect(windowsJob).toContain('uses: redrob-labs/.github/actions/sign-windows@main')
+    expect(windowsJob).toContain('files: apps/shell/build/redrob-code.exe')
+    expect(windowsJob).toContain('SIGN_DESCRIPTION: Redrob Office')
+    expect(windowsJob).toContain('EXPECTED_CN: McKinley Rice, Inc.')
+    // the repository's own recipe is gone, along with every certificate-file path
+    expect(existsSync(resolve(REPO_ROOT, 'scripts/win-sign.ps1'))).toBe(false)
+    expect(workflow).not.toContain('scripts/win-sign.ps1')
+    expect(workflow).not.toContain('Microsoft.ArtifactSigning.Client')
+    for (const gone of ['WIN_CSC_LINK', 'WIN_CSC_KEY_PASSWORD', 'CSC_LINK: ${{ secrets.WIN', '.pfx', 'AZURE_CLIENT_SECRET', 'NotTrusted', 'UnknownError']) {
       expect(workflow).not.toContain(gone)
     }
+    // and one full Authenticode check over the bytes that ship
     expect(windowsJob).toContain('verify /pa /v')
-    expect(windowsJob).toContain('-ne "Valid"')
-    // the signer must be the organization's Public Trust certificate, and the log says so per file
-    // compared on the CN attribute: the Subject string quotes it (CN="McKinley Rice, Inc.", O=...)
-    expect(windowsJob).toContain('$expectedSigner = "McKinley Rice, Inc."')
-    expect(windowsJob).toContain('X509NameType]::SimpleName')
-    expect(windowsJob).toContain('if ($cn -ne $expectedSigner)')
-    expect(windowsJob).toContain('Write-Host "$artifact signed by $subject"')
+    expect(windowsJob).toContain('win-unpacked/resources/native/redrob-code.exe')
   })
 
   it('logs in to Azure after the build and immediately before signing', () => {
     // GitHub's OIDC token lives minutes. A login before the ~12-minute suite build
     // left signtool without a usable credential (it fell back to a browser prompt
-    // and hung), so the order must be: build, login, sign+package.
-    const windowsJob = workflow.slice(workflow.indexOf('\n  windows:\n'), workflow.indexOf('\n  macos:\n'))
+    // and hung), so the order must be: build, login, sign sidecar, sign+package.
+    const windowsJob = job('windows')
     const build = windowsJob.indexOf('run: pnpm build')
     const login = windowsJob.indexOf('uses: azure/login@v3')
+    const sidecar = windowsJob.indexOf('uses: redrob-labs/.github/actions/sign-windows@main')
     const pack = windowsJob.indexOf('exec electron-builder --config electron-builder.cjs --win')
     expect(build).toBeGreaterThan(-1)
     expect(login).toBeGreaterThan(build)
-    expect(pack).toBeGreaterThan(login)
-    // between the login and the package step only the sidecar signing runs
-    // (electron-builder's hook does not sign static extraResources); no build.
+    expect(sidecar).toBeGreaterThan(login)
+    expect(pack).toBeGreaterThan(sidecar)
+    // between the login and the package step only the sidecar signing runs; no build
     const packStep = windowsJob.lastIndexOf('- name:', pack)
     const between = windowsJob.slice(login, packStep)
     expect(between).toContain('- name: Sign the Redrob Code sidecar')
-    expect(between).toContain('scripts/win-sign.ps1 $sidecar')
     expect(between).not.toContain('run: pnpm')
-    expect(windowsJob.slice(0, login)).not.toContain('win-sign.ps1 $sidecar')
     // the login is skipped when signing is not configured, and takes only the plain IDs
-    const loginStep = windowsJob.slice(windowsJob.lastIndexOf('- name:', login), pack)
+    const loginStep = windowsJob.slice(windowsJob.lastIndexOf('- name:', login), sidecar)
     expect(loginStep).toContain("if: env.AZURE_CLIENT_ID != ''")
     for (const name of ['AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_SUBSCRIPTION_ID']) {
       expect(loginStep).toContain(`\${{ secrets.${name} }}`)
@@ -546,52 +480,45 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(windowsJob.slice(0, login)).not.toContain('electron-builder --config')
   })
 
-  it('wires the electron-builder signing hook to the Artifact Signing script', () => {
+  it('wires the electron-builder signing hook to the shared sign.ps1 and nothing else', () => {
     const builder = readFileSync(resolve(REPO_ROOT, 'apps/shell/electron-builder.cjs'), 'utf8')
     expect(builder).toContain("'../../scripts/win-sign.cjs'")
-    expect(existsSync(resolve(REPO_ROOT, 'scripts/win-sign.cjs'))).toBe(true)
-    expect(existsSync(resolve(REPO_ROOT, 'scripts/win-sign.ps1'))).toBe(true)
     const hook = readFileSync(resolve(REPO_ROOT, 'scripts/win-sign.cjs'), 'utf8')
-    expect(hook).toContain("'win-sign.ps1'")
-    expect(hook).not.toContain('WIN_CSC')
-    const script = readFileSync(resolve(REPO_ROOT, 'scripts/win-sign.ps1'), 'utf8')
-    expect(script).toContain('Microsoft.ArtifactSigning.Client')
-    expect(script).toContain("/dlib")
-    for (const name of ['ARTIFACT_SIGNING_ENDPOINT', 'ARTIFACT_SIGNING_ACCOUNT', 'ARTIFACT_SIGNING_CERT_PROFILE']) {
-      expect(script).toContain(`$env:${name}`)
+    expect(hook).toContain("'.redrob-shared', 'actions', 'sign-windows', 'sign.ps1'")
+    // no recipe of its own: no signtool invocation, no dlib, no metadata, no verify
+    for (const gone of ['signtool.exe', 'Invoke-SignTool', '/dlib', 'metadata.json', 'Get-AuthenticodeSignature', 'WIN_CSC', '.pfx', 'ExcludeCredentials']) {
+      expect(hook).not.toContain(gone)
     }
-    expect(script).toContain("Invoke-SignTool @('verify', '/pa', '/v', $file)")
-    expect(script).toContain("if ($signature.Status -ne 'Valid')")
-    expect(script).toContain('Write-Output "$file signed by $($signature.SignerCertificate.Subject)"')
-    for (const gone of ['WIN_CSC', '.pfx', 'NotTrusted', 'UnknownError', 'AZURE_CLIENT_SECRET']) {
-      expect(script).not.toContain(gone)
-    }
-    // Without this list a missing login falls through to InteractiveBrowserCredential
-    // and signtool waits forever on a browser nobody sees.
-    for (const excluded of [
-      'InteractiveBrowserCredential',
-      'ManagedIdentityCredential',
-      'SharedTokenCacheCredential',
-      'VisualStudioCredential',
-      'VisualStudioCodeCredential',
-      'AzurePowerShellCredential',
-      'AzureDeveloperCliCredential',
-      'WorkloadIdentityCredential',
-    ]) {
-      expect(script).toContain(`'${excluded}'`)
-    }
-    expect(script).toContain('ExcludeCredentials')
+    // the CI checkout of the shared repository is never committed
+    expect(readFileSync(resolve(REPO_ROOT, '.gitignore'), 'utf8')).toContain('.redrob-shared/')
   })
 
-  it('preserves Authenticode verification for the installer and bundled Code sidecar', () => {
-    expect(workflow).toContain('Get-AuthenticodeSignature')
-    expect(workflow).toContain('SignerCertificate')
-    expect(workflow).toContain('win-unpacked/resources/native/redrob-code.exe')
+  it('uploads release-* artifacts the shared publish job collects, with the updater feed files', () => {
+    expect(job('windows')).toContain('name: release-windows-x64')
+    expect(job('macos')).toContain('name: release-macos-arm64')
+    expect(job('linux')).toContain('name: release-linux-x64')
     expect(workflow).toContain('apps/shell/release/latest.yml')
+    expect(workflow).toContain('apps/shell/release/latest-mac.yml')
+    expect(workflow).toContain('apps/shell/release/latest-linux.yml')
     expect(workflow).toContain('*-setup.exe')
     expect(workflow).toContain('*-portable.zip')
     expect(workflow).toContain('--win nsis zip --x64')
     expect(workflow).toContain('node scripts/check-release-asset-names.mjs apps/shell/release')
+    expect(workflow).not.toContain('signed-windows')
+    expect(workflow).not.toContain('signed-macos')
+  })
+
+  it('publishes through the shared release-publish job, only on a tag and only when every leg is green', () => {
+    const publish = job('publish')
+    expect(publish).toContain('uses: redrob-labs/.github/.github/workflows/release-publish.yml@main')
+    expect(publish).toContain('title: Redrob Office')
+    expect(publish).toContain('launcher_manifest: true')
+    expect(publish).toContain('publish: true')
+    expect(publish).toContain('version: ${{ needs.version.outputs.version }}')
+    expect(publish).toContain('target: ${{ needs.version.outputs.sha }}')
+    expect(publish).toContain("!contains(needs.*.result, 'failure')")
+    expect(publish).toContain("!contains(needs.*.result, 'cancelled')")
+    expect(publish).toContain('contents: write')
   })
 
   it('generates THIRD-PARTY-NOTICES before packaging (beforePack asserts it exists)', () => {
@@ -599,83 +526,29 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     // would run `notices`, so it must generate the file itself. Without this
     // step the v0.8.0 Windows job failed: beforePack's
     // assertThirdPartyNoticesPresent threw on the missing file.
-    const noticesIdx = workflow.indexOf('run notices')
-    const packageIdx = workflow.indexOf('--win nsis')
-    expect(noticesIdx).toBeGreaterThan(-1)
-    expect(packageIdx).toBeGreaterThan(-1)
-    // ordering: notices step precedes the electron-builder package step
-    expect(noticesIdx).toBeLessThan(packageIdx)
-    // and it runs after the build (the generator reads the built out dirs)
-    const buildIdx = workflow.indexOf('run: pnpm build')
-    expect(buildIdx).toBeGreaterThan(-1)
-    expect(buildIdx).toBeLessThan(noticesIdx)
-  })
-})
-
-
-describe('Linux release workflow attaches to the GitHub Release', () => {
-  const workflow = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'), 'utf8')
-
-  it('triggers on v* tags (the same tag the desktop release workflow uses)', () => {
-    expect(workflow).toContain('tags:')
-    expect(workflow).toContain('"v*"')
-    const desktop = readFileSync(
-      resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'),
-      'utf8',
-    )
-    expect(desktop).toContain('"v*"')
+    for (const name of ['windows', 'macos', 'linux']) {
+      const body = job(name)
+      const buildIdx = body.indexOf('run: pnpm build')
+      const noticesIdx = body.indexOf('run notices')
+      const packageIdx = body.indexOf('exec electron-builder --config electron-builder.cjs')
+      expect(buildIdx, name).toBeGreaterThan(-1)
+      expect(noticesIdx, name).toBeGreaterThan(buildIdx)
+      expect(packageIdx, name).toBeGreaterThan(noticesIdx)
+    }
   })
 
-  it('verifies the tag matches apps/shell/package.json version', () => {
-    expect(workflow).toContain("require('./apps/shell/package.json').version")
-    expect(workflow).toContain('does not match Redrob Office')
-  })
-
-  it('installs rpmbuild and stable Rust, and uses pnpm 9.15 / Node 24', () => {
-    expect(workflow).toContain('install --yes --no-install-recommends rpm')
-    expect(workflow).toContain('dtolnay/rust-toolchain@stable')
-    expect(workflow).toContain('version: 9.15.0')
-    expect(workflow).toContain("node-version: \"24\"")
-  })
-
-  it('fetches the pinned Redrob Code release as the sidecar, which beforePack refuses to package without', () => {
-    expect(workflow).toContain('scripts/fetch-redrob-code.sh linux-x64')
-    expect(workflow).not.toContain('repository: redrob-labs/redrob-code')
-    const pin = readFileSync(resolve(REPO_ROOT, 'apps/shell/redrob-code.version'), 'utf8').trim()
-    expect(pin).toMatch(/^v\d+\.\d+\.\d+$/)
-    const script = readFileSync(resolve(REPO_ROOT, 'scripts/fetch-redrob-code.sh'), 'utf8')
-    expect(script).toContain('sha256sum -c -')
-    expect(script).toContain('apps/shell/build/$target')
-  })
-
-  it('builds the unsigned Linux AppImage/deb/rpm for the shell', () => {
-    expect(workflow).toContain('--filter @genoffice/shell exec electron-builder')
-    expect(workflow).toContain('--linux AppImage deb rpm')
-    expect(workflow).toContain('--publish never')
-  })
-
-  it('generates third-party notices before packaging', () => {
-    const noticesIdx = workflow.indexOf('run: pnpm --filter @genoffice/shell run notices')
-    const packageIdx = workflow.indexOf('--linux AppImage deb rpm')
-    expect(noticesIdx).toBeGreaterThan(-1)
-    expect(noticesIdx).toBeLessThan(packageIdx)
-  })
-
-  it('stages exactly the three artifacts named by electron-builder.cjs, with sha256 sidecars', () => {
-    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.AppImage"')
-    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.deb"')
-    expect(workflow).toContain('stage "redrob-office-${APP_VERSION}-linux-x86_64.rpm"')
-    expect(workflow).toContain('node scripts/check-release-asset-names.mjs release-assets')
-    expect(workflow).toContain('sha256sum "$1" > "$1.sha256"')
-  })
-
-  it('attaches the updater feed, because a release without it never updates', () => {
-    expect(workflow).toContain('latest-linux.yml')
-    expect(workflow).toContain('GENOFFICE_UPDATE_REPO: ${{ github.repository }}')
-  })
-
-  it('uploads with --clobber so a re-run repairs one platform without failing', () => {
-    expect(workflow).toContain('gh release upload "$RELEASE_TAG" release-assets/* --clobber')
+  it('the Linux leg installs rpmbuild and stable Rust, uses pnpm 9.15 / Node 24, and ships the three packages', () => {
+    const linux = job('linux')
+    expect(linux).toContain('install --yes --no-install-recommends rpm')
+    expect(linux).toContain('dtolnay/rust-toolchain@stable')
+    expect(linux).toContain('version: 9.15.0')
+    expect(linux).toContain('node-version: "24"')
+    expect(linux).toContain('--linux AppImage deb rpm')
+    expect(linux).toContain('--publish never')
+    expect(linux).toContain('"redrob-office-${APP_VERSION}-linux-x86_64.AppImage"')
+    expect(linux).toContain('"redrob-office-${APP_VERSION}-linux-x86_64.deb"')
+    expect(linux).toContain('"redrob-office-${APP_VERSION}-linux-x86_64.rpm"')
+    expect(linux).toContain('GENOFFICE_UPDATE_REPO: ${{ github.repository }}')
   })
 
   it('names no CDN host, bucket or credential', () => {
@@ -686,9 +559,18 @@ describe('Linux release workflow attaches to the GitHub Release', () => {
 })
 
 
+describe('gitflow is the shared caller', () => {
+  it('calls redrob-labs/.github gitflow.yml and carries no type list of its own', () => {
+    const gitflow = readFileSync(resolve(REPO_ROOT, '.github/workflows/gitflow.yml'), 'utf8')
+    expect(gitflow).toContain('uses: redrob-labs/.github/.github/workflows/gitflow.yml@main')
+    expect(gitflow).not.toContain('ALLOWED_TYPES')
+    expect(gitflow).toContain('pull-requests: write')
+  })
+})
+
+
 describe('the update feed comes from GitHub Releases, not a CDN', () => {
   const builder = readFileSync(resolve(SHELL_ROOT, 'electron-builder.cjs'), 'utf8')
-  const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
 
   it('publishes through the github provider, gated on GENOFFICE_UPDATE_REPO', () => {
     expect(builder).toContain("provider: 'github'")
@@ -703,19 +585,6 @@ describe('the update feed comes from GitHub Releases, not a CDN', () => {
 
   it('writes no publish config when the variable is unset, so fork builds do not self-update', () => {
     expect(builder).toContain('if (updateRepo) {')
-  })
-
-  it('attaches the signed installers and their feed files to the release', () => {
-    expect(desktop).toContain('softprops/action-gh-release@v2')
-    expect(desktop).toContain('files: release-assets/*')
-    expect(desktop).toContain('apps/shell/release/latest.yml')
-    expect(desktop).toContain('apps/shell/release/latest-mac.yml')
-  })
-
-  it('the desktop workflow no longer touches a CDN', () => {
-    expect(desktop).not.toContain('cdn.redrob.ai')
-    expect(desktop).not.toContain('REDROB_CDN')
-    expect(desktop).not.toContain('aws s3')
   })
 })
 
@@ -742,13 +611,18 @@ describe('Redrob Code sidecar packaging', () => {
 describe('Redrob Code release workflow wiring', () => {
   it('fetches and stages the released Code sidecar for Windows, macOS, and Linux', () => {
     const desktop = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-desktop.yml'), 'utf8')
-    const linux = readFileSync(resolve(REPO_ROOT, '.github/workflows/release-linux.yml'), 'utf8')
     expect(desktop).toContain('scripts/fetch-redrob-code.sh windows-x64')
     expect(desktop).toContain('scripts/fetch-redrob-code.sh darwin-arm64')
-    expect(linux).toContain('scripts/fetch-redrob-code.sh linux-x64')
+    expect(desktop).toContain('scripts/fetch-redrob-code.sh linux-x64')
+    expect(desktop).not.toContain('repository: redrob-labs/redrob-code')
     expect(desktop).not.toContain('oven-sh/setup-bun')
     expect(desktop).toContain('APPLE_CODESIGN_CERT_P12_BASE64')
     expect(desktop).toContain('APPLE_NOTARY_API_KEY_P8_BASE64')
     expect(desktop).toContain('xcrun stapler validate')
+    const pin = readFileSync(resolve(REPO_ROOT, 'apps/shell/redrob-code.version'), 'utf8').trim()
+    expect(pin).toMatch(/^v\d+\.\d+\.\d+$/)
+    const script = readFileSync(resolve(REPO_ROOT, 'scripts/fetch-redrob-code.sh'), 'utf8')
+    expect(script).toContain('sha256sum -c -')
+    expect(script).toContain('apps/shell/build/$target')
   })
 })

@@ -678,13 +678,14 @@ const config = {
 // signed.
 //
 // scripts/win-sign.cjs runs the hook: "production" signs through Azure Artifact
-// Signing over OpenID Connect (scripts/win-sign.ps1; release-desktop.yml does the
-// `az login`). There is no certificate file and no client secret anywhere.
-// electron-builder 26 applies the hook to static PE resources before packaging
-// too, so redrob-code.exe (an extraResource) receives the same certificate as
-// Redrob Office.exe, the NSIS uninstaller and the installer; the workflow signs
-// the sidecar once more before packaging only so a signing failure shows up
-// before the long build. Unset (a local or fork build) means no signing at all.
+// Signing over OpenID Connect with the organization's one signing recipe,
+// redrob-labs/.github actions/sign-windows/sign.ps1, which release-desktop.yml
+// checks out at .redrob-shared and logs in for (`az login`). There is no
+// certificate file and no client secret anywhere. The hook covers the PEs
+// electron-builder produces (redrob.exe, elevate.exe, the NSIS uninstaller and
+// installer), not static extraResources: the workflow signs redrob-code.exe
+// with the same action before packaging. Unset (a local or fork build) means no
+// signing at all.
 const winSignMode = process.env.GENOFFICE_WIN_SIGN_MODE
 if (winSignMode) {
   if (winSignMode !== 'production') {

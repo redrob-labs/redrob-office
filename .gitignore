@@ -65,3 +65,7 @@ secret-scan-report.json
 
 # Agent scratch/task state. Not part of the product and not reviewed.
 .agents/
+
+# redrob-labs/.github as the release workflow checks it out for the shared Windows
+# signing script (actions/sign-windows/sign.ps1). Never source of this repository.
+.redrob-shared/
