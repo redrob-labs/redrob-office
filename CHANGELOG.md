@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.6 -- 2026-10-15
+
+### Fixed
+
+- 0.10.5's Windows release leg still failed in its verify step: electron-builder's signing hook signs only the executables it produces (`redrob.exe`, `elevate.exe`, the uninstaller, the installer), not the bundled Redrob Code sidecar, so `redrob-code.exe` shipped unsigned and `signtool verify` found no signature. The release job now signs the sidecar itself, after the Azure login and right before packaging. The signer check compares the certificate's CN attribute. No application change; 0.10.4 and 0.10.5 shipped Linux only.
+
 ## 0.10.5 -- 2026-10-14
 
 ### Fixed
