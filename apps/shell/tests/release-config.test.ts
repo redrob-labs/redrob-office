@@ -510,7 +510,10 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(windowsJob).toContain('verify /pa /v')
     expect(windowsJob).toContain('-ne "Valid"')
     // the signer must be the organization's Public Trust certificate, and the log says so per file
-    expect(windowsJob).toContain('$expectedSigner = "CN=McKinley Rice, Inc."')
+    // compared on the CN attribute: the Subject string quotes it (CN="McKinley Rice, Inc.", O=...)
+    expect(windowsJob).toContain('$expectedSigner = "McKinley Rice, Inc."')
+    expect(windowsJob).toContain('X509NameType]::SimpleName')
+    expect(windowsJob).toContain('if ($cn -ne $expectedSigner)')
     expect(windowsJob).toContain('Write-Host "$artifact signed by $subject"')
   })
 
@@ -525,11 +528,14 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(build).toBeGreaterThan(-1)
     expect(login).toBeGreaterThan(build)
     expect(pack).toBeGreaterThan(login)
-    // nothing that could sign or build runs between the login and the package step
+    // between the login and the package step only the sidecar signing runs
+    // (electron-builder's hook does not sign static extraResources); no build.
     const packStep = windowsJob.lastIndexOf('- name:', pack)
     const between = windowsJob.slice(login, packStep)
-    expect(between).not.toContain('win-sign.ps1')
+    expect(between).toContain('- name: Sign the Redrob Code sidecar')
+    expect(between).toContain('scripts/win-sign.ps1 $sidecar')
     expect(between).not.toContain('run: pnpm')
+    expect(windowsJob.slice(0, login)).not.toContain('win-sign.ps1 $sidecar')
     // the login is skipped when signing is not configured, and takes only the plain IDs
     const loginStep = windowsJob.slice(windowsJob.lastIndexOf('- name:', login), pack)
     expect(loginStep).toContain("if: env.AZURE_CLIENT_ID != ''")
