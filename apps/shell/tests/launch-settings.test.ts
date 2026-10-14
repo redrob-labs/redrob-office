@@ -51,28 +51,35 @@ describe('Launch', () => {
       )
     })
 
-  it('says the one line and hands over on its own, still under reduced motion', () => {
+  it('shows the Group mark, then the Office mark, and hands over on its own under reduced motion', () => {
     vi.useFakeTimers()
     const onDone = vi.fn()
     render(onDone, true)
-    expect(host.querySelector('.launch__line')!.textContent).toBe('Your work updates itself.')
-    // still: a plain image, no moving mark
-    expect(host.querySelector('img.launch__mark')).not.toBeNull()
-    expect(host.querySelector('.launch--still')).not.toBeNull()
-    act(() => vi.advanceTimersByTime(1000))
+    const launch = host.querySelector<HTMLElement>('.launch')!
+    // still: the frames cross-fade with no moving mark
+    expect(launch.classList.contains('launch--still')).toBe(true)
+    expect(launch.dataset.phase).toBe('group')
+    expect(host.querySelectorAll('img.launch__mark')).toHaveLength(2)
+    expect(host.querySelector('.launch__word')!.textContent).toBe('Redrob Office')
+    act(() => vi.advanceTimersByTime(750))
+    expect(launch.dataset.phase).toBe('office')
+    expect(onDone).not.toHaveBeenCalled()
+    act(() => vi.advanceTimersByTime(750))
     expect(onDone).toHaveBeenCalledOnce()
   })
 
-  it('plays the mark when motion is allowed, and any key skips it', () => {
+  it('plays the frames when motion is allowed and is not skippable by a key', () => {
     vi.useFakeTimers()
     const onDone = vi.fn()
     render(onDone, false)
     expect(host.querySelector('.launch--still')).toBeNull()
+    // deliberately not skippable: a key press neither ends it early nor doubles the hand-off
     act(() => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     })
+    expect(onDone).not.toHaveBeenCalled()
+    act(() => vi.advanceTimersByTime(1500))
     expect(onDone).toHaveBeenCalledOnce()
-    // never twice, even when the cap fires later
     act(() => vi.advanceTimersByTime(5000))
     expect(onDone).toHaveBeenCalledOnce()
   })
