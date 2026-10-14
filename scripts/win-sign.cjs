@@ -1,8 +1,9 @@
 // electron-builder's Windows signing hook (apps/shell/electron-builder.cjs,
 // win.signtoolOptions.sign, enabled by GENOFFICE_WIN_SIGN_MODE). electron-builder
-// 26 runs it once per PE it packages -- the app exe, the NSIS uninstaller and
-// installer, and every static .exe/.dll extraResource -- so one hook signs the
-// whole shipped tree with the same certificate.
+// 26 runs it once per PE it produces -- the app exe, elevate.exe, the NSIS
+// uninstaller and installer. Static extraResources (the Redrob Code sidecar)
+// are NOT passed through it; the release workflow signs those with the same
+// script before packaging.
 //
 // Modes:
 //   production  Azure Artifact Signing over OpenID Connect (scripts/win-sign.ps1).

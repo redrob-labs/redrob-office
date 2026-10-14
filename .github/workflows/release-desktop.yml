@@ -183,11 +183,22 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # electron-builder's hook signs the PEs it produces (redrob.exe, elevate.exe,
+      # the uninstaller and the installer) but NOT the static extraResources: the
+      # v0.10.4 run signed exactly those four and shipped redrob-code.exe as
+      # copied. The sidecar is signed here, after the login and right before the
+      # package step picks it up.
+      - name: Sign the Redrob Code sidecar
+        shell: pwsh
+        run: |
+          $sidecar = "apps/shell/build/redrob-code.exe"
+          if (-not (Test-Path $sidecar)) { throw "Redrob Code sidecar is missing before signing: $sidecar" }
+          pwsh -NoProfile -File scripts/win-sign.ps1 $sidecar
+
       # nsis is the installer people download; zip is the same signed win-unpacked
       # tree as redrob-office-<v>-windows-x64-portable.zip, which is what Redrob
       # Launcher installs (it cannot run an exe installer). electron-builder signs
-      # every PE it packages through the hook, redrob-code.exe included (static
-      # extraResources go through the same hook).
+      # every PE it produces through the hook.
       - name: Sign and package Redrob Office (shell)
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis zip --x64 --publish never
 
@@ -212,7 +223,9 @@ jobs:
           # Windows trusts, so the full Authenticode check must pass: Valid, and
           # nothing less. The signer must be the organization's Public Trust
           # certificate, not whatever certificate a misconfigured profile serves.
-          $expectedSigner = "CN=McKinley Rice, Inc."
+          # Compared on the CN attribute: the Subject string quotes it because
+          # the name contains a comma (CN="McKinley Rice, Inc.", O=...).
+          $expectedSigner = "McKinley Rice, Inc."
           $signtool = Get-ChildItem "C:/Program Files (x86)/Windows Kits/10/bin/*/x64/signtool.exe" |
             Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw "signtool.exe was not found in the Windows 10 SDK" }
@@ -227,8 +240,9 @@ jobs:
               throw "Invalid Authenticode signature for ${artifact}: $($signature.Status) ($($signature.StatusMessage))"
             }
             $subject = $signature.SignerCertificate.Subject
-            if (-not $subject.StartsWith($expectedSigner)) {
-              throw "$artifact is signed by '$subject', expected '$expectedSigner'"
+            $cn = $signature.SignerCertificate.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::SimpleName, $false)
+            if ($cn -ne $expectedSigner) {
+              throw "$artifact is signed by '$subject' (CN '$cn'), expected CN '$expectedSigner'"
             }
             Write-Host "$artifact signed by $subject"
           }
