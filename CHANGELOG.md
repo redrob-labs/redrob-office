@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.10.3 -- 2026-10-14
+
+### Office UI/UX refresh (#171)
+
+- **62px chrome** with a nav cluster (sidebar toggle / Home swap) and Office brand
+  logos in place of the Group ones, linking to the console.
+- **Command-palette search** that also covers the native editor views, parking an
+  overlay over them; the editor's own search bar is removed.
+- **Inverted palette**, floating frosted sidebar (draggable, collapsible, dark
+  mode), liquid-glass tiles, unified section headers, "Shared" rename, Projects
+  tiles, "Open File", and a "Not connected" empty state.
+- **Settings opens as a main-content pane** instead of a modal; sidebar navigation
+  and project selection close it.
+- **Launch splash** on startup.
+
+### CI
+
+- The visual screenshot suite and its `visual` CI job are removed (#172); UI
+  coverage stays in the vitest suites.
+
 ## 0.10.2 -- 2026-10-13
 
 - 0.10.1's macOS and Windows installers did not publish (release tooling);
