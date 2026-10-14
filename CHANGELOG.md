@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.6 -- 2026-10-14
+
+### Fixed
+
+- The bundled Redrob Code sidecar (`redrob-code.exe`) was copied into the installer before the Azure login and so shipped unsigned; the release leg then refused the installer. The sidecar is now signed after the login, right before packaging, and the signer check reads the certificate's CN attribute instead of comparing the whole subject string. No application change; 0.10.4 and 0.10.5 shipped Linux and macOS only.
+
 ## 0.10.5 -- 2026-10-14
 
 ### Fixed
