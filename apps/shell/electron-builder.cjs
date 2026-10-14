@@ -677,22 +677,18 @@ const config = {
 // "spawn UNKNOWN" on such machines even though the installer itself was
 // signed.
 //
-// NOTE: scripts/win-sign.cjs is NOT in this tree — it was not carried over from
-// upstream, so GENOFFICE_WIN_SIGN_MODE is unset everywhere and this branch never
-// runs. Leaving it unset means electron-builder uses the plain CSC_LINK path,
-// which signs GenOffice.exe, the NSIS uninstaller and the installer, but NOT
-// .exe extraResources such as redrob-code.exe. release-desktop.yml therefore
-// signs the sidecar with signtool before packaging. Do not set this variable
-// until the script exists: electron-builder would spawn a missing file.
-//
-// The original contract, for whoever ports the script: "test" = alpha
-// self-signed PFX, "production" = DigiCert KeyLocker, and electron-builder 26
-// applies the transformer to static PE resources before packaging, so every
-// shipped helper would then receive the same certificate through one hook.
+// scripts/win-sign.cjs runs the hook: "production" signs through Azure Artifact
+// Signing over OpenID Connect (scripts/win-sign.ps1; release-desktop.yml does the
+// `az login`). There is no certificate file and no client secret anywhere.
+// electron-builder 26 applies the hook to static PE resources before packaging
+// too, so redrob-code.exe (an extraResource) receives the same certificate as
+// Redrob Office.exe, the NSIS uninstaller and the installer; the workflow signs
+// the sidecar once more before packaging only so a signing failure shows up
+// before the long build. Unset (a local or fork build) means no signing at all.
 const winSignMode = process.env.GENOFFICE_WIN_SIGN_MODE
 if (winSignMode) {
-  if (winSignMode !== 'test' && winSignMode !== 'production') {
-    throw new Error(`GENOFFICE_WIN_SIGN_MODE must be "test" or "production", got "${winSignMode}"`)
+  if (winSignMode !== 'production') {
+    throw new Error(`GENOFFICE_WIN_SIGN_MODE must be "production", got "${winSignMode}"`)
   }
   config.win.signtoolOptions = {
     // Single pass per file: the sha1+sha256 dual-signing default is a

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -491,9 +491,40 @@ describe('desktop release workflow targets @genoffice/shell', () => {
     expect(workflow).not.toContain("require('./office/package.json')")
   })
 
+  it('signs Windows through Azure Artifact Signing over OIDC, never a certificate file', () => {
+    // The federated credential accepts repo:redrob-labs/*:environment:release
+    // only, so the job must run in that environment and mint an id-token.
+    const windowsJob = workflow.slice(workflow.indexOf('\n  windows:\n'), workflow.indexOf('\n  macos:\n'))
+    expect(windowsJob).toContain('environment: release')
+    expect(windowsJob).toContain('id-token: write')
+    expect(windowsJob).toContain('uses: azure/login@v3')
+    expect(windowsJob).toContain('GENOFFICE_WIN_SIGN_MODE: production')
+    for (const name of ['ARTIFACT_SIGNING_ENDPOINT', 'ARTIFACT_SIGNING_ACCOUNT', 'ARTIFACT_SIGNING_CERT_PROFILE']) {
+      expect(windowsJob).toContain(`${name}: \${{ secrets.${name} }}`)
+    }
+    expect(windowsJob).toContain('scripts/win-sign.ps1')
+    // the old organization certificate and its UnknownError/NotTrusted allowance are gone
+    expect(workflow).not.toContain('WIN_CSC_LINK')
+    expect(workflow).not.toContain('WIN_CSC_KEY_PASSWORD')
+    expect(windowsJob).not.toContain('NotTrusted"')
+    expect(windowsJob).toContain('verify /pa /v')
+    expect(windowsJob).toContain('-ne "Valid"')
+  })
+
+  it('wires the electron-builder signing hook to the Artifact Signing script', () => {
+    const builder = readFileSync(resolve(REPO_ROOT, 'apps/shell/electron-builder.cjs'), 'utf8')
+    expect(builder).toContain("'../../scripts/win-sign.cjs'")
+    expect(existsSync(resolve(REPO_ROOT, 'scripts/win-sign.cjs'))).toBe(true)
+    expect(existsSync(resolve(REPO_ROOT, 'scripts/win-sign.ps1'))).toBe(true)
+    const hook = readFileSync(resolve(REPO_ROOT, 'scripts/win-sign.cjs'), 'utf8')
+    expect(hook).toContain("'win-sign.ps1'")
+    const script = readFileSync(resolve(REPO_ROOT, 'scripts/win-sign.ps1'), 'utf8')
+    expect(script).toContain('Microsoft.ArtifactSigning.Client')
+    expect(script).toContain("/dlib")
+    expect(script).toContain("if ($signature.Status -ne 'Valid')")
+  })
+
   it('preserves Authenticode verification for the installer and bundled Code sidecar', () => {
-    expect(workflow).toContain('WIN_CSC_LINK')
-    expect(workflow).toContain('WIN_CSC_KEY_PASSWORD')
     expect(workflow).toContain('Get-AuthenticodeSignature')
     expect(workflow).toContain('SignerCertificate')
     expect(workflow).toContain('win-unpacked/resources/native/redrob-code.exe')
