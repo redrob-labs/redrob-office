@@ -8,9 +8,9 @@
 //   production  Azure Artifact Signing over OpenID Connect (scripts/win-sign.ps1).
 //               No certificate file and no client secret exist anywhere; the
 //               credential is the `az login` the release job performs.
-//   test        Not provided in this tree. The old self-signed PFX path is gone
-//               together with the WIN_CSC_* secrets; a local build leaves
-//               GENOFFICE_WIN_SIGN_MODE unset and ships unsigned.
+//   test        Not provided in this tree. There is no certificate-file signing
+//               path at all; a local build leaves GENOFFICE_WIN_SIGN_MODE unset
+//               and ships unsigned.
 //
 // Usage (by electron-builder): node scripts/win-sign.cjs <mode> <path-to-pe>
 'use strict'
