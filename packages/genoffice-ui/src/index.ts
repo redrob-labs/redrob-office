@@ -3,6 +3,7 @@ export { applyUiTheme, type UiThemeMode } from './theme'
 export { Icon, type GlyphProps } from './Icon'
 export { Dialog, type DialogProps } from './Dialog'
 export { DocTabs, type DocTab, type DocTabsProps, type DocTabsStrings } from './DocTabs'
+export { WindowControls, type WindowControlsProps, type WindowControlsStrings } from './WindowControls'
 export {
   Toolbar,
   ToolbarButton,

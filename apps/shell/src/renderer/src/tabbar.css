@@ -47,6 +47,13 @@ html.genoffice-popover-open .tab-bar {
   flex-shrink: 0;
 }
 
+/* Windows: the three caption buttons Windows draws over the strip's right end
+ * (titleBarOverlay), 46px each; keep that room clear of our own controls */
+.tab-bar-caption-space {
+  width: 138px;
+  flex-shrink: 0;
+}
+
 /* Left chrome nav cluster: sidebar toggle (or Home button inside an editor) +
  * (deferred) back/forward. Back/forward are disabled placeholders — no
  * main-process navigation API exists yet. */
