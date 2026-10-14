@@ -1,45 +1,50 @@
 import type { ReactElement } from 'react'
-import { Icon } from '@genoffice/ui'
 import { useI18n } from '../locale'
-import { START_FORMATS, type StartKind } from './formats'
+import { type StartKind } from './formats'
 import { FormatIcon } from './FormatIcon'
 
 export interface StartBlankProps {
   /** open a blank file of this kind */
   onStart: (kind: StartKind) => void
-  /** open a file from disk */
+  /** open a file from disk (kept in props for the hero's composer "add" affordance) */
   onOpenFile: () => void
 }
 
-/** "Or start blank": every format newest first, then Open a file */
-export function StartBlank({ onStart, onOpenFile }: StartBlankProps): ReactElement {
+/**
+ * The blank-file launcher below the headline: Apple-style vertical tiles
+ * (icon on top, name below), one per format. No "Or start blank" heading and
+ * no per-tile extension line — just the six formats.
+ *
+ * Order is explicit here (Documents, Spreadsheet, Presentation, PDF, Hangul,
+ * Markdown) rather than the START_FORMATS order, which groups by product.
+ */
+const TILE_ORDER: readonly StartKind[] = ['docx', 'xlsx', 'pptx', 'pdf', 'hwp', 'md']
+
+const TILE_LABEL: Record<StartKind, string> = {
+  docx: 'fmtDocument',
+  xlsx: 'fmtSpreadsheet',
+  pptx: 'fmtPresentation',
+  pdf: 'fmtPdf',
+  hwp: 'fmtHangul',
+  md: 'fmtMarkdown',
+}
+
+export function StartBlank({ onStart }: StartBlankProps): ReactElement {
   const { t } = useI18n()
   return (
-    <div className="home-blank" role="group" aria-labelledby="home-blank-label">
-      <span id="home-blank-label" className="home-blank__label">
-        {t('homeStartBlank')}
-      </span>
-      {START_FORMATS.map((f) => (
+    <div className="home-tiles" role="group" aria-label={t('homeStartBlank')}>
+      {TILE_ORDER.map((kind) => (
         <button
-          key={f.kind}
+          key={kind}
           type="button"
-          className="home-blank__btn"
-          aria-label={`${t(f.label)} ${f.exts.join(' ')}`}
-          onClick={() => onStart(f.kind)}
+          className="home-tile"
+          aria-label={t(TILE_LABEL[kind] as Parameters<typeof t>[0])}
+          onClick={() => onStart(kind)}
         >
-          <FormatIcon kind={f.kind} />
-          <span className="home-blank__name">{t(f.label)}</span>
-          <span className="home-blank__ext" aria-hidden="true">
-            {f.exts.join(' ')}
-          </span>
+          <FormatIcon kind={kind} size={40} />
+          <span className="home-tile__name">{t(TILE_LABEL[kind] as Parameters<typeof t>[0])}</span>
         </button>
       ))}
-      <button type="button" className="home-blank__btn" onClick={onOpenFile}>
-        <span className="home-fmt-icon" aria-hidden="true">
-          <Icon name="folder" size={14} />
-        </span>
-        <span className="home-blank__name">{t('homeOpenFile')}</span>
-      </button>
     </div>
   )
 }

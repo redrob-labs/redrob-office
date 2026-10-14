@@ -248,15 +248,18 @@ describe('EditorFrame', () => {
     expect($('.classic-tb')).not.toBeNull()
   })
 
-  it('wires Ctrl+F1, Ctrl+J and Alt+Q', () => {
+  it('wires Ctrl+F1 and Ctrl+J; Alt+Q has no in-frame search to focus any more', () => {
     const props = frame()
     render(createElement(EditorFrame, props))
     key({ key: 'F1', ctrlKey: true })
     expect(props.onToolbarChange).toHaveBeenCalledWith('classic')
     key({ key: 'j', code: 'KeyJ', ctrlKey: true })
     expect(props.onPanelOpenChange).toHaveBeenCalledWith(false)
+    // The in-document command search was removed (the shell chrome's search box is the single
+    // search surface), so Alt+Q no longer moves focus inside the frame.
     key({ key: 'q', code: 'KeyQ', altKey: true })
-    expect(document.activeElement?.getAttribute('role')).toBe('combobox')
+    expect($('[role="combobox"]')).toBeNull()
+    expect(document.activeElement?.getAttribute('role')).not.toBe('combobox')
   })
 
   it('keeps the panel mounted while closed', () => {
@@ -279,28 +282,15 @@ describe('EditorFrame', () => {
     expect(props.onPanelWidthChange).toHaveBeenLastCalledWith(320)
   })
 
-  it('runs a tool from the title bar search, or asks Redrob', () => {
+  it('renders no in-document command search; the shell chrome owns search', () => {
     const props = frame()
     render(createElement(EditorFrame, props))
-    const input = $<HTMLInputElement>('[role="combobox"]')!
-    act(() => {
-      input.focus()
-      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
-      set.call(input, 'pol')
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    const opts = $$('[role="option"]').map((o) => o.textContent)
-    expect(opts).toEqual(['Polish', 'Ask Redrob: "pol"'])
-    key({ key: 'Enter' }, input)
-    expect(TOOLS[1]!.run).toHaveBeenCalled()
-    act(() => {
-      input.focus()
-      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
-      set.call(input, 'tighten section 5')
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    key({ key: 'Enter' }, input)
-    expect(props.search.onAsk).toHaveBeenCalledWith('tighten section 5')
+    expect($('[role="combobox"]')).toBeNull()
+    expect($('.go-frame__search')).toBeNull()
+    // The tools and the ask handler are still accepted on props (the shell wires them to its own
+    // search box), but nothing inside the frame invokes them.
+    expect(TOOLS[1]!.run).not.toHaveBeenCalled()
+    expect(props.search.onAsk).not.toHaveBeenCalled()
   })
 })
 

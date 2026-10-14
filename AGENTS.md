@@ -253,12 +253,6 @@ The suite's chrome is the Redrob design system, `@redrob-labs/ui` (pinned exactl
   served under `/host/` on the studio's own loopback server, so the host page and the studio iframe
   are same-origin. `apps/hangul/src/renderer/studio-theme.ts` relies on that to inject kit token
   values into the studio.
-- Visual regression lives in `tests/visual` and compares the shell's surfaces against committed
-  Linux baselines in `tests/visual/__screenshots__/linux/`. The `visual (ubuntu-latest)` job is not a
-  required check. When a change is meant to move pixels, the job fails and uploads a fresh render as
-  the `visual-baselines` artifact. Review it, then commit only the baselines whose specs failed,
-  from a signed commit by a person, not a bot. `VISUAL_LOCAL=1` renders locally into a
-  platform-named folder that must not be committed.
 
 ### Code style and safety
 

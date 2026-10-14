@@ -403,6 +403,10 @@ export interface SettingsModalProps {
   /** closes the modal and launches the Genspark login flow (progress shows on the account entry) */
   onLogin: () => void
   onLogout: () => void
+  /** 'modal' (default) renders the kit Dialog; 'pane' renders in the main
+   * content column (no scrim), so Settings opens in the right section rather
+   * than as a popup anchored to the sidebar. */
+  variant?: 'modal' | 'pane'
 }
 
 export function SettingsModal({
@@ -416,6 +420,7 @@ export function SettingsModal({
   onClose,
   onLogin,
   onLogout,
+  variant = 'modal',
 }: SettingsModalProps) {
   const { lang, setLang, t } = useI18n()
   const [section, setSection] = useState<SectionId>(SECTIONS[0].id)
@@ -485,14 +490,7 @@ export function SettingsModal({
   const loggedIn = status?.loggedIn ?? false
   const email = status?.email ?? ''
 
-  return (
-    <Dialog
-      className="set-overlay"
-      title={t('settings')}
-      closeLabel={t('cancel')}
-      onClose={onClose}
-      width={880}
-    >
+  const body = (
       <div className="set-body">
         <nav className="set-nav" aria-label={t('settings')}>
           {SECTIONS.map((s) => (
@@ -734,6 +732,38 @@ export function SettingsModal({
           )}
         </div>
       </div>
+  )
+
+  if (variant === 'pane') {
+    return (
+      <main className="content settings-pane" aria-label={t('settings')}>
+        <header className="updates-head settings-pane__head">
+          <div className="settings-pane__headrow">
+            <h1 className="updates-title">{t('settings')}</h1>
+            <button
+              type="button"
+              className="settings-pane__close"
+              aria-label={t('cancel')}
+              onClick={onClose}
+            >
+              <Icon name="close" size={18} />
+            </button>
+          </div>
+        </header>
+        {body}
+      </main>
+    )
+  }
+
+  return (
+    <Dialog
+      className="set-overlay"
+      title={t('settings')}
+      closeLabel={t('cancel')}
+      onClose={onClose}
+      width={880}
+    >
+      {body}
     </Dialog>
   )
 }

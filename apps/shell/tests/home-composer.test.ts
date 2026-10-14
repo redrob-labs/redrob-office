@@ -1,8 +1,8 @@
 /**
  * @vitest-environment jsdom
  *
- * Home starts from the job, not the file (handoff 01-home): greeting, one
- * composer, three starters, "Or start blank" newest format first, then Recent.
+ * Home starts from the job, not the file: a greeting headline, the six format
+ * tiles, one composer (with Open a file on it), then Recent.
  */
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -75,61 +75,66 @@ async function mount() {
 }
 
 describe('Home, composer first', () => {
-  it('shows the ask, one composer, three starters, then Or start blank, top to bottom', async () => {
+  it('shows the greeting + ask, the six format tiles, then one composer, top to bottom', async () => {
     await mount()
     const hero = host.querySelector('.home-hero')!
-    expect(hero.querySelector('h1')!.textContent).toBe('What are you working on?')
+    // the headline is "<greeting by hour> <question>", no account name, no recent file
+    const h1 = hero.querySelector('h1')!.textContent!
+    expect(h1).toMatch(/^Good (morning|afternoon|evening) What are you working on\?$/)
     expect(hero.querySelectorAll('textarea')).toHaveLength(1)
-    expect(hero.querySelectorAll('.rr-prompt')).toHaveLength(3)
-    const order = ['.home-hero__ask', '.home-hero__compose', '.home-hero__try', '.home-blank'].map(
-      (s) => Array.from(hero.querySelectorAll('*')).indexOf(hero.querySelector(s)!),
+    // the three starters are gone; the tiles sit between the headline and the composer
+    expect(hero.querySelectorAll('.rr-prompt')).toHaveLength(0)
+    const order = ['.home-hero__ask', '.home-tiles', '.home-hero__compose'].map((s) =>
+      Array.from(hero.querySelectorAll('*')).indexOf(hero.querySelector(s)!),
     )
+    expect(order.every((i) => i >= 0)).toBe(true)
     expect(order).toEqual([...order].sort((a, b) => a - b))
     // Recent comes after the hero
     const recents = host.querySelector('.recents')!
     expect(hero.compareDocumentPosition(recents) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('lists every format newest first, then Open a file', async () => {
+  it('lists the six formats as tiles in product order, and Open a file on the composer', async () => {
     await mount()
-    const names = Array.from(host.querySelectorAll('.home-blank__btn .home-blank__name')).map(
-      (n) => n.textContent,
-    )
-    expect(names).toEqual([
-      'Document',
-      'Spreadsheet',
-      'Presentation',
-      'Hangul',
-      'Markdown',
-      'PDF',
-      'Open a file',
-    ])
-    const exts = Array.from(host.querySelectorAll('.home-blank__ext')).map((n) => n.textContent)
-    expect(exts).toEqual(['.docx .doc', '.xlsx .xls', '.pptx .ppt', '.hwpx .hwp', '.md', '.pdf'])
+    const names = Array.from(host.querySelectorAll('.home-tile .home-tile__name')).map((n) => n.textContent)
+    expect(names).toEqual(['Document', 'Spreadsheet', 'Presentation', 'PDF', 'Hangul', 'Markdown'])
+    // no per-tile extension line any more
+    expect(host.querySelector('.home-blank__ext')).toBeNull()
+    expect(host.querySelector('.home-hero__compose [aria-label="Open a file"]')).not.toBeNull()
   })
 
-  it('starts each format blank and opens a file from disk', async () => {
+  it('starts each format blank from its tile and opens a file from the composer', async () => {
     await mount()
-    const buttons = Array.from(host.querySelectorAll<HTMLButtonElement>('.home-blank__btn'))
-    for (const b of buttons) act(() => b.click())
-    for (const fn of ['newDoc', 'newSheet', 'newSlide', 'newHangul', 'newMarkdown', 'newPdf', 'browse']) {
+    const tiles = Array.from(host.querySelectorAll<HTMLButtonElement>('.home-tile'))
+    for (const b of tiles) act(() => b.click())
+    for (const fn of ['newDoc', 'newSheet', 'newSlide', 'newHangul', 'newMarkdown', 'newPdf']) {
       expect(api[fn], fn).toHaveBeenCalledOnce()
     }
+    const open = host.querySelector<HTMLButtonElement>('.home-hero__compose [aria-label="Open a file"]')!
+    act(() => open.click())
+    expect(api.browse).toHaveBeenCalledOnce()
   })
 
-  it('hands a starter to Redrob through the composer path', async () => {
+  it('hands what is typed to Redrob through the composer path', async () => {
     await mount()
-    const first = host.querySelector<HTMLButtonElement>('.rr-prompt')!
-    act(() => first.click())
+    const textarea = host.querySelector<HTMLTextAreaElement>('.home-hero__compose textarea')!
+    act(() => {
+      const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!
+      set.call(textarea, 'Draft a mutual NDA')
+      textarea.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    act(() => {
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    })
     expect(api.ask).toHaveBeenCalledWith('Draft a mutual NDA')
   })
 
-  it('names the navigation Home, Updates, Starred with counts, then Shared with you', async () => {
+  it('names the navigation Home, Updates, Starred with counts, then Shared', async () => {
     await mount()
     const labels = Array.from(host.querySelectorAll('.sidebar-nav .nav-label')).map(
       (n) => n.textContent,
     )
-    expect(labels.slice(0, 4)).toEqual(['Home', 'Updates', 'Starred', 'Shared with you'])
+    expect(labels.slice(0, 4)).toEqual(['Home', 'Updates', 'Starred', 'Shared'])
     const items = Array.from(host.querySelectorAll('.sidebar-nav .nav-item'))
     expect(items[0]!.querySelector('.nav-count')!.textContent).toBe('8')
     expect(items[0]!.getAttribute('aria-current')).toBe('page')
@@ -147,12 +152,12 @@ describe('Home, composer first', () => {
     expect(host.querySelector('.home-hero')).toBeNull()
   })
 
-  it('opens Shared with you and says when sharing is not available', async () => {
+  it('opens Shared and says when sharing is not available', async () => {
     await mount()
     const shared = Array.from(host.querySelectorAll<HTMLButtonElement>('.sidebar-nav .nav-item'))[3]!
     act(() => shared.click())
     expect(shared.getAttribute('aria-current')).toBe('page')
-    expect(host.querySelector('#shared-title')!.textContent).toBe('Shared with you')
+    expect(host.querySelector('#shared-title')!.textContent).toBe('Shared')
     expect(host.textContent).toContain('Sharing is not available here.')
     expect(host.querySelector('.home-hero')).toBeNull()
   })

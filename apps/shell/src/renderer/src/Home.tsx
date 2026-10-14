@@ -434,8 +434,11 @@ function ProjectPanel({ projects, selectedId, onSelect, onRefresh }: ProjectPane
 
 // ── Account entry (bottom-left) ──────────────────────────
 // Currently the Genspark (gsk) login entry; to be upgraded to a signup/account system later.
-// Clicking it opens the settings modal directly (SettingsModal.tsx), which hosts
-// login/logout plus preferences (language, theme, save location, update channel).
+// Clicking it requests Settings (SettingsModal.tsx), which hosts login/logout plus
+// preferences (language, theme, save location, update channel). Settings opens as a
+// main-content pane in the right column (variant="pane"), owned by Home via its
+// `settingsMode`; this component keeps the login machinery and hands up the wired
+// pane element.
 
 const LOGIN_POLL_MS = 2500
 /** fallback deadline when the CLI does not report expires_in (device codes live ~300s) */
@@ -443,8 +446,28 @@ const LOGIN_MAX_WAIT_MS = 300_000
 
 function AccountEntry({
   onStatusChange,
+  onOpenSettings,
+  onCloseSettings,
+  settingsOpen,
 }: {
   onStatusChange?: (status: AccountStatus | null) => void
+  /** Request Settings. Settings renders as a main-content pane owned by Home
+   * (see Home's `settingsMode`); AccountEntry hands up the fully-wired pane
+   * element — carrying its own login/account props and an `onClose` that clears
+   * Home's pane — so the login machinery stays here while the view moves to the
+   * content column.
+   *
+   * The element is built once at open time. That is correct while
+   * CLOUD_ACCOUNT_ENABLED is false: the account/sign-in section is hidden, so
+   * none of the login state the element captures (status, waiting, authUrl)
+   * changes while the pane is open. If that flag is ever flipped on, lift the
+   * account state up to Home so the pane re-renders on login progress. */
+  onOpenSettings: (pane: ReactElement) => void
+  /** Clear Home's Settings pane (bound to the pane's close button). */
+  onCloseSettings: () => void
+  /** Whether Home currently shows the Settings pane (drives the button's
+   * aria-expanded and suppresses the login-hint popover underneath it). */
+  settingsOpen: boolean
 }) {
   const { t } = useI18n()
   const [status, setStatus] = useState<AccountStatus | null>(null)
@@ -462,7 +485,6 @@ function AccountEntry({
   const [authUrl, setAuthUrl] = useState<string | null>(null)
   const [urlCopied, setUrlCopied] = useState(false)
   const loginDeadline = useRef(0)
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   // bumped on logout so an in-flight status refresh (which can still
   // report logged-in) is discarded instead of resurrecting the UI
@@ -586,28 +608,28 @@ function AccountEntry({
         if (seq === statusSeq.current) setStatus(s)
       })
     }
-    setSettingsOpen(true)
+    onOpenSettings(
+      <SettingsModal
+        variant="pane"
+        status={status}
+        loggingOut={loggingOut}
+        loginWaiting={waiting}
+        loginUrl={authUrl}
+        urlCopied={urlCopied}
+        onOpenLoginUrl={openLoginUrl}
+        onCopyLoginUrl={copyLoginUrl}
+        onClose={onCloseSettings}
+        onLogin={() => {
+          onCloseSettings()
+          startLogin()
+        }}
+        onLogout={doLogout}
+      />,
+    )
   }
 
   return (
     <div className="account-entry">
-      {settingsOpen && (
-        <SettingsModal
-          status={status}
-          loggingOut={loggingOut}
-          loginWaiting={waiting}
-          loginUrl={authUrl}
-          urlCopied={urlCopied}
-          onOpenLoginUrl={openLoginUrl}
-          onCopyLoginUrl={copyLoginUrl}
-          onClose={() => setSettingsOpen(false)}
-          onLogin={() => {
-            setSettingsOpen(false)
-            startLogin()
-          }}
-          onLogout={doLogout}
-        />
-      )}
       {CLOUD_ACCOUNT_ENABLED && !settingsOpen && waiting && authUrl && (
         <div className="login-hint" role="status">
           <button className="login-hint-open" onClick={openLoginUrl}>
@@ -629,7 +651,9 @@ function AccountEntry({
       <button
         className="account-btn"
         onClick={handleClick}
-        aria-haspopup="dialog"
+        // Settings opens as a main-content pane (variant="pane"), not a popup
+        // dialog, so there is no aria-haspopup; aria-expanded reflects the
+        // revealed content region.
         aria-expanded={settingsOpen}
         data-tip={
           !CLOUD_ACCOUNT_ENABLED
@@ -1040,8 +1064,17 @@ export function Home() {
   const [view, setView] = useState<'recent' | 'starred'>('recent')
   // Genspark web projects take over the content area (like a selected project)
   const [cloudMode, setCloudMode] = useState(false)
+  // The chrome's sidebar toggle (dispatched as a window event by the TabBar)
+  // hides/shows the Home sidebar; the frosted panel collapses off to the left.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // Updates and Shared with you take over the content area like a selected project
   const [pane, setPane] = useState<'updates' | 'shared' | null>(null)
+  // Settings takes over the content area too (variant="pane"), rendered in the
+  // right column instead of as a modal. AccountEntry owns the login machinery and
+  // hands up the fully-wired pane element; Home only holds whether it is shown.
+  const [settingsPane, setSettingsPane] = useState<ReactElement | null>(null)
+  const settingsMode = settingsPane !== null
+  const closeSettings = useCallback(() => setSettingsPane(null), [])
   const updatesMode = pane === 'updates'
   const sharedMode = pane === 'shared'
   const setUpdatesMode = (on: boolean) => setPane(on ? 'updates' : null)
@@ -1149,6 +1182,14 @@ export function Home() {
     }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
+  // The app chrome's sidebar toggle is a sibling of this view, so it reaches us
+  // as a window event rather than a prop. Flip the frosted sidebar in/out.
+  useEffect(() => {
+    const toggle = () => setSidebarCollapsed((v) => !v)
+    window.addEventListener('shell:toggle-sidebar', toggle)
+    return () => window.removeEventListener('shell:toggle-sidebar', toggle)
   }, [])
 
   const hasMore = entries.length < listTotal
@@ -1886,6 +1927,7 @@ export function Home() {
         {view === 'recent' && (
           <HomeHero
             name={accountName || undefined}
+            lastFile={entries[0] ? baseName(entries[0]) : undefined}
             onAsk={(prompt) => void window.aiOffice.ask(prompt)}
             onStart={startBlank}
             onOpenFile={() => void window.aiOffice.browse()}
@@ -1995,7 +2037,7 @@ export function Home() {
 
   return (
     <div className="home">
-      <aside className="sidebar">
+      <aside className={`sidebar${sidebarCollapsed ? ' sidebar--collapsed' : ''}`}>
         <div className="sidebar-logo">
           {/* Two theme variants of the Redrob wordmark: the light one has dark
               text, the dark one has light text (the gradient mark is identical).
@@ -2006,13 +2048,14 @@ export function Home() {
 
         <nav className="sidebar-nav">
           <button
-            className={`nav-item${view === 'recent' && !selectedProjectId && !cloudMode && !pane ? ' active' : ''}`}
+            className={`nav-item${view === 'recent' && !selectedProjectId && !cloudMode && !pane && !settingsMode ? ' active' : ''}`}
             aria-current={
-              view === 'recent' && !selectedProjectId && !cloudMode && !pane
+              view === 'recent' && !selectedProjectId && !cloudMode && !pane && !settingsMode
                 ? 'page'
                 : undefined
             }
             onClick={() => {
+              closeSettings()
               changeView('recent')
               setSelectedProjectId(null)
               setCloudMode(false)
@@ -2024,9 +2067,10 @@ export function Home() {
             <span className="nav-count">{navCounts.recent}</span>
           </button>
           <button
-            className={`nav-item${updatesMode && !selectedProjectId ? ' active' : ''}`}
-            aria-current={updatesMode && !selectedProjectId ? 'page' : undefined}
+            className={`nav-item${updatesMode && !selectedProjectId && !settingsMode ? ' active' : ''}`}
+            aria-current={updatesMode && !selectedProjectId && !settingsMode ? 'page' : undefined}
             onClick={() => {
+              closeSettings()
               setUpdatesMode(true)
               setSelectedProjectId(null)
               setCloudMode(false)
@@ -2039,13 +2083,14 @@ export function Home() {
             {updatesWaiting > 0 && <span className="nav-count">{updatesWaiting}</span>}
           </button>
           <button
-            className={`nav-item${view === 'starred' && !selectedProjectId && !cloudMode && !pane ? ' active' : ''}`}
+            className={`nav-item${view === 'starred' && !selectedProjectId && !cloudMode && !pane && !settingsMode ? ' active' : ''}`}
             aria-current={
-              view === 'starred' && !selectedProjectId && !cloudMode && !pane
+              view === 'starred' && !selectedProjectId && !cloudMode && !pane && !settingsMode
                 ? 'page'
                 : undefined
             }
             onClick={() => {
+              closeSettings()
               changeView('starred')
               setSelectedProjectId(null)
               setCloudMode(false)
@@ -2057,9 +2102,10 @@ export function Home() {
             <span className="nav-count">{navCounts.starred}</span>
           </button>
           <button
-            className={`nav-item${sharedMode && !selectedProjectId ? ' active' : ''}`}
-            aria-current={sharedMode && !selectedProjectId ? 'page' : undefined}
+            className={`nav-item${sharedMode && !selectedProjectId && !settingsMode ? ' active' : ''}`}
+            aria-current={sharedMode && !selectedProjectId && !settingsMode ? 'page' : undefined}
             onClick={() => {
+              closeSettings()
               setPane('shared')
               setSelectedProjectId(null)
               setCloudMode(false)
@@ -2072,8 +2118,9 @@ export function Home() {
           </button>
           {CLOUD_ACCOUNT_ENABLED && loggedIn && (
             <button
-              className={`nav-item${cloudMode && !selectedProjectId ? ' active' : ''}`}
+              className={`nav-item${cloudMode && !selectedProjectId && !settingsMode ? ' active' : ''}`}
               onClick={() => {
+                closeSettings()
                 setCloudMode(true)
                 setSelectedProjectId(null)
                 setSelected(new Set())
@@ -2095,6 +2142,7 @@ export function Home() {
               projects={projects}
               selectedId={selectedProjectId}
               onSelect={(id) => {
+                closeSettings()
                 setSelectedProjectId(id)
                 setUpdatesMode(false)
                 // reset list-selection state on any project switch (paths are
@@ -2112,10 +2160,26 @@ export function Home() {
             and no genspark.ai login flow); the account/credits section is also
             dropped from the settings modal. */}
         <HomeFoot />
-        <AccountEntry onStatusChange={handleAccountStatus} />
+        <AccountEntry
+          onStatusChange={handleAccountStatus}
+          settingsOpen={settingsMode}
+          onOpenSettings={(paneEl) => {
+            // Settings takes over the content column: clear the other modes so
+            // the sidebar shows no stale active item behind it.
+            setSelectedProjectId(null)
+            setCloudMode(false)
+            setPane(null)
+            setSelected(new Set())
+            setRowMenu(null)
+            setSettingsPane(paneEl)
+          }}
+          onCloseSettings={closeSettings}
+        />
       </aside>
 
-      {selectedProjectId ? (
+      {settingsMode ? (
+        settingsPane
+      ) : selectedProjectId ? (
         renderProjectContent()
       ) : updatesMode ? (
         <UpdatesView facts={facts} openPath={(path) => void window.aiOffice.openPath(path)} />

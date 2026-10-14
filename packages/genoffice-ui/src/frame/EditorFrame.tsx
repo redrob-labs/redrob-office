@@ -10,7 +10,6 @@ import {
 } from 'react'
 import { IconButton, icons } from '@redrob-labs/ui'
 import {
-  CommandSearch,
   type CommandSearchHandle,
   type CommandSearchStrings,
   type FrameTool,
@@ -198,13 +197,9 @@ export function EditorFrame(props: EditorFrameProps): ReactElement {
           <FormatChip file={props.fileName} />
           {props.saveStatus ? <span className="go-frame__save">{props.saveStatus}</span> : null}
         </div>
-        <CommandSearch
-          ref={search}
-          className="go-frame__search"
-          tools={props.search.tools}
-          strings={props.search.strings}
-          onAsk={props.search.onAsk}
-        />
+        {/* The in-document command/search bar was removed: the shell chrome's
+            search box is the single search surface, so this duplicate
+            "Search tools, or ask Redrob" bar no longer appears in editors. */}
         <div className="go-frame__title-end">
           {props.faces}
           {props.mode ? <ModeMenu {...props.mode} /> : null}
