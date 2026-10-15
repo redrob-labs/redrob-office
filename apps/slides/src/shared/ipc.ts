@@ -57,6 +57,20 @@ export interface SetEffectsPatch {
   softEdge?: number | null
 }
 
+/** Password prompt raised by main while opening an encrypted deck (strings pre-localized). */
+export interface PasswordPromptPayload {
+  title: string
+  body: string
+  /** label of the password field */
+  passwordLabel: string
+  openLabel: string
+  cancelLabel: string
+  /** base name of the deck being opened */
+  fileName: string
+  /** a previous attempt was rejected: show the "wrong password" state */
+  wrong: boolean
+}
+
 export interface OpenResult {
   path: string
   slides: RenderSlide[]
@@ -1544,6 +1558,9 @@ export interface SlidesApi extends Partial<OfficePrefsApi> {
   ) => Promise<{ ok: boolean; path?: string; error?: string; slides?: RenderSlide[] }>
   /** The close guard chose "Save": the main process asks the renderer to run the full save flow */
   onCloseSaveRequest: (handler: () => void) => () => void
+  /** Main found a password-protected deck while opening; the renderer shows the password dialog and replies (null = cancelled) */
+  onPasswordPrompt: (handler: (prompt: PasswordPromptPayload) => void) => () => void
+  replyPasswordPrompt: (password: string | null) => void
   /** Undo/redo stack occupancy pushed by the main process (drives the QAT button gray states) */
   onHistoryChanged: (handler: (state: { canUndo: boolean; canRedo: boolean }) => void) => () => void
   /** Another window attached to the same file changed the deck (shared session): fresh render state to apply */

@@ -111,6 +111,7 @@ import {
 } from '@genoffice/pptx-render'
 import { refineComplexWidths, shapedMetricsReady } from './shaped-metrics'
 import { cfbKind, isCfbHeader } from './cfb-sniff'
+import { PptxDecryptError, decryptPptx, encryptPptx } from './pptx-encryption'
 import { unplayableAudioCodec } from './mp4-audio-sniff'
 import type {
   AddChartOp,
@@ -511,7 +512,8 @@ setInterval(() => {
     for (const [wcId, session] of sessions.entries()) {
       if (seen.has(session)) continue
       seen.add(session)
-      if (session.masterEdit || !sessionDirty(session)) continue
+      // a protected deck gets no plaintext recovery copy on disk
+      if (session.masterEdit || session.password !== undefined || !sessionDirty(session)) continue
       let target: string
       if (session.path) {
         target = autosavePathFor(session.path)
@@ -659,9 +661,9 @@ async function maybeRecoverBytes(
 }
 
 /**
- * .ppt (97-2003 binary compound document) and encrypted OOXML are unsupported: show an actionable message instead of a parse error.
+ * .ppt (97-2003 binary compound document) is unsupported: show an actionable message instead of a parse error.
  * Detection uses the magic number rather than the extension -- a binary ppt with a renamed suffix is caught too. A CFB containing an
- * EncryptedPackage stream is a password-protected pptx and gets dedicated copy (instead of being mislabeled as the legacy format).
+ * EncryptedPackage stream is a password-protected pptx: that one is NOT rejected here, openAndBuild asks for the password and decrypts.
  */
 async function rejectLegacyPpt(path: string): Promise<boolean> {
   let head: Buffer
@@ -677,9 +679,8 @@ async function rejectLegacyPpt(path: string): Promise<boolean> {
     return false
   }
   if (!isCfbHeader(head)) return false
-  let kind: 'legacy' | 'encrypted' = 'legacy'
   try {
-    kind = cfbKind(await readFile(path)) ?? 'legacy'
+    if (cfbKind(await readFile(path)) === 'encrypted') return false
   } catch {
     // on read failure, fall back to the legacy-format message
   }
@@ -687,12 +688,75 @@ async function rejectLegacyPpt(path: string): Promise<boolean> {
   const options = {
     type: 'warning' as const,
     buttons: [tm('legacyPptOk')],
-    message: tm(kind === 'encrypted' ? 'encryptedPptxTitle' : 'legacyPptTitle'),
-    detail: tm(kind === 'encrypted' ? 'encryptedPptxBody' : 'legacyPptBody'),
+    message: tm('legacyPptTitle'),
+    detail: tm('legacyPptBody'),
   }
   if (parent) await dialog.showMessageBox(parent, options)
   else await dialog.showMessageBox(options)
   return true
+}
+
+/// Password for an encrypted deck, asked through the renderer's styled dialog
+/// (Electron has no native text-input box). null = the user cancelled or the
+/// renderer went away before answering.
+const passwordPromptWaiters = new Map<number, (password: string | null) => void>()
+
+function promptDeckPassword(wc: WebContents, filePath: string, wrong: boolean): Promise<string | null> {
+  return new Promise((resolve) => {
+    const settle = (password: string | null): void => {
+      passwordPromptWaiters.delete(wc.id)
+      wc.removeListener('destroyed', onDestroyed)
+      resolve(password)
+    }
+    const onDestroyed = (): void => settle(null)
+    passwordPromptWaiters.set(wc.id, settle)
+    wc.once('destroyed', onDestroyed)
+    wc.send('slides:password-prompt', {
+      title: tm('passwordTitle'),
+      body: tm(wrong ? 'passwordWrong' : 'passwordBody'),
+      passwordLabel: tm('passwordLabel'),
+      openLabel: tm('passwordOpen'),
+      cancelLabel: tm('passwordCancel'),
+      fileName: basename(filePath),
+      wrong,
+    })
+  })
+}
+
+ipcMain.on('slides:password-prompt-reply', (event, password: unknown) => {
+  passwordPromptWaiters.get(event.sender.id)?.(
+    typeof password === 'string' && password.length > 0 ? password : null,
+  )
+})
+
+/**
+ * Password-protected deck (ECMA-376 CFB container, not a zip): prompt until the
+ * password decrypts or the user cancels. Returns the plain pptx bytes and the
+ * password that opened them, or null when the user cancelled.
+ */
+async function decryptDeckWithPrompt(
+  wc: WebContents,
+  path: string,
+  encrypted: Buffer,
+): Promise<{ plain: Buffer; password: string } | null> {
+  if (wc.isDestroyed()) return null
+  for (let wrong = false; ; wrong = true) {
+    const answer = await promptDeckPassword(wc, path, wrong)
+    if (answer === null) return null
+    try {
+      return { plain: await decryptPptx(encrypted, answer), password: answer }
+    } catch (error) {
+      if (!(error instanceof PptxDecryptError) || error.reason !== 'wrong-password') {
+        throw new Error(tm('errEncryptedUnsupported'))
+      }
+    }
+  }
+}
+
+/** Write the deck to disk; a protected session is re-encrypted with its password first. */
+async function writeDeck(session: Session, filePath: string): Promise<void> {
+  if (session.password === undefined) return savePptxToFile(session.opened, filePath)
+  await writeFile(filePath, encryptPptx(await savePptx(session.opened), session.password))
 }
 
 /** Register the deck's usable embedded fonts before layout; new faces invalidate cached metrics. */
@@ -708,7 +772,7 @@ async function openAndBuild(
   wc: WebContents,
   path: string,
   fitWidthPx: number,
-): Promise<OpenResult> {
+): Promise<OpenResult | null> {
   // Same file already open in another window: attach to that session instead of
   // opening an independent copy (which would silently lose the loser's edits on
   // save). Both windows then see the same live deck; edits propagate via
@@ -728,7 +792,19 @@ async function openAndBuild(
     }
   }
   const raw = await readFile(path)
-  const { bytes, recovered } = await maybeRecoverBytes(path, new Uint8Array(raw))
+  // Password-protected deck: ask, decrypt in memory, open the plain bytes. No
+  // recovery copy lookup — protected sessions never write one (see autosave).
+  let password: string | undefined
+  let bytes: Uint8Array
+  let recovered = false
+  if (isCfbHeader(raw) && cfbKind(raw) === 'encrypted') {
+    const unlocked = await decryptDeckWithPrompt(wc, path, raw)
+    if (!unlocked) return null
+    bytes = new Uint8Array(unlocked.plain)
+    password = unlocked.password
+  } else {
+    ;({ bytes, recovered } = await maybeRecoverBytes(path, new Uint8Array(raw)))
+  }
   await shapedMetricsReady() // Lay out only after complex-script shaped metrics are ready, avoiding an init race falling back to estimation
   const opened = await openPptx(bytes)
   adoptEmbeddedFonts(opened)
@@ -739,6 +815,7 @@ async function openAndBuild(
     undoStack: [],
     redoStack: [],
     ...(recovered ? { metaDirty: true } : {}),
+    ...(password === undefined ? {} : { password }),
   })
   scheduleHistoryNotify(sessions.get(wc.id)!)
   await pushRecent(path)
@@ -1166,7 +1243,7 @@ export function registerSlidesIpc(): void {
         dropQueued()
         return null
       }
-      // Clear the queue only after a successful open: keep it on parse failure or a mid-flight renderer reload, so a remount can retry
+      // Clear the queue only after a successful open (or a declined password): keep it on parse failure or a mid-flight renderer reload, so a remount can retry
       const result = await openAndBuild(e.sender, queued, fitWidthPx)
       dropQueued()
       return result
@@ -4029,7 +4106,7 @@ export function registerSlidesIpc(): void {
       slidesOpenedHook?.(e.sender, session.path)
     }
     try {
-      await savePptxToFile(session.opened, session.path)
+      await writeDeck(session, session.path)
       autosaveBackoff.delete(session.path)
       void rm(autosavePathFor(session.path), { force: true }).catch(() => {})
       dropUntitledRecovery(e.sender.id)
@@ -4060,7 +4137,8 @@ export function registerSlidesIpc(): void {
     const r = await showSaveDialogWithMemory(dialog, parent, options, getDraftsDir())
     if (r.canceled || !r.filePath) return { ok: false }
     try {
-      await savePptxToFile(session.opened, r.filePath)
+      // the password follows the deck to the new path (PowerPoint behaviour)
+      await writeDeck(session, r.filePath)
       session.path = r.filePath
       autosaveBackoff.delete(r.filePath)
       dropUntitledRecovery(e.sender.id)

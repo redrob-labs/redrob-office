@@ -151,6 +151,14 @@ export const tMain = createI18n({
     encryptedPptxTitle: 'Cannot open password-protected file',
     encryptedPptxBody:
       'This file is an encrypted Office document. Password-protected files are not supported yet. Open it in PowerPoint, remove the password (File → Info → Protect Presentation), save, and try again.',
+    passwordTitle: 'This presentation is password protected',
+    passwordBody: 'Enter the password to open it.',
+    passwordWrong: 'Incorrect password, try again.',
+    passwordLabel: 'Password',
+    passwordOpen: 'Open',
+    passwordCancel: 'Cancel',
+    errPasswordCancelled: 'no password entered',
+    errEncryptedUnsupported: 'this file uses an encryption scheme that is not supported',
     chartSimplifyTitle: 'Editing will simplify this chart',
     chartSimplifyBody:
       'This chart comes from an external file. Editing rebuilds it with this app’s model; fine-grained formatting such as number formats, trendlines, error bars and per-point styles will be lost.',
@@ -373,6 +381,14 @@ export const tMain = createI18n({
     encryptedPptxTitle: '암호로 보호된 파일을 열 수 없음',
     encryptedPptxBody:
       '이 파일은 암호화된 Office 문서입니다. 암호 보호 파일은 아직 지원되지 않습니다. PowerPoint에서 암호를 해제하고 저장한 후 다시 시도하세요.',
+    passwordTitle: '암호로 보호된 프레젠테이션입니다',
+    passwordBody: '열려면 암호를 입력하세요.',
+    passwordWrong: '암호가 틀렸습니다. 다시 입력하세요.',
+    passwordLabel: '암호',
+    passwordOpen: '열기',
+    passwordCancel: '취소',
+    errPasswordCancelled: '암호를 입력하지 않았습니다',
+    errEncryptedUnsupported: '지원하지 않는 암호화 방식입니다',
     chartSimplifyTitle: '편집하면 이 차트가 단순화됩니다',
     chartSimplifyBody:
       '이 차트는 외부 파일에서 가져왔습니다. 편집하면 이 앱의 모델로 재구성되어 숫자 서식, 추세선, 오차 막대, 요소별 스타일 등 세부 서식이 손실됩니다.',

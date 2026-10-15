@@ -24,6 +24,7 @@ import type {
   InsertKind,
   LinkTargetOp,
   MasterPartItem,
+  PasswordPromptPayload,
   PasteSlideMode,
   SectionInfo,
   SetEffectsPatch,
@@ -59,6 +60,7 @@ import { PresenterView } from './components/PresenterView'
 import { CustomShowDialog } from './components/CustomShowDialog'
 import { PrintDialog } from './components/PrintDialog'
 import { FindReplaceDialog } from './components/FindReplaceDialog'
+import { PasswordDialog } from './components/PasswordDialog'
 import { formatClock, type CustomShow } from './slideshow-utils'
 import { ContextMenu } from './components/ContextMenu'
 import { ShapeGalleryPopover } from './components/ShapeGalleryPopover'
@@ -497,6 +499,9 @@ export function App() {
   const [customShows, setCustomShows] = useState<CustomShow[]>([])
   const [customShowDlgOpen, setCustomShowDlgOpen] = useState(false)
   const [findOpen, setFindOpen] = useState(false)
+  // Main asks for the password of an encrypted deck mid-open; null when no prompt is up
+  const [passwordPrompt, setPasswordPrompt] = useState<PasswordPromptPayload | null>(null)
+  useEffect(() => window.slidesApi.onPasswordPrompt((p) => setPasswordPrompt(p)), [])
   /** Per-page dwell seconds awaiting confirmation after rehearsal (non-null shows the "save?" confirmation dialog) */
   const [pendingRehearse, setPendingRehearse] = useState<number[] | null>(null)
   const [showRuler, setShowRuler] = useState(false)
@@ -4197,6 +4202,17 @@ export function App() {
             setDirty(true)
           }}
           onClose={() => setFindOpen(false)}
+        />
+      )}
+
+      {passwordPrompt && (
+        <PasswordDialog
+          key={`${passwordPrompt.fileName}:${passwordPrompt.wrong ? 'retry' : 'first'}`}
+          prompt={passwordPrompt}
+          onSubmit={(password) => {
+            setPasswordPrompt(null)
+            window.slidesApi.replyPasswordPrompt(password)
+          }}
         />
       )}
 
