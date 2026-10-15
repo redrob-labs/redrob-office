@@ -32,10 +32,14 @@ work="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/redrob-code-$tag"
 rm -rf "$work"
 mkdir -p "$work"
 echo "Fetching Redrob Code $tag ($asset) from redrob-labs/redrob-code"
-gh release download "$tag" --repo redrob-labs/redrob-code --pattern "$asset" --pattern SHA256SUMS --dir "$work"
+gh release download "$tag" --repo redrob-labs/redrob-code --pattern "$asset" --pattern 'SHA256SUMS*' --dir "$work"
 
 # The release's own checksum list is the source of truth for the bytes we just received.
-(cd "$work" && grep -E "  ${asset}\$" SHA256SUMS | sha256 -c -)
+# Releases published by the shared redrob-labs publish job name it SHA256SUMS.txt; older ones SHA256SUMS.
+sums="$work/SHA256SUMS.txt"
+[ -f "$sums" ] || sums="$work/SHA256SUMS"
+[ -f "$sums" ] || { echo "release $tag has no SHA256SUMS(.txt) asset" >&2; exit 1; }
+(cd "$work" && grep -E "  ${asset}\$" "$sums" | sha256 -c -)
 
 unzip -q -o "$work/$asset" -d "$work/unpacked"
 source_binary="$work/unpacked/$binary"

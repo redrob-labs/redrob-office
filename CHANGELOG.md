@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.10.7 -- 2026-10-15
+
+### Fixed
+
+- The bundled Redrob Code sidecar is now engine v0.6.5. 0.10.6 built its sidecar from the engine's `main` branch, which had not moved since 2026-09-22, so the shipped fallback engine predated the shared daemon, the idle-exit fix (redrob-code #100) and the chat-completions route fix (redrob-code #107). The sidecar is now taken from the pinned engine release.
+
 ### Changed
 
 - One release workflow on the organization's shared pieces. `release-desktop.yml` now carries Windows, macOS and Linux from one tag (`release-linux.yml` is folded in as its `linux` job), resolves the tag to one commit that every leg builds, and ends in `redrob-labs/.github`'s `release-publish` job, which writes `SHA256SUMS.txt` and `redrob-launcher.json` and publishes the release as latest. The repository's own manifest writer, `.sha256` sidecars and release-create steps are gone. A `workflow_dispatch` with `dry_run` builds and signs the dispatched ref and publishes nothing.
