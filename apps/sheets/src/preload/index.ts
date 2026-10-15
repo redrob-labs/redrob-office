@@ -15,6 +15,7 @@ import type {
   AttachmentMeta,
   AttachmentReadResult,
   DesktopApi,
+  PasswordPromptPayload,
   RecoveryPromptPayload,
   ScreenCaptureResult,
   ScreenSourcesResult,
@@ -440,6 +441,27 @@ const desktopApi: DesktopApi = {
   },
   replyRecoveryPrompt(restore) {
     ipcRenderer.send(IPC_CHANNELS.recoveryPromptReply, restore === true)
+  },
+  onPasswordPrompt(callback) {
+    const listener = (_event: unknown, payload: unknown): void => {
+      if (
+        isRecord(payload) &&
+        typeof payload.title === 'string' &&
+        typeof payload.body === 'string' &&
+        typeof payload.passwordLabel === 'string' &&
+        typeof payload.openLabel === 'string' &&
+        typeof payload.cancelLabel === 'string' &&
+        typeof payload.fileName === 'string' &&
+        typeof payload.wrong === 'boolean'
+      ) {
+        callback(payload as unknown as PasswordPromptPayload)
+      }
+    }
+    ipcRenderer.on(IPC_CHANNELS.passwordPrompt, listener)
+    return () => ipcRenderer.removeListener(IPC_CHANNELS.passwordPrompt, listener)
+  },
+  replyPasswordPrompt(password) {
+    ipcRenderer.send(IPC_CHANNELS.passwordPromptReply, typeof password === 'string' ? password : null)
   },
   async getAiSettings() {
     const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.aiGetSettings)

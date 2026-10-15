@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.10.9 -- 2026-10-16
+
+### Fixed
+
+- Sheets: a workbook that failed to open no longer leaves a blank document named after the file. The failure is shown in an error dialog, the shell drops the tab, and the header shows the real file name.
+- Sheets and Slides: password-protected `.xlsx` and `.pptx` (ECMA-376 encrypted containers) open through a password dialog (a wrong password re-prompts, Cancel abandons the open) and are decrypted in memory. Save and Save As re-encrypt with the same password, so the file on disk stays protected; autosave and crash-recovery copies are skipped for protected sessions so no plaintext lands on disk. Legacy binary `.ppt` keeps its existing message.
+- Hangul: the password dialog of a protected `.hwp` no longer races the host's 60 s `loadFile` timeout ("Request timeout: loadFile"); the host now waits up to 10 minutes for the user.
+
+### Changed
+
+- CI runs on pull requests only: no push-to-main runs and no schedules. The native build matrix and the Hancom fidelity run are manual (`workflow_dispatch`); tag pushes still release.
+
 ## 0.10.8 -- 2026-10-15
 
 ### Changed

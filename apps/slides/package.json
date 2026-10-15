@@ -91,6 +91,7 @@
     "@genoffice/electron-utils": "workspace:*",
     "acorn": "^8.18.0",
     "harfbuzzjs": "^1.4.0",
+    "officecrypto-tool": "^0.0.19",
     "pngjs": "^7.0.0",
     "undici": "^6.28.0",
     "utif2": "^4.1.0"

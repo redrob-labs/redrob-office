@@ -145,6 +145,7 @@ import {
   cleanupImportTempDirectory,
   cleanupSessionResources,
 } from './temp-files'
+import { XlsxDecryptError, decryptXlsx, encryptXlsx, isEncryptedOoxml } from './xlsx-encryption'
 import { XlsxSidecarClient } from './xlsx-sidecar-client'
 
 /**
@@ -220,6 +221,15 @@ const tMain = createI18n({
     filterSupported: 'Supported Files',
     filterAll: 'All Files',
     errUnsupportedExt: '.{ext} files are not supported',
+    errOpenFailed: 'Could not open {name}',
+    passwordTitle: 'This workbook is password protected',
+    passwordBody: 'Enter the password to open it.',
+    passwordWrong: 'Incorrect password, try again.',
+    passwordLabel: 'Password',
+    passwordOpen: 'Open',
+    passwordCancel: 'Cancel',
+    errPasswordCancelled: 'no password entered',
+    errEncryptedUnsupported: 'this file uses an encryption scheme that is not supported',
     errNotFile: 'not a file',
     errTooLarge: 'exceeds the {mb}MB limit',
     errImageTooLarge: 'image exceeds the 5MB limit',
@@ -341,6 +351,15 @@ const tMain = createI18n({
     filterSupported: '지원되는 파일',
     filterAll: '모든 파일',
     errUnsupportedExt: '.{ext} 형식은 지원되지 않습니다',
+    errOpenFailed: '{name} 파일을 열 수 없습니다',
+    passwordTitle: '암호로 보호된 문서입니다',
+    passwordBody: '열려면 암호를 입력하세요.',
+    passwordWrong: '암호가 틀렸습니다. 다시 입력하세요.',
+    passwordLabel: '암호',
+    passwordOpen: '열기',
+    passwordCancel: '취소',
+    errPasswordCancelled: '암호를 입력하지 않았습니다',
+    errEncryptedUnsupported: '지원하지 않는 암호화 방식입니다',
     errNotFile: '파일이 아닙니다',
     errTooLarge: '{mb}MB 제한을 초과했습니다',
     errImageTooLarge: '이미지가 5MB 제한을 초과했습니다',
@@ -1340,6 +1359,16 @@ interface SessionInfo {
   /// write-back against external modification, mirroring the sha256 check on
   /// the session's own path.
   readonly restoreTargetSha?: string
+  /// Password-protected workbook: the encrypted original on disk. The sidecar
+  /// works on the decrypted copy under importTempDir; Save re-encrypts the
+  /// saved copy with encryptedPassword and writes it back here.
+  readonly encryptedSourcePath?: string
+  /// Digest of the encrypted original at open/save time — guards the
+  /// write-back against external modification, like restoreTargetSha.
+  readonly encryptedSourceSha?: string
+  /// Password that opened the encrypted original (in memory only; a relaunch
+  /// re-prompts, like Excel).
+  readonly encryptedPassword?: string
 }
 
 // ---- runtime configuration (paths differ when bundled into the shell) ----
@@ -1599,6 +1628,16 @@ export function setSheetsWorkbookOpenedHook(
   workbookOpenedHook = fn
 }
 
+/** shell hook: a shell-queued open (File > Open, drop, Finder) failed — the
+ *  shell owns the tab it created for that path and closes it instead of
+ *  leaving a blank workbook titled after the file. */
+let workbookOpenFailedHook: ((wc: WebContents, path: string) => void) | null = null
+export function setSheetsWorkbookOpenFailedHook(
+  fn: ((wc: WebContents, path: string) => void) | null,
+): void {
+  workbookOpenFailedHook = fn
+}
+
 /** forward an application-menu File command into the sheets renderer */
 export function sendSheetsMenuAction(
   action: 'open' | 'save' | 'save-as' | 'export-pdf' | 'export-csv' | 'undo' | 'redo',
@@ -1664,6 +1703,37 @@ function promptRecoveryRestore(
       discardLabel: tm('autosaveDiscard'),
       fileName: basename(filePath),
       savedAtMs,
+    })
+  })
+}
+
+/// Password for an encrypted workbook, asked through the renderer's styled
+/// dialog (Electron has no native text-input box). null = the user cancelled
+/// or the renderer went away before answering.
+const passwordPromptWaiters = new Map<number, (password: string | null) => void>()
+
+function promptWorkbookPassword(
+  contents: WebContents,
+  filePath: string,
+  wrong: boolean,
+): Promise<string | null> {
+  return new Promise((resolve) => {
+    const settle = (password: string | null): void => {
+      passwordPromptWaiters.delete(contents.id)
+      contents.removeListener('destroyed', onDestroyed)
+      resolve(password)
+    }
+    const onDestroyed = (): void => settle(null)
+    passwordPromptWaiters.set(contents.id, settle)
+    contents.once('destroyed', onDestroyed)
+    contents.send(IPC_CHANNELS.passwordPrompt, {
+      title: tm('passwordTitle'),
+      body: tm(wrong ? 'passwordWrong' : 'passwordBody'),
+      passwordLabel: tm('passwordLabel'),
+      openLabel: tm('passwordOpen'),
+      cancelLabel: tm('passwordCancel'),
+      fileName: basename(filePath),
+      wrong,
     })
   })
 }
@@ -2159,6 +2229,11 @@ export function registerSheetsIpc(): void {
   ipcMain.on(IPC_CHANNELS.recoveryPromptReply, (event, restore: unknown) => {
     recoveryPromptWaiters.get(event.sender.id)?.(restore === true ? 'restore' : 'discard')
   })
+  ipcMain.on(IPC_CHANNELS.passwordPromptReply, (event, password: unknown) => {
+    passwordPromptWaiters.get(event.sender.id)?.(
+      typeof password === 'string' && password.length > 0 ? password : null,
+    )
+  })
 
   ipcMain.on(IPC_CHANNELS.pendingEditsChanged, (event, count: unknown) => {
     if (typeof count !== 'number' || !Number.isFinite(count) || count < 0) return
@@ -2206,7 +2281,8 @@ export function registerSheetsIpc(): void {
 
   ipcMain.handle(IPC_CHANNELS.selectWorkbook, async (event) => {
     const entry = sessionFor(event)
-    let path = queuedWorkbookPaths.get(event.sender.id) ?? forcedWorkbookPath
+    const queuedPath = queuedWorkbookPaths.get(event.sender.id)
+    let path = queuedPath ?? forcedWorkbookPath
     // consume immediately (before the slow session open) so the shell's
     // retry loop stops re-sending 'open' for the same file
     queuedWorkbookPaths.delete(event.sender.id)
@@ -2218,6 +2294,35 @@ export function registerSheetsIpc(): void {
       if (selection.canceled || !selection.filePaths[0]) return null
       path = selection.filePaths[0]
     }
+    try {
+      return await openSelectedWorkbook(event, entry, path)
+    } catch (error) {
+      // A failed open used to surface only as a status-bar line, leaving a
+      // blank in-memory workbook titled after the file ("I dropped an .xlsx
+      // and got an empty document"). Say what failed in a dialog, and let the
+      // shell drop the tab it created for a queued (drop / Finder / Open) path.
+      const detail = error instanceof Error ? error.message : String(error)
+      console.error(`[sheets] open failed for ${path}: ${detail}`)
+      if (!event.sender.isDestroyed()) {
+        const parent = dialogParent(event)
+        const options = {
+          type: 'error' as const,
+          message: tm('errOpenFailed', { name: basename(path) }),
+          detail,
+        }
+        if (parent) await dialog.showMessageBox(parent, options)
+        else await dialog.showMessageBox(options)
+        if (queuedPath !== undefined) workbookOpenFailedHook?.(event.sender, path)
+      }
+      throw error
+    }
+  })
+
+  async function openSelectedWorkbook(
+    event: IpcMainInvokeEvent,
+    entry: SheetsTabSession,
+    path: string,
+  ): Promise<unknown> {
     const prepared = await prepareWorkbookForOpen(
       entry.client,
       path,
@@ -2240,6 +2345,8 @@ export function registerSheetsIpc(): void {
       csvSourcePath: prepared.csvSourcePath,
       importTempDir: prepared.importTempDir,
       restoreTarget: prepared.restoreTarget,
+      encryptedSourcePath: prepared.encryptedSourcePath,
+      encryptedPassword: prepared.encryptedPassword,
     })
     // The sidecar open itself can also outlive the tab after the pre-open
     // check. Close the newly registered session instead of stranding it in
@@ -2259,7 +2366,7 @@ export function registerSheetsIpc(): void {
     }
     workbookOpenedHook?.(event.sender, path)
     return result
-  })
+  }
 
   // Merge sources: same open pipeline as selectWorkbook, but multi-select,
   // never consuming the shell's queued open path and never retitling the tab
@@ -2308,6 +2415,8 @@ export function registerSheetsIpc(): void {
           csvSourcePath: prepared.csvSourcePath,
           importTempDir: prepared.importTempDir,
           restoreTarget: prepared.restoreTarget,
+          encryptedSourcePath: prepared.encryptedSourcePath,
+          encryptedPassword: prepared.encryptedPassword,
         })
         opened.push(result as { sessionId: string })
         if (event.sender.isDestroyed()) break
@@ -2703,6 +2812,11 @@ export function registerSheetsIpc(): void {
     // original .csv afterwards.
     const csvInPlace = request.mode === 'save' && session.csvSourcePath !== undefined
     let targetPath = session.path
+    // A password-protected session works on the decrypted temp copy: the xlsx
+    // save lands there and the re-encrypted bytes are written to the file the
+    // user sees (the original, or the Save As pick). The password follows.
+    const protectedSource = session.encryptedSourcePath
+    let encryptedTarget = protectedSource
     // Converted .xls imports never save silently over the temp copy — the
     // first save always asks where the .xlsx should live.
     if (request.mode === 'save-as' || session.suggestSaveAs !== undefined) {
@@ -2738,6 +2852,10 @@ export function registerSheetsIpc(): void {
       targetPath = selection.filePath.toLowerCase().endsWith(`.${ext}`)
         ? selection.filePath
         : `${selection.filePath}.${ext}`
+      if (protectedSource !== undefined) {
+        encryptedTarget = targetPath
+        targetPath = session.path
+      }
     } else if (session.restoreTarget !== undefined) {
       // Restored crash-recovery copy: the restore prompt was the confirmation,
       // so Save writes straight back to the original — unless someone else
@@ -2768,7 +2886,23 @@ export function registerSheetsIpc(): void {
       }
     }
 
+    // The encrypted write-back gets the same external-change guard; a deleted
+    // original is fine — the write recreates it.
+    if (protectedSource !== undefined && encryptedTarget === protectedSource) {
+      const sourceSha = await sha256File(protectedSource).catch(() => undefined)
+      if (sourceSha !== undefined && sourceSha !== session.encryptedSourceSha) {
+        throw new Error(tm('errDiskChanged'))
+      }
+    }
+
     const mutation = await writeWorkbookTo(client, session, request, targetPath)
+
+    if (encryptedTarget !== undefined && session.encryptedPassword !== undefined) {
+      await atomicWriteFile(
+        encryptedTarget,
+        encryptXlsx(await readFile(targetPath), session.encryptedPassword),
+      )
+    }
 
     if (csvInPlace && session.csvSourcePath !== undefined && request.csvContent !== undefined) {
       // The temp copy already holds the saved bytes: refresh the session's
@@ -2792,9 +2926,9 @@ export function registerSheetsIpc(): void {
     await cleanupSessionResources({
       tempRoot: app.getPath('temp'),
       snapshotPath: session.snapshotPath,
-      // A CSV in-place save keeps saving into the temp copy — its directory
-      // must survive the session swap.
-      importTempDir: csvInPlace ? undefined : session.importTempDir,
+      // A CSV in-place save (or a protected workbook) keeps saving into the
+      // temp copy — its directory must survive the session swap.
+      importTempDir: csvInPlace || encryptedTarget !== undefined ? undefined : session.importTempDir,
       closeSidecar: () => client.close(request.sessionId),
     })
     const file = await openWorkbookSession(
@@ -2807,7 +2941,13 @@ export function registerSheetsIpc(): void {
             csvSourcePath: session.csvSourcePath,
             importTempDir: session.importTempDir,
           }
-        : undefined,
+        : encryptedTarget !== undefined
+          ? {
+              importTempDir: session.importTempDir,
+              encryptedSourcePath: encryptedTarget,
+              encryptedPassword: session.encryptedPassword,
+            }
+          : undefined,
     )
     // Notify shell (if running) so it can update the tab title and record the
     // saved path in recent files (mirrors the open hook; covers Save As + first
@@ -2815,7 +2955,7 @@ export function registerSheetsIpc(): void {
     // file is the original .csv, not the temp copy the xlsx save landed on.
     workbookOpenedHook?.(
       event.sender,
-      (csvInPlace ? session.csvSourcePath : undefined) ?? targetPath,
+      (csvInPlace ? session.csvSourcePath : undefined) ?? encryptedTarget ?? targetPath,
     )
     // The file on disk now carries these edits
     clearWorkbookRecovery(targetPath)
@@ -2871,7 +3011,10 @@ export function registerSheetsIpc(): void {
       !session ||
       session.suggestSaveAs !== undefined ||
       session.csvSourcePath !== undefined ||
-      session.restoreTarget !== undefined
+      session.restoreTarget !== undefined ||
+      // a plaintext recovery copy of a password-protected workbook would leak
+      // the protected content to disk
+      session.encryptedSourcePath !== undefined
     )
       return { ok: false }
     if (session.automaticRecoveryDisabled) return { ok: false }
@@ -3662,16 +3805,27 @@ async function openWorkbookSession(
     csvSourcePath?: string | undefined
     importTempDir?: string | undefined
     restoreTarget?: string | undefined
+    encryptedSourcePath?: string | undefined
+    encryptedPassword?: string | undefined
   },
 ): Promise<WorkbookFile> {
-  const { suggestSaveAs, csvImport, csvSourcePath, importTempDir, restoreTarget } = options ?? {}
+  const {
+    suggestSaveAs,
+    csvImport,
+    csvSourcePath,
+    importTempDir,
+    restoreTarget,
+    encryptedSourcePath,
+    encryptedPassword,
+  } = options ?? {}
   // Snapshot first, then the sidecar opens the snapshot (not the live path):
   // everything the session serves — cell reads, media, recalc, saves — comes
   // from the same bytes, even if the file on disk changes right after the
   // copy. The digest also describes exactly those bytes.
   const snapshotPath = await snapshotWorkbook(path)
   try {
-    const [opened, digest, snapshotStat, restoreTargetSha, csvSourceSha] = await Promise.all([
+    const [opened, digest, snapshotStat, restoreTargetSha, csvSourceSha, encryptedSourceSha] =
+      await Promise.all([
       client
         .open(snapshotPath, getUiLang(), systemShortDate())
         .then((result) => sidecarOpenResultSchema.parse(result)),
@@ -3684,6 +3838,9 @@ async function openWorkbookSession(
       csvSourcePath === undefined
         ? Promise.resolve(undefined)
         : sha256File(csvSourcePath).catch(() => undefined),
+      encryptedSourcePath === undefined
+        ? Promise.resolve(undefined)
+        : sha256File(encryptedSourcePath).catch(() => undefined),
     ])
     sessions.set(opened.sessionId, {
       path,
@@ -3698,12 +3855,21 @@ async function openWorkbookSession(
       ...(importTempDir === undefined ? {} : { importTempDir }),
       ...(restoreTarget === undefined ? {} : { restoreTarget }),
       ...(restoreTargetSha === undefined ? {} : { restoreTargetSha }),
+      ...(encryptedSourcePath === undefined ? {} : { encryptedSourcePath }),
+      ...(encryptedSourceSha === undefined ? {} : { encryptedSourceSha }),
+      ...(encryptedPassword === undefined ? {} : { encryptedPassword }),
     })
     return workbookFileSchema.parse({
       ...opened,
+      // The sidecar names the workbook after the file it opened — the UUID
+      // snapshot. Show the name of the file the user opened instead (the
+      // original .csv for an import, the original file for a recovery copy,
+      // the encrypted original for a password-protected workbook).
+      name: basename(csvSourcePath ?? restoreTarget ?? encryptedSourcePath ?? path),
       // The renderer-facing path is what the user opened: for a restored
-      // recovery copy that is the original file, not the copy under userData.
-      path: restoreTarget ?? path,
+      // recovery copy that is the original file, not the copy under userData;
+      // for a protected workbook the encrypted original, not the plain copy.
+      path: restoreTarget ?? encryptedSourcePath ?? path,
       sha256: digest,
       fileBytes: snapshotStat.size,
       readOnly: false,
@@ -3747,9 +3913,16 @@ async function prepareWorkbookForOpen(
   csvSourcePath?: string
   importTempDir?: string
   restoreTarget?: string
+  encryptedSourcePath?: string
+  encryptedPassword?: string
 }> {
   const extension = path.slice(path.lastIndexOf('.') + 1).toLowerCase()
   if (extension !== 'csv' && extension !== 'xls') {
+    // Password-protected workbook (ECMA-376 CFB container, not a zip): ask
+    // for the password, decrypt into an app-owned temp copy and open that.
+    // Save re-encrypts and writes back to the original (see saveWorkbook).
+    const encrypted = await openEncryptedWorkbookCopy(path, contents)
+    if (encrypted) return encrypted
     // Unsaved work from a lost session: offer the recovery copy. Restoring
     // opens it with restoreTarget pointing back at the original, so a plain
     // Save writes straight back over the file the user opened — the restore
@@ -3790,6 +3963,58 @@ async function prepareWorkbookForOpen(
   return extension === 'csv'
     ? { openPath, importTempDir: directory, csvImport: true, csvSourcePath: path }
     : { openPath, importTempDir: directory, suggestSaveAs: path.replace(/\.[^.]+$/, '.xlsx') }
+}
+
+/// Detect an encrypted (password-protected) workbook and, if so, prompt for
+/// the password until it decrypts or the user cancels, then write the plain
+/// xlsx into a fresh import temp dir. Returns undefined for a plain file.
+async function openEncryptedWorkbookCopy(
+  path: string,
+  contents: WebContents | undefined,
+): Promise<
+  | { openPath: string; importTempDir: string; encryptedSourcePath: string; encryptedPassword: string }
+  | undefined
+> {
+  let bytes: Buffer
+  try {
+    bytes = await readFile(path)
+  } catch {
+    // unreadable / missing: let the regular open path report it
+    return undefined
+  }
+  if (!isEncryptedOoxml(bytes)) return undefined
+  if (!contents || contents.isDestroyed()) throw new Error(tm('errPasswordCancelled'))
+  let plain: Buffer | undefined
+  let password: string | undefined
+  for (let wrong = false; plain === undefined; wrong = true) {
+    const answer = await promptWorkbookPassword(contents, path, wrong)
+    if (answer === null) throw new Error(tm('errPasswordCancelled'))
+    try {
+      plain = await decryptXlsx(bytes, answer)
+      password = answer
+    } catch (error) {
+      if (!(error instanceof XlsxDecryptError) || error.reason !== 'wrong-password') {
+        throw new Error(tm('errEncryptedUnsupported'))
+      }
+    }
+  }
+  const stem = basename(path).replace(/\.[^.]+$/, '')
+  const extension = path.slice(path.lastIndexOf('.') + 1).toLowerCase()
+  const directory = join(app.getPath('temp'), 'genoffice-imports', randomUUID())
+  await mkdir(directory, { recursive: true })
+  const openPath = join(directory, `${stem}.${extension === 'xlsm' ? 'xlsm' : 'xlsx'}`)
+  try {
+    await writeFile(openPath, plain)
+  } catch (error) {
+    await cleanupImportTempDirectory(app.getPath('temp'), directory)
+    throw error
+  }
+  return {
+    openPath,
+    importTempDir: directory,
+    encryptedSourcePath: path,
+    encryptedPassword: password as string,
+  }
 }
 
 /** shell-injected items appended to the File menu (e.g. Back to Home) */

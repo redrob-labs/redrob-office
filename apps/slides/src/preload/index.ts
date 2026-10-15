@@ -82,6 +82,7 @@ import type {
   PrintSlidesOp,
   MenuCommand,
   OpenResult,
+  PasswordPromptPayload,
   SlidesApi,
   UiTheme,
   SetEffectsPatch,
@@ -315,6 +316,13 @@ const api: SlidesApi = {
     ipcRenderer.on('slides:close-save-request', listener)
     return () => ipcRenderer.removeListener('slides:close-save-request', listener)
   },
+  onPasswordPrompt: (handler: (prompt: PasswordPromptPayload) => void) => {
+    const listener = (_e: IpcRendererEvent, payload: PasswordPromptPayload) => handler(payload)
+    ipcRenderer.on('slides:password-prompt', listener)
+    return () => ipcRenderer.removeListener('slides:password-prompt', listener)
+  },
+  replyPasswordPrompt: (password: string | null) =>
+    ipcRenderer.send('slides:password-prompt-reply', typeof password === 'string' ? password : null),
   onHistoryChanged: (handler: (state: { canUndo: boolean; canRedo: boolean }) => void) => {
     const listener = (_e: IpcRendererEvent, state: { canUndo: boolean; canRedo: boolean }) =>
       handler(state)

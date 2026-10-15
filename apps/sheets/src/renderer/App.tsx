@@ -202,6 +202,7 @@ import type {
   AttachmentAddResult,
   AttachmentMeta,
   MenuAction,
+  PasswordPromptPayload,
   RecoveryPromptPayload,
   WorkbookFile,
   WorkbookVisualObject,
@@ -393,6 +394,7 @@ import { lastSurvivingScreenLine, netAxisDelta, screenToFile } from './view-tran
 import { selectionFormatEquals, toSelectionFormat, type SelectionFormat } from './selection-format'
 import { ExcelShell } from './ExcelShell'
 import { RecoveryDialog } from './RecoveryDialog'
+import { PasswordDialog } from './PasswordDialog'
 import { ToastHost } from './toast'
 import { AdvancedFilterDialog, type AdvancedFilterColumn } from './AdvancedFilterDialog'
 import { EquationDialog } from './EquationDialog'
@@ -578,6 +580,11 @@ export function App(): React.JSX.Element {
   const [recoveryPrompt, setRecoveryPrompt] = useState<RecoveryPromptPayload | null>(null)
   useEffect(
     () => window.desktopApi?.onRecoveryPrompt?.((prompt) => setRecoveryPrompt(prompt)) ?? undefined,
+    [],
+  )
+  const [passwordPrompt, setPasswordPrompt] = useState<PasswordPromptPayload | null>(null)
+  useEffect(
+    () => window.desktopApi?.onPasswordPrompt?.((prompt) => setPasswordPrompt(prompt)) ?? undefined,
     [],
   )
   const [message, setMessage] = useState(t('appReadyInitial'))
@@ -5179,6 +5186,16 @@ export function App(): React.JSX.Element {
           onChoose={(restore) => {
             setRecoveryPrompt(null)
             window.desktopApi?.replyRecoveryPrompt?.(restore)
+          }}
+        />
+      )}
+      {passwordPrompt && (
+        <PasswordDialog
+          key={`${passwordPrompt.fileName}:${passwordPrompt.wrong ? 'retry' : 'first'}`}
+          prompt={passwordPrompt}
+          onSubmit={(password) => {
+            setPasswordPrompt(null)
+            window.desktopApi?.replyPasswordPrompt?.(password)
           }}
         />
       )}

@@ -235,7 +235,7 @@ test('EditorTransport는 document-agent recovered 오류 필드를 보존한다'
 test('EditorTransport는 일반 요청 10초와 load/export 60초 기본 timeout을 구분한다', () => {
   assert.equal(requestTimeoutFor('pageCount'), 10_000);
   assert.equal(requestTimeoutFor('ready'), 10_000);
-  assert.equal(requestTimeoutFor('loadFile'), 60_000);
+  assert.equal(requestTimeoutFor('loadFile'), 600_000);
   assert.equal(requestTimeoutFor('getFontDecisionTrace'), 60_000);
   assert.equal(requestTimeoutFor('exportHwp'), 60_000);
   assert.equal(requestTimeoutFor('exportHwpx'), 60_000);
