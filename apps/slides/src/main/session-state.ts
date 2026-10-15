@@ -75,6 +75,11 @@ export interface Session {
   opSeq?: number
   /** Applied-op journal, capped ring — the attachment point for a future sync transport */
   opLog?: OpLogEntry[]
+  /**
+   * Password that opened a protected (ECMA-376 encrypted) deck, in memory only; Save
+   * re-encrypts with it, autosave/recovery copies are skipped so no plaintext lands on disk.
+   */
+  password?: string
 }
 export const sessions = new Map<number, Session>()
 

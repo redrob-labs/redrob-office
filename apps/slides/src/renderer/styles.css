@@ -1690,6 +1690,34 @@ body.vib .slide-list {
   color: var(--ink-on-brand);
 }
 
+/* Password prompt for encrypted decks (shares the modal shell) */
+.password-modal {
+  width: 380px;
+}
+
+.password-modal-body {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.password-modal-body[role='alert'] {
+  color: var(--status-danger);
+}
+
+.password-modal-file {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--ink-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.password-modal input[aria-invalid='true'] {
+  border-color: var(--status-danger);
+}
+
 .modal-actions .dlg-danger {
   background: none;
   color: var(--status-danger);

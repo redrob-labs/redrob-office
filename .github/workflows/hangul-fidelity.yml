@@ -5,7 +5,7 @@ name: hangul fidelity
 # - `fidelity (synthetic)` runs on every pull request that touches the core or
 #   the harness: the engine save round trip and an Electron render of the
 #   synthetic corpus. No Hancom needed.
-# - `fidelity (한글 2024)` runs nightly and on demand on the self-hosted Windows
+# - `fidelity (한글 2024)` runs on demand on the self-hosted Windows
 #   runner labelled `hancom-2024`. It generates 한글 2024 references for the real
 #   Corpus (HANGUL_CORPUS_DIR on that machine, never in this repository),
 #   renders ours, compares and uploads the report.
@@ -20,8 +20,6 @@ on:
       - packages/hwp-editor/**
       - tests/hangul-fidelity/**
       - .github/workflows/hangul-fidelity.yml
-  schedule:
-    - cron: '0 18 * * *' # 03:00 KST
   workflow_dispatch:
     inputs:
       force:
@@ -62,7 +60,7 @@ jobs:
 
   hancom:
     name: fidelity (한글 2024)
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, windows, hancom-2024]
     timeout-minutes: 240
     steps:

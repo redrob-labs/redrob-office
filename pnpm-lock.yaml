@@ -496,6 +496,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      officecrypto-tool:
+        specifier: ^0.0.19
+        version: 0.0.19
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -663,6 +666,9 @@ importers:
       harfbuzzjs:
         specifier: ^1.4.0
         version: 1.6.1
+      officecrypto-tool:
+        specifier: ^0.0.19
+        version: 0.0.19
       pngjs:
         specifier: ^7.0.0
         version: 7.0.0

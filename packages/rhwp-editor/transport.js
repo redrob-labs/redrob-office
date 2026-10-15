@@ -15,8 +15,13 @@ const LONG_RUNNING_METHODS = new Set([
   'loadFile', 'getFontDecisionTrace', 'exportHwp', 'exportHwpVerify', 'exportHwpx', 'exportHml',
 ]);
 
+// loadFile can wait on the user: the studio asks for the password of an
+// encrypted document inside its own dialog before it answers.
+const USER_INTERACTIVE_TIMEOUT_MS = 600000;
+
 export function requestTimeoutFor(method, configuredTimeout) {
   if (configuredTimeout != null) return configuredTimeout;
+  if (method === 'loadFile') return USER_INTERACTIVE_TIMEOUT_MS;
   return LONG_RUNNING_METHODS.has(method) ? 60000 : 10000;
 }
 

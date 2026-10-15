@@ -335,6 +335,11 @@ export class TabManager {
   }
 
   /** a module opened a file inside an existing tab (⌘O / queued path) — sync title + dedupe path */
+  /** the tab hosting this webContents, if any (child views only; Home has none) */
+  tabIdForWebContents(webContentsId: number): string | null {
+    return this.tabs.find((t) => t.view?.webContents.id === webContentsId)?.id ?? null
+  }
+
   setTabFileFor(webContentsId: number, filePath: string): void {
     const tab = this.tabs.find((t) => t.view?.webContents.id === webContentsId)
     if (!tab) return
