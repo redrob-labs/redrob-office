@@ -218,8 +218,10 @@ The Hangul editor is being rebuilt on an engine we build ourselves. The plan is 
   organization's `redrob-labs/.github/.github/workflows/release-publish.yml`, which writes
   `SHA256SUMS.txt` and `redrob-launcher.json` and publishes the release as latest. A
   `workflow_dispatch` with `dry_run` builds and signs the dispatched ref and publishes nothing.
-- Every leg bundles the Redrob Code sidecar from the engine's own release (`scripts/fetch-redrob-code.sh`,
-  tag pinned in `apps/shell/redrob-code.version`); `beforePack` refuses to package without it.
+- Every leg bundles the Redrob Code sidecar from the engine's own release (`scripts/fetch-redrob-code.sh`):
+  the engine's newest published release, resolved once by the `version` job and passed as
+  `REDROB_CODE_VERSION` so all three legs carry the same engine; `beforePack` refuses to package without it.
+  The sidecar is only the fallback for a machine without a launcher-installed engine, so it is not pinned.
 - There is no CDN. Downloads and the updater feed are the same release assets. The feed target is
   baked in from `GENOFFICE_UPDATE_REPO` (`owner/repo`); unset means no publish config and no
   in-app auto-update, which is what a fork or a local build gets.

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.10.8 -- 2026-10-15
+
+### Changed
+
+- The bundled Redrob Code sidecar is the engine's newest published release, resolved once per release run (`version` job) and handed to every leg as `REDROB_CODE_VERSION`; the pin file `apps/shell/redrob-code.version` is gone. The sidecar is only the fallback for a machine without a launcher-installed engine, and a pin only made it stale (0.10.6 shipped an engine built from a branch months behind). The resolved tag is in the build log, the step summary and `apps/shell/build/redrob-code.version`.
+
 ## 0.10.7 -- 2026-10-15
 
 ### Fixed
