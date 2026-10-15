@@ -2895,6 +2895,30 @@ textarea:focus {
   font-size: 11px;
 }
 
+/* Password prompt for encrypted workbooks (shares the recovery dialog shell) */
+.password-dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.password-dialog-field input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 6px 8px;
+  background: var(--surface-raised);
+  color: var(--ink-primary);
+  font: inherit;
+}
+
+.password-dialog-field input[aria-invalid='true'] {
+  border-color: var(--status-danger);
+}
+
 /* Format Cells → Number tab */
 .numfmt-tab {
   display: grid;

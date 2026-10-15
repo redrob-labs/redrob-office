@@ -2663,7 +2663,26 @@ export interface RecoveryPromptPayload {
   savedAtMs: number
 }
 
+/** Password prompt raised by main while opening an encrypted workbook (strings pre-localized). */
+export interface PasswordPromptPayload {
+  title: string
+  body: string
+  /** label of the password field */
+  passwordLabel: string
+  openLabel: string
+  cancelLabel: string
+  /** base name of the workbook being opened */
+  fileName: string
+  /** a previous attempt was rejected: show the "wrong password" state */
+  wrong: boolean
+}
+
 export interface DesktopApi extends Partial<OfficePrefsApi>, Partial<FactsBridgeApi> {
+  /// Main found a password-protected workbook while opening it; the renderer
+  /// shows the password dialog and replies via replyPasswordPrompt (null =
+  /// cancelled). Strings arrive pre-localized from the main process.
+  onPasswordPrompt(callback: (prompt: PasswordPromptPayload) => void): () => void
+  replyPasswordPrompt(password: string | null): void
   /** current UI language (persisted by the shell in app-settings.json) */
   getLanguage(): Promise<'zh' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'th' | 'id' | 'ru' | 'ar'>
   /** language switched from the shell home page */

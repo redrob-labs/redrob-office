@@ -496,6 +496,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      officecrypto-tool:
+        specifier: ^0.0.19
+        version: 0.0.19
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1

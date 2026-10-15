@@ -68,6 +68,9 @@ export const IPC_CHANNELS = {
   /** Main found a newer recovery copy while opening; renderer shows the styled prompt */
   recoveryPrompt: 'workbook:recovery-prompt',
   recoveryPromptReply: 'workbook:recovery-prompt-reply',
+  /** Main found a password-protected workbook while opening; renderer asks for the password */
+  passwordPrompt: 'workbook:password-prompt',
+  passwordPromptReply: 'workbook:password-prompt-reply',
   autoRenameWorkbook: 'workbook:auto-rename',
   workbookRenamed: 'workbook:renamed',
   pendingEditsChanged: 'workbook:pending-edits',

@@ -58,6 +58,7 @@
     "@univerjs/ui": "^0.25.1",
     "fast-xml-parser": "^5.3.4",
     "jszip": "^3.10.1",
+    "officecrypto-tool": "^0.0.19",
     "pdf-lib": "^1.17.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
