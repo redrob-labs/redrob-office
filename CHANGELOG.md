@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+## 0.10.7 -- 2026-10-15
+
+### Fixed
+
+- The bundled Redrob Code sidecar is now engine v0.6.5. 0.10.6 built its sidecar from the engine's `main` branch, which had not moved since 2026-09-22, so the shipped fallback engine predated the shared daemon, the idle-exit fix (redrob-code #100) and the chat-completions route fix (redrob-code #107). The sidecar is now taken from the pinned engine release.
+
+### Changed
+
+- One release workflow on the organization's shared pieces. `release-desktop.yml` now carries Windows, macOS and Linux from one tag (`release-linux.yml` is folded in as its `linux` job), resolves the tag to one commit that every leg builds, and ends in `redrob-labs/.github`'s `release-publish` job, which writes `SHA256SUMS.txt` and `redrob-launcher.json` and publishes the release as latest. The repository's own manifest writer, `.sha256` sidecars and release-create steps are gone. A `workflow_dispatch` with `dry_run` builds and signs the dispatched ref and publishes nothing.
+- Windows signing is the organization's one recipe, `redrob-labs/.github/actions/sign-windows`: the Redrob Code sidecar is signed by the action, and electron-builder's hook spawns the same `sign.ps1` from a checkout at `.redrob-shared`. `scripts/win-sign.ps1` is deleted.
+- `gitflow.yml` is the organization's caller template; the type list and the back-merge pull request now come from `redrob-labs/.github`.
+
+- The release legs bundle the Redrob Code sidecar from the engine's own GitHub release (tag pinned in `apps/shell/redrob-code.version`, downloaded and checked against the release's SHA256SUMS by `scripts/fetch-redrob-code.sh`) instead of building it from source on every leg, which cost about 3.5 minutes each and shipped untested bytes. Bump the pin in a pull request like any dependency.
+- CI no longer runs on pull requests into `main`: they only promote commits that already passed on `develop` (or a hotfix that releases on its own run), so the re-run was a seven-minute wait before every release.
 ## 0.10.6 -- 2026-10-15
 
 ### Fixed
