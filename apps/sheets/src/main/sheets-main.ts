@@ -220,6 +220,7 @@ const tMain = createI18n({
     filterSupported: 'Supported Files',
     filterAll: 'All Files',
     errUnsupportedExt: '.{ext} files are not supported',
+    errOpenFailed: 'Could not open {name}',
     errNotFile: 'not a file',
     errTooLarge: 'exceeds the {mb}MB limit',
     errImageTooLarge: 'image exceeds the 5MB limit',
@@ -341,6 +342,7 @@ const tMain = createI18n({
     filterSupported: '지원되는 파일',
     filterAll: '모든 파일',
     errUnsupportedExt: '.{ext} 형식은 지원되지 않습니다',
+    errOpenFailed: '{name} 파일을 열 수 없습니다',
     errNotFile: '파일이 아닙니다',
     errTooLarge: '{mb}MB 제한을 초과했습니다',
     errImageTooLarge: '이미지가 5MB 제한을 초과했습니다',
@@ -1599,6 +1601,16 @@ export function setSheetsWorkbookOpenedHook(
   workbookOpenedHook = fn
 }
 
+/** shell hook: a shell-queued open (File > Open, drop, Finder) failed — the
+ *  shell owns the tab it created for that path and closes it instead of
+ *  leaving a blank workbook titled after the file. */
+let workbookOpenFailedHook: ((wc: WebContents, path: string) => void) | null = null
+export function setSheetsWorkbookOpenFailedHook(
+  fn: ((wc: WebContents, path: string) => void) | null,
+): void {
+  workbookOpenFailedHook = fn
+}
+
 /** forward an application-menu File command into the sheets renderer */
 export function sendSheetsMenuAction(
   action: 'open' | 'save' | 'save-as' | 'export-pdf' | 'export-csv' | 'undo' | 'redo',
@@ -2206,7 +2218,8 @@ export function registerSheetsIpc(): void {
 
   ipcMain.handle(IPC_CHANNELS.selectWorkbook, async (event) => {
     const entry = sessionFor(event)
-    let path = queuedWorkbookPaths.get(event.sender.id) ?? forcedWorkbookPath
+    const queuedPath = queuedWorkbookPaths.get(event.sender.id)
+    let path = queuedPath ?? forcedWorkbookPath
     // consume immediately (before the slow session open) so the shell's
     // retry loop stops re-sending 'open' for the same file
     queuedWorkbookPaths.delete(event.sender.id)
@@ -2218,6 +2231,35 @@ export function registerSheetsIpc(): void {
       if (selection.canceled || !selection.filePaths[0]) return null
       path = selection.filePaths[0]
     }
+    try {
+      return await openSelectedWorkbook(event, entry, path)
+    } catch (error) {
+      // A failed open used to surface only as a status-bar line, leaving a
+      // blank in-memory workbook titled after the file ("I dropped an .xlsx
+      // and got an empty document"). Say what failed in a dialog, and let the
+      // shell drop the tab it created for a queued (drop / Finder / Open) path.
+      const detail = error instanceof Error ? error.message : String(error)
+      console.error(`[sheets] open failed for ${path}: ${detail}`)
+      if (!event.sender.isDestroyed()) {
+        const parent = dialogParent(event)
+        const options = {
+          type: 'error' as const,
+          message: tm('errOpenFailed', { name: basename(path) }),
+          detail,
+        }
+        if (parent) await dialog.showMessageBox(parent, options)
+        else await dialog.showMessageBox(options)
+        if (queuedPath !== undefined) workbookOpenFailedHook?.(event.sender, path)
+      }
+      throw error
+    }
+  })
+
+  async function openSelectedWorkbook(
+    event: IpcMainInvokeEvent,
+    entry: SheetsTabSession,
+    path: string,
+  ): Promise<unknown> {
     const prepared = await prepareWorkbookForOpen(
       entry.client,
       path,
@@ -2259,7 +2301,7 @@ export function registerSheetsIpc(): void {
     }
     workbookOpenedHook?.(event.sender, path)
     return result
-  })
+  }
 
   // Merge sources: same open pipeline as selectWorkbook, but multi-select,
   // never consuming the shell's queued open path and never retitling the tab
@@ -3701,6 +3743,10 @@ async function openWorkbookSession(
     })
     return workbookFileSchema.parse({
       ...opened,
+      // The sidecar names the workbook after the file it opened — the UUID
+      // snapshot. Show the name of the file the user opened instead (the
+      // original .csv for an import, the original file for a recovery copy).
+      name: basename(csvSourcePath ?? restoreTarget ?? path),
       // The renderer-facing path is what the user opened: for a restored
       // recovery copy that is the original file, not the copy under userData.
       path: restoreTarget ?? path,

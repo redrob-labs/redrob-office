@@ -182,6 +182,7 @@ import {
   setSheetsExtraFileMenuItems,
   setSheetsShellWindow,
   setSheetsWorkbookOpenedHook,
+  setSheetsWorkbookOpenFailedHook,
   startSheetsCaptureServer,
   stopSheetsSidecar,
 } from '../../../sheets/src/main/sheets-main'
@@ -2684,6 +2685,13 @@ function createShellWindow(): void {
     manager.setTabFileFor(wc.id, path)
     recordRecentFile(path)
     applyPendingProject(path)
+  })
+  // A queued open (drop / Finder / File > Open) that the sheets module could
+  // not load: the tab was created for that file, so drop it rather than leave
+  // a blank workbook carrying the file's name. The error dialog is sheets'.
+  setSheetsWorkbookOpenFailedHook((wc) => {
+    const id = manager.tabIdForWebContents(wc.id)
+    if (id) void manager.closeTab(id)
   })
   setSlidesOpenedHook((wc, path) => {
     manager.setTabFileFor(wc.id, path)
