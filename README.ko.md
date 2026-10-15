@@ -79,12 +79,12 @@ pnpm dist
 
 ## 릴리즈
 
-`v*` 태그를 밀면 같은 태그에서 두 워크플로가 돌고, 둘 다 같은 GitHub Release에 자산을
-붙입니다. `release-desktop.yml`은 Windows 설치본을 서명해 붙이고(macOS 빌드를 켜면 공증까지),
-`release-linux.yml`은 서명 없는 Linux 패키지(AppImage/deb/rpm)를 체크섬과 함께 붙입니다.
+`v*` 태그를 밀면 `release-desktop.yml` 하나가 돕니다. Windows 설치본을 서명하고, macOS
+빌드를 공증하고, 서명 없는 Linux 패키지(AppImage/deb/rpm)를 만든 뒤, 조직 공용 publish
+잡이 그것들을 `SHA256SUMS.txt`와 함께 하나의 GitHub Release로 공개합니다.
 태그는 `apps/shell/package.json`의 버전과 같아야 합니다(`v0.8.3` ↔ `0.8.3`).
 
-릴리즈가 업데이트 피드 역할도 합니다. `latest.yml`과 `latest-linux.yml`이 설치본과 함께
+릴리즈가 업데이트 피드 역할도 합니다. `latest.yml`, `latest-mac.yml`, `latest-linux.yml`이 설치본과 함께
 올라가고, 앱은 electron-updater의 GitHub 제공자로 그것을 읽습니다. 포크 빌드가 어떻게
 동작하는지까지 [docs/RELEASE.md](./docs/RELEASE.md)에 있습니다.
 

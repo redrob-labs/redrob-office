@@ -1,17 +1,19 @@
-name: Release Redrob Office desktop apps
+name: Release Redrob Office
 
-# Builds, signs, and publishes the Redrob Office suite shell (@genoffice/shell).
-# This is the product surface (`pnpm dev`), NOT the legacy recruiting app under
-# office/. Packaging uses apps/shell/electron-builder.cjs, the artifacts land in
-# apps/shell/release, and the release tag must match apps/shell/package.json.
+# Builds, signs and publishes the Redrob Office suite shell (@genoffice/shell) for Windows,
+# macOS and Linux from one tag. This is the product surface (`pnpm dev`), NOT the legacy
+# recruiting app under office/. Packaging uses apps/shell/electron-builder.cjs, the
+# artifacts land in apps/shell/release, and the release tag must match apps/shell/package.json.
 #
-# The signed installers are published to the GitHub Release for the tag, together
-# with the blockmap and latest.yml the in-app updater feed needs. That Release is the
-# single download source: there is no CDN any more, so a link that works for a person
-# and a feed that works for the updater are the same bytes in the same place.
-# The Linux packages for this same tag are built and attached by release-linux.yml.
-# The two workflows share the tag and write disjoint filenames, so they may run
-# concurrently.
+#   tag v<version> on main  ->  version  ->  windows / macos / linux  ->  publish
+#
+# The parts every redrob-labs repository shares are not in this file; they are called:
+#   - redrob-labs/.github/actions/sign-windows            Authenticode through Azure Artifact Signing
+#   - redrob-labs/.github/.github/workflows/release-publish.yml   checksums, launcher manifest, release
+#
+# The published GitHub Release is the single download source and the in-app updater feed:
+# latest.yml, latest-mac.yml and latest-linux.yml ride along with the installers, so a
+# release missing them installs fine and then never updates.
 
 on:
   push:
@@ -20,38 +22,76 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release tag matching apps/shell/package.json (for example v0.8.1)
-        required: true
+        description: Existing release tag on main to build and publish (for example v0.8.1). Ignored by a dry run.
+        required: false
         type: string
+        default: ""
+      dry_run:
+        description: Dry run -- build and sign the dispatched ref, publish nothing (no tag needed)
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 concurrency:
   group: desktop-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  # A release is cut from main. The build jobs below check out the TAG, not the
-  # ref a dispatch was started on, so this job is what stops a tag that only
-  # exists on develop from shipping under a version number main has never seen.
+  # A release is cut from main. The build jobs below check out the exact commit this job
+  # resolves, never the ref a dispatch was started on, so a tag that only exists on develop
+  # cannot ship under a version number main has never seen.
   #
-  # This is not a style rule. v0.8.3 was dispatched with --ref develop while the
-  # tag pointed at a commit on main: the build jobs did a bare checkout, so the
-  # installers were built from develop and published as 0.8.3. The version and
-  # the bytes disagreed and nothing failed.
-  guard:
-    name: Tag is on main
+  # This is not a style rule. v0.8.3 was dispatched with --ref develop while the tag pointed
+  # at a commit on main: the build jobs did a bare checkout, so the installers were built from
+  # develop and published as 0.8.3. The version and the bytes disagreed and nothing failed.
+  #
+  # A dry run (workflow_dispatch with dry_run) skips the tag rules: it builds and signs the
+  # dispatched commit under the version apps/shell/package.json declares, and publishes nothing.
+  version:
+    name: Resolve the version
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+      sha: ${{ steps.v.outputs.sha }}
+      publish: ${{ steps.v.outputs.publish }}
     env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      INPUT_TAG: ${{ inputs.tag }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Require the tag to exist and be contained in main
+      - id: v
+        name: Resolve the tag, its commit and the version it claims
         run: |
+          set -euo pipefail
+          if [ "$DRY_RUN" = true ]; then
+            VERSION="$(node -p "require('./apps/shell/package.json').version")"
+            echo "dry run: building $GITHUB_SHA as $VERSION, publishing nothing"
+            {
+              echo "version=$VERSION"
+              echo "tag=v$VERSION"
+              echo "sha=$GITHUB_SHA"
+              echo "publish=false"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "${GITHUB_REF_TYPE:-}" = tag ]; then
+            RELEASE_TAG="$GITHUB_REF_NAME"
+          elif [ -n "$INPUT_TAG" ]; then
+            RELEASE_TAG="$INPUT_TAG"
+          else
+            echo "::error::not a tag push and no tag input. Pass a tag, or dry_run for a build that publishes nothing."
+            exit 1
+          fi
           git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null || {
             echo "::error::tag $RELEASE_TAG does not exist. Cut the tag on main first."
             exit 1
@@ -61,57 +101,70 @@ jobs:
             echo "::error::tag $RELEASE_TAG ($TAG_SHA) is not contained in main. Promote develop to main, then tag."
             exit 1
           fi
-          echo "$RELEASE_TAG -> $TAG_SHA, contained in main"
-
-      - name: Require the tag to carry the version it claims
-        run: |
-          git checkout -q "refs/tags/$RELEASE_TAG"
+          git checkout -q "$TAG_SHA"
           VERSION="$(node -p "require('./apps/shell/package.json').version")"
           test "$RELEASE_TAG" = "v$VERSION" || {
-            echo "::error::tag $RELEASE_TAG does not match apps/shell version $VERSION at that tag"
+            echo "::error::tag $RELEASE_TAG does not match Redrob Office (apps/shell) version $VERSION at that tag"
             exit 1
           }
+          echo "$RELEASE_TAG -> $TAG_SHA, contained in main, version $VERSION"
+          {
+            echo "version=$VERSION"
+            echo "tag=$RELEASE_TAG"
+            echo "sha=$TAG_SHA"
+            echo "publish=true"
+          } >> "$GITHUB_OUTPUT"
 
   windows:
-    name: Sign Windows x64 (Redrob Office)
-    needs: guard
+    name: Windows x64
+    needs: version
     runs-on: windows-latest
-    # The federated credential on the Azure app registration accepts this
-    # repository's `release` environment only; the environment is otherwise
-    # plain (no reviewers, no secrets of its own).
+    # The federated credential on the Azure app registration accepts this repository's
+    # `release` environment only; the environment is otherwise plain (no reviewers, no
+    # secrets of its own).
     environment: release
     permissions:
       contents: read
       # The OIDC token `azure/login` exchanges for the Artifact Signing credential.
       id-token: write
     env:
-      # Windows code signing is Azure Artifact Signing, authenticated with OpenID
-      # Connect: the job's GitHub token is exchanged for an Azure token against the
-      # organization's app registration, whose federated credential accepts this
-      # repository's `release` environment. No certificate file and no client
-      # secret exist anywhere. scripts/win-sign.ps1 reads the three ARTIFACT_*
-      # values; electron-builder calls it through scripts/win-sign.cjs for every
-      # PE it packages (GENOFFICE_WIN_SIGN_MODE=production). The login itself is
-      # the step right before packaging, because the OIDC token lives minutes.
+      # Windows code signing is Azure Artifact Signing, authenticated with OpenID Connect:
+      # the job's GitHub token is exchanged for an Azure token against the organization's
+      # app registration. No certificate file and no client secret exist anywhere. The
+      # signing recipe is the organization's one copy, redrob-labs/.github
+      # actions/sign-windows (checked out below at .redrob-shared): the sidecar is signed
+      # by the action as a step, and electron-builder's hook (scripts/win-sign.cjs,
+      # GENOFFICE_WIN_SIGN_MODE=production) runs the same sign.ps1 for every PE it
+      # packages. The script reads the ARTIFACT_SIGNING_* values and SIGN_DESCRIPTION /
+      # SIGN_URL / EXPECTED_CN from this environment.
       #
       # All of these are redrob-labs organization secrets, plain IDs rather than
-      # credentials. A repository secret of the same name overrides the org
-      # value, so do not recreate them on this repo.
+      # credentials. A repository secret of the same name overrides the org value, so do
+      # not recreate them on this repo.
       GENOFFICE_WIN_SIGN_MODE: production
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARTIFACT_SIGNING_ENDPOINT: ${{ secrets.ARTIFACT_SIGNING_ENDPOINT }}
       ARTIFACT_SIGNING_ACCOUNT: ${{ secrets.ARTIFACT_SIGNING_ACCOUNT }}
       ARTIFACT_SIGNING_CERT_PROFILE: ${{ secrets.ARTIFACT_SIGNING_CERT_PROFILE }}
-      # Generic update feed base URL baked into the shell's publish config so
-      # electron-builder emits latest.yml / .blockmap for auto-update.
+      SIGN_DESCRIPTION: Redrob Office
+      SIGN_URL: https://github.com/${{ github.repository }}
+      EXPECTED_CN: McKinley Rice, Inc.
+      # Update feed target baked into the shell's publish config so electron-builder
+      # emits latest.yml / .blockmap for auto-update.
       GENOFFICE_UPDATE_REPO: ${{ github.repository }}
 
     steps:
       - uses: actions/checkout@v4
         with:
-          # Build the TAG, never the ref a dispatch was started on. A bare
-          # checkout here is what let develop's bytes ship as v0.8.3.
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          # Build the commit the version job resolved, never the ref a dispatch was
+          # started on. A bare checkout here is what let develop's bytes ship as v0.8.3.
+          ref: ${{ needs.version.outputs.sha }}
+
+      # The shared signing recipe, for electron-builder's in-package hook.
+      - uses: actions/checkout@v4
+        with:
+          repository: redrob-labs/.github
+          path: .redrob-shared
 
       - name: Require the Artifact Signing configuration
         shell: pwsh
@@ -146,22 +199,18 @@ jobs:
 
       # NOTICE (repo root) requires build/THIRD-PARTY-NOTICES.txt to ship in the
       # installer, and electron-builder.cjs beforePack (assertThirdPartyNoticesPresent)
-      # aborts packaging if it is absent. This job calls electron-builder
-      # directly (not via the dist:* scripts that would run `notices`), so the
-      # file must be generated explicitly here, before the package step. Runs
-      # after `pnpm build` because the generator reads the built module out dirs
-      # and `cargo metadata`.
+      # aborts packaging if it is absent. This job calls electron-builder directly (not
+      # via the dist:* scripts that would run `notices`), so the file must be generated
+      # explicitly here, before the package step. Runs after `pnpm build` because the
+      # generator reads the built module out dirs and `cargo metadata`.
       - name: Generate third-party notices
         run: pnpm --filter @genoffice/shell run notices
 
-      # The login comes AFTER the build and right BEFORE signing: GitHub's OIDC
-      # token lives minutes, and a login done before the ~12-minute suite build
-      # left signtool without a usable credential (it fell back to a browser
-      # prompt nobody sees and the job hung). The build above is packaging-free;
-      # electron-builder's sign hook (scripts/win-sign.cjs -> win-sign.ps1) runs
-      # only in the package step below, so every signtool call happens within
-      # minutes of this login. The federated credential accepts this repository's
-      # `release` environment; no client secret exists anywhere.
+      # The login comes AFTER the build and right BEFORE signing: GitHub's OIDC token
+      # lives minutes, and a login done before the ~12-minute suite build left signtool
+      # without a usable credential (it fell back to a browser prompt nobody sees and
+      # the job hung). The build above is packaging-free; every signtool call happens
+      # in the two steps below, within minutes of this login.
       - name: Log in to Azure (OIDC)
         if: env.AZURE_CLIENT_ID != ''
         uses: azure/login@v3
@@ -170,86 +219,65 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # electron-builder's hook signs the PEs it produces (redrob.exe, elevate.exe,
-      # the uninstaller and the installer) but NOT the static extraResources: the
-      # v0.10.4 run signed exactly those four and shipped redrob-code.exe as
-      # copied. The sidecar is signed here, after the login and right before the
-      # package step picks it up.
+      # electron-builder's hook signs the PEs it produces (redrob.exe, elevate.exe, the
+      # uninstaller and the installer) but NOT the static extraResources: the v0.10.4 run
+      # signed exactly those four and shipped redrob-code.exe as copied. The sidecar is
+      # signed here, after the login and right before the package step picks it up. The
+      # action verifies what it signs (signtool verify /pa, Status Valid, signer CN).
       - name: Sign the Redrob Code sidecar
-        shell: pwsh
-        run: |
-          $sidecar = "apps/shell/build/redrob-code.exe"
-          if (-not (Test-Path $sidecar)) { throw "Redrob Code sidecar is missing before signing: $sidecar" }
-          pwsh -NoProfile -File scripts/win-sign.ps1 $sidecar
+        uses: redrob-labs/.github/actions/sign-windows@main
+        with:
+          files: apps/shell/build/redrob-code.exe
+          description: ${{ env.SIGN_DESCRIPTION }}
+          url: ${{ env.SIGN_URL }}
+          endpoint: ${{ secrets.ARTIFACT_SIGNING_ENDPOINT }}
+          account: ${{ secrets.ARTIFACT_SIGNING_ACCOUNT }}
+          cert-profile: ${{ secrets.ARTIFACT_SIGNING_CERT_PROFILE }}
 
-      # nsis is the installer people download; zip is the same signed win-unpacked
-      # tree as redrob-office-<v>-windows-x64-portable.zip, which is what Redrob
-      # Launcher installs (it cannot run an exe installer). electron-builder signs
-      # every PE it produces through the hook.
+      # nsis is the installer people download; zip is the same signed win-unpacked tree as
+      # redrob-office-<v>-windows-x64-portable.zip, which is what Redrob Launcher installs
+      # (it cannot run an exe installer). electron-builder signs every PE it produces
+      # through the hook, which runs .redrob-shared/actions/sign-windows/sign.ps1.
       - name: Sign and package Redrob Office (shell)
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --win nsis zip --x64 --publish never
 
-      # Asset names are the launcher's <stem>-<version>-<os>-<arch>[-portable].<ext>;
-      # a drift here ships a release the launcher silently cannot install. The
-      # release manifest (redrob-launcher.json) tells the launcher this release reads
-      # the shared account file; the check refuses a release dir without it.
-      - name: Write the launcher release manifest
-        run: node scripts/write-launcher-manifest.mjs apps/shell/release
-
+      # Asset names are the launcher's <stem>-<version>-<os>-<arch>[-portable].<ext>; a
+      # drift here ships a release the launcher silently cannot install.
       - name: Check release asset names
         run: node scripts/check-release-asset-names.mjs apps/shell/release
 
-      - name: Verify Authenticode signatures
+      # The shared script verified every file as it signed it. This is the one check over
+      # the bytes that ship: the installer people download, and the sidecar as packaged.
+      - name: Verify the shipped Authenticode signatures
         shell: pwsh
         run: |
           $installer = Get-ChildItem "apps/shell/release/*-setup.exe" | Select-Object -First 1
           if (-not $installer) { throw "Signed installer was not produced" }
           $sidecar = "apps/shell/release/win-unpacked/resources/native/redrob-code.exe"
           if (-not (Test-Path $sidecar)) { throw "Packaged Redrob Code sidecar was not produced" }
-          # The Artifact Signing certificate chains to a Microsoft root every
-          # Windows trusts, so the full Authenticode check must pass: Valid, and
-          # nothing less. The signer must be the organization's Public Trust
-          # certificate, not whatever certificate a misconfigured profile serves.
-          # Compared on the CN attribute: the Subject string quotes it because
-          # the name contains a comma (CN="McKinley Rice, Inc.", O=...).
-          $expectedSigner = "McKinley Rice, Inc."
           $signtool = Get-ChildItem "C:/Program Files (x86)/Windows Kits/10/bin/*/x64/signtool.exe" |
             Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw "signtool.exe was not found in the Windows 10 SDK" }
           foreach ($artifact in @($installer.FullName, $sidecar)) {
             & $signtool.FullName verify /pa /v $artifact
             if ($LASTEXITCODE -ne 0) { throw "signtool verify failed for ${artifact} (exit $LASTEXITCODE)" }
-            $signature = Get-AuthenticodeSignature $artifact
-            if (-not $signature.SignerCertificate) {
-              throw "$artifact has no Authenticode signer certificate"
-            }
-            if ($signature.Status -ne "Valid") {
-              throw "Invalid Authenticode signature for ${artifact}: $($signature.Status) ($($signature.StatusMessage))"
-            }
-            $subject = $signature.SignerCertificate.Subject
-            $cn = $signature.SignerCertificate.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::SimpleName, $false)
-            if ($cn -ne $expectedSigner) {
-              throw "$artifact is signed by '$subject' (CN '$cn'), expected CN '$expectedSigner'"
-            }
-            Write-Host "$artifact signed by $subject"
           }
 
-      - name: Upload signed Windows package
+      - name: Upload the Windows release assets
         uses: actions/upload-artifact@v4
         with:
-          name: signed-windows
+          name: release-windows-x64
           path: |
             apps/shell/release/*-setup.exe
             apps/shell/release/*-portable.zip
             apps/shell/release/*.blockmap
             apps/shell/release/latest.yml
-            apps/shell/release/redrob-launcher.json
           if-no-files-found: error
           compression-level: 0
 
   macos:
-    name: Sign and notarize macOS arm64 (Redrob Office)
-    needs: guard
+    name: macOS arm64
+    needs: version
     runs-on: macos-14
     permissions:
       contents: read
@@ -263,9 +291,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Build the TAG, never the ref a dispatch was started on. A bare
-          # checkout here is what let develop's bytes ship as v0.8.3.
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          ref: ${{ needs.version.outputs.sha }}
 
       - name: Fetch the Redrob Code sidecar from its release
         env:
@@ -324,11 +350,7 @@ jobs:
           GENOFFICE_UPDATE_REPO: ${{ github.repository }}
         run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --mac dmg zip --arm64 --publish never
 
-      # Same gate as the Windows job: the dmg must carry a name the launcher reads,
-      # and the release manifest must be beside it.
-      - name: Write the launcher release manifest
-        run: node scripts/write-launcher-manifest.mjs apps/shell/release
-
+      # Same gate as the Windows job: the dmg must carry a name the launcher reads.
       - name: Check release asset names
         run: node scripts/check-release-asset-names.mjs apps/shell/release
 
@@ -357,70 +379,120 @@ jobs:
           test "${#zips[@]}" -gt 0
           for dmg in "${dmgs[@]}"; do xcrun stapler validate "$dmg"; done
 
-      - name: Upload signed macOS packages
+      - name: Upload the macOS release assets
         uses: actions/upload-artifact@v4
         with:
-          name: signed-macos
+          name: release-macos-arm64
           path: |
             apps/shell/release/*.dmg
             apps/shell/release/*.zip
+            apps/shell/release/*.blockmap
             apps/shell/release/latest-mac.yml
-            apps/shell/release/redrob-launcher.json
           if-no-files-found: error
           compression-level: 0
 
-  # Attaches every signed artifact to the Release for the tag, including latest.yml
-  # and latest-mac.yml. Those two files ARE the updater feed under the GitHub
-  # provider, so a release missing them installs fine and then never updates.
-  release:
-    name: Publish GitHub Release
-    needs: [windows, macos]
+  # The unsigned Linux packages: AppImage, deb and rpm, plus latest-linux.yml, the
+  # updater feed for them. Checksums are the publish job's SHA256SUMS.txt.
+  linux:
+    name: Linux x64
+    needs: version
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      APP_VERSION: ${{ needs.version.outputs.version }}
+      # Bakes the updater feed target into the app. A fork that runs this workflow
+      # updates from its own releases, not from ours.
+      GENOFFICE_UPDATE_REPO: ${{ github.repository }}
 
     steps:
       - uses: actions/checkout@v4
         with:
-          # Build the TAG, never the ref a dispatch was started on. A bare
-          # checkout here is what let develop's bytes ship as v0.8.3.
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          ref: ${{ needs.version.outputs.sha }}
 
-      - name: Verify tag matches application version
+      # The shell packages a native Redrob Code binary, and electron-builder's beforePack
+      # refuses to package without it (assertRedrobCodeBinaryPresent). It is the engine's
+      # own released binary (apps/shell/redrob-code.version pins the tag), downloaded and
+      # checksum-verified by scripts/fetch-redrob-code.sh.
+      - name: Fetch the Redrob Code sidecar from its release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/fetch-redrob-code.sh linux-x64
+
+      # rpm needs rpmbuild on the runner; electron-builder does not vendor it.
+      - name: Install packaging tools
         run: |
-          VERSION="$(node -p "require('./apps/shell/package.json').version")"
-          test "$RELEASE_TAG" = "v$VERSION" || {
-            echo "Tag $RELEASE_TAG does not match Redrob Office (apps/shell) version $VERSION"
-            exit 1
-          }
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends rpm
 
-      - uses: actions/download-artifact@v4
+      # The sheets xlsx sidecar is a Rust crate and the shell package step expects its
+      # release binary to exist. Pinned to the stable toolchain.
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: pnpm/action-setup@v4
         with:
-          pattern: signed-*
-          path: release-assets
-          merge-multiple: true
+          version: 9.15.0
 
-      # The platform jobs each carried a copy; this one is the authoritative write so
-      # the published release holds the manifest even if an artifact set is rebuilt
-      # by hand. The check then refuses to publish a set without it.
-      - name: Write the launcher release manifest
-        run: node scripts/write-launcher-manifest.mjs release-assets
-
-      # --no-config: this job holds downloaded assets and no build, and
-      # apps/shell/electron-builder.cjs asserts the electron dist, built module trees
-      # and sidecars at load. The platform jobs verified the artifactName templates
-      # against a full build; here only the names and the manifest are checked.
-      - name: Check release asset names
-        run: node scripts/check-release-asset-names.mjs --no-config release-assets
-
-      - name: Publish signed release and update metadata
-        uses: softprops/action-gh-release@v2
+      - uses: actions/setup-node@v4
         with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          target_commitish: ${{ github.sha }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          files: release-assets/*
+          node-version: "24"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the suite (all editor modules + shell)
+        run: pnpm build
+
+      # Generates apps/shell/build/THIRD-PARTY-NOTICES.txt; beforePack aborts the
+      # package if it is missing, so this must run before electron-builder.
+      - name: Generate third-party notices
+        run: pnpm --filter @genoffice/shell run notices
+
+      - name: Package Linux artifacts (AppImage, deb, rpm)
+        run: pnpm --filter @genoffice/shell exec electron-builder --config electron-builder.cjs --linux AppImage deb rpm --publish never
+
+      # The filenames come straight from electron-builder.cjs (linux.artifactName /
+      # deb.artifactName / rpm.artifactName); each must exist, and the feed file with them.
+      - name: Check the packages
+        run: |
+          set -euo pipefail
+          RELEASE_DIR=apps/shell/release
+          for name in \
+            "redrob-office-${APP_VERSION}-linux-x86_64.AppImage" \
+            "redrob-office-${APP_VERSION}-linux-x86_64.deb" \
+            "redrob-office-${APP_VERSION}-linux-x86_64.rpm" \
+            latest-linux.yml; do
+            test -f "$RELEASE_DIR/$name" || { echo "::error::expected artifact missing: $RELEASE_DIR/$name"; exit 1; }
+          done
+          node scripts/check-release-asset-names.mjs "$RELEASE_DIR"
+
+      - name: Upload the Linux release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux-x64
+          path: |
+            apps/shell/release/*.AppImage
+            apps/shell/release/*.deb
+            apps/shell/release/*.rpm
+            apps/shell/release/latest-linux.yml
+          if-no-files-found: error
+          compression-level: 0
+
+  # Downloads every release-* artifact, writes SHA256SUMS.txt and redrob-launcher.json,
+  # and publishes the release as latest (prerelease when the version carries a `-`).
+  # Only on a real tag run, and only when every build job succeeded: a dry run stops here.
+  publish:
+    needs: [version, windows, macos, linux]
+    if: always() && needs.version.outputs.publish == 'true' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && !contains(needs.*.result, 'skipped')
+    uses: redrob-labs/.github/.github/workflows/release-publish.yml@main
+    permissions:
+      contents: write
+    with:
+      version: ${{ needs.version.outputs.version }}
+      title: Redrob Office
+      launcher_manifest: true
+      publish: true
+      tag: ${{ needs.version.outputs.tag }}
+      target: ${{ needs.version.outputs.sha }}

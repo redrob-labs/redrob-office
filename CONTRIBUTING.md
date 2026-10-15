@@ -31,16 +31,18 @@ review, because no script can tell a truthful pin from a stale one.
 - Release tags are cut from `main` as `v<major>.<minor>.<patch>`, matching the
   version in `apps/shell/package.json`.
 
-`.github/workflows/gitflow.yml` now checks the two bullets above, because a rule
-nothing checks is only a preference: branches have already appeared under a `kiro/`
-prefix that no document here defines. The `branch name follows the convention` job
-fails any pull request whose head branch does not start with `feat`, `fix`, `chore`,
-`docs`, `test`, `refactor`, `perf` or `sync`, and lets `develop` and `main` through
-because a promotion or back-merge branch is not named after a type. The
-`main is contained in develop` job runs after `main` moves and fails while `main`
-holds commits `develop` does not, which is the missed back-merge that left a sibling
-repository's default branch unable to install for a month. This list is the
-explanation; `ALLOWED_TYPES` in that workflow is the gate, so change both together.
+`.github/workflows/gitflow.yml` checks the two bullets above, because a rule nothing
+checks is only a preference: branches have already appeared under a `kiro/` prefix
+that no document here defines. It is the organization's caller: the rules and the one
+org-wide type list (`feat fix chore docs test refactor perf ci build sync hotfix
+release`) live in `redrob-labs/.github`. The `gitflow / branch name follows the
+convention` job fails any pull request whose head branch prefix is not in that list,
+and lets `develop` and `main` through because a promotion or back-merge branch is not
+named after a type. The `gitflow / main is contained in develop` job runs after `main`
+moves and, while `main` holds commits `develop` does not, opens the back-merge pull
+request itself — the missed back-merge that left a sibling repository's default branch
+unable to install for a month. This list is the explanation; the shared workflow is the
+gate, so a new type is proposed there, not added here.
 
 ## Commits
 
@@ -73,7 +75,7 @@ If you touched anything user-visible, add the string to both locales in
 | --- | --- | --- |
 | `CI` (Linux: typecheck, build, test, fork boundary, licences) | pull request, push to `main` | required |
 | `CI` (Windows + macOS matrix) | weekly schedule, manual dispatch | not on pull requests |
-| `release-desktop.yml`, `release-linux.yml` | `v*` tag, manual dispatch | release only |
+| `release-desktop.yml` (Windows, macOS, Linux, publish) | `v*` tag, manual dispatch (`dry_run` publishes nothing) | release only |
 
 The native matrix is expensive, so a pull request does not run it. If your change
 is platform-specific, say so in the pull request and dispatch the matrix manually.

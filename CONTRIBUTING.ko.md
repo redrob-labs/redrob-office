@@ -29,15 +29,17 @@
 - 릴리즈 태그는 `main`에서 `v<major>.<minor>.<patch>`로 자르며 `apps/shell/package.json`의
   버전과 같아야 합니다.
 
-이제 `.github/workflows/gitflow.yml`이 위 두 줄을 검사합니다. 아무도 검사하지 않는 규칙은
+`.github/workflows/gitflow.yml`이 위 두 줄을 검사합니다. 아무도 검사하지 않는 규칙은
 규칙이 아니라 취향일 뿐이고, 실제로 이 문서가 정의하지 않은 `kiro/` 접두사 브랜치가 이미
-생겼습니다. `branch name follows the convention` 잡은 헤드 브랜치가 `feat`, `fix`, `chore`,
-`docs`, `test`, `refactor`, `perf`, `sync` 중 하나로 시작하지 않으면 풀 리퀘스트를 실패시키고,
-`develop`과 `main`은 통과시킵니다. 승격이나 백머지 브랜치는 type으로 이름 붙이는 대상이
-아니기 때문입니다. `main is contained in develop` 잡은 `main`이 움직인 뒤에 돌면서 `main`에만
-있는 커밋이 남아 있으면 실패합니다. 그 백머지를 빠뜨려 형제 저장소의 기본 브랜치가 한 달 동안
-설치조차 되지 않았습니다. 이 목록은 설명이고 실제 관문은 그 워크플로의 `ALLOWED_TYPES`이므로
-둘을 함께 고쳐야 합니다.
+생겼습니다. 이 파일은 조직 공용 워크플로를 호출하는 caller이며, 규칙과 조직 전체의 type
+목록(`feat fix chore docs test refactor perf ci build sync hotfix release`)은
+`redrob-labs/.github`에 있습니다. `gitflow / branch name follows the convention` 잡은 헤드
+브랜치 접두사가 그 목록에 없으면 풀 리퀘스트를 실패시키고, `develop`과 `main`은 통과시킵니다.
+승격이나 백머지 브랜치는 type으로 이름 붙이는 대상이 아니기 때문입니다. `gitflow / main is
+contained in develop` 잡은 `main`이 움직인 뒤에 돌면서 `main`에만 있는 커밋이 남아 있으면
+백머지 풀 리퀘스트를 직접 엽니다. 그 백머지를 빠뜨려 형제 저장소의 기본 브랜치가 한 달 동안
+설치조차 되지 않았습니다. 이 목록은 설명이고 관문은 공용 워크플로이므로, 새 type은 여기에
+더하지 말고 거기에 제안합니다.
 
 ## 커밋
 
@@ -69,7 +71,7 @@ pnpm check:licenses             # 의존성 라이선스 허용목록
 | --- | --- | --- |
 | `CI` (Linux: typecheck, build, test, 포크 경계, 라이선스) | 풀 리퀘스트, `main` 푸시 | 필수 |
 | `CI` (Windows + macOS 매트릭스) | 주간 스케줄, 수동 실행 | 풀 리퀘스트에서는 안 돎 |
-| `release-desktop.yml`, `release-linux.yml` | `v*` 태그, 수동 실행 | 릴리즈 전용 |
+| `release-desktop.yml` (Windows·macOS·Linux·publish) | `v*` 태그, 수동 실행(`dry_run`은 공개 안 함) | 릴리즈 전용 |
 
 네이티브 매트릭스는 비용이 커서 풀 리퀘스트에서는 돌지 않습니다. 플랫폼에 특정한 변경이면
 PR에 그렇게 적고 매트릭스를 수동으로 실행하세요.

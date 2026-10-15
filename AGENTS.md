@@ -28,15 +28,16 @@ not reintroduce it, its `@redrob/*` packages, root scripts, or release paths int
 
 ### Branch enforcement
 
-`.github/workflows/gitflow.yml` checks the branch rules `CONTRIBUTING.md` writes down, because a
-rule nothing checks is only a preference and `kiro/` branches this repository never defined already
-exist. `branch name follows the convention` runs on every pull request and fails a head branch whose
-prefix is not `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf` or `sync`, so a tool or
-agent name is rejected: a branch name says what the change is, not what made it. `develop` and
-`main` pass, since a promotion or back-merge branch is not named after a type. `main is contained in
-develop` runs on pushes to `main` and fails while `main` holds commits `develop` does not, so a
-skipped back-merge reports itself instead of surfacing a month later as a default branch that cannot
-install. Neither job is a required check, so today they inform rather than block.
+`.github/workflows/gitflow.yml` is the organization's caller: it runs
+`redrob-labs/.github/.github/workflows/gitflow.yml`, which holds the one org-wide type list
+(`feat fix chore docs test refactor perf ci build sync hotfix release`). `gitflow / branch name
+follows the convention` runs on every pull request and fails a head branch whose prefix is not in
+that list, so a tool or agent name is rejected: a branch name says what the change is, not what made
+it. `develop` and `main` pass, since a promotion or back-merge branch is not named after a type.
+`gitflow / main is contained in develop` runs on pushes to `main` and, while `main` holds commits
+`develop` does not, opens the back-merge pull request itself (`sync/back-merge-<sha>`), so a skipped
+back-merge reports itself instead of surfacing a month later as a default branch that cannot
+install. Do not add a type list to this repository; there is one, and it is there.
 
 ### Setup and tests
 
@@ -210,29 +211,31 @@ The Hangul editor is being rebuilt on an engine we build ourselves. The plan is 
 
 - `apps/shell/electron-builder.cjs` is the only product packaging config.
 - `v*` must match `apps/shell/package.json`.
-- `.github/workflows/release-desktop.yml` signs Windows (and notarises macOS when enabled) and
-  attaches the exact signed installers to the GitHub Release for the tag, together with `latest.yml`
-  and `latest-mac.yml`.
-- `.github/workflows/release-linux.yml` builds the unsigned Linux AppImage/deb/rpm, writes a
-  `.sha256` beside each, and attaches them plus `latest-linux.yml` to the same release. It builds the
-  Redrob Code sidecar first, because `beforePack` refuses to package without it.
+- `.github/workflows/release-desktop.yml` is the one release workflow: `version` resolves the tag
+  to one commit (refusing a tag not on `main` or not equal to the shell version at that tag), the
+  `windows` / `macos` / `linux` jobs build exactly that commit and upload `release-*` artifacts
+  (installers plus `latest.yml`, `latest-mac.yml`, `latest-linux.yml`), and `publish` calls the
+  organization's `redrob-labs/.github/.github/workflows/release-publish.yml`, which writes
+  `SHA256SUMS.txt` and `redrob-launcher.json` and publishes the release as latest. A
+  `workflow_dispatch` with `dry_run` builds and signs the dispatched ref and publishes nothing.
+- Every leg bundles the Redrob Code sidecar from the engine's own release (`scripts/fetch-redrob-code.sh`,
+  tag pinned in `apps/shell/redrob-code.version`); `beforePack` refuses to package without it.
 - There is no CDN. Downloads and the updater feed are the same release assets. The feed target is
   baked in from `GENOFFICE_UPDATE_REPO` (`owner/repo`); unset means no publish config and no
   in-app auto-update, which is what a fork or a local build gets.
-- Windows signing is Azure Artifact Signing over OpenID Connect: the Windows job runs in the
-  `release` environment with `permissions: id-token: write`, builds the suite first, then logs in
-  with `azure/login@v3` **immediately before** the sign-and-package step (the OIDC token lives
-  minutes; a login before the long build left signtool with no usable credential), and
-  `scripts/win-sign.ps1` signs through the signtool dlib from the `Microsoft.ArtifactSigning.Client`
-  NuGet package (electron-builder calls it per packaged PE via `scripts/win-sign.cjs`,
-  `GENOFFICE_WIN_SIGN_MODE=production`). The dlib metadata lists `ExcludeCredentials` so a missing
-  login fails in seconds instead of waiting on an interactive browser prompt. The organization
-  secrets `AZURE_TENANT_ID` / `AZURE_CLIENT_ID` / `AZURE_SUBSCRIPTION_ID` /
-  `ARTIFACT_SIGNING_ENDPOINT` / `ARTIFACT_SIGNING_ACCOUNT` / `ARTIFACT_SIGNING_CERT_PROFILE` are
-  plain IDs; there is no certificate file and no client secret anywhere. The certificate chains to a
-  Microsoft root, so the verify step requires `signtool verify /pa /v` to pass, `Status` to be
-  `Valid`, and the signer to be `CN=McKinley Rice, Inc.`; it prints `<file> signed by <Subject>`
-  (SmartScreen reputation still builds up per publisher over time).
+- Windows signing is Azure Artifact Signing over OpenID Connect through the organization's one
+  recipe, `redrob-labs/.github/actions/sign-windows`. The Windows job runs in the `release`
+  environment with `permissions: id-token: write`, builds the suite first, then logs in with
+  `azure/login@v3` **immediately before** signing (the OIDC token lives minutes; a login before the
+  long build left signtool with no usable credential), signs the sidecar with the action, and
+  packages with electron-builder, whose hook (`scripts/win-sign.cjs`,
+  `GENOFFICE_WIN_SIGN_MODE=production`) spawns the same `sign.ps1` from the `redrob-labs/.github`
+  checkout at `.redrob-shared`. The script verifies every file it signs (`signtool verify /pa`,
+  `Status` `Valid`, signer CN `McKinley Rice, Inc.`) and the job runs one more `signtool verify /pa`
+  over the installer and the packaged sidecar. The organization secrets `AZURE_TENANT_ID` /
+  `AZURE_CLIENT_ID` / `AZURE_SUBSCRIPTION_ID` / `ARTIFACT_SIGNING_ENDPOINT` /
+  `ARTIFACT_SIGNING_ACCOUNT` / `ARTIFACT_SIGNING_CERT_PROFILE` are plain IDs; there is no
+  certificate file, no client secret and no signing recipe in this repository.
 
 ### Design system
 

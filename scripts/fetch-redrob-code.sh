@@ -8,8 +8,15 @@
 # request like any dependency. redrob-cowork does the same (apps/desktop/scripts/prepare-sidecar).
 #
 # Usage: scripts/fetch-redrob-code.sh <windows-x64|darwin-arm64|linux-x64>
-# Needs: gh (authenticated; the workflow passes GITHUB_TOKEN), unzip, sha256sum.
+# Needs: gh (authenticated; the workflow passes GITHUB_TOKEN), unzip, and sha256sum or shasum.
 set -euo pipefail
+
+# GNU coreutils' sha256sum on Linux and Git Bash; macOS runners ship only shasum.
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256() { sha256sum "$@"; }
+else
+  sha256() { shasum -a 256 "$@"; }
+fi
 
 platform="${1:?usage: $0 <windows-x64|darwin-arm64|linux-x64>}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -28,7 +35,7 @@ echo "Fetching Redrob Code $tag ($asset) from redrob-labs/redrob-code"
 gh release download "$tag" --repo redrob-labs/redrob-code --pattern "$asset" --pattern SHA256SUMS --dir "$work"
 
 # The release's own checksum list is the source of truth for the bytes we just received.
-(cd "$work" && grep -E "  ${asset}\$" SHA256SUMS | sha256sum -c -)
+(cd "$work" && grep -E "  ${asset}\$" SHA256SUMS | sha256 -c -)
 
 unzip -q -o "$work/$asset" -d "$work/unpacked"
 source_binary="$work/unpacked/$binary"
@@ -37,4 +44,4 @@ source_binary="$work/unpacked/$binary"
 mkdir -p "$root/apps/shell/build"
 cp "$source_binary" "$root/apps/shell/build/$target"
 chmod 755 "$root/apps/shell/build/$target"
-echo "Staged apps/shell/build/$target from $asset ($(sha256sum "$root/apps/shell/build/$target" | cut -c1-16)...)"
+echo "Staged apps/shell/build/$target from $asset ($(sha256 "$root/apps/shell/build/$target" | cut -c1-16)...)"

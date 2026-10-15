@@ -5,20 +5,12 @@
 //                                                         in apps/shell/electron-builder.cjs
 //   node scripts/check-release-asset-names.mjs <dir>      also check every package file in
 //                                                         <dir> (apps/shell/release after
-//                                                         electron-builder, or a release's
-//                                                         downloaded assets). The dir must
-//                                                         also hold redrob-launcher.json,
-//                                                         the launcher's release manifest.
-//   node scripts/check-release-asset-names.mjs --no-config <dir>
-//                                                         only the directory + manifest
-//                                                         checks. electron-builder.cjs has
-//                                                         top-level asserts (electron dist,
-//                                                         built module trees, sidecars), so
-//                                                         it can only be loaded where a full
-//                                                         build happened. The publish job
-//                                                         has downloaded assets and nothing
-//                                                         else; the platform jobs already
-//                                                         verified the templates.
+//                                                         electron-builder). Run by every
+//                                                         build job of the release workflow
+//                                                         before it uploads its assets.
+//
+// The launcher's release manifest (redrob-launcher.json) and SHA256SUMS.txt are written by the
+// shared publish job (redrob-labs/.github release-publish.yml), not here.
 //
 // The launcher installs an asset only when its name is
 //     <stem>-<version>-<os>-<arch>[-portable].<ext>
@@ -27,10 +19,9 @@
 // the launcher looks for, and the extension is one it installs. electron-builder's own
 // ${arch} spelling differs per target (amd64 / x64 / arm64), so the names are spelled
 // out in the config and this script is what keeps them from drifting.
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { LAUNCHER_MANIFEST_NAME, launcherManifestProblems } from './write-launcher-manifest.mjs'
 
 const STEM = 'redrob-office'
 const OS_ARCH = new Set([
@@ -84,20 +75,11 @@ export function parseAssetName(name) {
 const root = fileURLToPath(new URL('..', import.meta.url))
 const problems = []
 
-const args = process.argv.slice(2)
-const noConfig = args.includes('--no-config')
-const dirArg = args.find((a) => !a.startsWith('--'))
-if (noConfig && !dirArg) {
-  console.error('check-release-asset-names: --no-config needs a <dir> to check')
-  process.exit(2)
-}
+const dirArg = process.argv.slice(2).find((a) => !a.startsWith('--'))
 
 // 1. The templates. Expanded with a sample version and the ${arch} / ${ext} values
-//    electron-builder substitutes for the targets the config declares. Skipped with
-//    --no-config: v0.10.1's publish job failed twice trying to load the config in a
-//    job that has no build (missing electron, then missing LICENSES.chromium.html).
+//    electron-builder substitutes for the targets the config declares.
 const templateNames = []
-if (!noConfig) {
 const { createRequire } = await import('node:module')
 const config = createRequire(join(root, 'apps/shell/package.json'))('./electron-builder.cjs')
 const expand = (template, vars) => template.replace(/\$\{(\w+)\}/g, (_, k) => vars[k] ?? `\${${k}}`)
@@ -125,7 +107,6 @@ for (const [target, template, arch, ext, mustInstall] of expected) {
 }
 const winTargets = (config.win.target ?? []).map((t) => (typeof t === 'string' ? t : t.target))
 if (!winTargets.includes('zip')) problems.push('win: no zip target -- the launcher cannot install an exe installer, it needs -portable.zip')
-}
 
 // 2. A directory of built or downloaded assets.
 const dir = dirArg ? resolve(dirArg) : null
@@ -144,15 +125,6 @@ if (dir) {
   // The platform the dir holds must have at least one launcher-installable package.
   const installable = seen.filter((n) => parseAssetName(n)?.installable)
   if (seen.length && installable.length === 0) problems.push(`${dir}: no launcher-installable package among ${seen.join(', ')}`)
-  // 3. The launcher's release manifest must travel with the packages: without it the
-  //    launcher falls back to its built-in table and cannot tell this release reads
-  //    the shared account file. Written by scripts/write-launcher-manifest.mjs.
-  const manifestPath = join(dir, LAUNCHER_MANIFEST_NAME)
-  if (!existsSync(manifestPath)) {
-    problems.push(`${dir}: ${LAUNCHER_MANIFEST_NAME} is missing -- run node scripts/write-launcher-manifest.mjs ${dir} before the upload`)
-  } else {
-    for (const p of launcherManifestProblems(readFileSync(manifestPath, 'utf8'))) problems.push(`${dir}: ${p}`)
-  }
 }
 
 if (problems.length) {
@@ -161,5 +133,4 @@ if (problems.length) {
 }
 for (const [target, name] of templateNames) console.log(`  ${target.padEnd(16)} ${name}`)
 if (dir) for (const n of seen) console.log(`  ${dir}: ${n} ok`)
-if (dir) console.log(`  ${dir}: ${LAUNCHER_MANIFEST_NAME} ok (${readFileSync(join(dir, LAUNCHER_MANIFEST_NAME), 'utf8').trimEnd()})`)
 console.log('check-release-asset-names: ok')
