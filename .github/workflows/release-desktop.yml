@@ -60,6 +60,9 @@ jobs:
       tag: ${{ steps.v.outputs.tag }}
       sha: ${{ steps.v.outputs.sha }}
       publish: ${{ steps.v.outputs.publish }}
+      # The engine release every leg bundles as its fallback sidecar: resolved ONCE here so the
+      # three platforms carry the same engine even if the engine releases while they build.
+      engine: ${{ steps.engine.outputs.tag }}
     env:
       INPUT_TAG: ${{ inputs.tag }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
@@ -114,6 +117,18 @@ jobs:
             echo "sha=$TAG_SHA"
             echo "publish=true"
           } >> "$GITHUB_OUTPUT"
+
+      - id: engine
+        name: Resolve the newest Redrob Code release for the bundled sidecar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$(gh api repos/redrob-labs/redrob-code/releases/latest --jq .tag_name)"
+          case "$tag" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "::error::unexpected engine tag '$tag'"; exit 1 ;; esac
+          echo "bundling Redrob Code $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Redrob Code sidecar for this release: **$tag**" >> "$GITHUB_STEP_SUMMARY"
 
   windows:
     name: Windows x64
@@ -173,13 +188,14 @@ jobs:
             if (-not [Environment]::GetEnvironmentVariable($name)) { throw "Missing $name organization secret" }
           }
 
-      # The sidecar is the engine's own released binary (apps/shell/redrob-code.version pins the
-      # tag), downloaded and checksum-verified by scripts/fetch-redrob-code.sh. Building it here
+      # The sidecar is the engine's newest released binary (resolved once by the version job),
+      # downloaded and checksum-verified by scripts/fetch-redrob-code.sh. Building it here
       # cost ~3.5 minutes per leg and bundled bytes nobody had tested.
       - name: Fetch the Redrob Code sidecar from its release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          REDROB_CODE_VERSION: ${{ needs.version.outputs.engine }}
         run: bash scripts/fetch-redrob-code.sh windows-x64
 
       - uses: pnpm/action-setup@v4
@@ -296,6 +312,7 @@ jobs:
       - name: Fetch the Redrob Code sidecar from its release
         env:
           GH_TOKEN: ${{ github.token }}
+          REDROB_CODE_VERSION: ${{ needs.version.outputs.engine }}
         run: bash scripts/fetch-redrob-code.sh darwin-arm64
 
       - uses: pnpm/action-setup@v4
@@ -412,11 +429,12 @@ jobs:
 
       # The shell packages a native Redrob Code binary, and electron-builder's beforePack
       # refuses to package without it (assertRedrobCodeBinaryPresent). It is the engine's
-      # own released binary (apps/shell/redrob-code.version pins the tag), downloaded and
+      # newest released binary (resolved once by the version job), downloaded and
       # checksum-verified by scripts/fetch-redrob-code.sh.
       - name: Fetch the Redrob Code sidecar from its release
         env:
           GH_TOKEN: ${{ github.token }}
+          REDROB_CODE_VERSION: ${{ needs.version.outputs.engine }}
         run: bash scripts/fetch-redrob-code.sh linux-x64
 
       # rpm needs rpmbuild on the runner; electron-builder does not vendor it.
