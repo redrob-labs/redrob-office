@@ -6,6 +6,7 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
+  statSync,
   writeFileSync,
 } from 'node:fs'
 import { basename, dirname, extname, join } from 'node:path'
@@ -77,7 +78,7 @@ import {
   windowMenuTemplate,
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
-import { registerRedrobConnectIpc } from './redrob-connect'
+import { keySignInDeps, registerRedrobConnectIpc, watchKeySources } from './redrob-connect'
 import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
 import {
   ANALYTICS_ENABLED_KEY,
@@ -620,6 +621,7 @@ const tMain = createI18n({
     errRenameFailed: '重命名失败',
     errNewTabFailed: '新建文档失败',
     errUnsupportedExt: '暂不支持 .{ext} 类型',
+    filterAll: '所有文件',
     copySuffix: '副本',
     menuHelp: '帮助',
     thirdPartyNotices: '第三方软件声明',
@@ -712,6 +714,7 @@ const tMain = createI18n({
     errRenameFailed: 'Rename failed',
     errNewTabFailed: 'Could not create the new document',
     errUnsupportedExt: '.{ext} files are not supported',
+    filterAll: 'All files',
     copySuffix: 'copy',
     menuHelp: 'Help',
     thirdPartyNotices: 'Third-Party Notices',
@@ -813,6 +816,7 @@ const tMain = createI18n({
     errRenameFailed: '名前の変更に失敗しました',
     errNewTabFailed: '新規ドキュメントを作成できませんでした',
     errUnsupportedExt: '.{ext} 形式には対応していません',
+    filterAll: 'すべてのファイル',
     copySuffix: 'コピー',
     menuHelp: 'ヘルプ',
     thirdPartyNotices: 'サードパーティソフトウェアに関する通知',
@@ -914,6 +918,7 @@ const tMain = createI18n({
     errRenameFailed: '이름 바꾸기에 실패했습니다',
     errNewTabFailed: '새 문서를 만들지 못했습니다',
     errUnsupportedExt: '.{ext} 형식은 지원되지 않습니다',
+    filterAll: '모든 파일',
     copySuffix: '복사본',
     menuHelp: '도움말',
     thirdPartyNotices: '타사 소프트웨어 고지',
@@ -2849,8 +2854,27 @@ function supportedFileIn(argv: string[]): string | null {
   )
 }
 
+/**
+ * A file the person asked us to open that no module reads (.pem, .zip, a legacy
+ * .doc...). Any existing regular file with an extension counts, not only the
+ * legacy office formats: "open with Redrob Office" on an arbitrary file must
+ * say "not supported" rather than do nothing. The executable and the app
+ * directory in argv are skipped (argv[0]; a directory is not a file), and so
+ * are flags.
+ */
 function unsupportedFileIn(argv: string[]): string | null {
-  return argv.find((arg) => UNSUPPORTED_DOC_RE.test(arg) && existsSync(arg)) ?? null
+  const known = argv.find((arg) => UNSUPPORTED_DOC_RE.test(arg) && existsSync(arg))
+  if (known) return known
+  return (
+    argv.slice(1).find((arg) => {
+      if (arg.startsWith('-') || !/\.[A-Za-z0-9]{1,16}$/.test(arg) || !existsSync(arg)) return false
+      try {
+        return statSync(arg).isFile()
+      } catch {
+        return false
+      }
+    }) ?? null
+  )
 }
 
 function notifyUnsupportedFile(filePath: string): void {
@@ -3205,6 +3229,8 @@ function registerHomeIpc(): void {
         { name: tm('filterPdf'), extensions: ['pdf'] },
         { name: tm('filterMarkdown'), extensions: ['md', 'markdown'] },
         { name: tm('filterHangul'), extensions: ['hwp', 'hwpx'] },
+        // selectable so an unsupported file gets the explicit "not supported" message
+        { name: tm('filterAll'), extensions: ['*'] },
       ],
       properties: ['openFile', 'multiSelections'],
     })
@@ -3700,7 +3726,10 @@ async function openFileViaDialog(): Promise<void> {
   const win = shellWindow ?? BrowserWindow.getFocusedWindow()
   if (!win) return
   const result = await showOpenDialogWithMemory(dialog, win, {
-    filters: [{ name: tm('filterSupported'), extensions: OPEN_DIALOG_EXTENSIONS }],
+    filters: [
+      { name: tm('filterSupported'), extensions: OPEN_DIALOG_EXTENSIONS },
+      { name: tm('filterAll'), extensions: ['*'] },
+    ],
     properties: ['openFile', 'multiSelections'],
   })
   if (!result.canceled) for (const path of result.filePaths) openDocumentPath(path)
@@ -4654,8 +4683,14 @@ const identityService = new IdentityService({
     // only Console's own pages, which the provider has already checked
     if (/^https:\/\//.test(url)) void shell.openExternal(url)
   },
+  // The shared account contract: a key from Redrob Launcher's account.json (or
+  // this app's own) is a sign-in, read now and re-read whenever either file
+  // changes, so a launcher sign-in counts here and no sign-in prompt follows it.
+  key: keySignInDeps(),
 })
 identityService.register(ipcMain)
+void identityService.refreshKey()
+watchKeySources(() => void identityService.refreshKey())
 
 // Version history: every Docs save is kept on this computer; restores open as a copy.
 const versionStore = new VersionStore({ root: join(app.getPath('userData'), 'versions') })

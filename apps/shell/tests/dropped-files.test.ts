@@ -64,12 +64,12 @@ describe('handleDroppedFiles', () => {
     expect(deps.warned).toEqual(['unsupported: doc'])
   })
 
-  it('ignores junk payloads and unrecognized file types entirely', () => {
+  it('ignores junk payloads but tells the person about any file type it cannot open', () => {
     const deps = fakeDeps()
     handleDroppedFiles(null, deps)
-    handleDroppedFiles(['/tmp/photo.png', 42, ''], deps)
+    handleDroppedFiles(['/tmp/photo.png', '/tmp/key.pem', 42, ''], deps)
     expect(deps.opened).toEqual([])
     expect(deps.revealed).not.toHaveBeenCalled()
-    expect(deps.warned).toEqual([])
+    expect(deps.warned).toEqual(['unsupported: png, pem'])
   })
 })

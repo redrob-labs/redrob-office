@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 0.10.10 -- 2026-10-16
+
+### Fixed
+
+- A sign-in made in Redrob Launcher now counts as Office's own. The shell reads the shared account file (`redrob-shared/account.json`, the launcher's contract) and the app's own Console key, on startup and whenever either file changes, so "Sign in with Redrob" no longer reappears while the launcher is connected. When both hold a key the newer one wins. Settings > Sign in used to fail because Console serves no OpenID discovery document; it now uses Console's device connect and stores the key where Connect Redrob does.
+- Windows: the room the tab strip keeps clear for the caption buttons (close, maximize, minimize) is now the window's own overlay width (`env(titlebar-area-*)`) rather than a fixed 138px, so the right-side controls stop sliding under the buttons.
+- Opening a file no module reads (`.pem`, `.zip`, a legacy `.doc`...) now says so -- "`.pem` files are not supported", in the UI language -- on drag-drop, the open dialog (which gains an All files filter), the command line, a second instance and open-with. Before, anything outside the legacy office formats did nothing. Drag-drop also learns `.hwp`/`.hwpx`.
+- Home: long file names in the recent list show the full name on hover; the row menu scrolls instead of being clipped on short windows.
+- PDF: every button of the simple toolbar carries a text label.
+
+### Changed
+
+- Home shows a dismissable three-step guide on first run (open a file, create a document, ask Redrob), each format tile offers New and Open, and the top of the page shows who is signed in with a Billing / Console button -- or a Sign in button when nobody is.
+- The Redrob logos in the chrome and the sidebar go Home; the Console link moved to Settings > About.
+
 ## 0.10.9 -- 2026-10-16
 
 ### Fixed

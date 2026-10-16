@@ -55,7 +55,8 @@ function formatStars(n: number): string {
   return `${k >= 100 ? Math.round(k) : (Math.round(k * 10) / 10).toString().replace(/\.0$/, '')}k`
 }
 
-type SectionId = 'account' | 'aiModel' | 'identity' | 'general' | 'about'
+export type SettingsSectionId = 'account' | 'aiModel' | 'identity' | 'general' | 'about'
+type SectionId = SettingsSectionId
 
 // The "account" section hosts the ported Genspark sign-in / credits, which
 // authenticate against genspark.ai. It is only listed when the cloud-account
@@ -407,6 +408,8 @@ export interface SettingsModalProps {
    * content column (no scrim), so Settings opens in the right section rather
    * than as a popup anchored to the sidebar. */
   variant?: 'modal' | 'pane'
+  /** the pane to open on (the home hero's Sign-in opens the account pane) */
+  initialSection?: SettingsSectionId | undefined
 }
 
 export function SettingsModal({
@@ -421,9 +424,12 @@ export function SettingsModal({
   onLogin,
   onLogout,
   variant = 'modal',
+  initialSection,
 }: SettingsModalProps) {
   const { lang, setLang, t } = useI18n()
-  const [section, setSection] = useState<SectionId>(SECTIONS[0].id)
+  const [section, setSection] = useState<SectionId>(
+    initialSection && SECTIONS.some((s) => s.id === initialSection) ? initialSection : SECTIONS[0].id,
+  )
   // Toolbar, Plan or Run, Cross-check and Memory: stored by main, followed by every editor
   const [prefs, setPrefs] = useState<OfficePrefs | null>(null)
   useEffect(() => {
@@ -710,6 +716,22 @@ export function SettingsModal({
                   <p className="set-field-desc">{t('setHwpTrademarks')}</p>
                 </div>
               </div>
+              {/* The website / Console link lives here, not on the logo: the
+                  logo goes Home. Console is where billing and API keys are. */}
+              <Field
+                label={t('openConsole')}
+                value="console.redrob.ai"
+                action={
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    iconLeft={<Icon name="external" size={14} />}
+                    onClick={() => void window.aiOffice.openConsole?.()}
+                  >
+                    {t('homeBillingConsole')}
+                  </Button>
+                }
+              />
               <Field
                 label={t('setGithub')}
                 value={

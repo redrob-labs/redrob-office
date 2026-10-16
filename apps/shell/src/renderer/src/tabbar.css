@@ -48,10 +48,16 @@ html.genoffice-popover-open .tab-bar {
 }
 
 /* Windows: the three caption buttons Windows draws over the strip's right end
- * (titleBarOverlay), 46px each; keep that room clear of our own controls */
+ * (titleBarOverlay); keep that room clear of our own controls. The overlay's
+ * real width comes from the window (env(titlebar-area-*), set by Chromium for
+ * titleBarOverlay windows): the area left of the buttons ends at
+ * titlebar-area-x + titlebar-area-width, so the remainder is the buttons.
+ * 138px (3 x 46) is the fallback for a renderer without the env values. */
 .tab-bar-caption-space {
-  width: 138px;
+  width: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, calc(100vw - 138px)));
+  min-width: 138px;
   flex-shrink: 0;
+  -webkit-app-region: drag;
 }
 
 /* Left chrome nav cluster: sidebar toggle (or Home button inside an editor) +

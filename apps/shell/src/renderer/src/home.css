@@ -173,6 +173,15 @@ body.vib .home {
   gap: 9px;
   padding: 0 8px;
   margin-bottom: 20px;
+  /* a button now (goes Home): no button chrome */
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.sidebar-logo:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .logo-lockup {
@@ -938,6 +947,9 @@ body.vib .home {
   left: auto;
   z-index: 20;
   min-width: 180px;
+  /* a short window clips the menu at the viewport: cap it and scroll instead */
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
   animation: menu-in var(--duration-fast) var(--easing-entrance);
 }
 
