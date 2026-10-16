@@ -29,22 +29,36 @@ const TILE_LABEL: Record<StartKind, string> = {
   md: 'fmtMarkdown',
 }
 
-export function StartBlank({ onStart }: StartBlankProps): ReactElement {
+export function StartBlank({ onStart, onOpenFile }: StartBlankProps): ReactElement {
   const { t } = useI18n()
   return (
     <div className="home-tiles" role="group" aria-label={t('homeStartBlank')}>
-      {TILE_ORDER.map((kind) => (
-        <button
-          key={kind}
-          type="button"
-          className="home-tile"
-          aria-label={t(TILE_LABEL[kind] as Parameters<typeof t>[0])}
-          onClick={() => onStart(kind)}
-        >
-          <FormatIcon kind={kind} size={40} />
-          <span className="home-tile__name">{t(TILE_LABEL[kind] as Parameters<typeof t>[0])}</span>
-        </button>
-      ))}
+      {TILE_ORDER.map((kind) => {
+        const name = t(TILE_LABEL[kind] as Parameters<typeof t>[0])
+        return (
+          <div key={kind} className="home-tile home-tile--split">
+            {/* the tile body creates a new file; the two actions below spell
+                out New / Open, which a bare icon did not */}
+            <button
+              type="button"
+              className="home-tile__main"
+              aria-label={`${name}: ${t('homeTileNew')}`}
+              onClick={() => onStart(kind)}
+            >
+              <FormatIcon kind={kind} size={40} />
+              <span className="home-tile__name">{name}</span>
+            </button>
+            <div className="home-tile__actions">
+              <button type="button" className="home-tile__action" aria-label={`${name}: ${t('homeTileNew')}`} onClick={() => onStart(kind)}>
+                {t('homeTileNew')}
+              </button>
+              <button type="button" className="home-tile__action" aria-label={`${name}: ${t('homeTileOpen')}`} onClick={onOpenFile}>
+                {t('homeTileOpen')}
+              </button>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

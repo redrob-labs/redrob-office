@@ -31,7 +31,7 @@ import { displayParentDir } from './recent-location'
 import { CLOUD_ACCOUNT_ENABLED } from './cloud-account-flag'
 import { useI18n } from './locale'
 import type { I18n, StringKey } from './locale'
-import { SettingsModal } from './SettingsModal'
+import { SettingsModal, type SettingsSectionId } from './SettingsModal'
 import { HomeHero } from './home/HomeHero'
 import './home/home-hero.css'
 import { HomeFoot } from './home/HomeFoot'
@@ -597,7 +597,7 @@ function AccountEntry({
     })
   }
 
-  const handleClick = () => {
+  const handleClick = (initialSection?: SettingsSectionId) => {
     // refresh the login state / credit balance; drop the response
     // when a logout happened while it was in flight. Skipped when the
     // cloud-account surface is disabled (no genspark.ai contact); the button
@@ -611,6 +611,7 @@ function AccountEntry({
     onOpenSettings(
       <SettingsModal
         variant="pane"
+        initialSection={initialSection}
         status={status}
         loggingOut={loggingOut}
         loginWaiting={waiting}
@@ -627,6 +628,19 @@ function AccountEntry({
       />,
     )
   }
+
+  // The home hero's Sign-in / account control opens Settings on a given pane
+  // through this event; the login machinery stays here.
+  const handleClickRef = useRef(handleClick)
+  handleClickRef.current = handleClick
+  useEffect(() => {
+    const onOpen = (ev: Event) => {
+      const section = (ev as CustomEvent<{ section?: SettingsSectionId }>).detail?.section
+      handleClickRef.current(section)
+    }
+    window.addEventListener('redrob:open-settings', onOpen)
+    return () => window.removeEventListener('redrob:open-settings', onOpen)
+  }, [])
 
   return (
     <div className="account-entry">
@@ -650,7 +664,7 @@ function AccountEntry({
       )}
       <button
         className="account-btn"
-        onClick={handleClick}
+        onClick={() => handleClick()}
         // Settings opens as a main-content pane (variant="pane"), not a popup
         // dialog, so there is no aria-haspopup; aria-expanded reflects the
         // revealed content region.
@@ -1647,7 +1661,9 @@ export function Home() {
               }}
             />
           ) : (
-            <span className="recent-name">{entry.name}</span>
+            <span className="recent-name" title={entry.name}>
+              {entry.name}
+            </span>
           )}
           <span className="recent-path" title={entry.path}>
             {displayParentDir(entry.path)}
@@ -2038,13 +2054,25 @@ export function Home() {
   return (
     <div className="home">
       <aside className={`sidebar${sidebarCollapsed ? ' sidebar--collapsed' : ''}`}>
-        <div className="sidebar-logo">
+        <button
+          type="button"
+          className="sidebar-logo"
+          aria-label={t('navHome')}
+          onClick={() => {
+            // the logo goes Home (never to the website)
+            closeSettings()
+            changeView('recent')
+            setSelectedProjectId(null)
+            setCloudMode(false)
+            setUpdatesMode(false)
+          }}
+        >
           {/* Two theme variants of the Redrob wordmark: the light one has dark
               text, the dark one has light text (the gradient mark is identical).
               CSS shows one per theme so the colored gradient is never inverted. */}
           <img className="logo-lockup logo-lockup-light" src={logoLockup} alt="Redrob" />
           <img className="logo-lockup logo-lockup-dark" src={logoLockupOnDark} alt="Redrob" />
-        </div>
+        </button>
 
         <nav className="sidebar-nav">
           <button
