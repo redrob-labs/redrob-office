@@ -16,12 +16,16 @@ export const DROP_OPEN_CHANNEL = 'app:open-dropped-files'
 
 /** Extensions routed by apps/shell routeDocumentPath — keep in sync there and
  *  with OPEN_DIALOG_EXTENSIONS / OPEN_LOCAL_EXTENSIONS on the home screen. */
-export const OPENABLE_DOC_RE = /\.(docx|xlsx|xlsm|xls|csv|pptx|pdf|md|markdown)$/i
+export const OPENABLE_DOC_RE = /\.(docx|xlsx|xlsm|xls|csv|pptx|pdf|md|markdown|hwp|hwpx)$/i
 
-/** Recognized-but-unsupported formats: kept in the sent payload so the shell
- *  can show its "not supported" dialog instead of dropping them silently.
- *  Mirrors UNSUPPORTED_DOC_RE in apps/shell/src/main/index.ts. */
+/** Recognized-but-unsupported formats. Kept for callers that want to tell a
+ *  legacy office format from an arbitrary file; the drop pipeline itself now
+ *  reports EVERY non-openable extension ("Unsupported file type: .pem"), since
+ *  a drop that does nothing reads as a broken app. */
 export const KNOWN_UNSUPPORTED_DOC_RE = /\.(doc|rtf|odt|ppt|pps|odp|ods|xlsb|pages|key|numbers)$/i
+
+/** any file with an extension: what a person would expect a drop to react to */
+const HAS_EXTENSION_RE = /\.([A-Za-z0-9]{1,16})$/
 
 /** upper bound on how many files one drop may ask to open */
 const MAX_DROPPED_FILES = 20
@@ -51,9 +55,8 @@ export function droppableFilePaths(
 
 /**
  * Sanitize + classify a raw IPC payload: strings only, trimmed, deduped,
- * capped, then split into directly-openable paths and known-unsupported
- * extensions (unique, first-seen order). Anything unrecognized (.png, .zip,
- * nonexistent junk from a hostile sender) falls out silently.
+ * capped, then split into directly-openable paths and unsupported extensions
+ * (unique, first-seen order). Extension-less entries fall out silently.
  */
 export function partitionDropPayload(raw: unknown): {
   supported: string[]
@@ -71,7 +74,9 @@ export function partitionDropPayload(raw: unknown): {
     if (OPENABLE_DOC_RE.test(path)) {
       // keep scanning for unsupported entries even after hitting the open cap
       if (supported.length < MAX_DROPPED_FILES) supported.push(path)
-    } else if (KNOWN_UNSUPPORTED_DOC_RE.test(path)) {
+    } else if (HAS_EXTENSION_RE.test(path)) {
+      // every other extension is reported, not swallowed: a drop that does
+      // nothing is indistinguishable from a broken app
       const ext = path.slice(path.lastIndexOf('.') + 1).toLowerCase()
       if (!unsupportedExts.includes(ext)) unsupportedExts.push(ext)
     }
@@ -109,9 +114,10 @@ export function installDropOpenBridge(): void {
     if (ev.defaultPrevented) return
     const paths = droppableFilePaths(ev, (file) => webUtils.getPathForFile(file))
     if (!paths) return
-    // only recognized documents ride along; stray images/folders are swallowed
-    // here so they neither navigate the page nor produce open attempts
-    const payload = paths.filter((p) => OPENABLE_DOC_RE.test(p) || KNOWN_UNSUPPORTED_DOC_RE.test(p))
+    // every file rides along: the shell opens the documents and tells the
+    // person about the rest ("not supported"); folders (no extension) are
+    // swallowed here so they neither navigate the page nor produce open attempts
+    const payload = paths.filter((p) => HAS_EXTENSION_RE.test(p))
     ev.preventDefault()
     if (payload.length === 0) return
     ipcRenderer.send(DROP_OPEN_CHANNEL, payload.slice(0, MAX_DROPPED_FILES))
