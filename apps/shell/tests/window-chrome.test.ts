@@ -67,7 +67,9 @@ describe('frameless app chrome on Windows and Linux', () => {
     expect(tabBarSource).toMatch(/platform === 'linux' \? \(\s*<WindowControls/)
     expect(tabBarSource).toMatch(/platform === 'win32' \? <div className="tab-bar-caption-space" \/>/)
     expect(tabBarSource).toMatch(/platform === 'darwin'/)
-    expect(tabBarCss).toMatch(/\.tab-bar-caption-space \{\s*width: 138px;/)
+    // the room is the window's own overlay width, 138px (3 x 46) as the floor
+    expect(tabBarCss).toMatch(/\.tab-bar-caption-space \{[^}]*env\(titlebar-area-width/)
+    expect(tabBarCss).toMatch(/\.tab-bar-caption-space \{[^}]*min-width: 138px;/)
   })
 
   it('names every control in English and Korean', () => {
