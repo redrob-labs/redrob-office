@@ -12,8 +12,8 @@
  * lifetime of an attempt.
  */
 import { randomUUID } from 'node:crypto'
-import { readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, statSync, watch, writeFileSync, type FSWatcher } from 'node:fs'
+import { dirname, join } from 'node:path'
 
 import { app, ipcMain, net, shell } from 'electron'
 import {
@@ -26,6 +26,9 @@ import {
   type DeviceAuthorization,
   type DeviceConnectOutcome,
 } from '@genoffice/ai-provider'
+import { readSharedAccount, sharedAccountPath } from '@genoffice/ai-provider/shared-account'
+
+import type { KeySignIn, KeySignInDeps } from './identity-service'
 
 /** What the renderer is allowed to know about an attempt in progress. */
 export type ConnectAttempt = {
@@ -143,4 +146,118 @@ export function registerRedrobConnectIpc(): void {
     const attempt = typeof id === 'string' ? attempts.get(id) : undefined
     if (attempt) attempt.cancelled = true
   })
+}
+
+/**
+ * The shared account contract, as the shell's identity sees it: a Console key
+ * from either source means "signed in". When BOTH the app's own settings and the
+ * launcher's shared file hold a key, the one written more recently wins -- a
+ * person who just signed in to the launcher expects that account, and one who
+ * just pasted a key in Settings expects that one.
+ */
+export function currentKeySignIn(): KeySignIn | null {
+  const own = (readAiSettings().providers?.[REDROB_ENGINE_ID]?.apiKey ?? '').trim()
+  const shared = readSharedAccount()
+  const ownName = app.getName()
+  if (own && shared) {
+    const newer = (p: string) => {
+      try {
+        return statSync(p).mtimeMs
+      } catch {
+        return 0
+      }
+    }
+    return newer(sharedAccountPath()) > newer(AI_SETTINGS_PATH())
+      ? { source: 'launcher', name: shared.accountName ?? shared.apiKeyName ?? 'Redrob' }
+      : { source: 'own', name: ownName }
+  }
+  if (own) return { source: 'own', name: ownName }
+  if (shared) return { source: 'launcher', name: shared.accountName ?? shared.apiKeyName ?? 'Redrob' }
+  return null
+}
+
+/**
+ * The identity service's key path: Console's device connect under this app's
+ * product id. The key lands in the app's own settings, exactly as Connect Redrob
+ * in Settings does, so one sign-in serves the AI panel and the identity pane.
+ */
+export function keySignInDeps(): KeySignInDeps {
+  return {
+    current: currentKeySignIn,
+    start: async () => {
+      const a = await startDeviceAuthorization('office', { fetch: consoleFetch })
+      return {
+        userCode: a.userCode,
+        verificationUri: a.verificationUri,
+        verificationUriComplete: a.verificationUriComplete,
+        expiresIn: a.expiresIn,
+        deviceCode: a.deviceCode,
+        interval: a.interval,
+      }
+    },
+    finish: async (start, isCancelled) => {
+      const outcome = await runDeviceConnect({
+        authorization: {
+          deviceCode: start.deviceCode,
+          userCode: start.userCode,
+          verificationUri: start.verificationUri,
+          verificationUriComplete: start.verificationUriComplete,
+          expiresIn: start.expiresIn,
+          interval: start.interval,
+        },
+        isCancelled,
+        deps: {
+          fetch: consoleFetch,
+          now: () => Date.now(),
+          sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+        },
+      })
+      if (outcome.status === 'connected') {
+        storeApiKey(outcome.key.apiKey)
+        const k = currentKeySignIn()
+        return k
+          ? { status: 'signed-in', identity: { signedIn: true, provider: 'console', name: k.name } }
+          : { status: 'failed', code: 'key_not_stored' }
+      }
+      if (outcome.status === 'unreachable') return { status: 'unreachable' }
+      if (outcome.status === 'failed') return { status: 'failed', code: outcome.code }
+      return { status: outcome.status }
+    },
+  }
+}
+
+/**
+ * Watch both key sources and call back when either may have changed: the shared
+ * directory (the launcher renames a temp file over account.json, so the file
+ * itself is a moving target) and the app's own settings file. fs.watch is not
+ * reliable on every platform and the directory may not exist yet, so a slow poll
+ * backs it up. Returns a stop function.
+ */
+export function watchKeySources(onChange: () => void, pollMs = 30_000): () => void {
+  let timer: ReturnType<typeof setTimeout> | null = null
+  const fire = () => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      timer = null
+      onChange()
+    }, 250)
+  }
+  const watchers: FSWatcher[] = []
+  const tryWatch = (dir: string) => {
+    try {
+      const w = watch(dir, { persistent: false }, fire)
+      w.on('error', () => undefined)
+      watchers.push(w)
+    } catch {
+      // the directory does not exist yet (no launcher sign-in ever); the poll covers it
+    }
+  }
+  tryWatch(dirname(sharedAccountPath()))
+  tryWatch(dirname(AI_SETTINGS_PATH()))
+  const poll = setInterval(fire, pollMs)
+  return () => {
+    clearInterval(poll)
+    if (timer) clearTimeout(timer)
+    for (const w of watchers) w.close()
+  }
 }

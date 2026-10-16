@@ -47,21 +47,23 @@ export function SimpleToolbar({
   const { t } = useI18n()
   const off = !canEdit
   return (
+    // Every button carries its text label (size "lg"): icon-only buttons read as
+    // unlabeled glyphs to people who do not know the icon set.
     <Toolbar label={t('pdfSimpleToolbar')} className="pdf-simple-toolbar">
       <ToolbarGroup>
         <ToolbarButton size="lg" label={t('pdfSimpleAsk')} icon={<Icon name="sparkle" size={16} />} keepFocus={false} onClick={a.ask} />
       </ToolbarGroup>
       <ToolbarGroup>
-        <ToolbarButton label={t('highlight')} icon={<Icon name="edit" />} disabled={off} onClick={() => a.markup('highlight')} />
-        <ToolbarButton label={t('underline')} icon={<Icon name="underline" />} disabled={off} onClick={() => a.markup('underline')} />
-        <ToolbarButton label={t('strikeout')} icon={<Icon name="strikethrough" />} disabled={off} onClick={() => a.markup('strikeout')} />
-        <ToolbarButton label={t('editText')} icon={<Icon name="fileText" />} pressed={editingText} disabled={off} onClick={a.editText} />
+        <ToolbarButton size="lg" label={t('highlight')} icon={<Icon name="edit" size={16} />} disabled={off} onClick={() => a.markup('highlight')} />
+        <ToolbarButton size="lg" label={t('underline')} icon={<Icon name="underline" size={16} />} disabled={off} onClick={() => a.markup('underline')} />
+        <ToolbarButton size="lg" label={t('strikeout')} icon={<Icon name="strikethrough" size={16} />} disabled={off} onClick={() => a.markup('strikeout')} />
+        <ToolbarButton size="lg" label={t('editText')} icon={<Icon name="fileText" size={16} />} pressed={editingText} disabled={off} onClick={a.editText} />
       </ToolbarGroup>
       <ToolbarGroup>
-        <ToolbarButton label={t('rotateLeft')} icon={<Icon name="undo" />} disabled={off} onClick={a.rotateLeft} />
-        <ToolbarButton label={t('rotateRight')} icon={<Icon name="redo" />} disabled={off} onClick={a.rotateRight} />
-        <ToolbarButton label={t('convertToWord')} icon={<Icon name="arrowRight" />} keepFocus={false} onClick={a.toWord} />
-        <ToolbarButton label={t('print')} icon={<Icon name="layout" />} keepFocus={false} onClick={a.print} />
+        <ToolbarButton size="lg" label={t('rotateLeft')} icon={<Icon name="undo" size={16} />} disabled={off} onClick={a.rotateLeft} />
+        <ToolbarButton size="lg" label={t('rotateRight')} icon={<Icon name="redo" size={16} />} disabled={off} onClick={a.rotateRight} />
+        <ToolbarButton size="lg" label={t('convertToWord')} icon={<Icon name="arrowRight" size={16} />} keepFocus={false} onClick={a.toWord} />
+        <ToolbarButton size="lg" label={t('print')} icon={<Icon name="layout" size={16} />} keepFocus={false} onClick={a.print} />
       </ToolbarGroup>
       <ToolbarSpacer />
       <ToolbarGroup label="Redrob">

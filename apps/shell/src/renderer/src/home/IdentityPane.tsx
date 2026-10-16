@@ -87,9 +87,13 @@ export function IdentityPane({ t, api = window.aiOfficeIdentity }: { t: TFunc; a
           </p>
           {status.provider === 'dev' && <p className="set-pane-note">{t('idDev')}</p>}
           {!status.persistent && <p className="set-pane-note">{t('idNotKept')}</p>}
-          <Button size="sm" variant="secondary" onClick={() => void api.signOut().then(reload)}>
-            {t('idSignOut')}
-          </Button>
+          {status.source === 'launcher' && <p className="set-pane-note">{t('setAiLauncherSignedIn')}</p>}
+          {/* a key sign-in is removed where the key lives (the launcher, or Settings > Redrob) */}
+          {!status.source && (
+            <Button size="sm" variant="secondary" onClick={() => void api.signOut().then(reload)}>
+              {t('idSignOut')}
+            </Button>
+          )}
         </div>
       ) : phase.kind === 'waiting' ? (
         <div className="id-waiting" aria-live="polite">

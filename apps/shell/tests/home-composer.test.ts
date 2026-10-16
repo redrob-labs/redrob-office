@@ -105,7 +105,7 @@ describe('Home, composer first', () => {
 
   it('starts each format blank from its tile and opens a file from the composer', async () => {
     await mount()
-    const tiles = Array.from(host.querySelectorAll<HTMLButtonElement>('.home-tile'))
+    const tiles = Array.from(host.querySelectorAll<HTMLButtonElement>('.home-tile .home-tile__main'))
     for (const b of tiles) act(() => b.click())
     for (const fn of ['newDoc', 'newSheet', 'newSlide', 'newHangul', 'newMarkdown', 'newPdf']) {
       expect(api[fn], fn).toHaveBeenCalledOnce()

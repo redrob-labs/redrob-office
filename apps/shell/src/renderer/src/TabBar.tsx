@@ -3,8 +3,8 @@ import type { ReactElement } from 'react'
 import { DocTabs, Icon, IconButton, WindowControls, frameCopy } from '@genoffice/ui'
 import type { TabsApi, TabSummary } from '../../shared/tabs-api'
 import type { WindowApi } from '../../shared/window-api'
-// The two chrome marks: the Redrob GROUP logo (opens the Redrob Console) and
-// the Redrob OFFICE logo (goes home). Masked web SVGs, each with a
+// The two chrome marks: the Redrob GROUP logo and the Redrob OFFICE logo, both
+// go home (the Console link is in Settings > About). Masked web SVGs, each with a
 // dark-appearance variant; the light/dark swap is CSS-driven.
 import groupLogo from './assets/redrob-group-web.svg'
 import groupLogoDark from './assets/redrob-group-web-dark.svg'
@@ -135,7 +135,7 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
  *           (the sidebar + the Office logo already reach Home). Tabs shrink to
  *           a min width then scroll; start/end are siblings of the strip, so
  *           they stay pinned and never overlap.
- *   end   — the Redrob GROUP logo (opens console.redrob.ai), the Redrob OFFICE
+ *   end   — the Redrob GROUP logo (goes home), the Redrob OFFICE
  *           logo (goes home), and the search box. Both logos use a right-placed
  *           custom tooltip (`data-tip-place="right"`) so it stays within the
  *           chrome band rather than dropping into the region a native editor
@@ -285,16 +285,17 @@ export function TabBar() {
         }
         end={
           <>
-            {/* The Redrob GROUP logo: opens the Redrob Console in the browser,
-                with a hover tooltip. Light/dark variants swap via CSS. */}
+            {/* The Redrob GROUP logo goes Home, like the Office logo next to it: a
+                logo that left the app for the website surprised people. The
+                Console link lives in Settings > About. Light/dark variants swap via CSS. */}
             <button
               type="button"
               className="tab-redrob-mark tab-group-btn"
-              aria-label={t('openConsole')}
-              title={t('openConsole')}
-              data-tip={t('openConsole')}
+              aria-label={t('navHome')}
+              title={t('navHome')}
+              data-tip={t('navHome')}
               data-tip-place="right"
-              onClick={() => void window.aiOffice?.openConsole?.()}
+              onClick={() => void window.aiOfficeTabs.activate('home')}
             >
               <img className="tab-logo-light" src={groupLogo} alt="" width={28} height={28} aria-hidden="true" />
               <img className="tab-logo-dark" src={groupLogoDark} alt="" width={28} height={28} aria-hidden="true" />

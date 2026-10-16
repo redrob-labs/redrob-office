@@ -1,5 +1,6 @@
-import { useState, type ReactElement } from 'react'
-import { Composer, Icon } from '@genoffice/ui'
+import { useEffect, useState, type ReactElement } from 'react'
+import { Button, Composer, Icon } from '@genoffice/ui'
+import type { IdentityApi } from '@genoffice/identity'
 import { useI18n } from '../locale'
 import { greetingKeyFor } from './formats'
 import { StartBlank, type StartBlankProps } from './StartBlank'
@@ -61,6 +62,107 @@ function useGreetingLine(name: string | undefined, lastFile: string | undefined,
   return `${greeting} ${question}`
 }
 
+/** localStorage key: the first-run guide was dismissed on this computer */
+const GUIDE_DISMISSED_KEY = 'redrob-office.home-guide-dismissed'
+
+function guideDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(GUIDE_DISMISSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * The three things a new person does first — open a file, create one, ask the
+ * AI — in one dismissable card. Dismissed once, it never returns.
+ */
+function HomeGuide(): ReactElement | null {
+  const { t } = useI18n()
+  const [shown, setShown] = useState(() => !guideDismissed())
+  if (!shown) return null
+  const dismiss = () => {
+    setShown(false)
+    try {
+      window.localStorage.setItem(GUIDE_DISMISSED_KEY, '1')
+    } catch {
+      // storage unavailable: the guide simply shows again next time
+    }
+  }
+  const steps: [string, string][] = [
+    [t('guideStep1Title'), t('guideStep1Body')],
+    [t('guideStep2Title'), t('guideStep2Body')],
+    [t('guideStep3Title'), t('guideStep3Body')],
+  ]
+  return (
+    <section className="home-guide" aria-label={t('guideTitle')} data-testid="home-guide">
+      <h2 className="home-guide__title">{t('guideTitle')}</h2>
+      <Button size="sm" variant="ghost" onClick={dismiss} aria-label={t('guideDismiss')}>
+        {t('guideDismiss')}
+      </Button>
+      <ol className="home-guide__steps">
+        {steps.map(([title, body], i) => (
+          <li key={title} className="home-guide__step">
+            <span className="home-guide__num" aria-hidden="true">
+              {i + 1}
+            </span>
+            <span>
+              <b>{title}</b> {body}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+type IdentityStatus = Awaited<ReturnType<IdentityApi['identityStatus']>>
+
+/**
+ * Who is signed in, top right of the hero, and the way to Console (billing,
+ * API keys). Signed out it is a Sign-in call to action that opens Settings on
+ * the account pane (the same IdentityPane; the flow itself lives there).
+ */
+function HomeAccountBar(): ReactElement {
+  const { t } = useI18n()
+  const api: IdentityApi | undefined = window.aiOfficeIdentity
+  const [status, setStatus] = useState<IdentityStatus | null>(null)
+  useEffect(() => {
+    if (!api) return
+    let live = true
+    const reload = () => void api.identityStatus().then((s) => live && setStatus(s))
+    reload()
+    const off = api.onIdentityChanged(() => reload())
+    return () => {
+      live = false
+      off()
+    }
+  }, [api])
+  const openAccount = () =>
+    window.dispatchEvent(new CustomEvent('redrob:open-settings', { detail: { section: 'identity' } }))
+  return (
+    <div className="home-hero__account" data-testid="home-account">
+      {status?.signedIn ? (
+        <button type="button" className="home-hero__account-who" onClick={openAccount}>
+          {t('idSignedInAs', { name: status.name ?? '' })}
+        </button>
+      ) : (
+        <Button size="sm" variant="primary" onClick={openAccount}>
+          {t('idSignIn')}
+        </Button>
+      )}
+      <Button
+        size="sm"
+        variant="secondary"
+        iconLeft={<Icon name="external" size={14} />}
+        onClick={() => void window.aiOffice?.openConsole?.()}
+      >
+        {t('homeBillingConsole')}
+      </Button>
+    </div>
+  )
+}
+
 /**
  * Home starts from the job: a dynamic greeting, the format tiles, one composer,
  * then the capability signals and a bottom AI disclaimer. Centered in the
@@ -78,6 +180,8 @@ export function HomeHero({ name, lastFile, onAsk, hour, ...blank }: HomeHeroProp
   }
   return (
     <section className="home-hero" aria-labelledby="home-hero-ask">
+      <HomeAccountBar />
+      <HomeGuide />
       <h1 id="home-hero-ask" className="home-hero__ask">
         {line}
       </h1>

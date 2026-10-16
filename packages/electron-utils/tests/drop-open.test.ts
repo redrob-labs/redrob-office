@@ -208,9 +208,11 @@ describe('installDropOpenBridge', () => {
       const ev = fileDrag(['report.docx', 'plan.md', 'photo.png'])
       win.fire('drop', ev)
       await vi.waitFor(() =>
+        // every file rides along: the shell reports the ones it cannot open
         expect(electronMocks.send).toHaveBeenCalledWith(DROP_OPEN_CHANNEL, [
           '/tmp/report.docx',
           '/tmp/plan.md',
+          '/tmp/photo.png',
         ]),
       )
       expect(ev.preventDefault).toHaveBeenCalled()
