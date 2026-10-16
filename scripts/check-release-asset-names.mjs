@@ -42,8 +42,8 @@ const INSTALLABLE = ['-portable.zip', '.msi', '.dmg', '.AppImage', '.deb', '.rpm
 // Published beside the installable ones, in the same grammar, but not installed by the
 // launcher: the Windows installer (an exe installer never is) and the mac updater zip.
 const COMPANIONS = ['-setup.exe', '.zip']
-// Not packages: feed files, differential maps, checksums, the launcher manifest.
-const SIDE_FILES = /^(latest(-mac|-linux)?\.yml|.*\.blockmap|.*\.sha256|redrob-launcher\.json)$/
+// Not packages: feed files, differential maps, checksums, the launcher manifest and the icon it names.
+const SIDE_FILES = /^(latest(-mac|-linux)?\.yml|.*\.blockmap|.*\.sha256|redrob-launcher\.json|redrob-office\.png)$/
 // electron-builder's own notes, written into the output directory beside the packages.
 // The desktop jobs check apps/shell/release as built (the Linux job stages into
 // release-assets, which is why only they saw it): v0.10.0's macOS and Windows jobs
