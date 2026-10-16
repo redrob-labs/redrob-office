@@ -45,6 +45,21 @@ Console's one-click **Connect Redrob** device flow (where the app shows a short
 code and you approve it in Console instead of copying a key) is not wired into
 this app yet. Redrob Code and Redrob Cowork use it today; Office does not.
 
+## Control from Redrob Code
+
+While Office is running it registers its document tools with the shared Redrob Code
+daemon on this machine (MCP over loopback, server `app:office`), so a prompt in any
+Redrob surface, a phone chat included, can drive the open tabs. The bridge is optional:
+when no daemon can be reached the shell logs it and runs as usual. The tools act through
+the same paths the File menu uses:
+
+- `list_documents`: one line per open tab with its id, app kind, file path, dirty flag and active marker.
+- `open_document`: open a file in the editor its extension belongs to, like File > Open; answers the tab id.
+- `read_document`: the slide outline of a slides tab, or the saved text of a markdown tab (capped at 8000 characters).
+- `save_document`: save a tab to its own file, like Ctrl+S.
+- `save_as`: save a pdf tab to a new path without touching the original.
+- `export_pdf`: start a sheets, slides or markdown tab's PDF export; the editor asks for the destination.
+
 ## Local development
 
 Node 22, pnpm 9.15.0, Electron and Turborepo.

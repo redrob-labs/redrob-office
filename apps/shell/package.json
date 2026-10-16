@@ -54,7 +54,10 @@
   },
   "dependencies": {
     "@embedpdf/pdfium": "^2.15.0",
-    "undici": "^6.28.0"
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@redrob-labs/sdk": "0.6.2",
+    "undici": "^6.28.0",
+    "zod": "4.3.6"
   },
   "author": "Redrob"
 }
