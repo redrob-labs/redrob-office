@@ -77,7 +77,7 @@ import {
   windowMenuTemplate,
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
-import { registerRedrobConnectIpc } from './redrob-connect'
+import { keySignInDeps, registerRedrobConnectIpc, watchKeySources } from './redrob-connect'
 import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
 import {
   ANALYTICS_ENABLED_KEY,
@@ -4654,8 +4654,14 @@ const identityService = new IdentityService({
     // only Console's own pages, which the provider has already checked
     if (/^https:\/\//.test(url)) void shell.openExternal(url)
   },
+  // The shared account contract: a key from Redrob Launcher's account.json (or
+  // this app's own) is a sign-in, read now and re-read whenever either file
+  // changes, so a launcher sign-in counts here and no sign-in prompt follows it.
+  key: keySignInDeps(),
 })
 identityService.register(ipcMain)
+void identityService.refreshKey()
+watchKeySources(() => void identityService.refreshKey())
 
 // Version history: every Docs save is kept on this computer; restores open as a copy.
 const versionStore = new VersionStore({ root: join(app.getPath('userData'), 'versions') })

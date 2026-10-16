@@ -25,7 +25,14 @@ export type SignInResult =
   | { status: 'failed'; code: string }
 
 export interface IdentityApi {
-  identityStatus(): Promise<PublicIdentity & { persistent: boolean; provider?: 'console' | 'dev' }>
+  identityStatus(): Promise<
+    PublicIdentity & {
+      persistent: boolean
+      provider?: 'console' | 'dev'
+      /** set when the sign-in is a Console API key: this app's own, or Redrob Launcher's shared account */
+      source?: 'own' | 'launcher'
+    }
+  >
   startSignIn(): Promise<SignInAttempt | { status: 'unavailable' }>
   awaitSignIn(id: string): Promise<SignInResult>
   cancelSignIn(id: string): Promise<void>
