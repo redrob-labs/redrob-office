@@ -130,6 +130,19 @@ jobs:
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "Redrob Code sidecar for this release: **$tag**" >> "$GITHUB_STEP_SUMMARY"
 
+      # The launcher icon: the 512 px app icon as one more release asset, named in
+      # redrob-launcher.json (`icon`) by the shared publish job so Redrob Launcher's catalog shows
+      # this release's own logo. Uploaded under the `release-*` prefix the publish job collects.
+      - name: Launcher icon
+        run: |
+          mkdir -p "$RUNNER_TEMP/launcher-icon"
+          cp apps/shell/build/icons/512x512.png "$RUNNER_TEMP/launcher-icon/redrob-office.png"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-launcher-icon
+          path: ${{ runner.temp }}/launcher-icon/redrob-office.png
+          if-no-files-found: error
+
   windows:
     name: Windows x64
     needs: version
@@ -511,6 +524,7 @@ jobs:
       version: ${{ needs.version.outputs.version }}
       title: Redrob Office
       launcher_manifest: true
+      launcher_icon: redrob-office.png
       publish: true
       tag: ${{ needs.version.outputs.tag }}
       target: ${{ needs.version.outputs.sha }}

@@ -80,6 +80,7 @@ import {
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
 import { keySignInDeps, registerRedrobConnectIpc, watchKeySources } from './redrob-connect'
 import { registerEngineIpc, teardownEngine } from './engine-lifecycle'
+import { startOfficeBridge, stopOfficeBridge } from './office-bridge'
 import {
   ANALYTICS_ENABLED_KEY,
   analyticsEnabledFrom,
@@ -4857,6 +4858,9 @@ app.whenReady().then(async () => {
 
   if (!pendingLaunchPath || !openDocumentPath(pendingLaunchPath)) tabManager?.openHomeTab()
   pendingLaunchPath = null
+  // Hand the shared Redrob Code daemon this shell's document tools (phone-chat control).
+  // Optional: a daemon that cannot be reached is logged inside and the shell runs without it.
+  if (tabManager) void startOfficeBridge({ tabs: tabManager, openDocumentPath })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createShellWindow()
@@ -4873,6 +4877,8 @@ app.on('before-quit', () => {
   stopSheetsSidecar()
   // Stop the offline rhwp-studio loopback server
   void teardownHangul()
+  // Unregister the document tools from the daemon before the attachment is dropped
+  void stopOfficeBridge()
   // Stop the managed engine. An engine left alive holds its port and outlives the app,
   // so the next launch hits EADDRINUSE and the user sees a broken install rather than a
   // stale process.
