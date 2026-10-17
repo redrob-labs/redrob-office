@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.11.0 -- 2026-10-17
+
+### Added
+
+- Redrob Code can drive the open documents. The shell registers an app bridge with the shared Redrob Code daemon at launch (an MCP server on `127.0.0.1`, attached through the engine connection the shell already holds) and exposes six tools that act through the paths the File menu uses: `list_documents`, `open_document`, `read_document` (slides outline, saved markdown text), `save_document`, `save_as` (PDF) and `export_pdf`. Editors that keep their text in the renderer answer a clear error instead of a half-working edit. See "Control from Redrob Code" in the README.
+
+### Changed
+
+- The release carries `redrob-office.png` (the 512 px app icon) so Redrob Launcher's catalog shows this release's own logo.
+
 ## 0.10.10 -- 2026-10-16
 
 ### Fixed
