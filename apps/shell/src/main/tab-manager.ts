@@ -180,6 +180,11 @@ export class TabManager {
     return this.tabs.find((t) => t.id === id)?.view?.webContents ?? null
   }
 
+  /** the file a tab is editing, or undefined for Home / an untitled document */
+  filePathOf(id: string): string | undefined {
+    return this.tabs.find((t) => t.id === id)?.filePath
+  }
+
   openHomeTab(): void {
     this.activateTab(HOME_ID)
   }
