@@ -168,7 +168,7 @@ import {
 import { saveUntilPersisted } from './save-until-persisted'
 import { cachedByDoc } from './doc-cache'
 import { useShallowStable, useStableCallbacks } from './use-stable'
-import { FindPanel } from './components/FindPanel'
+import { FindPanel, findMatches } from './components/FindPanel'
 import { Ribbon } from './components/Ribbon'
 import { computeFormatState } from './components/ribbon-format-state'
 import { IconRedo, IconSave, IconUndo } from './components/icons'
@@ -3540,6 +3540,31 @@ export function App() {
       offSave?.()
     }
   }, [doc, save, autoSave])
+
+  // App bridge replace_text: the Find panel's own match scan and insertText path, in one
+  // editor transaction, so a single ⌘Z reverts it and the dirty flag updates as usual
+  useEffect(() => {
+    const off = window.desktop.onBridgeReplaceText?.((request) => {
+      const reply = (result: { ok: boolean; replaced?: number; error?: string }) =>
+        window.desktop.reportBridgeReplaceText({ ...result, requestId: request.requestId })
+      if (!editor || editor.isDestroyed) return reply({ ok: false, error: 'No document is open' })
+      if (!editor.isEditable) return reply({ ok: false, error: 'The document is read-only' })
+      if (!request.find) return reply({ ok: false, error: 'find must not be empty' })
+      const found = findMatches(editor, request.find, {
+        matchCase: request.matchCase,
+        wholeWord: false,
+      })
+      const targets = request.all ? found : found.slice(0, 1)
+      if (targets.length > 0) {
+        editor.commands.command(({ tr }) => {
+          for (const m of [...targets].reverse()) tr.insertText(request.replace, m.from, m.to)
+          return true
+        })
+      }
+      reply({ ok: true, replaced: targets.length })
+    })
+    return () => off?.()
+  }, [editor])
 
   // autosave: every 30s and on window blur, silently persist pending changes
   useEffect(() => {

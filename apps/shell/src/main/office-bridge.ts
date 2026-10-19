@@ -6,8 +6,11 @@
  * Every tool acts on the real tabs through the code paths the menus already use:
  * `openDocumentPath` for File > Open, the per-app save/export requests the File menu
  * sends to a tab's renderer, and the slides session the main process already owns.
- * Nothing here reaches into a renderer by a new channel; where an app keeps its text
- * only in the renderer (sheets cells, hangul, pdf) the read tool says so instead of
+ * The two edit tools (write_cells, replace_text) ask the tab's renderer over a
+ * request/response channel to apply the edit through the editor's own undoable path
+ * (sheets: the AI panel's set_range plan; docs: the Find panel's replace), since that
+ * edit state lives only in the renderer. Where an app keeps its text only in the
+ * renderer and has no such channel (hangul, pdf) the tool says so instead of
  * guessing.
  *
  * The bridge is optional: a daemon that cannot be reached is logged and the shell runs
@@ -22,7 +25,7 @@ import { z } from 'zod'
 
 import type { SlideElement, TextBody } from '@genoffice/pptx-engine'
 
-import { docsQueryDirty } from '../../../docs/src/main/docs-main'
+import { docsQueryDirty, requestDocsReplaceText } from '../../../docs/src/main/docs-main'
 import {
   hangulFilePath,
   hangulIsDirty,
@@ -35,7 +38,10 @@ import {
   sendMarkdownExportRequest,
 } from '../../../markdown/src/main/markdown-main'
 import { flushPdfSave, pdfIsDirty, requestPdfSaveAs } from '../../../pdf/src/main/pdf-main'
-import { sheetsPendingEditCount } from '../../../sheets/src/main/sheets-main'
+import {
+  requestSheetsWriteCells,
+  sheetsPendingEditCount,
+} from '../../../sheets/src/main/sheets-main'
 import { IPC_CHANNELS as SHEETS_CHANNELS } from '../../../sheets/src/shared/ipc-channels'
 import { sessions as slidesSessions } from '../../../slides/src/main/session-state'
 import { slidesIsDirty } from '../../../slides/src/main/slides-main'
@@ -277,6 +283,56 @@ function tools(hooks: OfficeBridgeHooks): ToolDef[] {
             throw new Error(`export_pdf is not available for ${tab.kind} tabs`)
         }
         return `PDF export requested for ${tab.id}; the destination is chosen in the app`
+      },
+    },
+    {
+      name: 'write_cells',
+      description:
+        'Write a rectangular block of values into a sheets tab, as typing them would: strings starting with "=" are formulas, null clears a cell. Applied through the editor, so Ctrl+Z undoes it; the workbook stays unsaved until save_document. Answers the number of cells changed. At most 500 rows x 100 columns per call.',
+      input: z.object({
+        tab_id: tabIdArg,
+        sheet: z.string().optional().describe('Sheet name. Omitted: the active sheet.'),
+        range: z
+          .string()
+          .describe('A1 top-left cell ("B2") or full range ("B2:D5", must match the size of values)'),
+        values: z
+          .array(z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])))
+          .describe('Rows of cell values, all rows the same length'),
+      }),
+      handler: async ({ tab_id, sheet, range, values }) => {
+        const tab = resolveTab(hooks, tab_id as string | undefined)
+        if (tab.kind !== 'sheets') throw new Error(`write_cells is only available for sheets tabs, not ${tab.kind}`)
+        const result = await requestSheetsWriteCells(tab.wc, {
+          ...(typeof sheet === 'string' && sheet ? { sheet } : {}),
+          range: String(range),
+          values: values as (string | number | boolean | null)[][],
+        })
+        if (!result.ok) throw new Error(result.error ?? 'write_cells failed')
+        return `wrote ${result.written ?? 0} cell(s) in ${tab.id}`
+      },
+    },
+    {
+      name: 'replace_text',
+      description:
+        'Find and replace text in a docs tab, as Edit > Replace does (whole document, matches inside one paragraph). Applied as one editor change, so Ctrl+Z undoes it; the document stays unsaved until it is saved in the app. Answers the number of matches replaced (0 when nothing matched).',
+      input: z.object({
+        tab_id: tabIdArg,
+        find: z.string().min(1).describe('Text to find'),
+        replace: z.string().describe('Replacement text (may be empty)'),
+        all: z.boolean().optional().describe('Replace every match (default) or, when false, only the first'),
+        match_case: z.boolean().optional().describe('Case-sensitive match (default false)'),
+      }),
+      handler: async ({ tab_id, find, replace, all, match_case }) => {
+        const tab = resolveTab(hooks, tab_id as string | undefined)
+        if (tab.kind !== 'docs') throw new Error(`replace_text is only available for docs tabs, not ${tab.kind}`)
+        const result = await requestDocsReplaceText(tab.wc, {
+          find: String(find),
+          replace: String(replace),
+          all: all !== false,
+          matchCase: match_case === true,
+        })
+        if (!result.ok) throw new Error(result.error ?? 'replace_text failed')
+        return `replaced ${result.replaced ?? 0} match(es) in ${tab.id}`
       },
     },
   ]

@@ -59,6 +59,8 @@ the same paths the File menu uses:
 - `save_document`: save a tab to its own file, like Ctrl+S.
 - `save_as`: save a pdf tab to a new path without touching the original.
 - `export_pdf`: start a sheets, slides or markdown tab's PDF export; the editor asks for the destination.
+- `write_cells`: write a block of values (or `=` formulas) into a sheets tab at an A1 range; undoable, answers the cell count.
+- `replace_text`: find and replace text in a docs tab (all matches or the first); undoable, answers the match count.
 
 ## Local development
 

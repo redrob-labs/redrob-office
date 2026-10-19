@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.0 -- 2026-10-20
+
+### Added
+
+- Redrob Code can edit an open document, not only read and save it. Two new app-bridge tools apply the change through the editor's own undoable path, so Cmd+Z reverts it like a person's edit: `write_cells` writes a block of values or `=` formulas into a sheets tab at an A1 range and answers the cell count; `replace_text` finds and replaces text in a docs tab (all matches or the first, optional match case) and answers the match count.
+
 ## 0.11.0 -- 2026-10-17
 
 ### Added

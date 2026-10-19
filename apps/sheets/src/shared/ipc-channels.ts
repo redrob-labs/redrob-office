@@ -76,6 +76,9 @@ export const IPC_CHANNELS = {
   pendingEditsChanged: 'workbook:pending-edits',
   closeSaveRequest: 'workbook:close-save-request',
   closeSaveResult: 'workbook:close-save-result',
+  /** App bridge write_cells: main → renderer request, renderer → main result */
+  bridgeWriteCells: 'workbook:bridge-write-cells',
+  bridgeWriteCellsResult: 'workbook:bridge-write-cells-result',
   exportPdf: 'workbook:export-pdf',
   exportCsv: 'workbook:export-csv',
   csvSaveConfirm: 'workbook:csv-save-confirm',
