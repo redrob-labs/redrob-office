@@ -14,6 +14,7 @@ import type {
   AttachmentImageResult,
   AttachmentMeta,
   AttachmentReadResult,
+  BridgeWriteCellsRequest,
   DesktopApi,
   PasswordPromptPayload,
   RecoveryPromptPayload,
@@ -420,6 +421,29 @@ const desktopApi: DesktopApi = {
   },
   reportCloseSaveResult(ok) {
     ipcRenderer.send(IPC_CHANNELS.closeSaveResult, ok === true)
+  },
+  onBridgeWriteCells(callback) {
+    const listener = (_event: unknown, payload: unknown): void => {
+      if (
+        isRecord(payload) &&
+        typeof payload.requestId === 'string' &&
+        typeof payload.range === 'string' &&
+        (payload.sheet === undefined || typeof payload.sheet === 'string') &&
+        Array.isArray(payload.values)
+      ) {
+        callback(payload as unknown as BridgeWriteCellsRequest)
+      }
+    }
+    ipcRenderer.on(IPC_CHANNELS.bridgeWriteCells, listener)
+    return () => ipcRenderer.removeListener(IPC_CHANNELS.bridgeWriteCells, listener)
+  },
+  reportBridgeWriteCells(result) {
+    ipcRenderer.send(IPC_CHANNELS.bridgeWriteCellsResult, {
+      requestId: String(result?.requestId ?? ''),
+      ok: result?.ok === true,
+      ...(typeof result?.written === 'number' ? { written: result.written } : {}),
+      ...(typeof result?.error === 'string' ? { error: result.error } : {}),
+    })
   },
   onRecoveryPrompt(callback) {
     const listener = (_event: unknown, payload: unknown): void => {

@@ -139,6 +139,7 @@ import {
   filteredCopySourceRows,
   matchableCellText,
   replaceOccurrences,
+  workbookOperationSchema,
   type WorkbookOperation,
 } from '../domain/workbook-dsl'
 import { offsetFormulaRefs } from '../domain/formula-shift'
@@ -201,6 +202,8 @@ import { ATTACHMENT_IMAGE_EXTS } from '../shared/desktop-api'
 import type {
   AttachmentAddResult,
   AttachmentMeta,
+  BridgeWriteCellsRequest,
+  BridgeWriteCellsResult,
   MenuAction,
   PasswordPromptPayload,
   RecoveryPromptPayload,
@@ -675,6 +678,10 @@ export function App(): React.JSX.Element {
     (mode: 'save' | 'save-as' | 'recovery', quiet?: boolean) => Promise<void>
   >(() => Promise.resolve())
   const closeSaveRef = useRef<() => Promise<void>>(() => Promise.resolve())
+  /// App bridge write_cells handler (assigned each render, like closeSaveRef).
+  const bridgeWriteCellsRef = useRef<
+    (request: BridgeWriteCellsRequest) => Promise<Omit<BridgeWriteCellsResult, 'requestId'>>
+  >(() => Promise.resolve({ ok: false, error: 'Workbook not ready.' }))
   const refreshSelectionFormatRef = useRef<() => void>(() => {})
   const chartEditRef = useRef<(chartPath: string, edit: ChartEditData) => void>(() => {})
   const chartVectorRef = useRef<(chartPath: string, range: string) => Promise<ChartVectorRead>>(
@@ -2506,6 +2513,19 @@ export function App(): React.JSX.Element {
     const unsubscribeCloseSave =
       window.desktopApi?.onCloseSaveRequest?.(() => void closeSaveRef.current()) ??
       (() => undefined)
+    // App bridge write_cells from the shell's Redrob Code bridge: apply and report.
+    const unsubscribeBridgeWrite =
+      window.desktopApi?.onBridgeWriteCells?.((request) => {
+        void bridgeWriteCellsRef
+          .current(request)
+          .catch((error: unknown) => ({
+            ok: false,
+            error: error instanceof Error ? error.message : String(error),
+          }))
+          .then((result) =>
+            window.desktopApi?.reportBridgeWriteCells?.({ ...result, requestId: request.requestId }),
+          )
+      }) ?? (() => undefined)
     const gridHost = document.getElementById('univer-container')
     let selectionAskRaf: number | null = null
     let selectionAskSettleRaf: number | null = null
@@ -2648,6 +2668,7 @@ export function App(): React.JSX.Element {
     return () => {
       unsubscribeMenu()
       unsubscribeCloseSave()
+      unsubscribeBridgeWrite()
       offThemeChanged?.()
       undoRedoSub.unsubscribe()
       findRevealDispose()
@@ -5022,6 +5043,35 @@ export function App(): React.JSX.Element {
     window.desktopApi?.reportCloseSaveResult?.(
       after === null || journalSize(after.editJournal) === 0,
     )
+  }
+  // App bridge write_cells: one set_range through the AI panel's plan path, so the
+  // write lands in the edit journal and ⌘Z / the panel's [Undo] revert it.
+  bridgeWriteCellsRef.current = async (request) => {
+    const workbook = univerRef.current?.univerAPI.getActiveWorkbook()
+    if (!workbook) return { ok: false, error: 'No workbook is open.' }
+    const worksheet = request.sheet
+      ? workbook.getSheetByName(request.sheet)
+      : workbook.getActiveSheet()
+    if (!worksheet) return { ok: false, error: `No sheet named ${request.sheet}` }
+    const range = request.range.trim().toUpperCase()
+    let operations: WorkbookOperation[]
+    try {
+      operations = [
+        workbookOperationSchema.parse({
+          op: 'set_range',
+          sheetId: worksheet.getSheetId(),
+          ...(range.includes(':') ? { range } : { start: range }),
+          values: request.values,
+        }),
+      ]
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : 'Invalid write_cells input' }
+    }
+    const outcome = proposeOperationsImpl(planContext(), operations, `write_cells ${range}`)
+    if (!outcome.ok) return { ok: false, error: outcome.error }
+    const applied = await outcome.applied
+    if (!applied.ok) return { ok: false, error: applied.reason ?? 'The write was not applied' }
+    return { ok: true, written: outcome.plan.cellChanges.length }
   }
   function sortColumnOptions(): { label: string; colIndex: number }[] {
     const range = univerRef.current?.univerAPI.getActiveWorkbook()?.getActiveRange()

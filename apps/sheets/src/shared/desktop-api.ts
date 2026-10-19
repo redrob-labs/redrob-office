@@ -2663,6 +2663,25 @@ export interface RecoveryPromptPayload {
   savedAtMs: number
 }
 
+/** App bridge write_cells: main asks this tab's renderer to write a block of cells. */
+export interface BridgeWriteCellsRequest {
+  requestId: string
+  /** Sheet name; omitted = the active sheet */
+  sheet?: string
+  /** A1 top-left cell ("B2") or full range ("B2:D5", must match values' size) */
+  range: string
+  /** Rectangular rows of values; strings starting with "=" are formulas, null clears */
+  values: (string | number | boolean | null)[][]
+}
+
+export interface BridgeWriteCellsResult {
+  requestId: string
+  ok: boolean
+  /** Cells written, when ok */
+  written?: number
+  error?: string
+}
+
 /** Password prompt raised by main while opening an encrypted workbook (strings pre-localized). */
 export interface PasswordPromptPayload {
   title: string
@@ -2752,6 +2771,10 @@ export interface DesktopApi extends Partial<OfficePrefsApi>, Partial<FactsBridge
   /// Main asks the renderer to save before closing; reply via reportCloseSaveResult.
   onCloseSaveRequest(callback: () => void): () => void
   reportCloseSaveResult(ok: boolean): void
+  /// App bridge write_cells: main asks the renderer to write cells through the
+  /// same undoable plan path the AI panel uses; reply via reportBridgeWriteCells.
+  onBridgeWriteCells(callback: (request: BridgeWriteCellsRequest) => void): () => void
+  reportBridgeWriteCells(result: BridgeWriteCellsResult): void
   /// Main found a newer autosaved recovery copy while opening a workbook; the
   /// renderer shows the styled restore prompt and replies via replyRecoveryPrompt.
   /// Strings arrive pre-localized from the main process.
