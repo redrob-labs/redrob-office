@@ -383,6 +383,27 @@ export interface DesktopApi {
   /** Close guard chose "Save": main process asks the renderer to run the full save flow */
   onCloseSaveRequest(handler: () => void): () => void
   reportCloseSaveResult(ok: boolean): void
+  /** App bridge replace_text: main asks the renderer to find/replace through the editor; reply via reportBridgeReplaceText */
+  onBridgeReplaceText(handler: (request: BridgeReplaceTextRequest) => void): () => void
+  reportBridgeReplaceText(result: BridgeReplaceTextResult): void
   /** keep the native View menu's checkbox items in sync with renderer state */
   reportViewMenuState(state: { aiSidebar: boolean; darkCanvas: boolean }): void
+}
+
+/** App bridge replace_text request (main → renderer). */
+export interface BridgeReplaceTextRequest {
+  requestId: string
+  find: string
+  replace: string
+  /** true: every match; false: only the first match in document order */
+  all: boolean
+  matchCase: boolean
+}
+
+export interface BridgeReplaceTextResult {
+  requestId: string
+  ok: boolean
+  /** matches replaced, when ok */
+  replaced?: number
+  error?: string
 }

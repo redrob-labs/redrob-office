@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import {
   existsSync,
   mkdirSync,
@@ -89,6 +89,8 @@ import type {
   AttachmentImageResult,
   AttachmentMeta,
   AttachmentReadResult,
+  BridgeReplaceTextRequest,
+  BridgeReplaceTextResult,
   CreateDocumentRequest,
   CreateDocumentResult,
   DecryptOpenResult,
@@ -4156,6 +4158,46 @@ function queryCloseState(contents: WebContents): Promise<DocsCloseState> {
 
 export async function docsQueryDirty(contents: WebContents): Promise<boolean> {
   return (await queryCloseState(contents)).dirty
+}
+
+// ── App bridge replace_text: main asks the docs renderer to find/replace through the
+// editor (one undoable transaction) and awaits the match count ──
+const bridgeReplaceWaiters = new Map<string, (result: BridgeReplaceTextResult) => void>()
+
+ipcMain.on('docs:bridge-replace-text-result', (_event, result: unknown) => {
+  const r = result as Partial<BridgeReplaceTextResult> | null
+  if (!r || typeof r.requestId !== 'string') return
+  bridgeReplaceWaiters.get(r.requestId)?.({
+    requestId: r.requestId,
+    ok: r.ok === true,
+    ...(typeof r.replaced === 'number' ? { replaced: r.replaced } : {}),
+    ...(typeof r.error === 'string' ? { error: r.error } : {}),
+  })
+})
+
+export function requestDocsReplaceText(
+  contents: WebContents,
+  request: Omit<BridgeReplaceTextRequest, 'requestId'>,
+): Promise<BridgeReplaceTextResult> {
+  const requestId = randomUUID()
+  if (contents.isDestroyed())
+    return Promise.resolve({ requestId, ok: false, error: 'The docs tab is gone' })
+  return new Promise<BridgeReplaceTextResult>((resolve) => {
+    const finish = (result: BridgeReplaceTextResult): void => {
+      clearTimeout(timer)
+      bridgeReplaceWaiters.delete(requestId)
+      if (!contents.isDestroyed()) contents.removeListener('destroyed', onGone)
+      resolve(result)
+    }
+    const onGone = (): void => finish({ requestId, ok: false, error: 'The docs tab closed' })
+    const timer = setTimeout(
+      () => finish({ requestId, ok: false, error: 'The docs editor did not answer' }),
+      30_000,
+    )
+    bridgeReplaceWaiters.set(requestId, finish)
+    contents.once('destroyed', onGone)
+    contents.send('docs:bridge-replace-text', { ...request, requestId })
+  })
 }
 
 /** Ask the renderer to run the full save flow and await the result (failure/timeout = false). */
