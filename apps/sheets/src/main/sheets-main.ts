@@ -2303,7 +2303,9 @@ export function registerSheetsIpc(): void {
       ...(typeof r.written === 'number' ? { written: r.written } : {}),
       ...(typeof r.error === 'string' ? { error: r.error } : {}),
     })
-  }) — last (identical) registration wins
+  })
+
+  // shared with the other editor modules — last (identical) registration wins
   ipcMain.removeHandler('app:get-language')
   ipcMain.handle('app:get-language', () => getUiLang())
 
