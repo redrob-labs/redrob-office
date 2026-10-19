@@ -6,6 +6,7 @@ import type {
   AiSettings,
   AiStreamChunk,
   AiStreamRequest,
+  BridgeReplaceTextRequest,
   DesktopApi,
   MenuCommand,
   UiTheme,
@@ -191,6 +192,29 @@ const api: DesktopApi = {
     return () => ipcRenderer.removeListener('docs:close-save-request', listener)
   },
   reportCloseSaveResult: (ok: boolean) => ipcRenderer.send('docs:close-save-result', ok === true),
+  onBridgeReplaceText: (handler: (request: BridgeReplaceTextRequest) => void) => {
+    const listener = (_event: IpcRendererEvent, payload: unknown) => {
+      const p = payload as Partial<BridgeReplaceTextRequest> | null
+      if (!p || typeof p.requestId !== 'string' || typeof p.find !== 'string') return
+      if (typeof p.replace !== 'string') return
+      handler({
+        requestId: p.requestId,
+        find: p.find,
+        replace: p.replace,
+        all: p.all === true,
+        matchCase: p.matchCase === true,
+      })
+    }
+    ipcRenderer.on('docs:bridge-replace-text', listener)
+    return () => ipcRenderer.removeListener('docs:bridge-replace-text', listener)
+  },
+  reportBridgeReplaceText: (result) =>
+    ipcRenderer.send('docs:bridge-replace-text-result', {
+      requestId: String(result?.requestId ?? ''),
+      ok: result?.ok === true,
+      ...(typeof result?.replaced === 'number' ? { replaced: result.replaced } : {}),
+      ...(typeof result?.error === 'string' ? { error: result.error } : {}),
+    }),
 }
 
 const projectApi: ProjectApi = {

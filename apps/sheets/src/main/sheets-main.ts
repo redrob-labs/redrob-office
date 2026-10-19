@@ -99,6 +99,8 @@ import type {
   AttachmentImageResult,
   AttachmentMeta,
   AttachmentReadResult,
+  BridgeWriteCellsRequest,
+  BridgeWriteCellsResult,
   WorkbookFile,
 } from '../shared/desktop-api'
 import {
@@ -2122,6 +2124,41 @@ export function sheetsPendingEditCount(webContentsId: number): number {
   return pendingEditCounts.get(webContentsId) ?? 0
 }
 
+// App bridge write_cells: one waiter per request id, answered by the renderer's
+// bridgeWriteCellsResult (registered in registerSheetsIpc).
+const bridgeWriteWaiters = new Map<string, (result: BridgeWriteCellsResult) => void>()
+const BRIDGE_WRITE_TIMEOUT_MS = 30_000
+
+/**
+ * Ask a sheets tab's renderer to write a block of cells through its own undoable
+ * apply path (the AI panel's propose_operations plan), and await the outcome.
+ * A renderer that never answers, or goes away, resolves as an error.
+ */
+export function requestSheetsWriteCells(
+  contents: WebContents,
+  request: Omit<BridgeWriteCellsRequest, 'requestId'>,
+): Promise<BridgeWriteCellsResult> {
+  const requestId = randomUUID()
+  if (contents.isDestroyed())
+    return Promise.resolve({ requestId, ok: false, error: 'The sheets tab is gone' })
+  return new Promise<BridgeWriteCellsResult>((resolve) => {
+    const finish = (result: BridgeWriteCellsResult): void => {
+      clearTimeout(timer)
+      bridgeWriteWaiters.delete(requestId)
+      if (!contents.isDestroyed()) contents.removeListener('destroyed', onGone)
+      resolve(result)
+    }
+    const onGone = (): void => finish({ requestId, ok: false, error: 'The sheets tab closed' })
+    const timer = setTimeout(
+      () => finish({ requestId, ok: false, error: 'The sheets editor did not answer' }),
+      BRIDGE_WRITE_TIMEOUT_MS,
+    )
+    bridgeWriteWaiters.set(requestId, finish)
+    contents.once('destroyed', onGone)
+    contents.send(IPC_CHANNELS.bridgeWriteCells, { ...request, requestId })
+  })
+}
+
 /**
  * Close guard for a sheets renderer: true means proceed with the close.
  * Clean → true; dirty → Save/Don't Save/Cancel dialog. Save asks the renderer to run
@@ -2255,6 +2292,17 @@ export function registerSheetsIpc(): void {
     if (!waiter) return
     closeSaveWaiters.delete(event.sender.id)
     waiter(ok === true)
+  })
+
+  ipcMain.on(IPC_CHANNELS.bridgeWriteCellsResult, (_event, result: unknown) => {
+    const r = result as Partial<BridgeWriteCellsResult> | null
+    if (!r || typeof r.requestId !== 'string') return
+    bridgeWriteWaiters.get(r.requestId)?.({
+      requestId: r.requestId,
+      ok: r.ok === true,
+      ...(typeof r.written === 'number' ? { written: r.written } : {}),
+      ...(typeof r.error === 'string' ? { error: r.error } : {}),
+    })
   })
 
   // shared with the other editor modules — last (identical) registration wins
