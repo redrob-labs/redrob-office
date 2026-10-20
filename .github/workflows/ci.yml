@@ -1,13 +1,13 @@
 name: CI
 
-# Pull requests only: a push to main is a merge of a pull request that already ran here,
-# and the release workflow builds the tag itself. No schedule -- the full native matrix is
-# a manual run.
+# Pull requests run ONE fast path: install, the seconds-long repo checks, typecheck and the
+# fast package unit tests. Everything slow -- the full build, every app suite, the sheets
+# Rust engine, the Hangul-core rebuild, Windows and macOS -- is a manual run
+# (workflow_dispatch). A push to main is a merge of a pull request that already ran here,
+# and the release workflow builds the tag itself.
 on:
   pull_request:
-    # A pull request into main only promotes commits that already passed here on develop
-    # (or a hotfix that releases on its own run); re-running CI there bought nothing but a
-    # ~7-minute wait before every release. Every other pull request still runs.
+    # A pull request into main only promotes commits that already passed here on develop.
     branches-ignore: [main, master]
   workflow_dispatch:
 
@@ -16,6 +16,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # heavy=false when the pull request only touches docs or only bumps version strings.
+  # The heavy job is then skipped, and a skipped job still satisfies its required check.
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    outputs:
+      heavy: ${{ steps.diff.outputs.heavy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The pull_request checkout is the merge commit; its first parent is the base tip.
+          fetch-depth: 2
+
+      - name: Docs-only or version-only?
+        id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" != pull_request ]; then
+            echo "heavy=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          heavy=false
+          # Lines of a -U0 diff that are not a version string change.
+          not_version() {
+            git diff -U0 HEAD^1 HEAD -- "$1" \
+              | grep -vE '^(diff --git|index |--- |\+\+\+ |@@ )' \
+              | grep -vE "$2" || true
+          }
+          while IFS= read -r -d '' f; do
+            base="${f##*/}"
+            case "$f" in
+              *.md|docs/*|LICENSE*|CHANGELOG*) continue ;;
+            esac
+            case "$base" in
+              VERSION|REDROB_VERSION|*-version.txt) continue ;;
+              package.json)
+                [ -z "$(not_version "$f" '^[+-][[:space:]]*"version":[[:space:]]*"[^"]*",?[[:space:]]*$')" ] && continue ;;
+              Cargo.toml|Cargo.lock)
+                [ -z "$(not_version "$f" '^[+-]version = "[^"]*"[[:space:]]*$')" ] && continue ;;
+            esac
+            echo "heavy: $f"
+            heavy=true
+            break
+          done < <(git diff -z --name-only HEAD^1 HEAD)
+          echo "heavy=$heavy" | tee -a "$GITHUB_OUTPUT"
+
   boundary:
     name: fork boundary & licences
     runs-on: ubuntu-latest
@@ -26,15 +73,15 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      # The boundary guard needs nothing installed: it reads upstream-base.json and
-      # the licence notices. Keep it in its own job so an attribution regression is
-      # not hidden behind a 10-minute build. The dependency licence gate runs in the
-      # build job instead, because `pnpm licenses list` needs a resolved install.
+      # Reads upstream-base.json and the licence notices; nothing installed, seconds long.
       - name: Fork boundary
         run: node scripts/check-upstream-boundary.mjs
 
+  # The required check. Name kept exactly: branch protection on develop requires it.
   build-test-linux:
     name: build & test (ubuntu-latest)
+    needs: changes
+    if: needs.changes.outputs.heavy == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,28 +95,70 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
-      # @genoffice/sheets builds a native Rust xlsx-engine (cargo) during
-      # `pnpm build`; without a toolchain the build job dies at `cargo: not found`.
-      - uses: dtolnay/rust-toolchain@stable
-
       - name: Install
         run: pnpm install --frozen-lockfile
 
       - name: Dependency licences
         run: pnpm check:licenses
 
-      # NOTE: Hangul-core provenance (--check) is NOT run here. It lives in the
-      # dedicated, non-required `hwp-core reproducible` job below. It currently
-      # fails because the vendored engines/rhwp snapshot is missing binary
-      # assets (blank2010_assets/*.bin, excluded by .gitignore `*.bin`) so the
-      # source digest cannot match the recorded one. Tracked as a backlog item;
-      # keeping it out of the required build & test lets real build/test gate
-      # merges while reproducibility stays visibly red in its own job.
       - name: Design-system tokens
         run: pnpm check:ui-tokens
 
       - name: English copy
         run: pnpm check:copy
+
+      # --only: typecheck every package without first building its dependencies. No
+      # source imports another app's build output, and the ^build step is what pulled
+      # in the electron-vite builds and the two-minute sheets cargo build.
+      - name: Typecheck
+        run: pnpm exec turbo run typecheck --only
+
+      # The fast package suites (seconds each). App suites, the engine suites and the
+      # Hangul harnesses run in `full build & test` on a manual run.
+      - name: Fast unit tests
+        run: >-
+          pnpm exec turbo run test --only
+          --filter=@genoffice/agent-core
+          --filter=@genoffice/ai-provider
+          --filter=@genoffice/ai-search
+          --filter=@genoffice/electron-utils
+          --filter=@genoffice/facts
+          --filter=@genoffice/file-parse
+          --filter=@genoffice/font-metrics
+          --filter=@genoffice/hwp-core
+          --filter=@genoffice/i18n
+          --filter=@genoffice/identity
+          --filter=@genoffice/project-store
+          --filter=@genoffice/sync-client
+          --filter=@genoffice/versions
+          --filter=@rhwp/editor
+
+  # Manual run only: the full build, the preload check and every suite, on all three OSes.
+  full:
+    name: full build & test (${{ matrix.os }})
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # @genoffice/sheets builds a native Rust xlsx-engine (cargo) during `pnpm build`.
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
@@ -78,19 +167,19 @@ jobs:
         run: pnpm build
 
       # A sandboxed preload that requires a workspace package throws at load and
-      # the editor opens blank; nothing else in this job notices.
+      # the editor opens blank; nothing else notices.
       - name: Preload bundles
         run: pnpm check:preload
 
       - name: Test
         run: pnpm test
 
-  # The Hangul core (engines/rhwp → packages/hwp-core/wasm). The fast check
-  # compares the committed wasm and engine source with provenance.json; the
-  # rebuild proves the committed wasm really comes from the committed source.
-  # Not a required check: the rebuild takes about ten minutes.
+  # Manual run only (about ten minutes). The fast check compares the committed wasm and
+  # engine source with provenance.json; the rebuild proves the committed wasm really
+  # comes from the committed source.
   hwp-core:
     name: hwp-core reproducible
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -121,41 +210,3 @@ jobs:
 
       - name: Rebuilt bytes match provenance.json
         run: node scripts/hwp-core-provenance.mjs --check
-
-  # Windows + macOS only on the weekly schedule or a manual run.
-  build-test-native:
-    name: build & test (${{ matrix.os }})
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Build
-        run: pnpm build
-
-      # A sandboxed preload that requires a workspace package throws at load and
-      # the editor opens blank; nothing else in this job notices.
-      - name: Preload bundles
-        run: pnpm check:preload
-
-      - name: Test
-        run: pnpm test

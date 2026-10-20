@@ -3,11 +3,8 @@ name: Sync service
 # The sync service is its own project (services/sync, outside the pnpm
 # workspace). This job is not a required check: it builds the Docker Compose
 # stack, runs the unit tests and the stack tests against it, and tears it down.
+# Integration tests against a Docker stack: a manual run, not pull request CI.
 on:
-  pull_request:
-    paths:
-      - 'services/sync/**'
-      - '.github/workflows/sync.yml'
   workflow_dispatch:
 
 concurrency:
