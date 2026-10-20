@@ -40,11 +40,11 @@ describe('@genoffice/ui re-exports the Redrob design system', () => {
     expect(styles).toBeGreaterThan(tokens)
   })
 
-  it('pins the kit at exactly 1.0.2', () => {
+  it('pins the kit at exactly 1.8.0', () => {
     const pkg = JSON.parse(readFileSync(join(PKG_ROOT, 'package.json'), 'utf8'))
-    expect(pkg.dependencies['@redrob-labs/ui']).toBe('1.0.2')
+    expect(pkg.dependencies['@redrob-labs/ui']).toBe('1.8.0')
     const installed = require('@redrob-labs/ui/package.json') as { version: string; license: string }
-    expect(installed.version).toBe('1.0.2')
+    expect(installed.version).toBe('1.8.0')
     expect(installed.license).toBe('MIT')
   })
 })
