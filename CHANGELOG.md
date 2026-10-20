@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.13.0 -- 2026-10-20
+
+### Changed
+
+- The 2026 Redrob Office app icon, from `@redrob-labs/ui` 1.8.0 (which this release also moves to, from 1.0.2). Every packaged icon is rebuilt from it: the macOS `.icns`, the Windows `.ico`, the Linux hicolor set and `redrob-office.png`, the 512 px icon Redrob Launcher's catalog shows. The PNG and ICO tiles use the rounded variant with transparent corners, so the launcher, the Windows taskbar and Linux menus no longer show a square.
+- PR CI is lighter: one build-and-test job on Ubuntu, skipped for docs-only or version-only changes. The full three-OS build, the reproducible hwp-core build and the Hangul fidelity check run on demand.
+
 ## 0.12.0 -- 2026-10-20
 
 ### Added
