@@ -934,8 +934,8 @@ importers:
         specifier: workspace:*
         version: link:../pptx-render
       '@redrob-labs/ui':
-        specifier: 1.0.2
-        version: 1.0.2(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: 1.8.0
+        version: 1.8.0(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
       '@types/react':
         specifier: 19.2.17
@@ -2451,8 +2451,8 @@ packages:
   '@redrob-labs/sdk@0.6.2':
     resolution: {integrity: sha512-vqgefyMAiWk9JEYgapL9gc2hYoOn3M3dL9y8uujmig7U48vaqjsgw3kKimDOZc34JStG8RJq6f/ETLOZ9MM5SA==}
 
-  '@redrob-labs/ui@1.0.2':
-    resolution: {integrity: sha512-QfjxT1AFq74oJYLuobviBXLR53FAopjZXZolVaqvSmZgDpU7A2CI342rBAtCZuis00WxMcu7xjkrcU7bfVPLWQ==}
+  '@redrob-labs/ui@1.8.0':
+    resolution: {integrity: sha512-3RwrHRytDMbKNpevn5Ydn8a/kF1i5QseimlkQkhrTvRIqOmQG/BENcm3EztX0+C6FHxvo9heSDkml/fGHQZuJw==}
     peerDependencies:
       '@types/react': 19.2.17
       react: ^18.2.0 || ^19.0.0
@@ -6538,7 +6538,7 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
 
-  '@redrob-labs/ui@1.0.2(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@redrob-labs/ui@1.8.0(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
