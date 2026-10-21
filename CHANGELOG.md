@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.13.4 -- 2026-10-22
+
+### Fixed
+
+- Home: Shift+click on a file's checkbox selects (or clears) every file between it and the last one clicked, in Recent and in a project's file list, without dragging a text selection across the rows.
+- Home: a file row's "more" menu opens leftward from its button and stays inside the window; it used to hang off the right edge.
+
 ## 0.13.3 -- 2026-10-21
 
 ### Changed
