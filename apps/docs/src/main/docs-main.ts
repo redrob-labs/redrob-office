@@ -36,6 +36,7 @@ import {
   showSaveDialogWithMemory,
   toggleDevToolsItem,
   windowMenuTemplate,
+  fitToWorkArea,
 } from '@genoffice/electron-utils'
 import { configureMetricsCache, familyVerticalMetrics } from '@genoffice/font-metrics'
 import { createI18n, getUiLang, normalizeLang, setUiLang, toSelectableLang } from '@genoffice/i18n'
@@ -4004,8 +4005,7 @@ export function buildDocsMenu(): void {
 
 export function createDocsWindow(openPath?: string): BrowserWindow {
   const win = new BrowserWindow({
-    width: 1360,
-    height: 900,
+    ...fitToWorkArea(1360, 900),
     minWidth: 980,
     minHeight: 600,
     title: 'Redrob Docs',

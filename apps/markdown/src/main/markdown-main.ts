@@ -22,6 +22,7 @@ import {
   safeExternalUrl,
   showOpenDialogWithMemory,
   showSaveDialogWithMemory,
+  fitToWorkArea,
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { cloudToolsEnabled, type AiSettings } from '@genoffice/ai-provider'
@@ -907,8 +908,7 @@ export function startMarkdownStandalone(): void {
   void app.whenReady().then(() => {
     registerMarkdownIpc()
     const win = new BrowserWindow({
-      width: 1200,
-      height: 850,
+      ...fitToWorkArea(1200, 850),
       webPreferences: {
         preload: runtime.preloadPath,
         contextIsolation: true,

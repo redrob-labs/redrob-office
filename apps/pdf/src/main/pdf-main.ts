@@ -22,6 +22,7 @@ import {
   printHtmlToPdf,
   safeExternalUrl,
   showOpenDialogWithMemory,
+  fitToWorkArea,
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang } from '@genoffice/i18n'
 import { gskGenerateImage, hasGskAuth } from '@genoffice/ai-search'
@@ -1474,8 +1475,7 @@ export function startPdfStandalone(): void {
   void app.whenReady().then(() => {
     registerPdfIpc()
     const win = new BrowserWindow({
-      width: 1200,
-      height: 850,
+      ...fitToWorkArea(1200, 850),
       webPreferences: {
         preload: runtime.preloadPath,
         contextIsolation: true,
