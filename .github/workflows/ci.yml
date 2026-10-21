@@ -1,7 +1,7 @@
 name: CI
 
-# Pull requests run ONE fast path: install, the seconds-long repo checks, typecheck and the
-# fast package unit tests. Everything slow -- the full build, every app suite, the sheets
+# Pull requests run ONE fast path: install, the seconds-long repo checks and one typecheck
+# (the compile). No tests on a pull request. Everything slow -- the full build, every app suite, the sheets
 # Rust engine, the Hangul-core rebuild, Windows and macOS -- is a manual run
 # (workflow_dispatch). A push to main is a merge of a pull request that already ran here,
 # and the release workflow builds the tag itself.
@@ -113,9 +113,10 @@ jobs:
       - name: Typecheck
         run: pnpm exec turbo run typecheck --only
 
-      # The fast package suites (seconds each). App suites, the engine suites and the
-      # Hangul harnesses run in `full build & test` on a manual run.
+      # Pull requests compile once and run no tests; the release build compiles again on
+      # every target. The fast package suites stay for a manual run, next to `full build & test`.
       - name: Fast unit tests
+        if: github.event_name != 'pull_request'
         run: >-
           pnpm exec turbo run test --only
           --filter=@genoffice/agent-core
