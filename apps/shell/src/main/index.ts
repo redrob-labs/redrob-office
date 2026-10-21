@@ -76,6 +76,7 @@ import {
   showOpenDialogWithMemory,
   showSaveDialogWithMemory,
   windowMenuTemplate,
+  fitToWorkArea,
 } from '@genoffice/electron-utils'
 import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
 import { keySignInDeps, registerRedrobConnectIpc, watchKeySources } from './redrob-connect'
@@ -2602,8 +2603,7 @@ function shellWindowFrame(): BrowserWindowConstructorOptions {
 
 function createShellWindow(): void {
   const win = new BrowserWindow({
-    width: 1360,
-    height: 900,
+    ...fitToWorkArea(1360, 900),
     minWidth: 980,
     minHeight: 600,
     title: 'Redrob Office',
@@ -4815,15 +4815,33 @@ app.whenReady().then(async () => {
     }
   }
 
-  proxyBootstrap = installMainProcessProxy()
-  app.setAccessibilitySupportEnabled(true)
+  // Every step before createShellWindow() that is not essential is guarded: a
+  // throw here used to leave a windowless main process (0.13.0 on Windows).
+  try {
+    proxyBootstrap = installMainProcessProxy()
+  } catch (err) {
+    console.error('[startup] installMainProcessProxy failed', err)
+  }
+  try {
+    app.setAccessibilitySupportEnabled(true)
+  } catch (err) {
+    console.error('[startup] setAccessibilitySupportEnabled failed', err)
+  }
   // Settle the shared uiLang from saved settings BEFORE any tab renderer can
   // ask 'app:get-language': the editor handlers return the i18n module's
   // mutable lang, whose 'zh' default otherwise wins the race for whichever
   // tab loads first (e.g. sheets booting in Chinese while docs shows English).
-  currentLang()
+  try {
+    currentLang()
+  } catch (err) {
+    console.error('[startup] currentLang failed', err)
+  }
   // native menus/dialogs/scrollbars follow the persisted theme from first paint
-  nativeTheme.themeSource = currentTheme()
+  try {
+    nativeTheme.themeSource = currentTheme()
+  } catch (err) {
+    console.error('[startup] currentTheme failed', err)
+  }
   // stamp the star-prompt install-age clock on the first launch carrying the feature,
   // and detect upgrade launches (version changed since the previous run)
   try {
@@ -4847,9 +4865,17 @@ app.whenReady().then(async () => {
   } catch {
     // settings write failures must never block startup
   }
-  initAnalytics()
-  analytics.track('app_launch')
-  startSheetsCaptureServer()
+  try {
+    initAnalytics()
+    analytics.track('app_launch')
+  } catch (err) {
+    console.error('[startup] analytics init failed', err)
+  }
+  try {
+    startSheetsCaptureServer()
+  } catch (err) {
+    console.error('[startup] startSheetsCaptureServer failed', err)
+  }
   createShellWindow()
   // deferred to ready: labels need currentLang(), which reads app.getLocale()
   installBackToHomeItems()
@@ -4865,6 +4891,10 @@ app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createShellWindow()
   })
+}).catch((err) => {
+  // Last resort: never leave a silent windowless process behind.
+  dialog.showErrorBox('Redrob Office', String(err?.stack || err))
+  app.quit()
 })
 
 app.on('window-all-closed', () => {

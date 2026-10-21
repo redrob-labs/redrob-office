@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.13.2 -- 2026-10-21
+
+### Fixed
+
+- Windows: a failure in an optional startup step (proxy setup, language or theme lookup, analytics, the Sheets capture server) no longer leaves a running process with no window. Each step is guarded so the main window always opens, and an unexpected startup error now shows an error dialog and quits instead of failing silently.
+- Windows open no larger than the screen's work area, so the default sizes (up to 1440x900) no longer spill off small or scaled displays.
+
 ## 0.13.1 -- 2026-10-21
 
 ### Fixed

@@ -49,6 +49,7 @@ import {
   showSaveDialogWithMemory,
   viewMenuTemplate,
   windowMenuTemplate,
+  fitToWorkArea,
 } from '@genoffice/electron-utils'
 import { createI18n, getUiLang, type Lang, normalizeLang, setUiLang, toSelectableLang } from '@genoffice/i18n'
 import { ProjectStore } from '@genoffice/project-store'
@@ -1892,8 +1893,7 @@ export async function createSheetsWindow(
   sidecar = client
   client.start()
   const window = new BrowserWindow({
-    width: 1440,
-    height: 900,
+    ...fitToWorkArea(1440, 900),
     minWidth: 1024,
     minHeight: 680,
     show: false,
