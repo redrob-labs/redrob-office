@@ -26,40 +26,45 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   width: 220px;
   padding: var(--space-3) var(--space-3) var(--space-4);
 }
 
+/* the same row as Home's sidebar (.nav-item): primary ink, sunken plate on
+ * hover and when active */
 .set-nav-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
+  min-height: var(--control-height-sm);
   padding: var(--space-2) var(--space-3);
   border: none;
   border-radius: var(--radius-md);
   background: none;
   font: var(--text-body-sm);
-  font-size: 14px;
-  color: var(--ink-secondary);
+  color: var(--ink-primary);
   text-align: left;
   cursor: pointer;
 }
 
 .set-nav-item svg {
   flex-shrink: 0;
+  color: var(--ink-secondary);
 }
 
 .set-nav-item:hover:not(.active) {
-  background: var(--surface-raised);
-  color: var(--ink-primary);
+  background: var(--surface-sunken);
 }
 
 .set-nav-item.active {
   background: var(--surface-sunken);
-  color: var(--ink-primary);
   font-weight: 600;
+}
+
+.set-nav-item.active svg {
+  color: var(--ink-primary);
 }
 
 .set-nav-item:focus-visible {
@@ -86,7 +91,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
-  min-height: 52px;
+  /* a small control plus the row's padding */
+  min-height: calc(var(--control-height-sm) + 2 * var(--space-3));
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -106,12 +112,12 @@
 
 .set-field-label {
   flex-shrink: 0;
-  font-size: 14px;
+  font: var(--text-label);
   color: var(--ink-primary);
 }
 
 .set-field-value {
-  font-size: 14px;
+  font: var(--text-body-sm);
   color: var(--ink-secondary);
   text-align: right;
   user-select: text;
@@ -122,14 +128,13 @@
 .set-field-stack {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
 .set-field-desc {
+  margin: 0;
   font: var(--text-body-sm);
-  font-size: 12px;
-  line-height: 18px;
   color: var(--ink-secondary);
 }
 
@@ -199,7 +204,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
   background: var(--surface-raised);
-  font-size: 12px;
+  font: var(--text-body-sm);
   color: var(--ink-secondary);
 }
 
@@ -261,8 +266,7 @@
 
 .id-pane .set-pane-note {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font: var(--text-body-sm);
   color: var(--ink-secondary);
 }
 
@@ -285,7 +289,7 @@
 .id-email,
 .id-uri {
   margin: 0;
-  font-size: 13px;
+  font: var(--text-body-sm);
   color: var(--ink-secondary);
   overflow-wrap: anywhere;
 }
@@ -294,10 +298,10 @@
   margin: 0;
 }
 
+/* the device code: the kit's mono face at subsection size */
 .id-code {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 22px;
-  font-weight: 600;
+  font: var(--text-title-3);
+  font-family: var(--font-mono);
   letter-spacing: 0.12em;
   color: var(--ink-primary);
 }
@@ -325,23 +329,6 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-}
-
-.settings-pane__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--ink-secondary);
-  cursor: pointer;
-}
-.settings-pane__close:hover {
-  background: var(--surface-sunken);
-  color: var(--ink-primary);
 }
 
 /* in pane mode the body fills the remaining content height and scrolls */

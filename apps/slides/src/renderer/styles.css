@@ -368,6 +368,10 @@ button {
 
 .ribbon-tabs-win {
   padding-right: 150px; /* room for windows caption buttons overlay */
+  /* at least as tall as the caption overlay (titleBarOverlay height 40 in
+     slides-main.ts), so the OS buttons never hang into the ribbon below */
+  box-sizing: border-box;
+  min-height: 40px;
 }
 
 .ribbon-file {

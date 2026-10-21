@@ -1,4 +1,4 @@
-// Contract: on Windows and Linux the 62px app chrome IS the title bar.
+// Contract: on Windows and Linux the 40px app chrome IS the title bar.
 //
 // v0.10.3 shipped the refreshed chrome under the OS title bar and menu bar on
 // Windows, so the window carried two title bars. Nothing failed: the frame

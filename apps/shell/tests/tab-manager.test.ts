@@ -102,8 +102,8 @@ vi.mock('../../slides/src/main/slides-main', () => ({
 
 import { TabManager } from '../src/main/tab-manager'
 
-/** Mirrors src/main/tab-manager.ts, which is kept in lockstep with the renderer's 62px chrome. */
-const TAB_STRIP_HEIGHT = 62
+/** Mirrors src/main/tab-manager.ts, which is kept in lockstep with the renderer's 40px chrome. */
+const TAB_STRIP_HEIGHT = 40
 const WINDOW_WIDTH = 800
 const WINDOW_HEIGHT = 600
 

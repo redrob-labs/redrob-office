@@ -54,7 +54,7 @@ interface TabRecord {
 }
 
 /** must match the tab strip's rendered height (apps/shell/src/renderer/src/TabBar.tsx) */
-const TAB_STRIP_HEIGHT = 62
+const TAB_STRIP_HEIGHT = 40
 export { TAB_STRIP_HEIGHT }
 const HOME_ID = 'home'
 
