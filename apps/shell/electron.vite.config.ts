@@ -6,7 +6,14 @@ export default defineConfig({
   // Bundle everything into the shell main (same policy as apps/docs): the
   // imported docs/sheets main modules are TS source with no build artifacts,
   // so externalizing them would break Node ESM resolution at runtime.
-  main: {},
+  // Dependencies stay external (required at runtime from node_modules), except packages that only
+  // publish ESM: the main bundle is CommonJS, so `require('@redrob-labs/sdk/daemon')` fails with
+  // ERR_PACKAGE_PATH_NOT_EXPORTED (its exports have no `require` condition). Bundle those instead.
+  main: {
+    build: {
+      externalizeDeps: { exclude: ['@redrob-labs/sdk'] },
+    },
+  },
   preload: {
     build: {
       rollupOptions: {

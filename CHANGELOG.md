@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.1 -- 2026-10-21
+
+### Fixed
+
+- Windows: the app no longer fails at startup with `ERR_PACKAGE_PATH_NOT_EXPORTED: Package subpath ./daemon is not defined by "exports"`. The main process is bundled as CommonJS, and `@redrob-labs/sdk` publishes ESM only (its `exports` have no `require` condition), so `require('@redrob-labs/sdk/daemon')` could not resolve. The SDK is now bundled into the main process instead of loaded from `node_modules`.
+
 ## 0.13.0 -- 2026-10-20
 
 ### Changed
