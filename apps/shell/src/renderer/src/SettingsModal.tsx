@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Button, Dialog, Icon, Input, Select, Switch, applyUiTheme } from '@genoffice/ui'
+import { Button, Dialog, Icon, IconButton, Input, Select, Switch, applyUiTheme } from '@genoffice/ui'
 import type { IconName } from '@genoffice/ui'
 import {
   DEFAULT_MAX_OUTPUT_TOKENS,
@@ -762,14 +762,9 @@ export function SettingsModal({
         <header className="updates-head settings-pane__head">
           <div className="settings-pane__headrow">
             <h1 className="updates-title">{t('settings')}</h1>
-            <button
-              type="button"
-              className="settings-pane__close"
-              aria-label={t('cancel')}
-              onClick={onClose}
-            >
-              <Icon name="close" size={18} />
-            </button>
+            <IconButton size="sm" label={t('cancel')} onClick={onClose}>
+              <Icon name="close" size={16} />
+            </IconButton>
           </div>
         </header>
         {body}

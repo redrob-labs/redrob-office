@@ -34,15 +34,19 @@
   background: none;
 }
 
-/* the one spoken sentence on the surface: the serif voice */
+/* the one spoken line on the surface: greeting + name, the serif voice at a
+ * size that keeps it on one line */
 .home-hero__ask {
+  max-width: 100%;
   margin: 0 0 var(--space-5);
+  font: var(--text-title-2);
   font-family: var(--font-serif);
-  font-size: 40px;
-  line-height: 48px;
   font-weight: 400;
   letter-spacing: -0.01em;
   color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-hero__compose {

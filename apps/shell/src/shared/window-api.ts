@@ -1,6 +1,6 @@
 /**
  * The shell window's own title bar controls, for Windows and Linux, where the
- * window has no OS title bar or menu bar and the 62px app chrome stands in for
+ * window has no OS title bar or menu bar and the 40px app chrome stands in for
  * both. macOS keeps its traffic lights and its menu bar.
  */
 export type WindowPlatform = 'darwin' | 'win32' | 'linux'

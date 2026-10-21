@@ -246,7 +246,7 @@ export function TabBar() {
                 <IconButton
                   className="tab-nav-btn"
                   label={t('appMenu')}
-                  size="md"
+                  size="sm"
                   aria-haspopup="menu"
                   onClick={(event) => void window.aiOfficeWindow.showAppMenu(...anchorOf(event.currentTarget))}
                 >
@@ -257,7 +257,7 @@ export function TabBar() {
                 <IconButton
                   className="tab-nav-btn"
                   label={t('navHome')}
-                  size="md"
+                  size="sm"
                   onClick={() => void window.aiOfficeTabs.activate('home')}
                 >
                   <Icon name="home" size={20} />
@@ -266,16 +266,16 @@ export function TabBar() {
                 <IconButton
                   className="tab-nav-btn"
                   label={t('sidebarToggle')}
-                  size="md"
+                  size="sm"
                   onClick={() => window.dispatchEvent(new CustomEvent('shell:toggle-sidebar'))}
                 >
                   <Icon name="sidebar" size={20} />
                 </IconButton>
               )}
-              <IconButton className="tab-nav-btn" label={t('navBack')} size="md" disabled>
+              <IconButton className="tab-nav-btn" label={t('navBack')} size="sm" disabled>
                 <Icon name="chevronRight" size={20} className="tab-nav-btn__back" />
               </IconButton>
-              <IconButton className="tab-nav-btn" label={t('navForward')} size="md" disabled>
+              <IconButton className="tab-nav-btn" label={t('navForward')} size="sm" disabled>
                 <Icon name="chevronRight" size={20} />
               </IconButton>
             </div>

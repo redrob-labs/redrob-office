@@ -67,7 +67,7 @@ body.vib .home {
 
 .home {
   display: flex;
-  height: calc(100vh - 62px);
+  height: calc(100vh - 40px);
 }
 
 /* The sidebar is a FLOATING frosted panel (Apple Music style): inset from the

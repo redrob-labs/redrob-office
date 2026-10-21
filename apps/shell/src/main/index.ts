@@ -2555,7 +2555,7 @@ function applyMenuFor(kind: TabKind): void {
 
 /*
  * Windows draws its own caption buttons (minimise, maximise, close) over the
- * right end of the 62px app chrome, which keeps Snap Layouts on maximise. It
+ * right end of the 40px app chrome, which keeps Snap Layouts on maximise. It
  * cannot read the renderer's tokens, so the design system's values are written
  * out: a transparent strip so the chrome's ground shows through, and glyphs in
  * --ink-secondary for the active theme (Gray 7 light, Gray 5 dark).
@@ -2572,7 +2572,7 @@ function windowsCaptionOverlay(): TitleBarOverlayOptions {
 
 /*
  * The OS frame per platform. macOS keeps its traffic lights inset in the
- * chrome. Windows and Linux lose the OS title bar and menu bar: the 62px app
+ * chrome. Windows and Linux lose the OS title bar and menu bar: the 40px app
  * chrome is the title bar. Windows keeps real caption buttons through
  * titleBarOverlay; Linux has no overlay, so it is frameless and the chrome
  * draws its own buttons (WindowControls).
