@@ -1943,7 +1943,6 @@ export function Home() {
         {view === 'recent' && (
           <HomeHero
             name={accountName || undefined}
-            lastFile={entries[0] ? baseName(entries[0]) : undefined}
             onAsk={(prompt) => void window.aiOffice.ask(prompt)}
             onStart={startBlank}
             onOpenFile={() => void window.aiOffice.browse()}

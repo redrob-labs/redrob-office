@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.13.3 -- 2026-10-21
+
+### Changed
+
+- Home: the greeting is one short line, "Good afternoon, Janghoon" (the signed-in Redrob account's first name, or just "Good afternoon" when signed out), at a size that fits one line. It no longer names the last file; Recent lists it. Every language gets the same greeting-plus-name line.
+- Settings: the section list, row labels, descriptions and status text use the design system's type, spacing and control-height tokens and match Home's sidebar rows; the pane's close button is the kit's icon button.
+
+### Fixed
+
+- Windows: the app chrome is one 40px bar and the minimise, maximise and close buttons are exactly as tall (they were 62px), so their hover and click areas no longer hang past the visible bar. The bar's own buttons and search box use the kit's small control height to fit inside it. The standalone Docs and Slides windows keep their tab row at least as tall as their caption buttons.
+
 ## 0.13.2 -- 2026-10-21
 
 ### Fixed

@@ -2,17 +2,16 @@
  * plates, feet, drag to reorder, close buttons) is @genoffice/ui's DocTabs,
  * styled by @genoffice/ui/doctabs.css on the design system's tokens. */
 
-/* Thicker chrome: raise the DocTabs strip height to 62px (~+30% over the
- * previous 40). The matching editor-view offset is TAB_STRIP_HEIGHT in the
- * main process (tab-manager.ts), raised to 62 in lockstep so the native views
- * do not overlap the taller strip; .app-frame-content padding matches below. */
+/* The strip is the kit's 40px bar and the whole app chrome: Windows' caption
+ * buttons (titleBarOverlay), the editor views (TAB_STRIP_HEIGHT in
+ * tab-manager.ts) and .app-frame-content padding all use the same 40px, and
+ * the strip's controls are the kit's small control height so they sit inside it. */
 .tab-bar {
-  --go-doctabs-height: 62px;
+  --go-doctabs-height: 40px;
 }
 
-/* Slightly shorter tab plates inside the taller (62px) strip: push the plate
- * down from the top so the tab chip reads shorter, without changing the strip
- * height (the editor-view offset depends on it).
+/* The tab chip: the kit's 34px body flush with the 40px bar's bottom, the icon
+ * and title on the chip's own center line.
  *
  * Overflow is already handled by the kit and needs no change: the scrolling
  * .go-doctabs__strip is flex:1 / min-width:0 / overflow-x:auto, and the nav
@@ -20,10 +19,8 @@
  * pinned while tabs shrink to their min-width and then scroll — tabs never
  * overlap the logos or the search box. */
 .tab-bar .go-doctabs__tab {
-  /* a fixed, shorter chip centered in the 62px strip; the icon + title sit on
-   * the chip's own center line so they align cleanly */
   height: 34px;
-  margin-top: 14px;
+  margin-top: 6px;
   padding-top: 0;
   padding-bottom: 0;
   align-items: center;
@@ -89,7 +86,7 @@ html.genoffice-popover-open .tab-bar {
   display: flex;
   align-items: center;
   gap: 2px;
-  height: 40px;
+  height: var(--control-height-sm);
   margin-left: var(--space-1);
   padding: 0 var(--space-2) 0 var(--space-2);
   border: 0;
@@ -158,7 +155,7 @@ html.genoffice-popover-open .tab-bar {
   align-items: center;
   gap: var(--space-2);
   width: 420px;
-  height: 40px;
+  height: var(--control-height-sm);
   margin-right: var(--space-2);
   padding: 0 var(--space-3);
   border: 1px solid var(--border-subtle);
@@ -181,7 +178,7 @@ html.genoffice-popover-open .tab-bar {
 }
 
 /* the editor WebContentsViews are laid out below the strip by the main
- * process (TAB_STRIP_HEIGHT = 62); Home's own content starts at the same line */
+ * process (TAB_STRIP_HEIGHT = 40); Home's own content starts at the same line */
 .app-frame-content {
-  padding-top: 62px;
+  padding-top: 40px;
 }

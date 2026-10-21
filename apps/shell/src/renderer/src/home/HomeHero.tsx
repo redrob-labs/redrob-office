@@ -8,9 +8,6 @@ import { StartBlank, type StartBlankProps } from './StartBlank'
 export interface HomeHeroProps extends StartBlankProps {
   /** account first name for the greeting; omitted when signed out */
   name?: string
-  /** base name of the most-recently-opened file, for the "pick up where you
-   *  left off" clause; omitted when there is no recent file */
-  lastFile?: string
   /** submit a request: open the file it is about with Redrob answering */
   onAsk: (prompt: string) => void
   /** for tests: the hour the greeting is for */
@@ -46,20 +43,15 @@ function CapabilityRow(): ReactElement {
 }
 
 /**
- * Build the dynamic headline. BOTH clauses vary:
- *  - the greeting by time of day (Good morning / afternoon / evening) and the
- *    account name when present;
- *  - the question by whether there is a previous task: when a recent file
- *    exists it invites picking it back up by name, otherwise it asks what to
- *    create. Fully localised (en/ko) via keyed strings with {name}/{file}.
+ * The headline: one short line, the greeting by time of day (Good morning /
+ * afternoon / evening) and the account name when present. The last file is
+ * not named here; Recent below already lists it.
  */
-function useGreetingLine(name: string | undefined, lastFile: string | undefined, hour: number): string {
+function useGreetingLine(name: string | undefined, hour: number): string {
   const { t } = useI18n()
-  const greeting = name
+  return name
     ? t(`${greetingKeyFor(hour)}Name` as Parameters<typeof t>[0], { name })
     : t(greetingKeyFor(hour))
-  const question = lastFile ? t('homeAskResume', { file: lastFile }) : t('homeAskLine')
-  return `${greeting} ${question}`
 }
 
 /** localStorage key: the first-run guide was dismissed on this computer */
@@ -123,8 +115,7 @@ type IdentityStatus = Awaited<ReturnType<IdentityApi['identityStatus']>>
  * API keys). Signed out it is a Sign-in call to action that opens Settings on
  * the account pane (the same IdentityPane; the flow itself lives there).
  */
-function HomeAccountBar(): ReactElement {
-  const { t } = useI18n()
+function useIdentityStatus(): IdentityStatus | null {
   const api: IdentityApi | undefined = window.aiOfficeIdentity
   const [status, setStatus] = useState<IdentityStatus | null>(null)
   useEffect(() => {
@@ -138,6 +129,11 @@ function HomeAccountBar(): ReactElement {
       off()
     }
   }, [api])
+  return status
+}
+
+function HomeAccountBar({ status }: { status: IdentityStatus | null }): ReactElement {
+  const { t } = useI18n()
   const openAccount = () =>
     window.dispatchEvent(new CustomEvent('redrob:open-settings', { detail: { section: 'identity' } }))
   return (
@@ -168,10 +164,14 @@ function HomeAccountBar(): ReactElement {
  * then the capability signals and a bottom AI disclaimer. Centered in the
  * content area. (Tiles sit ABOVE the composer, under the headline.)
  */
-export function HomeHero({ name, lastFile, onAsk, hour, ...blank }: HomeHeroProps): ReactElement {
+export function HomeHero({ name, onAsk, hour, ...blank }: HomeHeroProps): ReactElement {
   const { t } = useI18n()
   const [prompt, setPrompt] = useState('')
-  const line = useGreetingLine(name, lastFile, hour ?? new Date().getHours())
+  const identity = useIdentityStatus()
+  // the Redrob account's first name ("Janghoon Lee" -> "Janghoon"), else the
+  // name Home passed in
+  const firstName = identity?.signedIn ? identity.name?.trim().split(/\s+/)[0] : undefined
+  const line = useGreetingLine(firstName || name, hour ?? new Date().getHours())
   const ask = (value: string | undefined) => {
     const text = (value ?? '').trim()
     if (!text) return
@@ -180,7 +180,7 @@ export function HomeHero({ name, lastFile, onAsk, hour, ...blank }: HomeHeroProp
   }
   return (
     <section className="home-hero" aria-labelledby="home-hero-ask">
-      <HomeAccountBar />
+      <HomeAccountBar status={identity} />
       <HomeGuide />
       <h1 id="home-hero-ask" className="home-hero__ask">
         {line}
