@@ -1104,6 +1104,8 @@ export function Home() {
   // actions cell (… button + menu) of the row whose menu is open — the dismissal guard root
   const rowMenuWrapRef = useRef<HTMLSpanElement>(null)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
+  // last checkbox clicked without Shift: the start of a Shift+click range
+  const selectAnchorRef = useRef<string | null>(null)
   const [renaming, setRenaming] = useState<{ path: string; value: string } | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null)
   // unavailable recent entry (missing flag) the user clicked — offer list removal
@@ -1417,11 +1419,20 @@ export function Home() {
     setRowMenu(null)
   }
 
-  const toggleSelect = (path: string, on: boolean) => {
+  // Shift+click sets every row between the anchor and this one to this row's new state
+  const toggleSelect = (path: string, on: boolean, shift: boolean, list: readonly RecentEntry[]) => {
+    const paths = list.map((e) => e.path)
+    const from = shift && selectAnchorRef.current !== null ? paths.indexOf(selectAnchorRef.current) : -1
+    const to = paths.indexOf(path)
+    const range =
+      from >= 0 && to >= 0 ? paths.slice(Math.min(from, to), Math.max(from, to) + 1) : [path]
+    if (!shift || from < 0) selectAnchorRef.current = path
     setSelected((prev) => {
       const next = new Set(prev)
-      if (on) next.add(path)
-      else next.delete(path)
+      for (const p of range) {
+        if (on) next.add(p)
+        else next.delete(p)
+      }
       return next
     })
   }
@@ -1632,12 +1643,26 @@ export function Home() {
             }
           }}
         >
-          <span className="col-check" onClick={(event) => event.stopPropagation()}>
+          <span
+            className="col-check"
+            onClick={(event) => event.stopPropagation()}
+            // Shift+click would otherwise also drag a text selection across the rows
+            onMouseDown={(event) => {
+              if (event.shiftKey) event.preventDefault()
+            }}
+          >
             <input
               type="checkbox"
               className="row-check"
               checked={selected.has(entry.path)}
-              onChange={(event) => toggleSelect(entry.path, event.target.checked)}
+              onChange={(event) =>
+                toggleSelect(
+                  entry.path,
+                  event.target.checked,
+                  (event.nativeEvent as MouseEvent).shiftKey === true,
+                  context === 'project' ? projectFileEntries : entries,
+                )
+              }
               aria-label={t('selectFile', { name: entry.name })}
             />
           </span>
