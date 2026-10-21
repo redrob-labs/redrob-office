@@ -941,7 +941,10 @@ body.vib .home {
   color: var(--ink-primary);
 }
 
-.row-menu {
+/* compound selector: the kit's .rr-menu__list (left: 0) loads after this file
+   and, at equal specificity, would pin the menu's left edge to the button and
+   push it off the right side of the window */
+.row-menu.rr-menu__list {
   top: calc(100% + 6px);
   right: 0;
   left: auto;
