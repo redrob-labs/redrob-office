@@ -24,6 +24,7 @@ export {
   type PathProvider,
 } from './default-save-dir'
 export { installNavigationGuard } from './navigation-guard'
+export { fitToWorkArea } from './window-size'
 export {
   DROP_OPEN_CHANNEL,
   droppableFilePaths,
