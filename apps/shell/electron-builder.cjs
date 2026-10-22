@@ -319,12 +319,16 @@ const ASSET_STEM = 'redrob-office'
 
 /** @type {import('electron-builder').Configuration} */
 const config = {
-  appId: 'com.redrob.app',
+  // macOS CFBundleIdentifier, on Redrob's own domain. Builds up to 0.13.4 shipped
+  // GenOffice's com.redrob.app; macOS refuses a self-update whose identifier
+  // changed, so those installs move over once through Redrob Launcher or the dmg.
+  // Windows keeps its install lineage through nsis.guid below.
+  appId: 'ai.redrob.office',
   // User-visible product name (macOS .app bundle, Windows install/About, Linux
   // menu entry). The product is "Redrob Office"; the older builds shipped as
-  // "Redrob". appId, executableName, and the artifact/feed filenames below are
-  // pinned to their historic values so this display rename does NOT break the
-  // update feed or package upgrade lineage.
+  // "Redrob". executableName and the artifact/feed filenames below are pinned
+  // to their historic values so this display rename does NOT break the update
+  // feed or package upgrade lineage.
   productName: 'Redrob Office',
   // Binary/executable name is kept as "redrob" on every platform. Without this
   // mac/win would derive the executable from productName and ship a
@@ -500,6 +504,9 @@ const config = {
     artifactName: includeMacX64
       ? `${ASSET_STEM}-\${version}-macos-\${arch}.\${ext}`
       : `${ASSET_STEM}-\${version}-macos-aarch64.\${ext}`,
+    // The .app is named after the executable; without this macOS gets
+    // "redrob.app" in Applications instead of "Redrob Office.app".
+    executableName: 'Redrob Office',
     category: 'public.app-category.productivity',
     hardenedRuntime: true,
     gatekeeperAssess: false,
@@ -650,6 +657,10 @@ const config = {
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
+    // electron-builder derives the install GUID from appId. Pinned to the one
+    // com.redrob.app gave, so the new installer upgrades an existing install
+    // instead of adding a second "Redrob Office" next to it.
+    guid: 'ab71eee7-ed4c-5ffa-80a7-57a96fc33579',
     // The installer. Same grammar as every other asset with a -setup marker, so
     // a person can tell it from the -portable.zip; release-desktop.yml matches
     // it as *-setup.exe. Not launcher-installable (an exe installer never is).
