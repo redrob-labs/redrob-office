@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.5 -- 2026-10-22
+
+### Changed
+
+- macOS: the app ships as `Redrob Office.app` with the bundle id `ai.redrob.office` (was `redrob.app`, `com.redrob.app`), so Redrob Launcher finds and installs it. A Mac running 0.13.4 or older cannot auto-update across the id change: install 0.13.5 once from Redrob Launcher or the disk image. Settings and sign-in carry over. Windows keeps its old installer GUID and updates in place.
+
 ## 0.13.4 -- 2026-10-22
 
 ### Fixed
