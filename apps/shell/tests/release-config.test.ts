@@ -72,12 +72,14 @@ describe('packaged product identity', () => {
 
   it('preserves the stable appId and executable name for upgrades', () => {
     const c = loadBuilderConfig()
-    // appId is the Windows AUMID / macOS CFBundleIdentifier — changing it breaks
-    // in-place upgrades, so it must stay on the historic value.
-    expect(c.appId).toBe('com.redrob.app')
-    // the binary/executable stays "redrob" on every platform (mac/win would
-    // otherwise derive it from the new productName)
+    // appId is the macOS CFBundleIdentifier; the Windows install GUID stays on
+    // the one the historic com.redrob.app produced.
+    expect(c.appId).toBe('ai.redrob.office')
+    expect((c.nsis as { guid?: string }).guid).toBe('ab71eee7-ed4c-5ffa-80a7-57a96fc33579')
+    // the binary stays "redrob" on win/linux; macOS names it (and the .app)
+    // after the product
     expect(c.executableName).toBe('redrob')
+    expect((c.mac as { executableName?: string }).executableName).toBe('Redrob Office')
     expect((c.linux as { executableName?: string }).executableName).toBe('redrob')
   })
 
