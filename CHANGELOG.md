@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.6 -- 2026-10-26
+
+### Fixed
+
+- macOS: the window buttons no longer cover the sidebar, back and forward buttons in the top-left corner.
+
 ## 0.13.5 -- 2026-10-22
 
 ### Changed
