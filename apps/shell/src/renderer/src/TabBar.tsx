@@ -235,6 +235,9 @@ export function TabBar() {
         onReorder={reorder}
         start={
           <>
+            {/* room for the macOS traffic lights (titleBarStyle: hiddenInset):
+                it must come first, or the lights sit on top of the nav cluster */}
+            {isMac ? <div className="tab-bar-drag-spacer" /> : null}
             {/* Left chrome nav cluster. Back/forward are deferred placeholders:
                 there is no main-process navigation API yet, so they are present
                 but disabled. The sidebar toggle hides/shows the Home sidebar
@@ -279,8 +282,6 @@ export function TabBar() {
                 <Icon name="chevronRight" size={20} />
               </IconButton>
             </div>
-            {/* room for the macOS traffic lights (titleBarStyle: hiddenInset) */}
-            {isMac ? <div className="tab-bar-drag-spacer" /> : null}
           </>
         }
         end={
