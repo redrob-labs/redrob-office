@@ -9,7 +9,7 @@
  *
  * Why that matters beyond tidiness: today Office keeps keys in
  * `userData/ai-settings.json`, Design in the macOS keychain, the extension in
- * `chrome.storage.local`, Query and Recall in separate keyring services. Five stores
+ * `chrome.storage.local`, Recall in a separate keyring service. Four stores
  * that never read each other is the entire reason a user signs in again in every
  * Redrob app. One store fixes that once.
  *
